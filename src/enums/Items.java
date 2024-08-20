@@ -1,0 +1,91 @@
+package enums;
+
+import application.Main;
+
+public enum Items {
+	
+	BOMB_UP(0),
+	FIRE_UP(2),
+	SPEED_UP(3),
+	SPIKE_BOMB(4),
+	REMOTE_BOMB(5),
+	P_BOMB(6),
+	MINE_BOMB(7),
+	RUBBER_BOMB(8),
+	FOLLOW_BOMB(9),
+	MAGNET_BOMB(10),
+	MAGMA_BOMB(11),
+	HEART_BOMB(12),
+	SENSOR_BOMB(13),
+	SPIKE_REMOTE_BOMB(14),
+	PASS_BOMB(15),
+	PASS_WALL(16),
+	LINED_BOMBS(17),
+	KICK_BOMB(18),
+	PUNCH_BOMB(19),
+	POWER_GLOVE(20),
+	PUSH_POWER(21),
+	EXTRA_LIVE(22),
+	HEART_UP(23),
+	ARMOR(24),
+	TIME_STOP(25),
+	ICECREAM(26),
+	APPLE(27),
+	ORANGE(28),
+	BANANA(29),
+	GOHAN(30),
+	CAKE_SLICE(31),
+	PICO_HAMMER(32),
+	POPSILE(33),
+	SPIRAL_ICECREAM(34),
+	SQUARED_CAKE_SLICE(35),
+	FRENCH_FRIES(36),
+	SPIRAL_COLORED_ICECREAM(37),
+	PUDDING(38),
+	CANDY_CONE(39),
+	BUTTER(40),
+	CORN_DOG(41),
+	OLIVES(42),
+	EXTINGUISHER(43),
+	RANDOM(44),
+	FIRE_MAX(45),
+	SPEED_DOWN(46),
+	CURSE_SKULL(47),
+	STRAWBERRY_ICECREAM(48),
+	FIRE_IMMUNE(49),
+	APPLE_2(50);
+	
+	private int value;
+	private static Items[] list = {BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB, REMOTE_BOMB,
+			P_BOMB, MINE_BOMB, RUBBER_BOMB, FOLLOW_BOMB, MAGNET_BOMB, MAGMA_BOMB, HEART_BOMB,
+			SENSOR_BOMB, SPIKE_REMOTE_BOMB, PASS_BOMB, PASS_WALL, LINED_BOMBS, KICK_BOMB,
+			PUNCH_BOMB, POWER_GLOVE, PUSH_POWER, EXTRA_LIVE, HEART_UP, ARMOR, TIME_STOP,
+			ICECREAM, APPLE, ORANGE, BANANA, GOHAN, CAKE_SLICE, PICO_HAMMER, POPSILE,
+			SPIRAL_ICECREAM, SQUARED_CAKE_SLICE, FRENCH_FRIES, SPIRAL_COLORED_ICECREAM,
+			PUDDING, CANDY_CONE, BUTTER, CORN_DOG, OLIVES, EXTINGUISHER, RANDOM, FIRE_MAX,
+			SPEED_DOWN, CURSE_SKULL, STRAWBERRY_ICECREAM, FIRE_IMMUNE, APPLE_2};
+	
+	Items(int value)
+		{ this.value = value;	}
+	
+	public int getValue()
+		{ return value; }
+	
+	public Items getNext() {
+		int i = value + 1;
+		if (i == list.length)
+			i = 0;
+		return list[i];
+	}
+
+	public Items getPreview() {
+		int i = value - 1;
+		if (i == 0)
+			i = list.length - 1;
+		return list[i];
+	}
+	
+	public static Items getRandom()
+		{ return list[Main.getRandom(0, list.length - 1)]; }
+	
+}

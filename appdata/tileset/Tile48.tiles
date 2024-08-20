@@ -1,0 +1,21 @@
+[CONFIG]
+Convertido=1
+HurryUpTile=64 32
+Breakable=240 0 1 1 0.05,2 0.05,3 0.05
+Destroyable=288 0 4
+Regenerable=336 0 -4
+GroundTile=0 48
+GroundWithShadowFromBlock=80 48
+GroundWithShadowFromWall=80 48
+
+[Effect-1]
+FrameSet_Default=0,>3,/if"y;>;-30;1",-
+Sprite=Tiles 288 16 16 32 0 0,0,0,0 0
+Centre=0
+ParamAtStart=/FrameSpd"0.134"/Layer"3"/Speed"0.5"/Dir"2"
+
+[Effect-2]
+FrameSet_Default=0/Desloc"-1;0",0/Desloc"0;0",1/Desloc"1;0",1/Desloc"0;0",2Desloc-1;0",2/Desloc"0;0",3/Desloc"1;0",3/Desloc"0;0",4/Desloc"-1;0",4/Desloc"0;0",5/Desloc"1;0",5/Desloc"0;0",6/Desloc"-1;0",6/Desloc"0;0",7/Desloc"1;0",7/Desloc"0;0
+Sprite=Tiles 0 80 48 32 0 0,0,0,0 0
+Centre=-9
+ParamAtStart=/FrameSpd"0.134"/Layer"0"

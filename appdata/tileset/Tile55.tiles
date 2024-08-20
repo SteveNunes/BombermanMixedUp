@@ -1,0 +1,19 @@
+[CONFIG]
+HurryUpTile=0 64
+Breakable=16 0 1 1 0.25
+Destroyable=32 0 5
+Regenerable=96 0 -5
+GroundTile=0 0
+GroundWithShadowFromBlock=0 0
+GroundWithShadowFromWall=0 0
+
+[Effect-1]
+FrameSet_Default=-!0/FrameSpd"1"/Layer"4"/Desloc"RandInRectPos;32;16"/DoJump"12;0.25;1.2;1.2"!1/Desloc"RandInRectPos;32;16"!2/Desloc"RandInRectPos;32;16"!3/Desloc"RandInRectPos;32;16"!4/Desloc"RandInRectPos;32;16"!5/Desloc"RandInRectPos;32;16",-!0/Desloc"--0.15;++1.1"!1/Desloc"--0.3;++1.1"!2/Desloc"--0.45;++1.1"!3/Desloc"++0.15;++1.1"!4/Desloc"++0.3;++1.1"!5/Desloc"++0.45;++1.1",goto2@46,-!0/Desloc"--0.15;-"!1/Desloc"--0.3;-"!2/Desloc"--0.45;--8"!3/Desloc"++0.15;-"!4/Desloc"++0.3;-"!5/Desloc"++0.45;-",-,goto4@30
+Sprite=Tiles 0 224 16 16 0 0,0,0,0 0
+Centre=-1
+
+[Effect-2]
+ParamAtStart=/FrameSpd"0.34"/Layer"1"
+FrameSet_Default=0,/if"switch;Tower2;=;0;34",0,/if"switch;Tower2;=;0;34",0,/if"switch;Tower2;=;0;34",0,/if"switch;Tower2;=;0;34",1,/if"switch;Tower2;=;0;34",1,/if"switch;Tower2;=;0;34",1,/if"switch;Tower2;=;0;34",1,/if"switch;Tower2;=;0;34",2,/if"switch;Tower2;=;0;34",2,/if"switch;Tower2;=;0;34",2,/if"switch;Tower2;=;0;34",2,/if"switch;Tower2;=;0;34",3,/if"switch;Tower2;=;0;34",3,/if"switch;Tower2;=;0;34",3,/if"switch;Tower2;=;0;34",3,/if"switch;Tower2;=;0;34",goto1,0,rep41,1,rep41,2,rep41,3,rep41,goto34
+Sprite=Tiles 96 208 16 32 0 0,0,0,0 0
+Centre=-9

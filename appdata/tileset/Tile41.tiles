@@ -1,0 +1,53 @@
+[CONFIG]
+HurryUpTile=16 0
+Breakable=0 160 1 2 0.05,1 0.05,3 0.05,1 0.05,4 0.05,1 0.05,5 0.05,1 0.05
+Destroyable=0 208 6
+Regenerable=80 208 -6
+GroundTile=48 0
+GroundWithShadowFromBlock=64 0
+GroundWithShadowFromWall=64 0
+
+[Effect-1]
+FrameSet_Default=0/FrameSpd"0.25"/Layer"0",-,1,-,2,-,3,-,4
+Sprite=Tiles 0 240 32 48 0 0,0,0,0 0
+Centre=-9
+
+[Effect-2]
+FrameSet_Default=0/FrameSpd"0.25"/Layer"0",-,1,-,2,-,3,-,4
+Sprite=Tiles 0 288 32 48 0 0,0,0,0 0
+Centre=-9
+
+[Effect-3]
+FrameSet_Default=0/FrameSpd"0.25"/Layer"0",>10
+Sprite=Tiles 0 192 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-4]
+FrameSet_Default=0/FrameSpd"0.25"/Layer"0",goto1
+Sprite=Tiles 112 0 32 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-5]
+FrameSet_Default=0/FrameSpd"0.25"/Layer"0",goto1
+Sprite=Tiles 144 0 32 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-6]
+FrameSet_Default=0/FrameSpd"0.15"/Layer"0",>3
+Sprite=Tiles 0 224 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-7]
+FrameSet_Default=0/FrameSpd"0.15"/Layer"0",>3
+Sprite=Tiles 64 224 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-8]
+FrameSet_Default=1/FrameSpd"0.25"/Layer"0",0,1,0,1,0,1,0,1,0,1,0,1,-,1,-,1,-,1,-,1,-,1,-
+Sprite=Tiles 0 336 48 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-9]
+FrameSet_Default=0/FrameSpd"0.25"/Layer"0",-,goto1@9
+Sprite=Tiles 64 32 48 32 0 0,0,0,0 0
+Centre=-9

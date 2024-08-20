@@ -1,0 +1,19 @@
+[CONFIG]
+HurryUpTile=32 16
+Breakable=32 0 1 1 0.25
+Destroyable=32 80 5 2
+Regenerable=160 112 4
+GroundTile=96 0
+GroundWithShadowFromBlock=112 0
+GroundWithShadowFromWall=112 0
+Fragile=80 16 2
+
+[Effect-1]
+FrameSet_Default=1/FrameSpd"0.1"/Layer"0",2,3,4
+Sprite=Tiles 0 144 48 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-2]
+FrameSet_Default=0/FrameSpd"0.25"/Layer"0",-,goto1@9
+Sprite=Tiles 64 48 48 32 0 0,0,0,0 0
+Centre=-9

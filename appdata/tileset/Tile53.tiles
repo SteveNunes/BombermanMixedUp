@@ -1,0 +1,89 @@
+[CONFIG]
+HurryUpTile=0 80
+Breakable=16 64 1 1 0.25
+Destroyable=32 64 5
+Regenerable=96 64 -5
+GroundTile=0 64
+GroundWithShadowFromBlock=0 64
+GroundWithShadowFromWall=0 64
+
+[Effect-1]
+; Trem
+ParamAtStart=/FrameSpd"1"/Layer"0"/Dir"0"/Speed"1"
+FrameSet_Default=0,/if"y;<;288;1",/Move"240;-128",0,/if"y;<;288;4",/Move"-16;-128",goto1
+Sprite=Tiles 80 96 48 64 0 0,0,0,0 0
+Centre=-9
+
+[Effect-2]
+; Raio (Cima)
+ParamAtStart=/FrameSpd"1"/Layer"2"/Damage"4;4;8;24;129;Stun;180"
+FrameSet_Default=0/Move"-;--1.5",goto1@3,1/Move"-;--1.5",goto3@3,/if"y;>;-32;1"
+Sprite=Tiles 128 208 16 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-3]
+; Raio (Baixo)
+ParamAtStart=/FrameSpd"1"/Layer"2"/Damage"4;4;8;24;129;Stun;180"
+FrameSet_Default=0/Move"-;++1.5",goto1@3,1/Move"-;++1.5",goto3@3,/if"y;<;288;1"
+Sprite=Tiles 160 208 16 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-4]
+; Raio (Esquerda)
+ParamAtStart=/FrameSpd"1"/Layer"2"/Damage"4;4;24;8;129;Stun;180"
+FrameSet_Default=0/Move"--1.5;-",goto1@3,1/Move"--1.5;-",goto3@3,/if"x;>;-32;1"
+Sprite=Tiles 192 208 32 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-5]
+; Raio (Direita)
+ParamAtStart=/FrameSpd"1"/Layer"2"/Damage"4;4;24;8;129;Stun;180"
+FrameSet_Default=0/Move"++1.5;-",goto1@3,1/Move"++1.5;-",goto3@3,/if"x;<;288;1"
+Sprite=Tiles 192 224 32 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-6]
+; Raio (Diagonal superior esquerda)
+ParamAtStart=/FrameSpd"1"/Layer"2"/Damage"6;6;12;12;129;Stun;180"
+FrameSet_Default=0/Move"--1;--1",goto1@3,1/Move"--1;--1",goto3@3,/if"y;>;-32;1"
+Sprite=Tiles 0 240 32 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-7]
+; Raio (Diagonal superior direita)
+ParamAtStart=/FrameSpd"1"/Layer"2"/Damage"14;6;12;12;129;Stun;180"
+FrameSet_Default=0/Move"++1;--1",goto1@3,1/Move"++1;--1",goto3@3,/if"y;>;-32;1"
+Sprite=Tiles 64 240 32 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-8]
+; Raio (Diagonal inferior direita)
+ParamAtStart=/FrameSpd"1"/Layer"2"/Damage"14;14;12;12;129;Stun;180"
+FrameSet_Default=0/Move"++1;++1",goto1@3,1/Move"++1;++1",goto3@3,/if"y;<;288;1"
+Sprite=Tiles 128 240 32 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-9]
+; Raio (Diagonal inferior esquerda)
+ParamAtStart=/FrameSpd"1"/Layer"2"/Damage"6;14;12;12;129;Stun;180"
+FrameSet_Default=0/Move"--1;++1",goto1@3,1/Move"--1;++1",goto3@3,/if"y;<;288;1"
+Sprite=Tiles 192 240 32 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-10]
+; Relogio da torre
+ParamAtStart=/FrameSpd"1"/Layer"1"
+FrameSet_Default=0/FrontY"8",0,rep599,0/Play"Clock1",1,2,1,0,goto5@6,rep120,/Play"Clock2"/RunEffect"-2;X+16;Y-64"/RunEffect"-3;X+16;Y-32"/RunEffect"-4;X-16;Y-38"/RunEffect"-5;X+32;Y-38",/FrameSet"FrameSet_Default2"
+FrameSet_Default2=0/FrontY"8",0,rep599,0/Play"Clock1",1,2,1,0,goto5@6,rep120,/Play"Clock2"/RunEffect"-6;X;Y-54"/RunEffect"-7;X+16;Y-54"/RunEffect"-8;X+16;Y-38"/RunEffect"-9;X;Y-38",/FrameSet"FrameSet_Default"
+Sprite=Tiles 0 272 48 48 0 0,0,0,0 0
+Centre=-9
+
+[Effect-11]
+; Torre
+ParamAtStart=/FrameSpd"1"/Layer"1"/RunEffect"-10;X;Y+48;\\SetCallID'Clock'"
+FrameSet_Default=0/FrontY"20",0,goto2
+FrameSet_TakeDamage=1/FrontY"20",1,0,0,1,goto2@13,1
+FrameSet_Dead=1/FrontY"20",1,0,0,1,goto2@13,1,2/SetWH"-;-32"/Desloc"-;-"/CallID"Clock;Kill"/ChangeSwitchVal"Exit;0"/Play"TowerBreak"/DelEvent"3"/DelEvent"4"/SendToTileEffects"CopyTileImage@8@1@3@3@0@26@X@Y+3",/RunEffect"61;X'X+16'X+32;Y+32'Y+48'Y+64",goto8@15,2,goto10
+Sprite=Tiles 112 0 48 80 0 0,0,0,0 0
+Centre=-9
+Lives=8

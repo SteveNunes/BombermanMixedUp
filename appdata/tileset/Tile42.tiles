@@ -1,0 +1,18 @@
+[CONFIG]
+HurryUpTile=48 0
+Breakable=32 208 1 1 0.15,2 0.15,2 0.15,3 0.15,4 0.15,5 0.15,6 0.15,7 0.15
+Destroyable=0 256 6
+Regenerable=80 256 -6
+GroundTile=80 0
+GroundWithShadowFromBlock=96 0
+GroundWithShadowFromWall=112 0
+
+[Effect-1]
+FrameSet_Default=0Play"MetalDoorOpening"/FrameSpd"0.25"/Layer"0",>6
+Sprite=Tiles 16 224 16 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-2]
+FrameSet_Default=0/FrameSpd"0.25"/Layer"0",-,goto1@9
+Sprite=Tiles 112 80 16 32 0 0,0,0,0 0
+Centre=-9

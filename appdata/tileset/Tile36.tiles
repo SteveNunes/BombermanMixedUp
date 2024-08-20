@@ -1,0 +1,8 @@
+[CONFIG]
+HurryUpTile=0 0
+Breakable=0 16 1 1 0.25
+Destroyable=16 16 6
+Regenerable=96 16 -6
+GroundTile=16 0
+GroundWithShadowFromBlock=16 0
+GroundWithShadowFromWall=16 0

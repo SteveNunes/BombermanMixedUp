@@ -1,0 +1,51 @@
+[CONFIG]
+HurryUpTile=16 0
+Breakable=32 0 1 1 0.25
+Destroyable=48 0 5
+Regenerable=112 0 -5
+GroundTile=0 0
+GroundWithShadowFromBlock=0 0
+GroundWithShadowFromWall=0 0
+
+[Effect-1]
+ParamAtStart=/FrameSpd"1"/Layer"0"
+FrameSet_Default=0,rep29,0/Play"4-Spikes"/Layer"1"/Damage"2;2;12;12;513"!0/Layer"1"/Damage"2;2;12;12;513"!0/Layer"1"/Damage"2;2;12;12;513"!0/Layer"1"/Damage"2;2;12;12;513"!0/Layer"1"/Damage"2;2;12;12;513",2/Desloc"--3.2;0"!3/Desloc"0;--3.2"!4/Desloc"++3.2;0"!5/Desloc"0;++3.2"!1,goto4@4,rep59,2/Desloc"++3.2;0"!3/Desloc"0;++3.2"!4/Desloc"--3.2;0"!5/Desloc"0;--3.2"!1,goto7@4
+Sprite=Tiles 16 144 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-2]
+ParamAtStart=/Play"Saw1"/FrameSpd"0.5"/Layer"0"/Damage"2;2;12;12;87"
+FrameSet_Default=0,1,goto1@23,1/Speed"4",0,1/Layer"3"/Play"Saw2",0,1,/if"outofscreen;11",goto7,0
+Sprite=Tiles 64 80 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-3]
+ParamAtStart=/Play"Saw1"/FrameSpd"0.5"/Layer"0"/Desloc"0;1"/Damage"2;2;12;12;87"
+FrameSet_Default=0,1,goto1@23,1/Speed"4",0,1/Layer"3"/Play"Saw2",0,1,/if"outofscreen;11",goto7,0
+Sprite=Tiles 64 80 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-4]
+FrameSet_Default=0TilePlatform/FrameSpd"0.25"/Layer"0",goto1
+Sprite=Tiles 48 80 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-5]
+FrameSet_Default=0/FrameSpd"0.14"/Layer"1",1,goto1@3,1/FrameSpd"1"/RunEffect"-2;-;-;\Move'-:++0.1'\Dir'0'",rep119
+Sprite=Tiles 0 96 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-6]
+FrameSet_Default=0/FrameSpd"0.14"/Layer"1",1,goto1@3,1/FrameSpd"1"/RunEffect"-2;-;-;\Move'-:++0.1'\Dir'2'",rep119
+Sprite=Tiles 0 112 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-7]
+FrameSet_Default=0/FrameSpd"0.14"/Layer"1",1,goto1@3,1/FrameSpd"1"/RunEffect"-3;-;-;\Move'-:++15.9'\Dir'3'",rep119
+Sprite=Tiles 32 96 16 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-8]
+FrameSet_Default=0/FrameSpd"0.14"/Layer"1",1,goto1@3,1/FrameSpd"1"/RunEffect"-3;-;-;\Move'-:++15.9'\Dir'1'",rep119
+Sprite=Tiles 80 96 16 32 0 0,0,0,0 0
+Centre=-9

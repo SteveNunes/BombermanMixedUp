@@ -1,0 +1,31 @@
+[CONFIG]
+HurryUpTile=0 16
+Breakable=16 0 1 1 0
+Destroyable=32 0 6
+Regenerable=112 0 -6
+GroundTile=0 0
+GroundWithShadowFromBlock=0 0
+GroundWithShadowFromWall=0 0
+
+[Effect-1]
+FrameSet_Default=0/Damage"4;4;12;12;65"/Play"Tesla"/FrameSpd"0.14"/Layer"1",1,0,goto2@7
+DisapearIfTileIsOccuped=1
+Sprite=Tiles 0 176 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-2]
+FrameSet_Default=0/Damage"4;4;12;12;65"/Play"Tesla"/FrameSpd"0.14"/Layer"1",1,0,goto2@7
+DisapearIfTileIsOccuped=1
+Sprite=Tiles 32 176 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-3]
+FrameSet_Default=0/Damage"4;4;12;12;65"/Play"Tesla"/FrameSpd"0.14"/Layer"1",1,0,goto2@7
+DisapearIfTileIsOccuped=1
+Sprite=Tiles 64 176 16 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-4]
+FrameSet_Default=0/SetWH"-;--1"/Desloc"0;++1"/Play"Elevator1"/FrameSpd"0.25"/Layer"0",0/SetWH"-;--1"/Desloc"0;++1",goto2@20,0,goto4@StageDone,0/Layer"2"/SetWH"-;++1"/Desloc"0;--1"/Play"Elevator1",0/SetWH"-;++1"/Desloc"0;--1",goto7@20,0,goto9
+Sprite=Tiles 128 160 48 32 0 0,0,0,0 0
+Centre=-9

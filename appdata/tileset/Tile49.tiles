@@ -1,0 +1,33 @@
+[CONFIG]
+HurryUpTile=64 16
+Breakable=0 64 1 1 0.25
+Destroyable=0 48 6
+Regenerable=80 48 -6
+GroundTile=176 0
+GroundWithShadowFromBlock=176 48
+GroundWithShadowFromWall=176 48
+
+[Effect-1]
+FrameSet_Default=0/Play"PyramidSnake"/FrameSpd"0.14"/Layer"0",1,0,1,2/Desloc"-9;0",3/Damage"0;0;32;16;65",4,4,4,3,2Damage0,1/Desloc"0;0"
+Sprite=Tiles 0 112 32 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-2]
+FrameSet_Default=0/Play"PyramidSnake"/FrameSpd"0.14"/Layer"0",1,0,1,2/Desloc"9;0",3/Damage"0;0;32;16;65",4,4,4,3,2Damage0,1/Desloc"0;0"
+Sprite=Tiles 0 128 32 16 0 0,0,0,0 0
+Centre=-9
+
+[Effect-3]
+FrameSet_Default=0/Play"PyramidSnake"/FrameSpd"0.14"/Layer"0",1,0,1,2/Desloc"0;6",3/Damage"0;0;16;32;65",4,4,4,3,2Damage0,1/Desloc"0;0"
+Sprite=Tiles 0 144 16 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-4]
+FrameSet_Default=0/Desloc"0;-2"/Play"PyramidSnake"/FrameSpd"0.14"/Layer"0",1,0,1,2/Desloc"0;-8",3/Damage"0;0;16;32;65",4,4,4,3,2Damage0,1/Desloc"0;-2"
+Sprite=Tiles 80 144 16 32 0 0,0,0,0 0
+Centre=-9
+
+[Effect-5]
+FrameSet_Default=0/FrameSpd"0.067"/Layer"0",goto1@-1,0/Play"PilarDown",rep3,>3,0,4,>6
+Sprite=Tiles 0 176 16 32 0 0,0,0,0 0
+Centre=-9

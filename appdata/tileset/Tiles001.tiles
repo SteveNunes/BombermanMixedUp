@@ -1,0 +1,14 @@
+[CONFIG]
+HurryUpTile=80 64
+Breakable=80 48 1 1 0.25
+Destroyable=80 96 1
+Regenerable=80 48 1
+GroundTile=48 48
+GroundWithShadowFromBlock=48 48
+GroundWithShadowFromWall=48 48
+
+[Effect-1]
+ParamAtStart=/FrameSpd"1"/Layer"3"
+FrameSet_Default=-/SprShadow"8;8"/Desloc"0;-224",0/Desloc"0;++4",goto2@40,0/SprShadow"14;14"/Desloc"0;++4",0/Desloc"0;++4",goto5@14,0/Desloc"0;0"/Layer"0"/SprShadow/Play"TileSlam",0/FrameSpd"0.2"/Desloc"0;2",0/Desloc"0;0",0/Desloc"0;2",0/FrameSpd"1"/Desloc"0;0"/ChangeBlockSprite"51;-;-;80;64"/ChangeBlockSprite"52;-;-;80;80"/ChangeBlockSprite"53;-;-;80;96"/ChangeBlockSprite"54;-;-;80;112"
+Sprite=Tiles 80 64 16 16 0 0,0,0,0 0
+Centre=-9
