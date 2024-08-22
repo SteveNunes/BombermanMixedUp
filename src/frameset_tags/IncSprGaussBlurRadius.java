@@ -22,4 +22,8 @@ public class IncSprGaussBlurRadius extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncSprGaussBlurRadius getNewInstanceOfThis()
+		{ return new IncSprGaussBlurRadius(increment); }
+	
 }

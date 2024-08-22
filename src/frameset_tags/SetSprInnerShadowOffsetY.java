@@ -22,4 +22,8 @@ public class SetSprInnerShadowOffsetY extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprInnerShadowOffsetY getNewInstanceOfThis()
+		{ return new SetSprInnerShadowOffsetY(value); }
+	
 }

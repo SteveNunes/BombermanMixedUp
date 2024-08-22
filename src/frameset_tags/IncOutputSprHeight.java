@@ -22,4 +22,8 @@ public class IncOutputSprHeight extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncOutputSprHeight getNewInstanceOfThis()
+		{ return new IncOutputSprHeight(increment); }
+	
 }

@@ -22,4 +22,8 @@ public class SetSprColorAdjustBrightness extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprColorAdjustBrightness getNewInstanceOfThis()
+		{ return new SetSprColorAdjustBrightness(value); }
+	
 }

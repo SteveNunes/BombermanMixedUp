@@ -22,4 +22,8 @@ public class IncSprBloomThreshold extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncSprBloomThreshold getNewInstanceOfThis()
+		{ return new IncSprBloomThreshold(increment); }
+	
 }

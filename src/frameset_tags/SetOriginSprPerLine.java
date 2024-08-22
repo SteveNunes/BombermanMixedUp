@@ -22,4 +22,8 @@ public class SetOriginSprPerLine extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetOriginSprPerLine getNewInstanceOfThis()
+		{ return new SetOriginSprPerLine(value); }
+	
 }

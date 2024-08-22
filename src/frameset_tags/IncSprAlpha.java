@@ -22,4 +22,8 @@ public class IncSprAlpha extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncSprAlpha getNewInstanceOfThis()
+		{ return new IncSprAlpha(increment); }
+	
 }

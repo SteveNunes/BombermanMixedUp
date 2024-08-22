@@ -36,4 +36,8 @@ public class SetSprBloomValues extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprBloomValues getNewInstanceOfThis()
+		{ return new SetSprBloomValues(threshold, blendMode); }
+	
 }

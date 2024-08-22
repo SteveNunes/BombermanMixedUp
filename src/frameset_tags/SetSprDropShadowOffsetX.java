@@ -22,4 +22,8 @@ public class SetSprDropShadowOffsetX extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprDropShadowOffsetX getNewInstanceOfThis()
+		{ return new SetSprDropShadowOffsetX(value); }
+	
 }

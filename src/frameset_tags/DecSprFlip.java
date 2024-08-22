@@ -11,4 +11,8 @@ public class DecSprFlip extends FrameTag {
 	public DecSprFlip(String tags)
 		{ FrameTag.validateStringTags(this, tags, 0); }
 	
+	@Override
+	public DecSprFlip getNewInstanceOfThis()
+		{ return new DecSprFlip(); }
+
 }

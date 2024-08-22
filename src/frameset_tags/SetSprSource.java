@@ -13,21 +13,22 @@ public class SetSprSource extends FrameTag {
 	private int spriteIndex;
 	private int spritesPerLine;
 	
-	public SetSprSource(String removedColor, Rectangle originSprSizePos, Rectangle outputSprSizePos, int spriteIndex, int spritesPerLine) {
+	public SetSprSource(Image spriteSource, Rectangle originSprSizePos, Rectangle outputSprSizePos, int spriteIndex, int spritesPerLine) {
+		this.spriteSource = spriteSource;
 		this.originSprSizePos = originSprSizePos;
 		this.outputSprSizePos = outputSprSizePos;
 		this.spritesPerLine = spritesPerLine;
 		this.spriteIndex = spriteIndex;
 	}
 
-	public SetSprSource(String removedColor, Rectangle originSprSizePos, Rectangle outputSprSizePos)
-		{ this(removedColor, originSprSizePos, outputSprSizePos, 0, 0);	}
+	public SetSprSource(Image spriteSource, Rectangle originSprSizePos, Rectangle outputSprSizePos)
+		{ this(spriteSource, originSprSizePos, outputSprSizePos, 0, 0);	}
 	
-	public SetSprSource(String removedColor, Rectangle originSprSizePos, int spriteIndex, int spritesPerLine)
-		{ this(removedColor, originSprSizePos, new Rectangle(0, 0, (int)originSprSizePos.getWidth(), (int)originSprSizePos.getHeight()), spriteIndex, spritesPerLine);	}
+	public SetSprSource(Image spriteSource, Rectangle originSprSizePos, int spriteIndex, int spritesPerLine)
+		{ this(spriteSource, originSprSizePos, new Rectangle(0, 0, (int)originSprSizePos.getWidth(), (int)originSprSizePos.getHeight()), spriteIndex, spritesPerLine);	}
 
-	public SetSprSource(String removedColor, Rectangle originSprSizePos)
-		{ this(removedColor, originSprSizePos, new Rectangle(0, 0, (int)originSprSizePos.getWidth(), (int)originSprSizePos.getHeight()), 0, 0);	}
+	public SetSprSource(Image spriteSource, Rectangle originSprSizePos)
+		{ this(spriteSource, originSprSizePos, new Rectangle(0, 0, (int)originSprSizePos.getWidth(), (int)originSprSizePos.getHeight()), 0, 0);	}
 
 	public Image getSpriteSource()
 		{ return spriteSource; }
@@ -78,4 +79,8 @@ public class SetSprSource extends FrameTag {
 			{ throw new RuntimeException(params[n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprSource getNewInstanceOfThis()
+		{ return new SetSprSource(spriteSource, originSprSizePos, outputSprSizePos, spriteIndex, spritesPerLine); }
+	
 }

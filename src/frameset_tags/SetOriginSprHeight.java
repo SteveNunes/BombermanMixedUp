@@ -22,4 +22,8 @@ public class SetOriginSprHeight extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetOriginSprHeight getNewInstanceOfThis()
+		{ return new SetOriginSprHeight(value); }
+	
 }

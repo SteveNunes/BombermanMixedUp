@@ -24,4 +24,8 @@ public class SetSprBloomBlendMode extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprBloomBlendMode getNewInstanceOfThis()
+		{ return new SetSprBloomBlendMode(blendMode); }
+	
 }

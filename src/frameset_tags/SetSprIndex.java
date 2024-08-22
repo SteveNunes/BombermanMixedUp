@@ -22,4 +22,8 @@ public class SetSprIndex extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprIndex getNewInstanceOfThis()
+		{ return new SetSprIndex(value); }
+	
 }

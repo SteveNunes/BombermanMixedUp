@@ -31,4 +31,8 @@ public class IncOriginSprPos extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncOriginSprPos getNewInstanceOfThis()
+		{ return new IncOriginSprPos(incrementX, incrementY); }
+	
 }

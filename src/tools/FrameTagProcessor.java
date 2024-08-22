@@ -47,6 +47,8 @@ import frameset_tags.IncSprMotionBlurRadius;
 import frameset_tags.IncSprRotate;
 import frameset_tags.IncSprSepiaToneLevel;
 import frameset_tags.IncTicksPerFrame;
+import frameset_tags.PlaySound;
+import frameset_tags.RepeatLastFrame;
 import frameset_tags.SetObjPos;
 import frameset_tags.SetObjX;
 import frameset_tags.SetObjY;
@@ -108,8 +110,37 @@ public abstract class FrameTagProcessor {
 			FrameSet frameSet = sprite.getMainFrameSet();
 			for (FrameTag tag : tags.getFrameSetTags()) {
 				if (tag instanceof Goto) {
+					Goto tag2 = (Goto)tag;
+					if ((!Main.spriteEditor || !FrameSetEditor.isPaused) &&
+							!sprite.getMainFrameSet().isStopped()) {
+								if (tag2.haveLeftCycles()) {
+									tag2.incCycles();
+									int i = tag2.getIndex();
+									frameSet.setCurrentFrameIndex(i < 0 ? frameSet.getCurrentFrameIndex() + i : i);
+								}
+								else {
+									tag2.resetCycles();
+									frameSet.incFrameIndex();
+								}
+					}
+				}
+				else if (tag instanceof RepeatLastFrame) {
+					RepeatLastFrame tag2 = (RepeatLastFrame)tag;
+					if ((!Main.spriteEditor || !FrameSetEditor.isPaused) &&
+							!sprite.getMainFrameSet().isStopped()) {
+								if (tag2.haveLeftCycles()) {
+									tag2.incCycles();
+									frameSet.setCurrentFrameIndex(frameSet.getCurrentFrameIndex() - 1);
+								}
+								else {
+									tag2.resetCycles();
+									frameSet.incFrameIndex();
+								}
+					}
+				}
+				else if (tag instanceof PlaySound) {
 					if (!Main.spriteEditor || !FrameSetEditor.isPaused)
-						frameSet.setCurrentFrameIndex(((Goto)tag).getIndex());
+						GameMisc.playSound(((PlaySound)tag).getPartialSoundPath());
 				}
 				else if (tag instanceof SetSprSource) {
 					sprite.setSpriteSource(((SetSprSource)tag).getSpriteSource());

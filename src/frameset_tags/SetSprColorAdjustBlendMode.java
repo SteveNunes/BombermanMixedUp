@@ -24,4 +24,8 @@ public class SetSprColorAdjustBlendMode extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprColorAdjustBlendMode getNewInstanceOfThis()
+		{ return new SetSprColorAdjustBlendMode(blendMode); }
+	
 }

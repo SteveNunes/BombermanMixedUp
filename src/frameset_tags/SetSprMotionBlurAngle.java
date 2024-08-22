@@ -22,4 +22,8 @@ public class SetSprMotionBlurAngle extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprMotionBlurAngle getNewInstanceOfThis()
+		{ return new SetSprMotionBlurAngle(value); }
+	
 }

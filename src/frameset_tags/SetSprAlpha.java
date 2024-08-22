@@ -22,4 +22,8 @@ public class SetSprAlpha extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprAlpha getNewInstanceOfThis()
+		{ return new SetSprAlpha(value); }
+	
 }

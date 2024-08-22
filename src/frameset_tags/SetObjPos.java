@@ -31,4 +31,8 @@ public class SetObjPos extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetObjPos getNewInstanceOfThis()
+		{ return new SetObjPos(x, y); }
+
 }

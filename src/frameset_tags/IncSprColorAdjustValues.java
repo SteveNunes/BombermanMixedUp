@@ -38,4 +38,8 @@ public class IncSprColorAdjustValues extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncSprColorAdjustValues getNewInstanceOfThis()
+		{ return new IncSprColorAdjustValues(incrementHue, incrementSaturation, incrementBrightness); }
+	
 }

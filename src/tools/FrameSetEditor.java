@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import application.Main;
+import enums.ImageAlignment;
 import frameset.Frame;
 import frameset.FrameSet;
 import frameset.Sprite;
@@ -29,6 +30,7 @@ import frameset_tags.SetSprFlip;
 import frameset_tags.SetSprIndex;
 import frameset_tags.SetSprRotate;
 import gui.util.Alerts;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -40,12 +42,16 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import util.IniFile;
+import util.Misc;
 import util.MyFile;
+import util.Sounds;
 
 
 public abstract class FrameSetEditor {
@@ -95,32 +101,22 @@ public abstract class FrameSetEditor {
 		zoomScale = 1;
 		backupIndex = -1;
 		
-		currentFrameSetName = "BossMoedão";
-		currentFrameSet = new FrameSet(Main.gcDraw, 4, Main.winW / 2, Main.winH / 2);
-		frameSets.put(currentFrameSetName, currentFrameSet);
-
-		String tags = iniFile.read("FRAMESET_EDITOR", "FrameSet");
+		currentFrameSet = new FrameSet(Main.gcDraw, 5, Main.winW / 2, Main.winH / 2);
+		currentFrameSet.loadFromString(iniFile.read("FRAMESET_EDITOR", "FrameSet0"));
 		
-		tags = 
-				"{SetSprSource;MainSprites;0;456;20;45;0;0;0;0;20;45},{SetSprIndex;0},{SetOutputSprPos;-20;0},{SetSprFlip;NONE},,{SetSprSource;MainSprites;0;456;20;45;0;0;0;0;20;45},{SetSprIndex;1},{SetOutputSprPos;0;0},{SetSprFlip;NONE},,{SetSprSource;MainSprites;0;456;20;45;0;0;0;0;20;45},{SetSprIndex;2},{SetOutputSprPos;20;0},{SetSprFlip;NONE},,{SetSprSource;MainSprites;0;456;20;45;0;0;0;0;20;45},{SetSprIndex;-1},{SetSprFlip;NONE}|" +
-				"{SetSprIndex;3},{SetOutputSprPos;-10;0},,{SetSprIndex;4},{SetOutputSprPos;10;0},,{SetSprIndex;-1}|" +
-				"{SetSprIndex;5},,{SetSprIndex;6}|" +
-				"{SetSprIndex;7},,{SetSprIndex;8}|" +
-				"{SetSprIndex;9},{SetOutputSprPos;0;0},,{SetSprIndex;-1},,{SetSprIndex;-1}|" +
-				"{SetSprIndex;10},{SetOutputSprPos;-10;0},,{SetSprIndex;11},{SetOutputSprPos;10;0}|" +
-				"{SetSprIndex;12},,{SetSprIndex;13}|" +
-				"{SetSprIndex;14},,{SetSprIndex;15}|" +
-				"{SetSprIndex;16},{SetOutputSprPos;-20;0},,{SetSprIndex;17},{SetOutputSprPos;0;0},,{SetSprIndex;17},{SetOutputSprPos;0;0},{SetSprFlip;HORIZONTAL},,{SetSprIndex;16},{SetOutputSprPos;20;0},{SetSprFlip;HORIZONTAL}|" +
-				"{SetSprIndex;15},{SetOutputSprPos;-10;0},{SetSprFlip;HORIZONTAL},,{SetSprIndex;14},{SetOutputSprPos;10;0},{SetSprFlip;HORIZONTAL},,{SetSprIndex;-1},,{SetSprIndex;-1}|" +
-				"{SetSprIndex;13},,{SetSprIndex;12}|" +
-				"{SetSprIndex;11},,{SetSprIndex;10}|" +
-				"{SetSprIndex;-1},,{SetSprIndex;9},{SetOutputSprPos;0;0}|" +
-				"{SetSprIndex;8},{SetOutputSprPos;-10;0},,{SetSprIndex;7},{SetOutputSprPos;10;0}|" +
-				"{SetSprIndex;6},,{SetSprIndex;5}|" +
-				"{SetSprIndex;4},,{SetSprIndex;3},,{SetSprIndex;-1}|" +
-				"{Goto;0;1}";
-
-		currentFrameSet.loadFromString(tags);
+		currentFrameSetName = iniFile.read("FRAMESET_EDITOR", "FrameSetName0");
+		frameSets.put(currentFrameSetName, currentFrameSet);
+		
+		for (int n = 1; iniFile.read("FRAMESET_EDITOR", "FrameSetName" + n) != null; n++) {
+			FrameSet frameSet = new FrameSet(Main.gcDraw, 4, Main.winW / 2, Main.winH / 2);
+			frameSet.loadFromString(iniFile.read("FRAMESET_EDITOR", "FrameSet" + n));
+			String frameSetName = iniFile.read("FRAMESET_EDITOR", "FrameSetName" + n);
+			frameSets.put(frameSetName, frameSet);
+		}
+		
+		/*
+		 * TRABALHAR AGORA NA TECLA R Q DEVERIA RESETAR TUDO MAS NAO TA RESETANDO DIREITO (TESTAR)
+		 */
 		resetedFrameSet = new FrameSet(currentFrameSet);
 		setDefaultContextMenu();
 		setSpriteContextMenu();
@@ -249,22 +245,41 @@ public abstract class FrameSetEditor {
 	
 	private static void setSpriteContextMenu() {
 		spriteContextMenu = new ContextMenu();
-		MenuItem item = new MenuItem("Excluir Sprite(s) selecionado(s)");
-		item.setOnAction(e -> {
-			spriteContextMenu.hide();
-			iterateSelectedSprites(sprite -> currentFrameSet.removeSprite(sprite));
-			selectedSprites.clear();
-			focusedSprite = null;
-		});
-		spriteContextMenu.getItems().add(item);
+		if (!selectedSprites.isEmpty()) {
+			MenuItem itemEditFrameTag = new MenuItem("Editar FrameTag do(s) Sprite(s) selecionado(s)");
+			itemEditFrameTag.setOnAction(e -> {
+				spriteContextMenu.hide();
+				String tag = Alerts.textPrompt("Prompt", "Adicionar FrameTag", null, "Digite a FrameTag á ser adicionada");
+				if (tag != null)
+					iterateSelectedSprites(sprite -> currentFrameSet.addFrameTagToSpriteFromString(sprite, tag));
+			});
+			MenuItem itemAddFrameTag = new MenuItem("Adicionar FrameTag ao(s) Sprite(s) selecionado(s)");
+			itemAddFrameTag.setOnAction(e -> {
+				spriteContextMenu.hide();
+				String tag = Alerts.textPrompt("Prompt", "Adicionar FrameTag", null, "Digite a FrameTag á ser adicionada");
+				if (tag != null)
+					iterateSelectedSprites(sprite -> currentFrameSet.addFrameTagToSpriteFromString(sprite, tag));
+			});
+			MenuItem itemExcluirSprite = new MenuItem("Excluir Sprite(s) selecionado(s)");
+			itemExcluirSprite.setOnAction(e -> {
+				spriteContextMenu.hide();
+				iterateSelectedSprites(sprite -> currentFrameSet.removeSprite(sprite));
+				selectedSprites.clear();
+				focusedSprite = null;
+			});
+			spriteContextMenu.getItems().addAll(itemAddFrameTag, itemExcluirSprite);
+		}
 	}
 	
 	private static void setKeyboardEvents(Scene scene) {
 		scene.setOnKeyPressed(e -> {
 			holdedKeys.add(e.getCode());
+			if (e.getCode() == KeyCode.P)
+				GameMisc.playSound("BlockSlam.wav");
 			if (isNoHolds()) {
 				if (e.getCode() == KeyCode.R) {
 					System.out.println("RESET ALL");
+					currentFrameSet.stop();
 					currentFrameSet = new FrameSet(resetedFrameSet);
 					frameSets.put(currentFrameSetName, currentFrameSet);
 					selectedSprites.clear();
@@ -862,20 +877,12 @@ public abstract class FrameSetEditor {
 		{ return !isAltHold() && !isCtrlHold() && !isShiftHold(); }
 
 	public static void close() {
-		String fSet = "";
-		for (int frameIndex = 0; frameIndex < currentFrameSet.getTotalFrames(); frameIndex++) {
-			if (frameIndex > 0)
-				fSet += "|";
-			for (int spriteIndex = 0; spriteIndex < currentFrameSet.getTotalSprites(); spriteIndex++) {
-				boolean added = false;
-				for (int tagIndex = 0; tagIndex < currentFrameSet.getFrameSetTagsFrom(frameIndex, spriteIndex).size(); tagIndex++) {
-					FrameTag tag = currentFrameSet.getFrameSetTagsFrom(frameIndex, spriteIndex).get(tagIndex);
-					fSet += (spriteIndex > 0 && !added ? ",," : "") + (tagIndex > 0 ? "," : "") + tag;
-					added= true;
-				}
-			}
+		iniFile.remove("FRAMESET_EDITOR");
+		int n = 0;
+		for (String frameSetName : frameSets.keySet()) {
+			iniFile.write("FRAMESET_EDITOR", "FrameSetName" + n, frameSetName);
+			iniFile.write("FRAMESET_EDITOR", "FrameSet" + n, frameSets.get(frameSetName).getStringFromFrameSetTags());
 		}
-		iniFile.write("FRAMESET_EDITOR", "FrameSet", fSet);
 	}
 
 }

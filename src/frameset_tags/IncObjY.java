@@ -22,4 +22,8 @@ public class IncObjY extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncObjY getNewInstanceOfThis()
+		{ return new IncObjY(increment); }
+
 }

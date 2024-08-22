@@ -11,4 +11,8 @@ public class IncSprAlign extends FrameTag {
 	public IncSprAlign(String tags)
 		{ FrameTag.validateStringTags(this, tags, 0); }
 
+	@Override
+	public IncSprAlign getNewInstanceOfThis()
+		{ return new IncSprAlign(); }
+	
 }

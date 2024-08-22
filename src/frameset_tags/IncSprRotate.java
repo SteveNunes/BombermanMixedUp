@@ -22,4 +22,8 @@ public class IncSprRotate extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncSprRotate getNewInstanceOfThis()
+		{ return new IncSprRotate(increment); }
+	
 }

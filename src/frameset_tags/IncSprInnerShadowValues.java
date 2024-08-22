@@ -31,4 +31,8 @@ public class IncSprInnerShadowValues extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncSprInnerShadowValues getNewInstanceOfThis()
+		{ return new IncSprInnerShadowValues(incrementOffsetX, incrementOffsetY); }
+	
 }

@@ -11,4 +11,8 @@ public class DecSprAlign extends FrameTag {
 	public DecSprAlign(String tags)
 		{ FrameTag.validateStringTags(this, tags, 0); }
 
+	@Override
+	public DecSprAlign getNewInstanceOfThis()
+		{ return new DecSprAlign(); }
+
 }

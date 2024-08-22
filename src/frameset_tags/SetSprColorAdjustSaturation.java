@@ -22,4 +22,8 @@ public class SetSprColorAdjustSaturation extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprColorAdjustSaturation getNewInstanceOfThis()
+		{ return new SetSprColorAdjustSaturation(value); }
+	
 }

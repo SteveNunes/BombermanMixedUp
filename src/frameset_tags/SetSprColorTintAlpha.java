@@ -22,4 +22,8 @@ public class SetSprColorTintAlpha extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprColorTintAlpha getNewInstanceOfThis()
+		{ return new SetSprColorTintAlpha(value); }
+	
 }

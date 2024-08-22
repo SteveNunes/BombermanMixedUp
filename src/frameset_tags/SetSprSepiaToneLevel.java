@@ -22,4 +22,8 @@ public class SetSprSepiaToneLevel extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprSepiaToneLevel getNewInstanceOfThis()
+		{ return new SetSprSepiaToneLevel(value); }
+	
 }

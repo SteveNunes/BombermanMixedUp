@@ -42,4 +42,8 @@ public class SetSprInnerShadowValues extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprInnerShadowValues getNewInstanceOfThis()
+		{ return new SetSprInnerShadowValues(offsetX, offsetY, blendMode); }
+	
 }

@@ -43,8 +43,11 @@ public class Frame {
 		{ this.mainFrameSet = mainFrameSet; }
 	
 	public void run() {
-		for (Tags tags : frameSetTagsList)
+		for (Tags tags : frameSetTagsList) {
+			if (mainFrameSet.isStopped())
+				return;
 			FrameTagProcessor.process(tags);
+		}
 	}
 	
 	public List<Tags> getFrameSetTagsList()

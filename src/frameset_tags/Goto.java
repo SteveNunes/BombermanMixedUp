@@ -7,10 +7,11 @@ public class Goto extends FrameTag {
 	private int currentRepeatCycle;
 	
 	public Goto(int index, int repeatCycles) {
+		/* Index menor que 0 decrementa o INDEX atual do FrameSet no valor informado.
+		 * Index igual ou maior que 0 define o INDEX atual do FrameSet para o valor informado.
+		 */
 		if (repeatCycles < 0)
 			throw new RuntimeException("repeat value must be equal or higher than zero");
-		if (index < 0)
-			throw new RuntimeException("index value must be equal or higher than zero");
 		this.index = index;
 		this.repeatCycles = repeatCycles;
 		currentRepeatCycle = 0;
@@ -22,8 +23,8 @@ public class Goto extends FrameTag {
 	public int getIndex()
 		{ return index; }	
 
-	public int getRepeat()
-		{ return index; }
+	public int getRepeatCycles()
+		{ return repeatCycles; }
 	
 	public void incCycles()
 		{ currentRepeatCycle++; }
@@ -44,9 +45,14 @@ public class Goto extends FrameTag {
 		try {
 			index = Integer.parseInt(params[n++]);
 			repeatCycles = Integer.parseInt(params[n++]);
+			currentRepeatCycle = 0;
 		}
 		catch (Exception e)
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
+
+	@Override
+	public Goto getNewInstanceOfThis()
+		{ return new Goto(index, repeatCycles); }
 
 }

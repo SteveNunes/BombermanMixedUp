@@ -31,4 +31,8 @@ public class SetOutputSprSize extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetOutputSprSize getNewInstanceOfThis()
+		{ return new SetOutputSprSize(width, height); }
+	
 }

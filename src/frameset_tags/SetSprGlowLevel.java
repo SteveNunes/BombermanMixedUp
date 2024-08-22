@@ -22,4 +22,8 @@ public class SetSprGlowLevel extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprGlowLevel getNewInstanceOfThis()
+		{ return new SetSprGlowLevel(value); }
+	
 }

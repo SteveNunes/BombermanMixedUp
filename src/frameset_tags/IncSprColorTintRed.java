@@ -22,4 +22,8 @@ public class IncSprColorTintRed extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncSprColorTintRed getNewInstanceOfThis()
+		{ return new IncSprColorTintRed(increment); }
+	
 }

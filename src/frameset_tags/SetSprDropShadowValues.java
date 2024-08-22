@@ -42,4 +42,8 @@ public class SetSprDropShadowValues extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprDropShadowValues getNewInstanceOfThis()
+		{ return new SetSprDropShadowValues(offsetX, offsetY, blendMode); }
+	
 }

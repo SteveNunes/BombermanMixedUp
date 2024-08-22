@@ -1,6 +1,8 @@
 package frameset_tags;
 
 public abstract class FrameTag {
+	
+	public abstract FrameTag getNewInstanceOfThis();
 
 	public static <T> String[] validateStringTags(T clazz, String tags)
 		{ return validateStringTags(clazz, tags, -1); }

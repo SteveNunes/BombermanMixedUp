@@ -48,4 +48,8 @@ public class SetSprColorAdjustValues extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprColorAdjustValues getNewInstanceOfThis()
+		{ return new SetSprColorAdjustValues(hue, saturation, brightness, blendMode); }
+	
 }

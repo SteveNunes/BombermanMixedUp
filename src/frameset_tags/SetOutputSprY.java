@@ -22,4 +22,8 @@ public class SetOutputSprY extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetOutputSprY getNewInstanceOfThis()
+		{ return new SetOutputSprY(value); }
+	
 }

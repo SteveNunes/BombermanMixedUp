@@ -24,4 +24,8 @@ public class SetSprGaussBlurBlendMode extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprGaussBlurBlendMode getNewInstanceOfThis()
+		{ return new SetSprGaussBlurBlendMode(blendMode); }
+	
 }

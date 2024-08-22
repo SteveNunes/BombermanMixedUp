@@ -22,4 +22,8 @@ public class IncSprGlowLevel extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncSprGlowLevel getNewInstanceOfThis()
+		{ return new IncSprGlowLevel(increment); }
+	
 }

@@ -31,4 +31,8 @@ public class IncObjPos extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncObjPos getNewInstanceOfThis()
+		{ return new IncObjPos(incrementX, incrementY); }
+
 }

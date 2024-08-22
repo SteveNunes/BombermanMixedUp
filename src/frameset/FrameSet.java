@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import entities.Materials;
+import frameset_tags.FrameTag;
 import javafx.scene.canvas.GraphicsContext;
 import objmoveutils.Position;
 import tools.FrameTagLoader;
@@ -21,31 +22,31 @@ public class FrameSet extends Position {
 	private int ticks;
 	private int totalSprites;
 	private int maxY;
-	private boolean atLeastOnce;
 	private boolean changedIndex;
+	private boolean stop;
 	
 	public FrameSet(FrameSet frameSet) {
 		super();
 		setPosition(frameSet);
 		framesPerTick = frameSet.framesPerTick;
 		gcTarget = frameSet.gcTarget;
-		atLeastOnce = frameSet.atLeastOnce;
-		changedIndex = frameSet.changedIndex;
 		frames = new ArrayList<>();
 		for (Frame frame : frameSet.frames) {
 			frames.add(frame = new Frame(frame));
 			frame.setMainFrameSet(this);
 		}
-		currentFrameIndex = frameSet.currentFrameIndex;
-		ticks = frameSet.ticks;
-		totalFrames = frameSet.totalFrames;
 		maxY = frameSet.maxY;
 		sprites = new ArrayList<>();
+		totalFrames = frameSet.totalFrames;
 		totalSprites = frameSet.totalSprites;
 		for (Sprite sprite : frameSet.sprites) {
 			sprites.add(sprite = new Sprite(sprite));
 			sprite.setMainFrameSet(this);
 		}
+		changedIndex = false;
+		stop = false;
+		currentFrameIndex = 0;
+		ticks = 0;
 	}
 
 	public FrameSet(GraphicsContext gcTarget, int framesPerTick, int x, int y) {
@@ -53,10 +54,10 @@ public class FrameSet extends Position {
 		this.framesPerTick = framesPerTick;
 		this.gcTarget = gcTarget;
 		setPosition(x, y);
-		atLeastOnce = false;
-		changedIndex = false;
 		frames = new ArrayList<>();
 		sprites = new ArrayList<>();
+		changedIndex = false;
+		stop = false;
 		currentFrameIndex = 0;
 		ticks = 0;
 		totalFrames = 0;
@@ -64,6 +65,15 @@ public class FrameSet extends Position {
 		maxY = 0;
 	}
 	
+	public void stop()
+		{ stop = true; }
+	
+	public void resume()
+		{ stop = false; }
+	
+	public boolean isStopped()
+		{ return stop; }
+
 	public FrameSet(GraphicsContext gcDraw, int framesPerTick)
 		{ this(gcDraw, framesPerTick, 0, 0); }
 
@@ -83,28 +93,32 @@ public class FrameSet extends Position {
 		{ return sprites; }
 
 	public void run(boolean isPaused) {
-		if (totalFrames > 0 && currentFrameIndex < totalFrames) {
-			frames.get(currentFrameIndex).run();
+		if (!stop && totalFrames > 0 && currentFrameIndex < totalFrames) {
+			if (ticks == 0)
+				frames.get(currentFrameIndex).run();
 			if (changedIndex) {
 				changedIndex = false;
 				run(isPaused);
 				return;
 			}
 			for (Sprite sprite : sprites) {
+				if (isStopped())
+					return;
 				sprite.draw(gcTarget);
 				maxY = sprite.getMaxOutputSpriteY();
 			}
-			atLeastOnce = true;
 			if (!isPaused && ++ticks >= framesPerTick) {
 				ticks = 0;
 				currentFrameIndex++;
-				atLeastOnce = false;
 			}
 		}
 	}
 	
 	public List<Frame> getFrames()
 		{ return frames; }
+	
+	public void addFrameTagToSpriteFromString(Sprite sprite, String tags)
+		{ FrameTagLoader.loadToTags(tags, getFrameSetTagsFrom(sprite)); }
 	
 	public Tags getFrameSetTagsFrom(int frameIndex, int spriteIndex)
 		{ return frames.get(frameIndex).getFrameSetTagsList().get(spriteIndex); }
@@ -118,8 +132,7 @@ public class FrameSet extends Position {
 	public Tags getFrameSetTagsFrom(int frameIndex, Sprite sprite) {
 		if (!getSprites().contains(sprite))
 			throw new RuntimeException("Sprite not found on the sprite list");
-		int i = getSprites().indexOf(sprite);
-		return getFrameSetTagsFrom(frameIndex, i);
+		return getFrameSetTagsFrom(frameIndex, getSprites().indexOf(sprite));
 	}
 
 	public Tags getFrameSetTagsFrom(Frame frame, int spriteIndex) {
@@ -146,7 +159,7 @@ public class FrameSet extends Position {
 		if (cloneFrame == null && totalFrames > 0 && index > 0)
 			cloneFrame = new Frame(frames.get(index - 1));
 		if(totalFrames == 0)
-			frames.add(cloneFrame = (cloneFrame == null ? new Frame(this) :cloneFrame));
+			frames.add(cloneFrame = (cloneFrame == null ? new Frame(this) : cloneFrame));
 		else
 			frames.add(index, cloneFrame = (cloneFrame == null ? new Frame(this) : cloneFrame));
 		int n = totalSprites, n2;
@@ -198,8 +211,10 @@ public class FrameSet extends Position {
 	public int getFramesPerTick() 
 		{ return framesPerTick; }
 
-	public void setFramesPerTick(int framesPerTick)
-		{ this.framesPerTick = framesPerTick; }
+	public void setFramesPerTick(int framesPerTick) {
+		this.framesPerTick = framesPerTick;
+		ticks = 0;
+	}
 
 	public void incFramesPerTick(int value)
 		{ framesPerTick += value; }
@@ -218,7 +233,6 @@ public class FrameSet extends Position {
 			throw new RuntimeException(index + " - Invalid Frame Index (Min: 0, Max: " + (totalFrames - 1) + ")");
 		currentFrameIndex = index;
 		ticks = 0;
-		atLeastOnce = false;
 		changedIndex = true;
 	}
 	
@@ -342,14 +356,31 @@ public class FrameSet extends Position {
 			addFrameAtEnd(frame);
 			String[] sprites = s1.split("\\,,"); // Divisor de sprites e suas FrameTags
 			if (totalSprites == -1) {
-				for (String s2 : sprites)
-					addSpriteAtEnd(new Sprite(this, Materials.mainSprites, new Rectangle()));
 				totalSprites = sprites.length;
+				for (int n = 0; n < totalSprites; n++)
+					addSpriteAtEnd(new Sprite(this, Materials.mainSprites, new Rectangle()));
 			}
 			int n = 0;
 			for (String s2 : sprites)
 				FrameTagLoader.loadToTags(s2, frame.getFrameSetTagsList().get(n++));
 		}
+	}
+
+	public String getStringFromFrameSetTags() {
+		String fSet = "";
+		for (int frameIndex = 0; frameIndex < getTotalFrames(); frameIndex++) {
+			if (frameIndex > 0)
+				fSet += "|";
+			for (int spriteIndex = 0; spriteIndex < getTotalSprites(); spriteIndex++) {
+				boolean added = false;
+				for (int tagIndex = 0; tagIndex < getFrameSetTagsFrom(frameIndex, spriteIndex).size(); tagIndex++) {
+					FrameTag tag = getFrameSetTagsFrom(frameIndex, spriteIndex).get(tagIndex);
+					fSet += (spriteIndex > 0 && !added ? ",," : "") + (tagIndex > 0 ? "," : "") + tag;
+					added= true;
+				}
+			}
+		}
+		return fSet;
 	}
 
 }

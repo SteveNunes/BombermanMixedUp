@@ -22,4 +22,8 @@ public class IncTicksPerFrame extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncTicksPerFrame getNewInstanceOfThis()
+		{ return new IncTicksPerFrame(increment); }
+	
 }

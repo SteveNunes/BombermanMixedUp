@@ -31,4 +31,8 @@ public class SetOriginSprSize extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetOriginSprSize getNewInstanceOfThis()
+		{ return new SetOriginSprSize(width, height); }
+	
 }

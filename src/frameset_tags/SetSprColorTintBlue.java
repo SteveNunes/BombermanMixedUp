@@ -22,4 +22,8 @@ public class SetSprColorTintBlue extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprColorTintBlue getNewInstanceOfThis()
+		{ return new SetSprColorTintBlue(value); }
+	
 }

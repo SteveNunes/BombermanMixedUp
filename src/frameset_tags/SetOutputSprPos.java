@@ -31,4 +31,8 @@ public class SetOutputSprPos extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetOutputSprPos getNewInstanceOfThis()
+		{ return new SetOutputSprPos(x, y); }
+
 }

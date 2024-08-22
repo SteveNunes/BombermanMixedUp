@@ -11,4 +11,8 @@ public class IncSprFlip extends FrameTag {
 	public IncSprFlip(String tags)
 		{ FrameTag.validateStringTags(this, tags, 0); }
 
+	@Override
+	public IncSprFlip getNewInstanceOfThis()
+		{ return new IncSprFlip(); }
+	
 }

@@ -25,4 +25,8 @@ public class SetSprFlip extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprFlip getNewInstanceOfThis()
+		{ return new SetSprFlip(flip); }
+	
 }

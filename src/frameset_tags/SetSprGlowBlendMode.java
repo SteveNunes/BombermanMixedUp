@@ -24,4 +24,8 @@ public class SetSprGlowBlendMode extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprGlowBlendMode getNewInstanceOfThis()
+		{ return new SetSprGlowBlendMode(blendMode); }
+	
 }

@@ -31,4 +31,8 @@ public class SetOriginSprPos extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetOriginSprPos getNewInstanceOfThis()
+		{ return new SetOriginSprPos(x, y); }
+
 }

@@ -31,4 +31,8 @@ public class IncSprMotionBlurValues extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncSprMotionBlurValues getNewInstanceOfThis()
+		{ return new IncSprMotionBlurValues(incrementAngle, incrementRadius); }
+	
 }

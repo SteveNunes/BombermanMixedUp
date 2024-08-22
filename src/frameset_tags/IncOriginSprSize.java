@@ -31,4 +31,8 @@ public class IncOriginSprSize extends FrameTag {
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncOriginSprSize getNewInstanceOfThis()
+		{ return new IncOriginSprSize(incrementWidth, incrementHeight); }
+	
 }

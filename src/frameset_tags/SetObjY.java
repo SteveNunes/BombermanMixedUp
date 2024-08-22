@@ -22,4 +22,8 @@ public class SetObjY extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetObjY getNewInstanceOfThis()
+		{ return new SetObjY(value); }
+	
 }

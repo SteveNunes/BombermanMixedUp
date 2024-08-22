@@ -22,4 +22,8 @@ public class SetOutputSprHeight extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetOutputSprHeight getNewInstanceOfThis()
+		{ return new SetOutputSprHeight(value); }
+	
 }

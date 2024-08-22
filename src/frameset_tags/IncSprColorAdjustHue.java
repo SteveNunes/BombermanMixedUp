@@ -22,4 +22,8 @@ public class IncSprColorAdjustHue extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncSprColorAdjustHue getNewInstanceOfThis()
+		{ return new IncSprColorAdjustHue(increment); }
+	
 }

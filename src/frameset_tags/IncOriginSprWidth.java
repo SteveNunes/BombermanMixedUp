@@ -22,4 +22,8 @@ public class IncOriginSprWidth extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncOriginSprWidth getNewInstanceOfThis()
+		{ return new IncOriginSprWidth(increment); }
+	
 }

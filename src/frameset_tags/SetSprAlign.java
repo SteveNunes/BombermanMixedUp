@@ -24,4 +24,8 @@ public class SetSprAlign extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprAlign getNewInstanceOfThis()
+		{ return new SetSprAlign(alignment); }
+	
 }

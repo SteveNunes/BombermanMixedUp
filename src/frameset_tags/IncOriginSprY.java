@@ -22,4 +22,8 @@ public class IncOriginSprY extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncOriginSprY getNewInstanceOfThis()
+		{ return new IncOriginSprY(increment); }
+	
 }

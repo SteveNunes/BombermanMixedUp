@@ -15,7 +15,9 @@ public class Tags {
 	public Tags(Tags tags) {
 		rootSprite = tags.rootSprite;
 		totalTags = tags.totalTags;
-		frameSetTags = new ArrayList<>(tags.frameSetTags);
+		frameSetTags = new ArrayList<>();
+		for (FrameTag tag : tags.frameSetTags)
+			frameSetTags.add(tag.getNewInstanceOfThis());
 	}
 	
 	public <T extends FrameTag> Tags(Sprite rootSprite, T tag) {
@@ -57,5 +59,8 @@ public class Tags {
 
 	public FrameTag get(int index)
 		{ return frameSetTags.get(index); }
+	
+	public int getTotalTags()
+		{ return totalTags; }
 
 }

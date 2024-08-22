@@ -24,4 +24,8 @@ public class SetSprMotionBlurBlendMode extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprMotionBlurBlendMode getNewInstanceOfThis()
+		{ return new SetSprMotionBlurBlendMode(blendMode); }
+	
 }

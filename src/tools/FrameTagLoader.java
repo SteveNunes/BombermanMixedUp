@@ -8,11 +8,17 @@ public abstract class FrameTagLoader {
 	public static void loadToTags(String stringWithTags, Tags tags) {
 		String[] frameTags = stringWithTags.split("\\,"); // Divisor das FrameTags de cada Sprite
 		for (String s : frameTags) {
+			if (s.length() < 3)
+				continue;
 			String tag = s.substring(1).substring(0, s.indexOf(';') - 1);
-			if (tag.equals("DecSprAlign"))
+			if (tag.equals("PlaySound"))
+				tags.addFrameSetTag(new PlaySound(s));
+			else if (tag.equals("DecSprAlign"))
 				tags.addFrameSetTag(new DecSprAlign(s));
 			else if (tag.equals("DecSprFlip"))
 				tags.addFrameSetTag(new DecSprFlip(s));
+			else if (tag.equals("RepeatLastFrame"))
+				tags.addFrameSetTag(new RepeatLastFrame(s));
 			else if (tag.equals("Goto"))
 				tags.addFrameSetTag(new Goto(s));
 			else if (tag.equals("IncObjPos"))

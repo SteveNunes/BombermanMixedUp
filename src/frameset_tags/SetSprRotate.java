@@ -22,4 +22,8 @@ public class SetSprRotate extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public SetSprRotate getNewInstanceOfThis()
+		{ return new SetSprRotate(value); }
+	
 }

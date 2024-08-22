@@ -22,4 +22,8 @@ public class IncSprColorAdjustBrightness extends FrameTag {
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
+	@Override
+	public IncSprColorAdjustBrightness getNewInstanceOfThis()
+		{ return new IncSprColorAdjustBrightness(increment); }
+	
 }
