@@ -1,16 +1,15 @@
-package frameset;
+package entities;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
 
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
-import entities.Materials;
 import enums.ImageAlignment;
 import enums.ImageFlip;
 import gui.util.ImageUtils;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import tools.Materials;
 
 public class Sprite {
 
@@ -26,19 +25,22 @@ public class Sprite {
 	private ImageAlignment alignment;
 	private float rotation;
 	
-	public Sprite(Sprite sprite) {
+	public Sprite(Sprite sprite)
+		{ this(sprite, sprite.getMainFrameSet()); }
+	
+	public Sprite(Sprite sprite, FrameSet mainFrameSet) {
 		super();
-		mainFrameSet = sprite.mainFrameSet;
-		spriteSource = sprite.spriteSource;
+		this.mainFrameSet = mainFrameSet;
 		originSpriteSizePos = new Rectangle(sprite.originSpriteSizePos);
 		outputSpriteSizePos = new Rectangle(sprite.outputSpriteSizePos);
+		spriteEffects = new DrawImageEffects(sprite.spriteEffects);
+		spriteSource = sprite.spriteSource;
 		alpha = sprite.alpha;
 		flip = sprite.flip;
 		rotation = sprite.rotation;
 		spriteIndex = sprite.spriteIndex;
 		alignment = sprite.alignment;
 		spritesPerLine = sprite.spritesPerLine;
-		spriteEffects = new DrawImageEffects(sprite.spriteEffects);
 	}
 	
 	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spriteIndex, int spritesPerLine) {
@@ -49,11 +51,11 @@ public class Sprite {
 		this.mainFrameSet = mainFrameSet;
 		this.originSpriteSizePos = new Rectangle(originSpriteSizePos);
 		this.outputSpriteSizePos = new Rectangle(outputSpriteSizePos);
-		rotation = 0;
-		alpha = 1;
+		spriteEffects = new DrawImageEffects();
 		flip =ImageFlip.NONE;
 		alignment = ImageAlignment.CENTER;
-		spriteEffects = new DrawImageEffects();
+		rotation = 0;
+		alpha = 1;
 	}
 
 	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, int spriteIndex, int spritesPerLine)
@@ -103,26 +105,26 @@ public class Sprite {
 
 	public double getAbsoluteX() {
 		if (mainFrameSet != null)
-			return mainFrameSet.getX() + getX();
+			return mainFrameSet.getEntity().getX() + getX();
 		return getX();
 	}
 
 	public double getAbsoluteY() {
 		if (mainFrameSet != null)
-			return mainFrameSet.getY() + getY();
+			return mainFrameSet.getEntity().getY() + getY();
 		return getY();
 	}
 
 	public void setAbsoluteX(int x) {
 		if (mainFrameSet != null)
-			setX(x - (int)mainFrameSet.getX());
+			setX(x - (int)mainFrameSet.getEntity().getX());
 		else
 			setX(x);
 	}
 	
 	public void setAbsoluteY(int y) {
 		if (mainFrameSet != null)
-			setY(y - (int)mainFrameSet.getY());
+			setY(y - (int)mainFrameSet.getEntity().getY());
 		else
 			setY(y);
 	}
@@ -325,10 +327,10 @@ public class Sprite {
 		return new int[] {x, y};
 	}
 	
-	public void draw(GraphicsContext targetGc) {
+	public void draw() {
 		if (spriteIndex != -1) {
 			int[] in = getCurrentSpriteOriginCoords(), out = getOutputDrawCoords();
-			ImageUtils.drawImage(targetGc, Materials.mainSprites, in[0], in[1], (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+			ImageUtils.drawImage(Main.gcDraw, Materials.mainSprites, in[0], in[1], (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 				out[0], out[1], getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 		}
 	}

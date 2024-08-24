@@ -1,4 +1,4 @@
-package entities;
+package tools;
 
 import java.security.SecureRandom;
 

@@ -2,8 +2,8 @@ package frameset_tags;
 
 import java.awt.Rectangle;
 
-import entities.Materials;
 import javafx.scene.image.Image;
+import tools.Materials;
 
 public class SetSprSource extends FrameTag {
 	

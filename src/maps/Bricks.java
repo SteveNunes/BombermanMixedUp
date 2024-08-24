@@ -1,4 +1,4 @@
-package entities;
+package maps;
 
 public class Bricks {
 	

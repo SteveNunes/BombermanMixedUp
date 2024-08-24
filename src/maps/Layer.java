@@ -1,4 +1,4 @@
-package entities;
+package maps;
 
 import java.awt.image.BufferedImage;
 import java.util.List;

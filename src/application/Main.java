@@ -2,8 +2,6 @@ package application;
 	
 import java.security.SecureRandom;
 
-import entities.Materials;
-import entities.SquaredBg;
 import gameutil.FPSHandler;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -14,7 +12,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import tools.FrameSetEditor;
-import tools.GameMisc;
+import tools.Materials;
+import tools.Sound;
+import tools.SquaredBg;
 
 
 public class Main extends Application {
@@ -81,7 +81,7 @@ public class Main extends Application {
     gcMain.drawImage(canvasDraw.snapshot(null, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
 		if (spriteEditor)
 			FrameSetEditor.drawMainCanvas();
-		GameMisc.playAllSoundsFromQueue();
+		Sound.playAllSoundsFromQueue();
 		fpsHandler.fpsCounter();
 		if (!close ) {
 			Platform.runLater(() -> mainLoop());

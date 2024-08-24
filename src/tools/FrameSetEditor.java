@@ -3,16 +3,15 @@ package tools;
 import java.awt.Rectangle;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import application.Main;
-import enums.ImageAlignment;
-import frameset.Frame;
-import frameset.FrameSet;
-import frameset.Sprite;
+import entities.Entity;
+import entities.Frame;
+import entities.FrameSet;
+import entities.Sprite;
 import frameset_tags.FrameTag;
 import frameset_tags.SetObjPos;
 import frameset_tags.SetOriginSprHeight;
@@ -30,7 +29,6 @@ import frameset_tags.SetSprFlip;
 import frameset_tags.SetSprIndex;
 import frameset_tags.SetSprRotate;
 import gui.util.Alerts;
-import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -42,26 +40,22 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import util.IniFile;
-import util.Misc;
 import util.MyFile;
-import util.Sounds;
 
 
 public abstract class FrameSetEditor {
 	
 	private static IniFile iniFile = IniFile.getNewIniFileInstance("./config.ini");
 	private static List<KeyCode> holdedKeys;
-	private static Map<String, FrameSet> frameSets;
 	private static List<FrameSet> backupFrameSets;
 	private static List<Map<String, FrameSet>> backupFrameSetsMap;
 	private static String currentFrameSetName;
+	private static Entity currentEntity;
 	private static FrameSet currentFrameSet;
 	private static FrameSet resetedFrameSet;
 	private static Frame currentFrame;
@@ -82,9 +76,9 @@ public abstract class FrameSetEditor {
 	private static int oldX = 0;
 	private static int oldY = 0;
 	private static int backupIndex;
+	private static int teste = 0;
 	
 	public static void start(Scene scene) {
-		frameSets = new LinkedHashMap<>();
 		holdedKeys = new ArrayList<>();
 		backupFrameSets = new ArrayList<>();
 		backupFrameSetsMap = new ArrayList<>();
@@ -101,27 +95,26 @@ public abstract class FrameSetEditor {
 		zoomScale = 1;
 		backupIndex = -1;
 		
-		currentFrameSet = new FrameSet(Main.gcDraw, 5, Main.winW / 2, Main.winH / 2);
+		currentEntity = new Entity();
+		currentFrameSet = new FrameSet(currentEntity, 5, Main.winW / 2, Main.winH / 2);
 		currentFrameSet.loadFromString(iniFile.read("FRAMESET_EDITOR", "FrameSet0"));
 		
 		currentFrameSetName = iniFile.read("FRAMESET_EDITOR", "FrameSetName0");
-		frameSets.put(currentFrameSetName, currentFrameSet);
+		currentEntity.addFrameSet(currentFrameSetName, currentFrameSet);
 		
 		for (int n = 1; iniFile.read("FRAMESET_EDITOR", "FrameSetName" + n) != null; n++) {
-			FrameSet frameSet = new FrameSet(Main.gcDraw, 4, Main.winW / 2, Main.winH / 2);
+			FrameSet frameSet = new FrameSet(currentEntity, 4, Main.winW / 2, Main.winH / 2);
 			frameSet.loadFromString(iniFile.read("FRAMESET_EDITOR", "FrameSet" + n));
 			String frameSetName = iniFile.read("FRAMESET_EDITOR", "FrameSetName" + n);
-			frameSets.put(frameSetName, frameSet);
+			currentEntity.addFrameSet(frameSetName, frameSet);
 		}
 		
-		/*
-		 * TRABALHAR AGORA NA TECLA R Q DEVERIA RESETAR TUDO MAS NAO TA RESETANDO DIREITO (TESTAR)
-		 */
-		resetedFrameSet = new FrameSet(currentFrameSet);
+		resetedFrameSet = new FrameSet(currentFrameSet, currentEntity);
 		setDefaultContextMenu();
 		setSpriteContextMenu();
 		setMouseEvents(scene);
 		setKeyboardEvents(scene);
+		
 	}
 	
 	private static void setDefaultContextMenu() {
@@ -134,21 +127,21 @@ public abstract class FrameSetEditor {
 		menu.getItems().addAll(item1, item2);
 		defaultContextMenu.getItems().add(menu);
 		menu = new Menu("Remover FrameSet");
-		for (String frameSet : frameSets.keySet()) {
+		for (String frameSet : currentEntity.getFrameSetsNames()) {
 			MenuItem i = new MenuItem(frameSet);
 			i.setOnAction(e -> {
 				if (Alerts.confirmation("Excluir FrameSet", "Deseja mesmo excluir o FrameSet \"" + frameSet + "\"?")) {
-					frameSets.remove(frameSet);
+					currentEntity.removeFrameSet(frameSet);
 					Alerts.information("Info", "FrameSet excluido com sucesso!");
-					currentFrameSetName = frameSets.isEmpty() ? null : frameSets.keySet().iterator().next();
-					currentFrameSet = frameSets.isEmpty() ? null : frameSets.get(currentFrameSetName);
+					currentFrameSetName = currentEntity.getTotalFrameSets() == 0 ? null : currentEntity.getFrameSetsNames().iterator().next();
+					currentFrameSet = currentEntity.getTotalFrameSets() == 0 ? null : currentEntity.getFrameSet(currentFrameSetName);
 				}
 			});
 			menu.getItems().add(i);
 		}
-		menu.setDisable(frameSets.isEmpty());
+		menu.setDisable(currentEntity.getTotalFrameSets() == 0);
 		defaultContextMenu.getItems().add(menu);
-		if (!frameSets.isEmpty()) {
+		if (currentEntity.getTotalFrameSets() > 0) {
 			defaultContextMenu.getItems().add(new SeparatorMenuItem());
 			menu = new Menu("Adicionar Frame ao FrameSet atual");
 			Menu menu1 = new Menu("Frame em branco");
@@ -215,7 +208,7 @@ public abstract class FrameSetEditor {
 
 	private static void addFrameSet(FrameSet frameSet) {
 		String name = Alerts.textPrompt("Prompt", "Adicionar FrameSet", null, "Digite o nome do FrameSet á ser adicionado:");
-		if (frameSets.containsKey(name))
+		if (currentEntity.getFrameSetsNames().contains(name))
 			Alerts.error("Erro", "Já existe um FrameSet com esse nome!");
 		else {
 			String t = Alerts.textPrompt("Prompt", "Definir ticks", null, "Quantos ticks por frame terá o FrameSet \"" + name + "\"?");
@@ -224,7 +217,7 @@ public abstract class FrameSetEditor {
 				if (ticks < 1)
 					Alerts.error("Erro", "O valor informado é menor que 1");
 				else {
-					frameSets.put(currentFrameSetName = name, currentFrameSet = frameSet == null ? new FrameSet(Main.gcDraw, ticks) : currentFrameSet);
+					currentEntity.addFrameSet(currentFrameSetName = name, currentFrameSet = frameSet == null ? new FrameSet(currentEntity, ticks) : currentFrameSet);
 					Alerts.information("Info", "FrameSet criado com sucesso!");
 				}
 			}
@@ -274,17 +267,14 @@ public abstract class FrameSetEditor {
 	private static void setKeyboardEvents(Scene scene) {
 		scene.setOnKeyPressed(e -> {
 			holdedKeys.add(e.getCode());
-			if (e.getCode() == KeyCode.P)
-				GameMisc.playSound("BlockSlam.wav");
 			if (isNoHolds()) {
 				if (e.getCode() == KeyCode.R) {
-					System.out.println("RESET ALL");
 					currentFrameSet.stop();
-					currentFrameSet = new FrameSet(resetedFrameSet);
-					frameSets.put(currentFrameSetName, currentFrameSet);
+					currentFrameSet = new FrameSet(resetedFrameSet, currentEntity);
+					currentEntity.addFrameSet(currentFrameSetName, currentFrameSet);
 					selectedSprites.clear();
 					currentFrame = null;
-					currentFrameSet.setPosition(Main.winW / 2, Main.winH / 2);
+					currentFrameSet.getEntity().setPosition(Main.winW / 2, Main.winH / 2);
 				}
 				else 
 					iterateSelectedSprites(sprite -> {
@@ -596,8 +586,8 @@ public abstract class FrameSetEditor {
 	}
 	
 	private static void saveCtrlZ() {
-		backupFrameSets.add(new FrameSet(currentFrameSet));
-		backupFrameSetsMap.add(frameSets);
+		backupFrameSets.add(new FrameSet(currentFrameSet, currentEntity));
+		backupFrameSetsMap.add(currentEntity.getFrameSetsMap());
 		backupIndex++;
 	}
 
@@ -607,8 +597,8 @@ public abstract class FrameSetEditor {
 				backupIndex = backupFrameSets.size() - 1;
 			else if (backupIndex == backupFrameSets.size())
 				backupIndex = 0;
-			currentFrameSet = new FrameSet(backupFrameSets.get(backupIndex));
-			frameSets = backupFrameSetsMap.get(backupIndex);
+			currentFrameSet = new FrameSet(backupFrameSets.get(backupIndex), currentEntity);
+			currentEntity.setFrameSetMap(backupFrameSetsMap.get(backupIndex));
 			selectedSprites.clear();
 			focusedSprite = null;
 			currentFrame = null;
@@ -712,8 +702,8 @@ public abstract class FrameSetEditor {
 			}
 			dragX = (int)e.getX() / Main.zoom;
 			dragY = (int)e.getY() / Main.zoom;
-			oldX = (int)currentFrameSet.getX();
-			oldY = (int)currentFrameSet.getY();
+			oldX = (int)currentFrameSet.getEntity().getX();
+			oldY = (int)currentFrameSet.getEntity().getY();
 			deltaSprites.clear();
 			for (Sprite sprite : selectedSprites)
 				deltaSprites.add(new Sprite(sprite));
@@ -727,8 +717,8 @@ public abstract class FrameSetEditor {
 			mouseY = (int)e.getY() / Main.zoom;
 			if (e.getButton() == MouseButton.PRIMARY) {
 				if (isHold(1, 0, 0)) {
-					currentFrameSet.setX(oldX + (mouseX - dragX));
-					currentFrameSet.setY(oldY + (mouseY - dragY));
+					currentFrameSet.getEntity().setX(oldX + (mouseX - dragX));
+					currentFrameSet.getEntity().setY(oldY + (mouseY - dragY));
 				}
 				else if (isHold(0, 1, 0))
 					for (int n = 0, n2 = selectedSprites.size(); n < n2; n++) {
@@ -754,8 +744,8 @@ public abstract class FrameSetEditor {
 	
 	public static void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
 		boolean blink = System.currentTimeMillis() / 50 % 2 == 0;
-		if (!frameSets.isEmpty() && !frameSets.get(currentFrameSetName).isEmptyFrames()) {
-			currentFrame = frameSets.get(currentFrameSetName).getCurrentFrame();
+		if (currentEntity.getTotalFrameSets() > 0 && !currentEntity.getFrameSet(currentFrameSetName).isEmptyFrames()) {
+			currentFrame = currentEntity.getFrameSet(currentFrameSetName).getCurrentFrame();
 			if (currentFrame == null)
 				return;
 			focusedSprite = null;
@@ -837,7 +827,7 @@ public abstract class FrameSetEditor {
 					sprite.getOriginSpriteX() - 160, sprite.getOriginSpriteY() - 120,
 					480, 360, pos[0] - 160, pos[1] - 120, 480, 360);
 		}
-		if (!frameSets.isEmpty() && !frameSets.get(currentFrameSetName).isEmptyFrames())
+		if (currentEntity.getTotalFrameSets() > 0 && !currentEntity.getFrameSet(currentFrameSetName).isEmptyFrames())
 			currentFrameSet.run(isPaused);
 		Main.gcDraw.setGlobalAlpha(1);
 		Main.gcDraw.setLineWidth(1);
@@ -879,9 +869,9 @@ public abstract class FrameSetEditor {
 	public static void close() {
 		iniFile.remove("FRAMESET_EDITOR");
 		int n = 0;
-		for (String frameSetName : frameSets.keySet()) {
+		for (String frameSetName : currentEntity.getFrameSetsNames()) {
 			iniFile.write("FRAMESET_EDITOR", "FrameSetName" + n, frameSetName);
-			iniFile.write("FRAMESET_EDITOR", "FrameSet" + n, frameSets.get(frameSetName).getStringFromFrameSetTags());
+			iniFile.write("FRAMESET_EDITOR", "FrameSet" + n, currentEntity.getFrameSet(frameSetName).getStringFromFrameSetTags());
 		}
 	}
 

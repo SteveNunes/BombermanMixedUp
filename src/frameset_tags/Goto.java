@@ -4,7 +4,7 @@ public class Goto extends FrameTag {
 	
 	private int index;
 	private int repeatCycles;
-	private int currentRepeatCycle;
+	public int currentRepeatCycle;
 	
 	public Goto(int index, int repeatCycles) {
 		/* Index menor que 0 decrementa o INDEX atual do FrameSet no valor informado.
@@ -37,18 +37,22 @@ public class Goto extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + index + ";" + repeatCycles + "}"; }
+		{ return "{" + FrameTag.getClassName(this) + ";" + index + (repeatCycles == 0 ? ("}") : (";" + repeatCycles + "}")); }
 
 	public Goto(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 2);
+		String[] params = FrameTag.validateStringTags(this, tags);
+		if (params.length > 2)
+			throw new RuntimeException(tags + " - Too much parameters");
+		if (params.length < 1)
+			throw new RuntimeException(tags + " - Too few parameters");
 		int n = 0;
 		try {
-			index = Integer.parseInt(params[n++]);
-			repeatCycles = Integer.parseInt(params[n++]);
+			index = Integer.parseInt(params[n]);
+			repeatCycles = params.length == 1 ? 0 : Integer.parseInt(params[++n]);
 			currentRepeatCycle = 0;
 		}
 		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[n] + " - Invalid parameter"); }
 	}
 
 	@Override

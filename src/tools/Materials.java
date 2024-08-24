@@ -1,4 +1,4 @@
-package entities;
+package tools;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -13,6 +13,7 @@ import javax.sound.sampled.Clip;
 
 import gui.util.ImageUtils;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javazoom.jl.player.advanced.AdvancedPlayer;
 import util.FindFile;
@@ -50,11 +51,34 @@ public abstract class Materials {
 		bomberSpriteIndex = new HashMap<>();
 		for (int n = 0; n <= 34; n++)
 			rides.add(loadImage("/rides/" + n, Color.valueOf("#03E313")));
+
 		characters = new ArrayList<>();
-		for (int n = 0; n <= 13; n++) {
-			// Adicionar copias dos arquivos dos personagens ja com a paleta aplicada
-			characters.add(loadImage("/characters/" + n, Color.valueOf("#03E313")));
+		for (int n = 0, index = 0; n <= 13; n++) {
+			WritableImage image = (WritableImage)loadImage("/characters/" + n, Color.valueOf("#03E313"));
+			List<Integer> rgbList = new ArrayList<>();
+			List<Integer> originalRgb = null;
+			for  (int i = 0, rgba = 1, rgba2 = 2; rgba != rgba2 || rgba != 0; i++) {
+				rgba = image.getPixelReader().getArgb(i, 0);
+				rgba2 = image.getPixelReader().getArgb(i + 1, 0);
+				if (rgba != 0)
+					rgbList.add(rgba);
+				else {
+					WritableImage img = ImageUtils.cloneWritableImage(image);
+					for (int x = 0; x < img.getWidth(); x++)
+						img.getPixelWriter().setArgb(x, 0, 0);
+					if (originalRgb == null) {
+						originalRgb = new ArrayList<>(rgbList);
+						characters.add(img);
+						bomberSpriteIndex.put(n, index);
+					}
+					else
+						characters.add(ImageUtils.replaceColor(img, originalRgb.toArray(new Integer[rgbList.size()]), rgbList.toArray(new Integer[rgbList.size()])));
+					rgbList.clear();
+					index++;
+				}
+			}
 		}
+		
 		mainSprites = loadImage("MainSprites", Color.valueOf("#03E313"));
 		frames = loadImage("HUD", Color.valueOf("#03E313"));
 		auras = loadImage("Auras", Color.valueOf("#03E313"));
@@ -123,6 +147,16 @@ public abstract class Materials {
 		if (loadedSprites2.containsKey(image))
 			return loadedSprites2.get(image);
 		return null;
+	}
+	
+	public static Image getCharacterSprite(int characterId, int palleteId) {
+		if (!bomberSpriteIndex.containsKey(characterId))
+			return null;
+		int id = bomberSpriteIndex.get(characterId) + palleteId;
+		if (id >= characters.size() || (bomberSpriteIndex.containsKey(characterId + 1) && 
+				id >= bomberSpriteIndex.get(characterId + 1)))
+			return null;
+		return characters.get(id); 
 	}
 
 }

@@ -1,9 +1,9 @@
-package entities;
+package maps;
 
 import java.util.List;
 
+import entities.Sprite;
 import enums.TileProps;
-import frameset.Sprite;
 import objmoveutils.Position;
 
 public class Tile {

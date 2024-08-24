@@ -1,34 +1,33 @@
-package frameset;
+package entities;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import frameset_tags.FrameTag;
-import javafx.scene.canvas.GraphicsContext;
 import tools.FrameTagProcessor;
 
 public class Frame {
 	
-	private GraphicsContext gcTarget;
 	private FrameSet mainFrameSet;
 	private List<Tags> frameSetTagsList;
 	private int totalTags;
-	
-	public Frame(Frame frame) {
-		frameSetTagsList = new ArrayList<>();
-		gcTarget = frame.gcTarget;
-		mainFrameSet = frame.mainFrameSet;
+
+	public Frame(Frame frame)
+		{ this(frame, frame.getMainFrameSet()); }
+
+	public Frame(Frame frame, FrameSet mainFrameSet) {
+		this.mainFrameSet = mainFrameSet;
 		totalTags = frame.totalTags;
+		frameSetTagsList = new ArrayList<>();
 		int n = 0;
 		for (Tags tags : frame.frameSetTagsList) {
 			frameSetTagsList.add(tags = new Tags(tags));
-			tags.setRootSprite(mainFrameSet.getSprite(n++));
+			tags.setRootSprite(this.mainFrameSet.getSprite(n++));
 		}
 	}
 	
 	public Frame(FrameSet mainFrameSet) {
 		this.mainFrameSet = mainFrameSet;
-		this.gcTarget = mainFrameSet.getTargetGraphicsContext();
 		frameSetTagsList = new ArrayList<>();
 		totalTags = 0;
 		int n = mainFrameSet.getTotalSprites(), n2;
@@ -49,6 +48,9 @@ public class Frame {
 			FrameTagProcessor.process(tags);
 		}
 	}
+	
+	public FrameSet getMainFrameSet()
+		{ return mainFrameSet; }
 	
 	public List<Tags> getFrameSetTagsList()
 		{ return frameSetTagsList; }

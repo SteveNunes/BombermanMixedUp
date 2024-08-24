@@ -1,6 +1,6 @@
 package tools;
 
-import frameset.Tags;
+import entities.Tags;
 import frameset_tags.*;
 
 public abstract class FrameTagLoader {

@@ -1,4 +1,4 @@
-package frameset;
+package entities;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,11 +13,11 @@ public class Tags {
 	private int totalTags;
 
 	public Tags(Tags tags) {
-		rootSprite = tags.rootSprite;
 		totalTags = tags.totalTags;
 		frameSetTags = new ArrayList<>();
 		for (FrameTag tag : tags.frameSetTags)
 			frameSetTags.add(tag.getNewInstanceOfThis());
+		rootSprite = tags.rootSprite;
 	}
 	
 	public <T extends FrameTag> Tags(Sprite rootSprite, T tag) {

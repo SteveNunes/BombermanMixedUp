@@ -1,9 +1,9 @@
 package tools;
 
 import application.Main;
-import frameset.FrameSet;
-import frameset.Sprite;
-import frameset.Tags;
+import entities.FrameSet;
+import entities.Sprite;
+import entities.Tags;
 import frameset_tags.DecSprAlign;
 import frameset_tags.DecSprFlip;
 import frameset_tags.FrameTag;
@@ -115,8 +115,12 @@ public abstract class FrameTagProcessor {
 							!sprite.getMainFrameSet().isStopped()) {
 								if (tag2.haveLeftCycles()) {
 									tag2.incCycles();
-									int i = tag2.getIndex();
-									frameSet.setCurrentFrameIndex(i < 0 ? frameSet.getCurrentFrameIndex() + i : i);
+									int index = tag2.getIndex() < 0 ? frameSet.getCurrentFrameIndex() + tag2.getIndex() : tag2.getIndex();
+									if (index < 0)
+										index = 0;
+									else if (index >= frameSet.getTotalFrames())
+										index = frameSet.getTotalFrames() == 0 ? 0 : frameSet.getTotalFrames() - 1;
+									frameSet.setCurrentFrameIndex(index);
 								}
 								else {
 									tag2.resetCycles();
@@ -130,7 +134,12 @@ public abstract class FrameTagProcessor {
 							!sprite.getMainFrameSet().isStopped()) {
 								if (tag2.haveLeftCycles()) {
 									tag2.incCycles();
-									frameSet.setCurrentFrameIndex(frameSet.getCurrentFrameIndex() - 1);
+									int index = frameSet.getCurrentFrameIndex() - 1;
+									if (index < 0)
+										index = 0;
+									else if (index >= frameSet.getTotalFrames())
+										index = frameSet.getTotalFrames() == 0 ? 0 : frameSet.getTotalFrames() - 1;
+									frameSet.setCurrentFrameIndex(index);
 								}
 								else {
 									tag2.resetCycles();
@@ -140,7 +149,7 @@ public abstract class FrameTagProcessor {
 				}
 				else if (tag instanceof PlaySound) {
 					if (!Main.spriteEditor || !FrameSetEditor.isPaused)
-						GameMisc.playSound(((PlaySound)tag).getPartialSoundPath());
+						Sound.playSound(((PlaySound)tag).getPartialSoundPath());
 				}
 				else if (tag instanceof SetSprSource) {
 					sprite.setSpriteSource(((SetSprSource)tag).getSpriteSource());
@@ -174,16 +183,16 @@ public abstract class FrameTagProcessor {
 				else if (tag instanceof IncOutputSprY)
 					sprite.incY(((IncOutputSprY)tag).getIncrement());
 				else if (tag instanceof SetObjPos) {
-					frameSet.incX(((SetObjPos)tag).getX());
-					frameSet.incY(((SetObjPos)tag).getY());
+					frameSet.getEntity().incX(((SetObjPos)tag).getX());
+					frameSet.getEntity().incY(((SetObjPos)tag).getY());
 				}
 				else if (tag instanceof SetObjX)
 					sprite.setX(((SetObjX)tag).getValue());
 				else if (tag instanceof SetObjY)
 					sprite.setY(((SetObjY)tag).getValue());
 				else if (tag instanceof IncObjPos) {
-					frameSet.incX(((IncObjPos)tag).getIncrementX());
-					frameSet.incY(((IncObjPos)tag).getIncrementY());
+					frameSet.getEntity().incX(((IncObjPos)tag).getIncrementX());
+					frameSet.getEntity().incY(((IncObjPos)tag).getIncrementY());
 				}
 				else if (tag instanceof IncObjX)
 					sprite.incX(((IncObjX)tag).getIncrement());

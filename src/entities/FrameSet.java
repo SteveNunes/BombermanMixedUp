@@ -1,19 +1,17 @@
-package frameset;
+package entities;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
-import entities.Materials;
 import frameset_tags.FrameTag;
-import javafx.scene.canvas.GraphicsContext;
-import objmoveutils.Position;
 import tools.FrameTagLoader;
 import tools.GameMisc;
+import tools.Materials;
 
-public class FrameSet extends Position {
+public class FrameSet {
 	
-	private GraphicsContext gcTarget;
+	private Entity entity;
 	private List<Sprite> sprites;
 	private List<Frame> frames;
 	private int totalFrames;
@@ -24,36 +22,31 @@ public class FrameSet extends Position {
 	private int maxY;
 	private boolean changedIndex;
 	private boolean stop;
-	
-	public FrameSet(FrameSet frameSet) {
+
+	public FrameSet(FrameSet frameSet, Entity entity) {
 		super();
-		setPosition(frameSet);
-		framesPerTick = frameSet.framesPerTick;
-		gcTarget = frameSet.gcTarget;
-		frames = new ArrayList<>();
-		for (Frame frame : frameSet.frames) {
-			frames.add(frame = new Frame(frame));
-			frame.setMainFrameSet(this);
-		}
-		maxY = frameSet.maxY;
 		sprites = new ArrayList<>();
+		for (Sprite sprite : frameSet.sprites)
+			sprites.add(sprite = new Sprite(sprite, this));
+		frames = new ArrayList<>();
+		for (Frame frame : frameSet.frames)
+			frames.add(frame = new Frame(frame, this));
+		this.entity = entity;
+		framesPerTick = frameSet.framesPerTick;
+		maxY = frameSet.maxY;
 		totalFrames = frameSet.totalFrames;
 		totalSprites = frameSet.totalSprites;
-		for (Sprite sprite : frameSet.sprites) {
-			sprites.add(sprite = new Sprite(sprite));
-			sprite.setMainFrameSet(this);
-		}
 		changedIndex = false;
 		stop = false;
 		currentFrameIndex = 0;
 		ticks = 0;
 	}
 
-	public FrameSet(GraphicsContext gcTarget, int framesPerTick, int x, int y) {
+	public FrameSet(Entity entity, int framesPerTick, int x, int y) {
 		super();
+		this.entity = entity;
 		this.framesPerTick = framesPerTick;
-		this.gcTarget = gcTarget;
-		setPosition(x, y);
+		entity.setPosition(x, y);
 		frames = new ArrayList<>();
 		sprites = new ArrayList<>();
 		changedIndex = false;
@@ -65,6 +58,21 @@ public class FrameSet extends Position {
 		maxY = 0;
 	}
 	
+	public FrameSet(Entity entity, int framesPerTick)
+		{ this(entity, framesPerTick, 0, 0); }
+
+	public FrameSet(Entity entity, int x, int y)
+		{ this(entity, 1, x, y); }
+
+	public FrameSet(Entity entity)
+		{ this(entity, 1, 0, 0); }
+
+	public Entity getEntity()
+		{ return entity; }
+	
+	public void setEntity(Entity entity)
+		{ this.entity = entity; }
+	
 	public void stop()
 		{ stop = true; }
 	
@@ -73,15 +81,6 @@ public class FrameSet extends Position {
 	
 	public boolean isStopped()
 		{ return stop; }
-
-	public FrameSet(GraphicsContext gcDraw, int framesPerTick)
-		{ this(gcDraw, framesPerTick, 0, 0); }
-
-	public FrameSet(GraphicsContext gcTarget, int x, int y)
-		{ this(gcTarget, 1, x, y); }
-
-	public FrameSet(GraphicsContext gcTarget)
-		{ this(gcTarget, 1, 0, 0); }
 
 	public int getMaxY()
 		{ return maxY; }
@@ -104,7 +103,7 @@ public class FrameSet extends Position {
 			for (Sprite sprite : sprites) {
 				if (isStopped())
 					return;
-				sprite.draw(gcTarget);
+				sprite.draw();
 				maxY = sprite.getMaxOutputSpriteY();
 			}
 			if (!isPaused && ++ticks >= framesPerTick) {
@@ -157,7 +156,7 @@ public class FrameSet extends Position {
 
 	public void addFrameAt(int index, Frame cloneFrame) {
 		if (cloneFrame == null && totalFrames > 0 && index > 0)
-			cloneFrame = new Frame(frames.get(index - 1));
+			cloneFrame = new Frame(frames.get(index - 1), this);
 		if(totalFrames == 0)
 			frames.add(cloneFrame = (cloneFrame == null ? new Frame(this) : cloneFrame));
 		else
@@ -274,9 +273,6 @@ public class FrameSet extends Position {
 		refreshFramesTags();
 	}
 
-	public GraphicsContext getTargetGraphicsContext()
-		{ return gcTarget; }
-	
 	public void addSpriteAt(int index, Sprite sprite) {
 		if (index < 0 || (totalSprites > 0 && index > totalSprites))
 			throw new RuntimeException(index + " - Invalid Index (Min: 0, Max: " + (totalSprites - 1) + ")");
