@@ -1,5 +1,6 @@
 package frameset_tags;
 
+import entities.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprGlowValues extends FrameTag {
@@ -40,4 +41,8 @@ public class SetSprGlowValues extends FrameTag {
 	public SetSprGlowValues getNewInstanceOfThis()
 		{ return new SetSprGlowValues(level, blendMode); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().setGlow(getLevel(), getBlendMode()); }
+
 }

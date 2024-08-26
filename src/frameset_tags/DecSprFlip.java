@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class DecSprFlip extends FrameTag {
 	
 	public DecSprFlip() {}
@@ -14,5 +16,9 @@ public class DecSprFlip extends FrameTag {
 	@Override
 	public DecSprFlip getNewInstanceOfThis()
 		{ return new DecSprFlip(); }
+
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.setFlip(sprite.getFlip().getPreview()); }
 
 }

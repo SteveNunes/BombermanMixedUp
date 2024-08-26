@@ -1,5 +1,6 @@
 package frameset_tags;
 
+import entities.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprInnerShadowValues extends FrameTag {
@@ -46,4 +47,8 @@ public class SetSprInnerShadowValues extends FrameTag {
 	public SetSprInnerShadowValues getNewInstanceOfThis()
 		{ return new SetSprInnerShadowValues(offsetX, offsetY, blendMode); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().setInnerShadow(getOffsetX(), getOffsetY(), getBlendMode()); }
+
 }

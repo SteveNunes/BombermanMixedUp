@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class IncSprMotionBlurValues extends FrameTag {
 	
 	private double incrementAngle;
@@ -35,4 +37,8 @@ public class IncSprMotionBlurValues extends FrameTag {
 	public IncSprMotionBlurValues getNewInstanceOfThis()
 		{ return new IncSprMotionBlurValues(incrementAngle, incrementRadius); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().setMotionBlur(getIncrementAngle(), getIncrementRadius()); }
+
 }

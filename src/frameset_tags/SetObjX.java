@@ -1,5 +1,9 @@
 package frameset_tags;
 
+import entities.Entity;
+import entities.FrameSet;
+import entities.Sprite;
+
 public class SetObjX extends FrameTag {
 	
 	private int value;
@@ -26,4 +30,10 @@ public class SetObjX extends FrameTag {
 	public SetObjX getNewInstanceOfThis()
 		{ return new SetObjX(value); }
 	
+	@Override
+	public void process(Sprite sprite) {
+		FrameSet frameSet = sprite.getMainFrameSet();
+		frameSet.setX(getValue());
+	}
+
 }

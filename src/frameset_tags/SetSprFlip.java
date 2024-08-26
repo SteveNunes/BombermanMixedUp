@@ -1,5 +1,6 @@
 package frameset_tags;
 
+import entities.Sprite;
 import enums.ImageFlip;
 
 public class SetSprFlip extends FrameTag {
@@ -29,4 +30,8 @@ public class SetSprFlip extends FrameTag {
 	public SetSprFlip getNewInstanceOfThis()
 		{ return new SetSprFlip(flip); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.setFlip(getFlip()); }
+
 }

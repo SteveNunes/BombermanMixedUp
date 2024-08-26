@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetOutputSprSize extends FrameTag {
 	
 	private int width;
@@ -35,4 +37,10 @@ public class SetOutputSprSize extends FrameTag {
 	public SetOutputSprSize getNewInstanceOfThis()
 		{ return new SetOutputSprSize(width, height); }
 	
+	@Override
+	public void process(Sprite sprite) {
+		sprite.setOutputWidth(getWidth());
+		sprite.setOutputHeight(getHeight());
+	}
+
 }

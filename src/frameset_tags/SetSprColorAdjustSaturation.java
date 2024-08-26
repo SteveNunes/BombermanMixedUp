@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprColorAdjustSaturation extends FrameTag {
 	
 	private double value;
@@ -26,4 +28,8 @@ public class SetSprColorAdjustSaturation extends FrameTag {
 	public SetSprColorAdjustSaturation getNewInstanceOfThis()
 		{ return new SetSprColorAdjustSaturation(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getColorAdjust().setSaturation(getValue()); }
+
 }

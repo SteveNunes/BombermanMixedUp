@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprIndex extends FrameTag {
 	
 	private int value;
@@ -26,4 +28,8 @@ public class SetSprIndex extends FrameTag {
 	public SetSprIndex getNewInstanceOfThis()
 		{ return new SetSprIndex(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.setSpriteIndex(getValue()); }
+
 }

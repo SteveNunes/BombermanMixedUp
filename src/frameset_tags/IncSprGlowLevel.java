@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class IncSprGlowLevel extends FrameTag {
 	
 	private int increment;
@@ -26,4 +28,8 @@ public class IncSprGlowLevel extends FrameTag {
 	public IncSprGlowLevel getNewInstanceOfThis()
 		{ return new IncSprGlowLevel(increment); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().setGlow(sprite.getEffects().getGlow().getLevel() + getIncrement(), sprite.getEffects().getGlow().getBlendMode()); }
+
 }

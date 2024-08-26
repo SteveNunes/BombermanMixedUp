@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class IncSprColorTintBlue extends FrameTag {
 	
 	private double increment;
@@ -26,4 +28,8 @@ public class IncSprColorTintBlue extends FrameTag {
 	public IncSprColorTintBlue getNewInstanceOfThis()
 		{ return new IncSprColorTintBlue(increment); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getColorTint().incBlue(getIncrement()); }
+
 }

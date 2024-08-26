@@ -9,7 +9,10 @@ import enums.ImageAlignment;
 import enums.ImageFlip;
 import gui.util.ImageUtils;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Material;
 import tools.Materials;
+import util.Misc;
 
 public class Sprite {
 
@@ -91,40 +94,40 @@ public class Sprite {
 	public double getY()
 		{ return outputSpriteSizePos.getY(); }
 
-	public void setX(int x)
-		{ outputSpriteSizePos.setLocation(x, (int)getY()); }
+	public void setX(double x)
+		{ outputSpriteSizePos.setFrame(x, getY(), getOutputWidth(), getOutputHeight()); }
 	
-	public void setY(int y)
-		{ outputSpriteSizePos.setLocation((int)getX(), y); }
+	public void setY(double y)
+		{ outputSpriteSizePos.setFrame(getX(), y, getOutputWidth(), getOutputHeight()); }
 
-	public void incX(int incX)
-		{ outputSpriteSizePos.setLocation((int)getX() + incX, (int)getY()); }
+	public void incX(double incX)
+		{ outputSpriteSizePos.setFrame(getX() + incX, getY(), getOutputWidth(), getOutputHeight()); }
 	
-	public void incY(int incY)
-		{ outputSpriteSizePos.setLocation((int)getX(), (int)getY() + incY); }
+	public void incY(double incY)
+		{ outputSpriteSizePos.setFrame(getX(), getY() + incY, getOutputWidth(), getOutputHeight()); }
 
 	public double getAbsoluteX() {
 		if (mainFrameSet != null)
-			return mainFrameSet.getEntity().getX() + getX();
+			return mainFrameSet.getAbsoluteX() + getX();
 		return getX();
 	}
 
 	public double getAbsoluteY() {
 		if (mainFrameSet != null)
-			return mainFrameSet.getEntity().getY() + getY();
+			return mainFrameSet.getAbsoluteY() + getY();
 		return getY();
 	}
 
 	public void setAbsoluteX(int x) {
 		if (mainFrameSet != null)
-			setX(x - (int)mainFrameSet.getEntity().getX());
+			setX(x - (int)mainFrameSet.getAbsoluteX());
 		else
 			setX(x);
 	}
 	
 	public void setAbsoluteY(int y) {
 		if (mainFrameSet != null)
-			setY(y - (int)mainFrameSet.getEntity().getY());
+			setY(y - (int)mainFrameSet.getAbsoluteY());
 		else
 			setY(y);
 	}
@@ -271,6 +274,8 @@ public class Sprite {
 	}
 
 	public int[] getCurrentSpriteOriginCoords() {
+		if (spriteIndex == -1)
+			return new int[] {0, 0};
 		int w = (int)getOriginSpriteWidth(),
 				h = (int)getOriginSpriteHeight(),
 				x = (int)getOriginSpriteX() + w * (int)((getSpritesPerLine() == 0 ? spriteIndex : (spriteIndex % getSpritesPerLine()))),
@@ -283,56 +288,47 @@ public class Sprite {
 				y = (int)getAbsoluteY(),
 				w = (int)getOutputWidth(),
 				h = (int)getOutputHeight();
-		
 		switch (alignment) {
 			case TOP:
-				x -= w / 2;
-				y -= Main.tileSize / 2;
+				x += Main.tileSize / 2 - w / 2;
 				break;
 			case BOTTOM:
-				x -= w / 2;
-				y += Main.tileSize / 2 - h;
+				x += Main.tileSize / 2 - w / 2;
+				y += Main.tileSize - h;
 				break;
 			case LEFT:
-				x -= Main.tileSize / 2;
-				y -= h / 2;
+				y += Main.tileSize / 2 - h / 2;
 				break;
 			case RIGHT:
-				x += Main.tileSize / 2 - w;
-				y -= h / 2;
+				x += Main.tileSize - w;
+				y += Main.tileSize / 2 - h / 2;
 				break;
 			case LEFT_TOP:
-				x -= Main.tileSize / 2;
-				y -= Main.tileSize / 2;
 				break;
 			case LEFT_BOTTOM:
-				x -= Main.tileSize / 2;
-				y += Main.tileSize / 2 - h;
+				y += Main.tileSize - h;
 				break;
 			case RIGHT_TOP:
-				x += Main.tileSize / 2 - w;
-				y -= Main.tileSize / 2;
+				x += Main.tileSize - w;
 				break;
 			case RIGHT_BOTTOM:
-				x += Main.tileSize / 2 - w;
-				y += Main.tileSize / 2 - h;
+				x += Main.tileSize - w;
+				y += Main.tileSize - h;
 				break;
 			case CENTER:
-				x -= w / 2;
-				y -= h / 2;
+				x += Main.tileSize / 2 - w / 2;
+				y += Main.tileSize / 2 - h / 2;
 				break;
 			default:
 				break;
 		}
 		return new int[] {x, y};
 	}
-	
+	 
 	public void draw() {
-		if (spriteIndex != -1) {
-			int[] in = getCurrentSpriteOriginCoords(), out = getOutputDrawCoords();
-			ImageUtils.drawImage(Main.gcDraw, Materials.mainSprites, in[0], in[1], (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
-				out[0], out[1], getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
-		}
+		int[] in = getCurrentSpriteOriginCoords(), out = getOutputDrawCoords();
+		ImageUtils.drawImage(Main.gcDraw, spriteIndex == -1 ? Materials.shadow : Materials.mainSprites, in[0], in[1], (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+			out[0], out[1], getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 	}
 
 }

@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprAlpha extends FrameTag {
 	
 	private double value;
@@ -26,4 +28,8 @@ public class SetSprAlpha extends FrameTag {
 	public SetSprAlpha getNewInstanceOfThis()
 		{ return new SetSprAlpha(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.setAlpha(getValue()); }
+
 }

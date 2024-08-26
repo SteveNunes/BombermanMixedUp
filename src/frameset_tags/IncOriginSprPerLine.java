@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class IncOriginSprPerLine extends FrameTag {
 	
 	private int increment;
@@ -26,4 +28,8 @@ public class IncOriginSprPerLine extends FrameTag {
 	public IncOriginSprPerLine getNewInstanceOfThis()
 		{ return new IncOriginSprPerLine(increment); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.incSpritesPerLine(getIncrement()); }
+
 }

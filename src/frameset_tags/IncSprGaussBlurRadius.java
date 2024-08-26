@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class IncSprGaussBlurRadius extends FrameTag {
 	
 	private int increment;
@@ -26,4 +28,8 @@ public class IncSprGaussBlurRadius extends FrameTag {
 	public IncSprGaussBlurRadius getNewInstanceOfThis()
 		{ return new IncSprGaussBlurRadius(increment); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getGaussianBlur().incRadius(getIncrement()); }
+
 }

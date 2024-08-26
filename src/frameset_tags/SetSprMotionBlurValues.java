@@ -1,5 +1,6 @@
 package frameset_tags;
 
+import entities.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprMotionBlurValues extends FrameTag {
@@ -46,4 +47,8 @@ public class SetSprMotionBlurValues extends FrameTag {
 	public SetSprMotionBlurValues getNewInstanceOfThis()
 		{ return new SetSprMotionBlurValues(angle, radius, blendMode); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().setMotionBlur(getAngle(), getRadius(), getBlendMode()); }
+
 }

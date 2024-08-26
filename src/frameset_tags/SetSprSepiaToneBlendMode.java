@@ -1,5 +1,6 @@
 package frameset_tags;
 
+import entities.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprSepiaToneBlendMode extends FrameTag {
@@ -28,4 +29,8 @@ public class SetSprSepiaToneBlendMode extends FrameTag {
 	public SetSprSepiaToneBlendMode getNewInstanceOfThis()
 		{ return new SetSprSepiaToneBlendMode(blendMode); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getSepiaTone().setBlendMode(getBlendMode()); }
+
 }

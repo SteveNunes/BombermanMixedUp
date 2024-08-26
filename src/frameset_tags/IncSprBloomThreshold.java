@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class IncSprBloomThreshold extends FrameTag {
 	
 	private double increment;
@@ -26,4 +28,8 @@ public class IncSprBloomThreshold extends FrameTag {
 	public IncSprBloomThreshold getNewInstanceOfThis()
 		{ return new IncSprBloomThreshold(increment); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getBloom().incThreshold(getIncrement()); }
+
 }

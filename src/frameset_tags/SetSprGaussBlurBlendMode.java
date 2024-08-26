@@ -1,5 +1,6 @@
 package frameset_tags;
 
+import entities.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprGaussBlurBlendMode extends FrameTag {
@@ -9,7 +10,7 @@ public class SetSprGaussBlurBlendMode extends FrameTag {
 	public SetSprGaussBlurBlendMode(BlendMode blendMode)
 		{ this.blendMode = blendMode; }
 
-	public BlendMode getFlip()
+	public BlendMode getBlendMode()
 		{ return blendMode; }	
 	
 	@Override
@@ -28,4 +29,8 @@ public class SetSprGaussBlurBlendMode extends FrameTag {
 	public SetSprGaussBlurBlendMode getNewInstanceOfThis()
 		{ return new SetSprGaussBlurBlendMode(blendMode); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().setGaussianBlur(sprite.getEffects().getGaussianBlur().getRadius(), getBlendMode()); }
+
 }

@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprRotate extends FrameTag {
 	
 	private int value;
@@ -26,4 +28,8 @@ public class SetSprRotate extends FrameTag {
 	public SetSprRotate getNewInstanceOfThis()
 		{ return new SetSprRotate(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.setRotation(getValue()); }
+
 }

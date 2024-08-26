@@ -1,13 +1,15 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetOutputSprY extends FrameTag {
 	
-	private int value;
+	private double value;
 	
-	public SetOutputSprY(int value)
+	public SetOutputSprY(double value)
 		{ this.value = value; }
 
-	public int getValue()
+	public double getValue()
 		{ return value; }
 
 	@Override
@@ -17,7 +19,7 @@ public class SetOutputSprY extends FrameTag {
 	public SetOutputSprY(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags, 1);
 		try
-			{ value = Integer.parseInt(params[0]); }
+			{ value = Double.parseDouble(params[0]); }
 		catch (Exception e)
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
@@ -26,4 +28,8 @@ public class SetOutputSprY extends FrameTag {
 	public SetOutputSprY getNewInstanceOfThis()
 		{ return new SetOutputSprY(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.setY(getValue()); }
+
 }

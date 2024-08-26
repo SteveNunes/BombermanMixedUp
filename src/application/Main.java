@@ -1,6 +1,7 @@
 package application;
 	
 import java.security.SecureRandom;
+import java.util.Random;
 
 import gameutil.FPSHandler;
 import javafx.application.Application;
@@ -24,7 +25,7 @@ public class Main extends Application {
 	public final static int tileSize = 16;
 
 	private static FPSHandler fpsHandler = new FPSHandler(60); 
-	private static SecureRandom random;
+	private static Random random;
 	private static Stage stageMain;
 	private static VBox vBoxMain;
 	public static Canvas canvasDraw;
@@ -36,11 +37,12 @@ public class Main extends Application {
 	public static int zoom = 3;
 	public static boolean spriteEditor = true;
 	private static boolean close = false;
+	private static boolean greenBG = true;
 	
 	@Override
 	public void start(Stage stage) {
 		try {
-			random = new SecureRandom();
+			random = new Random(new SecureRandom().nextInt(Integer.MAX_VALUE));
 			stageMain = stage;
 			canvasDraw = new Canvas(winW, winH);
 			canvasMain = new Canvas(winW * zoom, winH * zoom);
@@ -58,7 +60,7 @@ public class Main extends Application {
 			stageMain.show();
 			SquaredBg.setSquaredBg(3, 3, 50, 255);
 			stageMain.setOnCloseRequest(e -> close());
-			
+
 			if (spriteEditor)
 				FrameSetEditor.start(scene);
 			mainLoop();
@@ -73,9 +75,10 @@ public class Main extends Application {
 	}
 
 	private void mainLoop() {
-		gcDraw.setFill(Color.BLACK);
+		gcDraw.setFill(greenBG ? Color.valueOf("#00FF00") : Color.BLACK);
 		gcDraw.fillRect(0, 0, winW, winH);
-		SquaredBg.draw(gcDraw);
+		if (!greenBG)
+			SquaredBg.draw(gcDraw);
 		if (spriteEditor)
 			FrameSetEditor.drawDrawCanvas();
     gcMain.drawImage(canvasDraw.snapshot(null, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);

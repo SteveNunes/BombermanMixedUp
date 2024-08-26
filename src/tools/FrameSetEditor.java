@@ -12,6 +12,7 @@ import entities.Entity;
 import entities.Frame;
 import entities.FrameSet;
 import entities.Sprite;
+import enums.Direction;
 import frameset_tags.FrameTag;
 import frameset_tags.SetObjPos;
 import frameset_tags.SetOriginSprHeight;
@@ -66,7 +67,7 @@ public abstract class FrameSetEditor {
 	private static List<Sprite> copiedSprites;
 	private static ContextMenu defaultContextMenu;
 	private static ContextMenu spriteContextMenu;
-	static boolean isPaused;
+	public static boolean isPaused;
 	private static boolean isChangingSprite;
 	private static int zoomScale;
 	private static int mouseX = 0;
@@ -96,19 +97,38 @@ public abstract class FrameSetEditor {
 		backupIndex = -1;
 		
 		currentEntity = new Entity();
-		currentFrameSet = new FrameSet(currentEntity, 5, Main.winW / 2, Main.winH / 2);
+		currentEntity.setPosition(Main.winW / 2 - Main.tileSize / 2, Main.winH / 2 - Main.tileSize / 2);
+		currentFrameSet = new FrameSet(currentEntity, 5, 0, 0);
 		currentFrameSet.loadFromString(iniFile.read("FRAMESET_EDITOR", "FrameSet0"));
+		currentFrameSet.loadFromString(
+				"{SetSprSource;MainSprites;299;256;10;24;0;0;0;0;10;24},{SetSprAlign;BOTTOM},{SetOutputSprPos;-5;-30},{SetTicksPerFrame;10},{SetOriginSprPerLine;12},{SetSprIndex;6}"
+				+ ",,{SetSprSource;MainSprites;299;256;10;24;0;0;0;0;10;24},{SetSprAlign;BOTTOM},{SetOutputSprPos;5;-30},{SetSprFlip;NONE},{SetSprIndex;7}"
+				+ "|{RepeatLastFrame;6}"
+				+ "|{SetSprIndex;8},,{SetSprIndex;8},{SetSprFlip;HORIZONTAL}"
+				+ "|{IncSprIndex;1},,{IncSprIndex;1}"
+				+ "|{RepeatLastFrame;2}"
+				+ "|{SetSprIndex;-1},,{SetSprIndex;-1}"
+				+ "|{RepeatLastFrame;20}"
+				+ "|{Goto;0}"
+				);
+		IniFile ini2 = IniFile.getNewIniFileInstance("./appdata/configs/Monsters.ini");
+		currentEntity.addNewFrameSetFromString("MovingFrames.LEFT", ini2.read("2", "MovingFrames.LEFT"));
+		currentEntity.addNewFrameSetFromString("MovingFrames.RIGHT", ini2.read("2", "MovingFrames.RIGHT"));
+		currentEntity.addNewFrameSetFromString("MovingFrames.UP", ini2.read("2", "MovingFrames.UP"));
+		currentEntity.addNewFrameSetFromString("MovingFrames.DOWN", ini2.read("2", "MovingFrames.DOWN"));
+		currentFrameSetName = "MovingFrames.LEFT";
 		
-		currentFrameSetName = iniFile.read("FRAMESET_EDITOR", "FrameSetName0");
+		//currentFrameSetName = iniFile.read("FRAMESET_EDITOR", "FrameSetName0");
 		currentEntity.addFrameSet(currentFrameSetName, currentFrameSet);
+		currentEntity.setFrameSet(currentFrameSetName);
 		
 		for (int n = 1; iniFile.read("FRAMESET_EDITOR", "FrameSetName" + n) != null; n++) {
-			FrameSet frameSet = new FrameSet(currentEntity, 4, Main.winW / 2, Main.winH / 2);
+			FrameSet frameSet = new FrameSet(currentEntity, 4, 0, 0);
 			frameSet.loadFromString(iniFile.read("FRAMESET_EDITOR", "FrameSet" + n));
 			String frameSetName = iniFile.read("FRAMESET_EDITOR", "FrameSetName" + n);
 			currentEntity.addFrameSet(frameSetName, frameSet);
 		}
-		
+
 		resetedFrameSet = new FrameSet(currentFrameSet, currentEntity);
 		setDefaultContextMenu();
 		setSpriteContextMenu();
@@ -276,6 +296,14 @@ public abstract class FrameSetEditor {
 					currentFrame = null;
 					currentFrameSet.getEntity().setPosition(Main.winW / 2, Main.winH / 2);
 				}
+				else if (e.getCode() == KeyCode.A)
+					currentEntity.setDirection(Direction.LEFT);
+				else if (e.getCode() == KeyCode.W)
+					currentEntity.setDirection(Direction.UP);
+				else if (e.getCode() == KeyCode.D)
+					currentEntity.setDirection(Direction.RIGHT);
+				else if (e.getCode() == KeyCode.S)
+					currentEntity.setDirection(Direction.DOWN);
 				else 
 					iterateSelectedSprites(sprite -> {
 						isChangingSprite = false;
@@ -461,12 +489,20 @@ public abstract class FrameSetEditor {
 					ctrlZ();
 			}
 			else if (e.getCode() == KeyCode.PAGE_DOWN) {
-				if (isPaused && currentFrameSet != null)
+				if (isPaused && currentFrameSet != null) {
 					currentFrameSet.decFrameIndex();
+					if (currentFrameSet.getCurrentFrameIndex() < 0)
+						currentFrameSet.setCurrentFrameIndex(currentFrameSet.getTotalFrames() - 1);
+					currentFrameSet.refreshFramesTags();
+				}
 			}
 			else if (e.getCode() == KeyCode.PAGE_UP) {
-				if (isPaused && currentFrameSet != null)
+				if (isPaused && currentFrameSet != null) {
 					currentFrameSet.incFrameIndex();
+					if (currentFrameSet.getCurrentFrameIndex() >= currentFrameSet.getTotalFrames())
+						currentFrameSet.setCurrentFrameIndex(0);
+					currentFrameSet.refreshFramesTags();
+				}
 			}
 			else if (e.getCode() == KeyCode.ADD) {
 				if (!isAltHold()) { // Mover Sprite
@@ -827,8 +863,8 @@ public abstract class FrameSetEditor {
 					sprite.getOriginSpriteX() - 160, sprite.getOriginSpriteY() - 120,
 					480, 360, pos[0] - 160, pos[1] - 120, 480, 360);
 		}
-		if (currentEntity.getTotalFrameSets() > 0 && !currentEntity.getFrameSet(currentFrameSetName).isEmptyFrames())
-			currentFrameSet.run(isPaused);
+		if (currentEntity != null)
+			currentEntity.run(isPaused);
 		Main.gcDraw.setGlobalAlpha(1);
 		Main.gcDraw.setLineWidth(1);
 		Main.gcDraw.setStroke(Color.WHITE);

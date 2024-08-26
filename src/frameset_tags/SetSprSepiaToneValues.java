@@ -1,5 +1,6 @@
 package frameset_tags;
 
+import entities.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprSepiaToneValues extends FrameTag {
@@ -15,7 +16,7 @@ public class SetSprSepiaToneValues extends FrameTag {
 	public SetSprSepiaToneValues(double threshold)
 		{ this(threshold, BlendMode.SRC_ATOP); }
 
-	public double getGlow()
+	public double getLevel()
 		{ return level; }
 	
 	public BlendMode getBlendMode()
@@ -29,7 +30,7 @@ public class SetSprSepiaToneValues extends FrameTag {
 		String[] params = FrameTag.validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
-			level = Integer.parseInt(params[n++]);
+			level = Double.parseDouble(params[n++]);
 			blendMode = BlendMode.valueOf(params[n++]);
 		}
 		catch (Exception e)
@@ -40,4 +41,8 @@ public class SetSprSepiaToneValues extends FrameTag {
 	public SetSprSepiaToneValues getNewInstanceOfThis()
 		{ return new SetSprSepiaToneValues(level, blendMode); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().setSepiaTone(getLevel(), getBlendMode()); }
+
 }

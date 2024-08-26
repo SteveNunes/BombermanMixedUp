@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprMotionBlurRadius extends FrameTag {
 	
 	private double value;
@@ -26,4 +28,8 @@ public class SetSprMotionBlurRadius extends FrameTag {
 	public SetSprMotionBlurRadius getNewInstanceOfThis()
 		{ return new SetSprMotionBlurRadius(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getMotionBlur().setRadius(getValue()); }
+
 }

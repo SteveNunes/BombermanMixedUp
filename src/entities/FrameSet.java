@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import frameset_tags.FrameTag;
+import frameset_tags.Goto;
+import frameset_tags.RepeatLastFrame;
+import objmoveutils.Position;
 import tools.FrameTagLoader;
 import tools.GameMisc;
 import tools.Materials;
 
-public class FrameSet {
+public class FrameSet extends Position {
 	
 	private Entity entity;
 	private List<Sprite> sprites;
@@ -24,7 +27,7 @@ public class FrameSet {
 	private boolean stop;
 
 	public FrameSet(FrameSet frameSet, Entity entity) {
-		super();
+		super(frameSet);
 		sprites = new ArrayList<>();
 		for (Sprite sprite : frameSet.sprites)
 			sprites.add(sprite = new Sprite(sprite, this));
@@ -43,10 +46,9 @@ public class FrameSet {
 	}
 
 	public FrameSet(Entity entity, int framesPerTick, int x, int y) {
-		super();
+		super(x, y);
 		this.entity = entity;
 		this.framesPerTick = framesPerTick;
-		entity.setPosition(x, y);
 		frames = new ArrayList<>();
 		sprites = new ArrayList<>();
 		changedIndex = false;
@@ -67,6 +69,32 @@ public class FrameSet {
 	public FrameSet(Entity entity)
 		{ this(entity, 1, 0, 0); }
 
+	public double getAbsoluteX() {
+		if (entity != null)
+			return entity.getX() + getX();
+		return getX();
+	}
+
+	public double getAbsoluteY() {
+		if (entity != null)
+			return entity.getY() + getY();
+		return getY();
+	}
+
+	public void setAbsoluteX(int x) {
+		if (entity != null)
+			setX(x - (int)entity.getX());
+		else
+			setX(x);
+	}
+	
+	public void setAbsoluteY(int y) {
+		if (entity != null)
+			setY(y - (int)entity.getY());
+		else
+			setY(y);
+	}
+	
 	public Entity getEntity()
 		{ return entity; }
 	
@@ -92,9 +120,12 @@ public class FrameSet {
 		{ return sprites; }
 
 	public void run(boolean isPaused) {
-		if (!stop && totalFrames > 0 && currentFrameIndex < totalFrames) {
-			if (ticks == 0)
+		if (!stop && totalFrames > 0 && currentFrameIndex >= 0 && currentFrameIndex < totalFrames) {
+			if (ticks == 0) {
+				if (isPaused)
+					ticks = 1;
 				frames.get(currentFrameIndex).run();
+			}
 			if (changedIndex) {
 				changedIndex = false;
 				run(isPaused);
@@ -210,16 +241,14 @@ public class FrameSet {
 	public int getFramesPerTick() 
 		{ return framesPerTick; }
 
-	public void setFramesPerTick(int framesPerTick) {
-		this.framesPerTick = framesPerTick;
-		ticks = 0;
-	}
+	public void setFramesPerTick(int framesPerTick)
+		{ this.framesPerTick = framesPerTick; }
 
 	public void incFramesPerTick(int value)
 		{ framesPerTick += value; }
 
 	public Frame getCurrentFrame()
-		{ return currentFrameIndex >= totalFrames ? null : frames.get(currentFrameIndex); }
+		{ return currentFrameIndex < 0 || currentFrameIndex >= totalFrames ? null : frames.get(currentFrameIndex); }
 
 	public int getCurrentFrameIndex()
 		{ return currentFrameIndex; }
@@ -228,29 +257,25 @@ public class FrameSet {
 		{ return totalFrames; }
 
 	public void setCurrentFrameIndex(int index) {
-		if (index < 0 || index >= totalFrames)
-			throw new RuntimeException(index + " - Invalid Frame Index (Min: 0, Max: " + (totalFrames - 1) + ")");
 		currentFrameIndex = index;
 		ticks = 0;
 		changedIndex = true;
 	}
 	
-	public void decFrameIndex() {
-		if (--currentFrameIndex < 0)
-			currentFrameIndex = totalFrames - 1;
-		setCurrentFrameIndex(currentFrameIndex);
-		refreshFramesTags();
-	}
-	
-	private void refreshFramesTags() {
-		for (int i = 0; i < currentFrameIndex; i++)
-			frames.get(i).run();
-	}
-	
 	public void incFrameIndex() {
-		if (++currentFrameIndex >= totalFrames)
-			currentFrameIndex = 0;
-		setCurrentFrameIndex(currentFrameIndex);
+		if (++currentFrameIndex < totalFrames)
+			setCurrentFrameIndex(currentFrameIndex);
+	}
+	
+	public void decFrameIndex() {
+		if (--currentFrameIndex >= 0)
+			setCurrentFrameIndex(currentFrameIndex);
+	}
+	
+	public void refreshFramesTags() {
+		if (currentFrameIndex >= 0 && currentFrameIndex < totalFrames)
+			for (int i = 0; i < currentFrameIndex; i++)
+				frames.get(i).run();
 	}
 	
 	public void moveFrameToEnd(Frame currentFrame) {
@@ -345,6 +370,15 @@ public class FrameSet {
 		{ return totalFrames == 0; }
 
 	public void loadFromString(String tags) {
+		sprites.clear();
+		frames.clear();
+		totalFrames = 0;
+		totalSprites = 0;
+		currentFrameIndex = 0;
+		ticks = 0;
+		maxY = 0;
+		changedIndex = false;
+		stop = false;
 		String[] frames = tags.split("\\|"); // Divisor de frames
 		int totalSprites = -1;
 		for (String s1 : frames) {
@@ -377,6 +411,17 @@ public class FrameSet {
 			}
 		}
 		return fSet;
+	}
+
+	public void resetTags() {
+		for (Frame frame : frames)
+			for (Tags tags : frame.getFrameSetTagsList())
+				for (FrameTag tag : tags.getFrameSetTags()) {
+					if (tag instanceof Goto)
+						((Goto)tag).resetCycles();
+					else if (tag instanceof RepeatLastFrame)
+						((RepeatLastFrame)tag).resetCycles();
+				}
 	}
 
 }

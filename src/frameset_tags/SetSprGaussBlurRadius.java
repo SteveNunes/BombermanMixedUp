@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprGaussBlurRadius extends FrameTag {
 	
 	private int value;
@@ -26,4 +28,8 @@ public class SetSprGaussBlurRadius extends FrameTag {
 	public SetSprGaussBlurRadius getNewInstanceOfThis()
 		{ return new SetSprGaussBlurRadius(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getGaussianBlur().setRadius(getValue()); }
+
 }

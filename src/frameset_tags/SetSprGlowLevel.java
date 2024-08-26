@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprGlowLevel extends FrameTag {
 	
 	private int value;
@@ -26,4 +28,8 @@ public class SetSprGlowLevel extends FrameTag {
 	public SetSprGlowLevel getNewInstanceOfThis()
 		{ return new SetSprGlowLevel(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getGlow().setLevel(getValue()); }
+
 }

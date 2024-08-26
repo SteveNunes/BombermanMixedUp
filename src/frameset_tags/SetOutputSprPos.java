@@ -1,19 +1,21 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetOutputSprPos extends FrameTag {
 	
-	private int x;
-	private int y;
+	private double x;
+	private double y;
 	
-	public SetOutputSprPos(int x, int y) {
+	public SetOutputSprPos(double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
 
-	public int getX()
+	public double getX()
 		{ return x; }
 
-	public int getY()
+	public double getY()
 		{ return y; }	
 
 	@Override
@@ -24,8 +26,8 @@ public class SetOutputSprPos extends FrameTag {
 		String[] params = FrameTag.validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
-			x = Integer.parseInt(params[n++]);
-			y = Integer.parseInt(params[n++]);
+			x = Double.parseDouble(params[n++]);
+			y = Double.parseDouble(params[n++]);
 		}
 		catch (Exception e)
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
@@ -34,5 +36,11 @@ public class SetOutputSprPos extends FrameTag {
 	@Override
 	public SetOutputSprPos getNewInstanceOfThis()
 		{ return new SetOutputSprPos(x, y); }
+
+	@Override
+	public void process(Sprite sprite) {
+		sprite.setX(getX());
+		sprite.setY(getY());
+	}
 
 }

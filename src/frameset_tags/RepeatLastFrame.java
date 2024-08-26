@@ -1,5 +1,10 @@
 package frameset_tags;
 
+import application.Main;
+import entities.FrameSet;
+import entities.Sprite;
+import tools.FrameSetEditor;
+
 public class RepeatLastFrame extends FrameTag {
 	
 	private int repeatCycles;
@@ -46,4 +51,24 @@ public class RepeatLastFrame extends FrameTag {
 	public RepeatLastFrame getNewInstanceOfThis()
 		{ return new RepeatLastFrame(repeatCycles); }
 	
+	@Override
+	public void process(Sprite sprite) {
+		FrameSet frameSet = sprite.getMainFrameSet();
+		if ((!Main.spriteEditor || !FrameSetEditor.isPaused) && !frameSet.isStopped()) {
+			if (haveLeftCycles()) {
+				incCycles();
+				int index = frameSet.getCurrentFrameIndex() - 1;
+				if (index < 0)
+					index = 0;
+				else if (index >= frameSet.getTotalFrames())
+					index = frameSet.getTotalFrames() == 0 ? 0 : frameSet.getTotalFrames() - 1;
+				frameSet.setCurrentFrameIndex(index);
+			}
+			else {
+				resetCycles();
+				frameSet.incFrameIndex();
+			}
+		}
+	}
+
 }

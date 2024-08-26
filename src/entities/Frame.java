@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import frameset_tags.FrameTag;
-import tools.FrameTagProcessor;
 
 public class Frame {
 	
@@ -45,7 +44,8 @@ public class Frame {
 		for (Tags tags : frameSetTagsList) {
 			if (mainFrameSet.isStopped())
 				return;
-			FrameTagProcessor.process(tags);
+			for (FrameTag tag : tags.getFrameSetTags())
+				tag.process(tags.getRootSprite());
 		}
 	}
 	

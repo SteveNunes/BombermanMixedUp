@@ -1,5 +1,6 @@
 package frameset_tags;
 
+import entities.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprColorTintValues extends FrameTag {
@@ -64,4 +65,8 @@ public class SetSprColorTintValues extends FrameTag {
 	public SetSprColorTintValues getNewInstanceOfThis()
 		{ return new SetSprColorTintValues(red, green, blue, alpha, blendMode); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().setColorTint(getRed(), getGreen(), getBlue(), getAlpha()); }
+
 }

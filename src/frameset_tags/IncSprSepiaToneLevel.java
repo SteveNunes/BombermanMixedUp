@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class IncSprSepiaToneLevel extends FrameTag {
 	
 	private int increment;
@@ -26,4 +28,8 @@ public class IncSprSepiaToneLevel extends FrameTag {
 	public IncSprSepiaToneLevel getNewInstanceOfThis()
 		{ return new IncSprSepiaToneLevel(increment); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getSepiaTone().incLevel(getIncrement()); }
+
 }

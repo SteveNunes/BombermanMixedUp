@@ -1,9 +1,13 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public abstract class FrameTag {
 	
 	public abstract FrameTag getNewInstanceOfThis();
 
+	public abstract void process(Sprite sprite);
+	
 	public static <T> String[] validateStringTags(T clazz, String tags)
 		{ return validateStringTags(clazz, tags, -1); }
 	

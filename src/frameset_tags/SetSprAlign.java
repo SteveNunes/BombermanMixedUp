@@ -1,5 +1,6 @@
 package frameset_tags;
 
+import entities.Sprite;
 import enums.ImageAlignment;
 
 public class SetSprAlign extends FrameTag {
@@ -28,4 +29,8 @@ public class SetSprAlign extends FrameTag {
 	public SetSprAlign getNewInstanceOfThis()
 		{ return new SetSprAlign(alignment); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.setAlignment(getAlignment()); }
+
 }

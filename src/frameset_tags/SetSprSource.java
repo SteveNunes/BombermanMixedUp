@@ -2,6 +2,7 @@ package frameset_tags;
 
 import java.awt.Rectangle;
 
+import entities.Sprite;
 import javafx.scene.image.Image;
 import tools.Materials;
 
@@ -83,4 +84,13 @@ public class SetSprSource extends FrameTag {
 	public SetSprSource getNewInstanceOfThis()
 		{ return new SetSprSource(spriteSource, originSprSizePos, outputSprSizePos, spriteIndex, spritesPerLine); }
 	
+	@Override
+	public void process(Sprite sprite) {
+		sprite.setSpriteSource(getSpriteSource());
+		sprite.setOriginSpritePos(getOriginSprSizePos());
+		sprite.setOutputSpritePos(getOutputSprSizePos());
+		sprite.setSpriteIndex(getSpriteIndex());
+		sprite.setSpritesPerLine(getSpritesPerLine());
+	}
+
 }

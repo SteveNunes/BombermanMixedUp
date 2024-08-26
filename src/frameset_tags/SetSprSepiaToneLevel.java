@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprSepiaToneLevel extends FrameTag {
 	
 	private double value;
@@ -7,7 +9,7 @@ public class SetSprSepiaToneLevel extends FrameTag {
 	public SetSprSepiaToneLevel(double value)
 		{ this.value = value; }
 
-	public double getGlow()
+	public double getValue()
 		{ return value; }
 
 	@Override
@@ -26,4 +28,8 @@ public class SetSprSepiaToneLevel extends FrameTag {
 	public SetSprSepiaToneLevel getNewInstanceOfThis()
 		{ return new SetSprSepiaToneLevel(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getSepiaTone().setLevel(getValue()); }
+
 }

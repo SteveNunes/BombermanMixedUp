@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetOriginSprY extends FrameTag {
 	
 	private int value;
@@ -26,4 +28,8 @@ public class SetOriginSprY extends FrameTag {
 	public SetOriginSprY getNewInstanceOfThis()
 		{ return new SetOriginSprY(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.setOriginSpriteY(getValue()); }
+
 }

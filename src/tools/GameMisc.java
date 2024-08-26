@@ -2,8 +2,12 @@ package tools;
 
 import java.util.List;
 
+import util.IniFile;
+
 public abstract class GameMisc {
 	
+	static IniFile iniFile = IniFile.getNewIniFileInstance("D:/Java/Bomberman - Mixed Up!/appdata/configs/Monsters.cfg");
+
 	public static <T> void moveItemTo(List<T> list, T item, int index) {
 		if (list.contains(item)) {
 			int max = list.size();
@@ -18,4 +22,5 @@ public abstract class GameMisc {
 		}
 	}
 	
+
 }

@@ -1,19 +1,21 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class IncOutputSprPos extends FrameTag {
 	
-	private int incrementX;
-	private int incrementY;
+	private double incrementX;
+	private double incrementY;
 	
-	public IncOutputSprPos(int incrementX, int incrementY) {
+	public IncOutputSprPos(double incrementX, double incrementY) {
 		this.incrementX = incrementX;
 		this.incrementY = incrementY;
 	}
 
-	public int getIncrementX()
+	public double getIncrementX()
 		{ return incrementX; }
 
-	public int getIncrementY()
+	public double getIncrementY()
 		{ return incrementY; }		
 
 	@Override
@@ -24,8 +26,8 @@ public class IncOutputSprPos extends FrameTag {
 		String[] params = FrameTag.validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
-			incrementX = Integer.parseInt(params[n++]);
-			incrementY = Integer.parseInt(params[n++]);
+			incrementX = Double.parseDouble(params[n++]);
+			incrementY = Double.parseDouble(params[n++]);
 		}
 		catch (Exception e)
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
@@ -34,5 +36,11 @@ public class IncOutputSprPos extends FrameTag {
 	@Override
 	public IncOutputSprPos getNewInstanceOfThis()
 		{ return new IncOutputSprPos(incrementX, incrementY); }
+
+	@Override
+	public void process(Sprite sprite) {
+		sprite.incX(getIncrementX());
+		sprite.incY(getIncrementY());
+	}
 
 }

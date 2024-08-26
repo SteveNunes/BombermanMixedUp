@@ -1,5 +1,8 @@
 package frameset_tags;
 
+import entities.FrameSet;
+import entities.Sprite;
+
 public class SetTicksPerFrame extends FrameTag {
 	
 	private int value;
@@ -26,4 +29,10 @@ public class SetTicksPerFrame extends FrameTag {
 	public SetTicksPerFrame getNewInstanceOfThis()
 		{ return new SetTicksPerFrame(value); }
 	
+	@Override
+	public void process(Sprite sprite) {
+		FrameSet frameSet = sprite.getMainFrameSet();
+		frameSet.setFramesPerTick(getValue());
+	}
+
 }

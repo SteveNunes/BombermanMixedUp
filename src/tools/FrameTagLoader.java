@@ -21,12 +21,30 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new RepeatLastFrame(s));
 			else if (tag.equals("Goto"))
 				tags.addFrameSetTag(new Goto(s));
+			else if (tag.equals("SetObjPos"))
+				tags.addFrameSetTag(new SetObjPos(s));
+			else if (tag.equals("SetObjX"))
+				tags.addFrameSetTag(new SetObjX(s));
+			else if (tag.equals("SetObjY"))
+				tags.addFrameSetTag(new SetObjY(s));
 			else if (tag.equals("IncObjPos"))
 				tags.addFrameSetTag(new IncObjPos(s));
 			else if (tag.equals("IncObjX"))
 				tags.addFrameSetTag(new IncObjX(s));
 			else if (tag.equals("IncObjY"))
 				tags.addFrameSetTag(new IncObjY(s));
+			else if (tag.equals("SetEntityPos"))
+				tags.addFrameSetTag(new SetEntityPos(s));
+			else if (tag.equals("SetEntityX"))
+				tags.addFrameSetTag(new SetEntityX(s));
+			else if (tag.equals("SetEntityY"))
+				tags.addFrameSetTag(new SetEntityY(s));
+			else if (tag.equals("IncEntityPos"))
+				tags.addFrameSetTag(new IncEntityPos(s));
+			else if (tag.equals("IncEntityX"))
+				tags.addFrameSetTag(new IncEntityX(s));
+			else if (tag.equals("IncEntityY"))
+				tags.addFrameSetTag(new IncEntityY(s));
 			else if (tag.equals("IncOriginSprHeight"))
 				tags.addFrameSetTag(new IncOriginSprHeight(s));
 			else if (tag.equals("IncOriginSprPerLine"))
@@ -109,12 +127,6 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new IncSprSepiaToneLevel(s));
 			else if (tag.equals("IncTicksPerFrame"))
 				tags.addFrameSetTag(new IncTicksPerFrame(s));
-			else if (tag.equals("SetObjPos"))
-				tags.addFrameSetTag(new SetObjPos(s));
-			else if (tag.equals("SetObjX"))
-				tags.addFrameSetTag(new SetObjX(s));
-			else if (tag.equals("SetObjY"))
-				tags.addFrameSetTag(new SetObjY(s));
 			else if (tag.equals("SetOriginSprHeight"))
 				tags.addFrameSetTag(new SetOriginSprHeight(s));
 			else if (tag.equals("SetOriginSprPerLine"))
@@ -225,6 +237,12 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new SetSprSource(s));
 			else if (tag.equals("SetTicksPerFrame"))
 				tags.addFrameSetTag(new SetTicksPerFrame(s));
+			else if (tag.equals("SetEntityNoMove"))
+				tags.addFrameSetTag(new SetEntityNoMove(s));
+			else if (tag.equals("SetEntityInvencibilityFrames"))
+				tags.addFrameSetTag(new SetEntityInvencibilityFrames(s));
+			else if (tag.equals("SetEntityShadow"))
+				tags.addFrameSetTag(new SetEntityShadow(s));
 		}
 	}
 

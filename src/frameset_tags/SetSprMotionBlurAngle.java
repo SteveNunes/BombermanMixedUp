@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprMotionBlurAngle extends FrameTag {
 	
 	private double value;
@@ -26,4 +28,8 @@ public class SetSprMotionBlurAngle extends FrameTag {
 	public SetSprMotionBlurAngle getNewInstanceOfThis()
 		{ return new SetSprMotionBlurAngle(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getMotionBlur().setAngle(getValue()); }
+
 }

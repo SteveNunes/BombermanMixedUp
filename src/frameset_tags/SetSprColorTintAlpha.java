@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprColorTintAlpha extends FrameTag {
 	
 	private double value;
@@ -26,4 +28,8 @@ public class SetSprColorTintAlpha extends FrameTag {
 	public SetSprColorTintAlpha getNewInstanceOfThis()
 		{ return new SetSprColorTintAlpha(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getColorTint().setAlpha(getValue()); }
+
 }

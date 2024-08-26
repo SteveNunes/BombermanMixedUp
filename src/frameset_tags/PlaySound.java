@@ -1,5 +1,10 @@
 package frameset_tags;
 
+import application.Main;
+import entities.Sprite;
+import tools.FrameSetEditor;
+import tools.Sound;
+
 public class PlaySound extends FrameTag {
 	
 	private String partialSoundPath;
@@ -25,4 +30,10 @@ public class PlaySound extends FrameTag {
 	public PlaySound getNewInstanceOfThis()
 		{ return new PlaySound(tags); }
 	
+	@Override
+	public void process(Sprite sprite) {
+		if (!Main.spriteEditor || !FrameSetEditor.isPaused)
+			Sound.playSound(partialSoundPath);
+	}
+
 }

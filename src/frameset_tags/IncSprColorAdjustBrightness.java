@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class IncSprColorAdjustBrightness extends FrameTag {
 	
 	private double increment;
@@ -26,4 +28,8 @@ public class IncSprColorAdjustBrightness extends FrameTag {
 	public IncSprColorAdjustBrightness getNewInstanceOfThis()
 		{ return new IncSprColorAdjustBrightness(increment); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getColorAdjust().incBrightness(getIncrement()); }
+
 }

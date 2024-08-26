@@ -1,5 +1,8 @@
 package frameset_tags;
 
+import entities.FrameSet;
+import entities.Sprite;
+
 public class IncObjX extends FrameTag {
 	
 	private int increment;
@@ -25,5 +28,11 @@ public class IncObjX extends FrameTag {
 	@Override
 	public IncObjX getNewInstanceOfThis()
 		{ return new IncObjX(increment); }
+
+	@Override
+	public void process(Sprite sprite) {
+		FrameSet frameSet = sprite.getMainFrameSet();
+		frameSet.incX(getIncrement());
+	}
 
 }

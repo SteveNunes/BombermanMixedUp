@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class DecSprAlign extends FrameTag {
 	
 	public DecSprAlign() {}
@@ -14,5 +16,9 @@ public class DecSprAlign extends FrameTag {
 	@Override
 	public DecSprAlign getNewInstanceOfThis()
 		{ return new DecSprAlign(); }
+
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.setAlignment(sprite.getAlignment().getPreview()); }
 
 }

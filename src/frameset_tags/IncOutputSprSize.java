@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class IncOutputSprSize extends FrameTag {
 	
 	private int incrementWidth;
@@ -35,4 +37,10 @@ public class IncOutputSprSize extends FrameTag {
 	public IncOriginSprPos getNewInstanceOfThis()
 		{ return new IncOriginSprPos(incrementWidth, incrementHeight); }
 	
+	@Override
+	public void process(Sprite sprite) {
+		sprite.incOutputWidth(getIncrementWidth());
+		sprite.incOutputHeight(getIncrementHeight());
+	}
+
 }

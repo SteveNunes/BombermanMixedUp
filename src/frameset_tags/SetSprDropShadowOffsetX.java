@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprDropShadowOffsetX extends FrameTag {
 	
 	private double value;
@@ -26,4 +28,8 @@ public class SetSprDropShadowOffsetX extends FrameTag {
 	public SetSprDropShadowOffsetX getNewInstanceOfThis()
 		{ return new SetSprDropShadowOffsetX(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getDropShadow().setOffsetX(getValue()); }
+
 }

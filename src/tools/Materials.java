@@ -20,13 +20,14 @@ import util.FindFile;
 
 public abstract class Materials {
 	
-	public static List<Image> tileSets;
-	public static List<Image> characters;
-	public static List<Image> rides;
 	public static Image mainSprites;
 	public static Image frames;
 	public static Image auras;
 	public static Image thunders;
+	public static Image shadow;
+	public static List<Image> tileSets;
+	public static List<Image> characters;
+	public static List<Image> rides;
 	public static Map<String, Clip> audios;
 	public static Map<String, Clip> voices;
 	public static Map<String, Clip> thunder;
@@ -49,6 +50,7 @@ public abstract class Materials {
 		nestalgia = new HashMap<>();
 		musics = new HashMap<>();
 		bomberSpriteIndex = new HashMap<>();
+		shadow = new WritableImage(320, 320);
 		for (int n = 0; n <= 34; n++)
 			rides.add(loadImage("/rides/" + n, Color.valueOf("#03E313")));
 

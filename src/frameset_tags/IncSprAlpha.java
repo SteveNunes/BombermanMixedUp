@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class IncSprAlpha extends FrameTag {
 	
 	private double increment;
@@ -26,4 +28,8 @@ public class IncSprAlpha extends FrameTag {
 	public IncSprAlpha getNewInstanceOfThis()
 		{ return new IncSprAlpha(increment); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.incAlpha(getIncrement()); }
+
 }

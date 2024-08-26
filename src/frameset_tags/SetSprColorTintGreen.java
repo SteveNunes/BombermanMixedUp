@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Sprite;
+
 public class SetSprColorTintGreen extends FrameTag {
 	
 	private double value;
@@ -26,4 +28,8 @@ public class SetSprColorTintGreen extends FrameTag {
 	public SetSprColorTintGreen getNewInstanceOfThis()
 		{ return new SetSprColorTintGreen(value); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().getColorTint().setGreen(getValue()); }
+
 }

@@ -1,5 +1,6 @@
 package frameset_tags;
 
+import entities.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprBloomValues extends FrameTag {
@@ -40,4 +41,8 @@ public class SetSprBloomValues extends FrameTag {
 	public SetSprBloomValues getNewInstanceOfThis()
 		{ return new SetSprBloomValues(threshold, blendMode); }
 	
+	@Override
+	public void process(Sprite sprite)
+		{ sprite.getEffects().setBloom(getThreshold(), getBlendMode()); }
+
 }
