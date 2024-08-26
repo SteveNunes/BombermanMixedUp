@@ -32,4 +32,8 @@ public class SetSprColorAdjustSaturation extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getColorAdjust().setSaturation(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

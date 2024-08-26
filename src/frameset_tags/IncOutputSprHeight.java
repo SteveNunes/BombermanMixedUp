@@ -32,4 +32,8 @@ public class IncOutputSprHeight extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.incOutputHeight(getIncrement()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

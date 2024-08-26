@@ -32,4 +32,8 @@ public class IncSprColorAdjustHue extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getColorAdjust().incHue(getIncrement()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

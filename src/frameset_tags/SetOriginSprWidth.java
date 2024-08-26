@@ -32,4 +32,8 @@ public class SetOriginSprWidth extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setOriginSpriteWidth(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

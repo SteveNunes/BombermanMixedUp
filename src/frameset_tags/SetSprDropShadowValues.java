@@ -51,4 +51,8 @@ public class SetSprDropShadowValues extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().setDropShadow(getOffsetX(), getOffsetY(), getBlendMode()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

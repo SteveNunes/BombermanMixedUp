@@ -45,4 +45,8 @@ public class IncObjPos extends FrameTag {
 		frameSet.incY(getIncrementY());
 	}
 
+	@Override
+	public void reset() {
+	}
+
 }

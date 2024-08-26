@@ -32,4 +32,8 @@ public class SetSprDropShadowOffsetY extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getDropShadow().setOffsetY(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

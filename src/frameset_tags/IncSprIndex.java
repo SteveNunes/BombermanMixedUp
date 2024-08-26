@@ -32,4 +32,8 @@ public class IncSprIndex extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.incSpriteIndex(getIncrement()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

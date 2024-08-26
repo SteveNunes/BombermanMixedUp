@@ -33,4 +33,8 @@ public class SetSprGaussBlurBlendMode extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().setGaussianBlur(sprite.getEffects().getGaussianBlur().getRadius(), getBlendMode()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

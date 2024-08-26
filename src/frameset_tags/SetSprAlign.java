@@ -33,4 +33,8 @@ public class SetSprAlign extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setAlignment(getAlignment()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

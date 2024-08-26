@@ -43,4 +43,8 @@ public class IncOriginSprPos extends FrameTag {
 		sprite.incOriginSpriteY(getIncrementY());
 	}
 
+	@Override
+	public void reset() {
+	}
+
 }

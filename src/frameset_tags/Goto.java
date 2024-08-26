@@ -37,7 +37,8 @@ public class Goto extends FrameTag {
 	public boolean haveLeftCycles()
 		{ return repeatCycles == 0 || currentRepeatCycle < repeatCycles; }
 	
-	public void resetCycles()
+	@Override
+	public void reset()
 		{ currentRepeatCycle = 0; }
 
 	@Override
@@ -78,10 +79,14 @@ public class Goto extends FrameTag {
 				frameSet.setCurrentFrameIndex(index);
 			}
 			else {
-				resetCycles();
+				reset();
 				frameSet.incFrameIndex();
 			}
 		}
+	}
+
+	@Override
+	public void reset() {
 	}
 
 }

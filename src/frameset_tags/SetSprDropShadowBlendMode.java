@@ -33,4 +33,8 @@ public class SetSprDropShadowBlendMode extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getDropShadow().setBlendMode(getBlendMode()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

@@ -33,4 +33,8 @@ public class SetSprMotionBlurBlendMode extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getMotionBlur().setBlendMode(getBlendMode()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

@@ -32,4 +32,8 @@ public class SetOutputSprY extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setY(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

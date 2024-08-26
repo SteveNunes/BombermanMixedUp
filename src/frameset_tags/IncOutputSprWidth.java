@@ -32,4 +32,8 @@ public class IncOutputSprWidth extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.incOutputWidth(getIncrement()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

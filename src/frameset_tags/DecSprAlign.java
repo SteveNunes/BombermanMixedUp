@@ -21,4 +21,8 @@ public class DecSprAlign extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setAlignment(sprite.getAlignment().getPreview()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

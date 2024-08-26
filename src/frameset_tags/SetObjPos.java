@@ -44,4 +44,8 @@ public class SetObjPos extends FrameTag {
 		frameSet.setPosition(getX(), getY());
 	}
 
+	@Override
+	public void reset() {
+	}
+
 }

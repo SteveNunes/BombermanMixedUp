@@ -21,4 +21,8 @@ public class DecSprFlip extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setFlip(sprite.getFlip().getPreview()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

@@ -32,4 +32,8 @@ public class SetSprInnerShadowOffsetX extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getInnerShadow().setOffsetX(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

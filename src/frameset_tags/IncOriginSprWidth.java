@@ -32,4 +32,8 @@ public class IncOriginSprWidth extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.incOriginSpriteWidth(getIncrement()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

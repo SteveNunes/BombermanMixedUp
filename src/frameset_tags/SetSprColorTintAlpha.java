@@ -32,4 +32,8 @@ public class SetSprColorTintAlpha extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getColorTint().setAlpha(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

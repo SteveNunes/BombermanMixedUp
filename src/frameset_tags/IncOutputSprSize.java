@@ -43,4 +43,8 @@ public class IncOutputSprSize extends FrameTag {
 		sprite.incOutputHeight(getIncrementHeight());
 	}
 
+	@Override
+	public void reset() {
+	}
+
 }

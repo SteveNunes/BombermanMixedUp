@@ -32,4 +32,8 @@ public class SetOriginSprY extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setOriginSpriteY(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

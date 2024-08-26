@@ -32,4 +32,8 @@ public class IncSprSepiaToneLevel extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getSepiaTone().incLevel(getIncrement()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

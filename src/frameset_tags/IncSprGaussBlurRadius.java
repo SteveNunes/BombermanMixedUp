@@ -32,4 +32,8 @@ public class IncSprGaussBlurRadius extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getGaussianBlur().incRadius(getIncrement()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

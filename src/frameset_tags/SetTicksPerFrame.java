@@ -35,4 +35,8 @@ public class SetTicksPerFrame extends FrameTag {
 		frameSet.setFramesPerTick(getValue());
 	}
 
+	@Override
+	public void reset() {
+	}
+
 }

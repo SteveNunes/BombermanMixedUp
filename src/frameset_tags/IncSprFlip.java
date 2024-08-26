@@ -21,4 +21,8 @@ public class IncSprFlip extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setFlip(sprite.getFlip().getNext()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

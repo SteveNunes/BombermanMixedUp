@@ -32,4 +32,8 @@ public class IncSprColorAdjustBrightness extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getColorAdjust().incBrightness(getIncrement()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

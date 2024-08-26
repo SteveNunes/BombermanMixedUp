@@ -32,4 +32,8 @@ public class SetSprGlowLevel extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getGlow().setLevel(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

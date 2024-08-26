@@ -418,9 +418,9 @@ public class FrameSet extends Position {
 			for (Tags tags : frame.getFrameSetTagsList())
 				for (FrameTag tag : tags.getFrameSetTags()) {
 					if (tag instanceof Goto)
-						((Goto)tag).resetCycles();
+						((Goto)tag).reset();
 					else if (tag instanceof RepeatLastFrame)
-						((RepeatLastFrame)tag).resetCycles();
+						((RepeatLastFrame)tag).reset();
 				}
 	}
 

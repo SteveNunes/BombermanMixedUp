@@ -36,4 +36,8 @@ public class PlaySound extends FrameTag {
 			Sound.playSound(partialSoundPath);
 	}
 
+	@Override
+	public void reset() {
+	}
+
 }

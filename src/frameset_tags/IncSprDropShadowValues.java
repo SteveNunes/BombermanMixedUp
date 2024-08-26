@@ -43,4 +43,8 @@ public class IncSprDropShadowValues extends FrameTag {
 		sprite.getEffects().getDropShadow().incOffsetY(getIncrementOffsetY());
 	}
 
+	@Override
+	public void reset() {
+	}
+
 }

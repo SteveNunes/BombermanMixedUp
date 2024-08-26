@@ -57,4 +57,8 @@ public class SetSprColorAdjustValues extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().setColorAdjust(getHue(), getSaturation(), getBrightness(), getBlendMode()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

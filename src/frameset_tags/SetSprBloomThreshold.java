@@ -32,4 +32,8 @@ public class SetSprBloomThreshold extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getBloom().setThreshold(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

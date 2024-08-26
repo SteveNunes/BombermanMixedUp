@@ -32,4 +32,8 @@ public class IncSprColorTintRed extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getColorTint().incRed(getIncrement()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

@@ -41,4 +41,8 @@ public class IncSprMotionBlurValues extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().setMotionBlur(getIncrementAngle(), getIncrementRadius()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

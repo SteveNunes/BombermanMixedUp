@@ -33,4 +33,8 @@ public class SetSprBloomBlendMode extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getBloom().setBlendMode(getBlendMode()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

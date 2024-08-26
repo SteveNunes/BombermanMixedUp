@@ -37,4 +37,8 @@ public class SetEntityY extends FrameTag {
 		entity.incY(getValue());
 	}
 
+	@Override
+	public void reset() {
+	}
+
 }

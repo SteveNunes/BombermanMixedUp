@@ -51,4 +51,8 @@ public class SetSprInnerShadowValues extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().setInnerShadow(getOffsetX(), getOffsetY(), getBlendMode()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

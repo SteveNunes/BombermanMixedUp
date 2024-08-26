@@ -47,4 +47,8 @@ public class IncEntityPos extends FrameTag {
 		entity.incY(getIncrementY());
 	}
 
+	@Override
+	public void reset() {
+	}
+
 }

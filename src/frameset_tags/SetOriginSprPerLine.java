@@ -32,4 +32,8 @@ public class SetOriginSprPerLine extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setSpritesPerLine(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

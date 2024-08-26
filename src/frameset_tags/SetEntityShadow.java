@@ -64,4 +64,8 @@ public class SetEntityShadow extends FrameTag {
 		entity.setShadow(getOffsetX(), getOffsetY(), getWidth(), getHeight(), getOpacity());
 	}
 
+	@Override
+	public void reset() {
+	}
+
 }

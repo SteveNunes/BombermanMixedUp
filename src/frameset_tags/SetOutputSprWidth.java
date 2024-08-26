@@ -32,4 +32,8 @@ public class SetOutputSprWidth extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setOutputWidth(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

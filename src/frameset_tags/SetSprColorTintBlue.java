@@ -32,4 +32,8 @@ public class SetSprColorTintBlue extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getColorTint().setBlue(getValue()); }
 
+	@Override
+	public void reset() {
+	}
+
 }

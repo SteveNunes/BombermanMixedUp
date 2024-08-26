@@ -33,4 +33,8 @@ public class SetSprInnerShadowBlendMode extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getInnerShadow().setBlendMode(getBlendMode()); }
 
+	@Override
+	public void reset() {
+	}
+
 }
