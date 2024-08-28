@@ -33,8 +33,4 @@ public class SetSprColorTintBlendMode extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getColorTint().setBlendMode(getBlendMode()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

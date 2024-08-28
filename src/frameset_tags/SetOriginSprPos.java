@@ -43,8 +43,4 @@ public class SetOriginSprPos extends FrameTag {
 		sprite.setOriginSpriteY(getY());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

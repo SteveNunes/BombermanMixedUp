@@ -103,27 +103,6 @@ public abstract class Materials {
 			catch (Exception e)
 				{ throw new RuntimeException("Erro ao carregar o arquivo de áudio: \"" + file.getAbsolutePath() + "\"\n" + e); }
 		});
-		FindFile.findFile("appdata/musics", "*.mp3").forEach(file -> {
-			try (FileInputStream fileInputStream = new FileInputStream(file.getAbsolutePath())) {
-				AdvancedPlayer player = new AdvancedPlayer(fileInputStream);
-				/**
-						player.setPlayBackListener(new PlaybackListener() {
-							@Override
-							public void playbackStarted(PlaybackEvent evt) {
-								System.out.println("Playback started");
-							}
-		
-							@Override
-							public void playbackFinished(PlaybackEvent evt) {
-								System.out.println("Playback finished");
-							}
-						});
-				*/
-				musics.put(file.getName(), player);
-			}
-			catch (Exception e)
-				{ throw new RuntimeException("Erro ao carregar o arquivo de áudio: \"" + file.getAbsolutePath() + "\"\n" + e); }
-		});
 		System.out.println("concluido em " + (System.currentTimeMillis() - ms) + "ms");
 	}
 

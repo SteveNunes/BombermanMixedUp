@@ -39,6 +39,12 @@ public class Main extends Application {
 	private static boolean close = false;
 	private static boolean greenBG = true;
 	
+	/* ETAPAS:
+	 * - Fixar o sistema de arrastar sprites para atualizar corretamente as tags
+	 * - Criar sistema de load de mapa
+	 * - Criar frameset de pelo menos 1 bomberman para poder fazer testes com ele 
+	 */
+	
 	@Override
 	public void start(Stage stage) {
 		try {
@@ -60,7 +66,6 @@ public class Main extends Application {
 			stageMain.show();
 			SquaredBg.setSquaredBg(3, 3, 50, 255);
 			stageMain.setOnCloseRequest(e -> close());
-
 			if (spriteEditor)
 				FrameSetEditor.start(scene);
 			mainLoop();

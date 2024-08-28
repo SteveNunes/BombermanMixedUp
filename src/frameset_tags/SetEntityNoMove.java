@@ -37,8 +37,4 @@ public class SetEntityNoMove extends FrameTag {
 		entity.setNoMove(getValue());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

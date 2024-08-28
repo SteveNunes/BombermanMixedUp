@@ -35,8 +35,4 @@ public class IncObjX extends FrameTag {
 		frameSet.incX(getIncrement());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

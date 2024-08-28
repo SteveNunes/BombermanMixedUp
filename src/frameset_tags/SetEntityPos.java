@@ -43,12 +43,8 @@ public class SetEntityPos extends FrameTag {
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getMainFrameSet();
 		Entity entity = frameSet.getEntity();
-		entity.incX(getX());
-		entity.incY(getY());
-	}
-
-	@Override
-	public void reset() {
+		entity.setX(getX());
+		entity.setY(getY());
 	}
 
 }

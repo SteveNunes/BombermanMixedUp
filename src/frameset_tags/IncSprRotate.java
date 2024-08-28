@@ -32,8 +32,4 @@ public class IncSprRotate extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.incRotation(getIncrement()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

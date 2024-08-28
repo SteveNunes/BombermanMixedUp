@@ -32,8 +32,4 @@ public class SetSprRotate extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setRotation(getValue()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

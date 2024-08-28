@@ -32,8 +32,4 @@ public class SetSprMotionBlurAngle extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getMotionBlur().setAngle(getValue()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

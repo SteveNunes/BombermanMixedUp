@@ -33,8 +33,4 @@ public class SetSprSepiaToneBlendMode extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getSepiaTone().setBlendMode(getBlendMode()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

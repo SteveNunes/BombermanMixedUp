@@ -8,8 +8,6 @@ public abstract class FrameTag {
 
 	public abstract void process(Sprite sprite);
 	
-	public abstract void reset();
-	
 	public static <T> String[] validateStringTags(T clazz, String tags)
 		{ return validateStringTags(clazz, tags, -1); }
 	

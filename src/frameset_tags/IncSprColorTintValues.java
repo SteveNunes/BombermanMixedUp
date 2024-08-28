@@ -60,8 +60,4 @@ public class IncSprColorTintValues extends FrameTag {
 		sprite.getEffects().getColorTint().incAlpha(getIncrementAlpha());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

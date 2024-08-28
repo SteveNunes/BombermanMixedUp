@@ -93,8 +93,4 @@ public class SetSprSource extends FrameTag {
 		sprite.setSpritesPerLine(getSpritesPerLine());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

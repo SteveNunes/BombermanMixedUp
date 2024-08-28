@@ -32,8 +32,4 @@ public class IncSprMotionBlurRadius extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getMotionBlur().incRadius(getIncrement()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

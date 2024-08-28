@@ -36,8 +36,4 @@ public class SetObjX extends FrameTag {
 		frameSet.setX(getValue());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

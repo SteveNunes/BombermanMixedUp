@@ -23,13 +23,12 @@ public class RepeatLastFrame extends FrameTag {
 	public void incCycles()
 		{ currentRepeatCycle++; }
 	
+	public void resetCycles()
+		{ currentRepeatCycle = 0; }
+
 	public boolean haveLeftCycles()
 		{ return repeatCycles == 0 || currentRepeatCycle < repeatCycles; }
 	
-	@Override
-	public void reset()
-		{ currentRepeatCycle = 0; }
-
 	@Override
 	public String toString()
 		{ return "{" + FrameTag.getClassName(this) + (repeatCycles == 0 ? ("}") : (";" + repeatCycles + "}")); }
@@ -66,7 +65,7 @@ public class RepeatLastFrame extends FrameTag {
 				frameSet.setCurrentFrameIndex(index);
 			}
 			else {
-				reset();
+				resetCycles();
 				frameSet.incFrameIndex();
 			}
 		}

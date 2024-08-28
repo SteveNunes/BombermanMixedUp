@@ -9,10 +9,12 @@ import enums.ImageAlignment;
 import enums.ImageFlip;
 import gui.util.ImageUtils;
 import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Material;
+import objmoveutils.EliticMove;
+import objmoveutils.GotoMove;
+import objmoveutils.JumpMove;
+import objmoveutils.Position;
+import objmoveutils.RectangleMove;
 import tools.Materials;
-import util.Misc;
 
 public class Sprite {
 
@@ -21,11 +23,16 @@ public class Sprite {
 	private Rectangle originSpriteSizePos;
 	private Rectangle outputSpriteSizePos;
 	private DrawImageEffects spriteEffects;
+	private Position outputSpritePos;
+	private EliticMove eliticMove;
+	private RectangleMove rectangleMove;
+	private JumpMove jumpMove;
+	private GotoMove gotoMove;
+	private ImageFlip flip;
+	private ImageAlignment alignment;
 	private int spritesPerLine;
 	private int spriteIndex;
 	private double alpha;
-	private ImageFlip flip;
-	private ImageAlignment alignment;
 	private float rotation;
 	
 	public Sprite(Sprite sprite)
@@ -37,6 +44,7 @@ public class Sprite {
 		originSpriteSizePos = new Rectangle(sprite.originSpriteSizePos);
 		outputSpriteSizePos = new Rectangle(sprite.outputSpriteSizePos);
 		spriteEffects = new DrawImageEffects(sprite.spriteEffects);
+		outputSpritePos = new Position();
 		spriteSource = sprite.spriteSource;
 		alpha = sprite.alpha;
 		flip = sprite.flip;
@@ -44,6 +52,10 @@ public class Sprite {
 		spriteIndex = sprite.spriteIndex;
 		alignment = sprite.alignment;
 		spritesPerLine = sprite.spritesPerLine;
+		eliticMove = sprite.eliticMove == null ? null : new EliticMove(sprite.eliticMove);
+		rectangleMove = sprite.rectangleMove == null ? null : new RectangleMove(sprite.rectangleMove);
+		jumpMove = sprite.jumpMove == null ? null : new JumpMove(sprite.jumpMove);
+		gotoMove = sprite.gotoMove == null ? null : new GotoMove(sprite.gotoMove);
 	}
 	
 	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spriteIndex, int spritesPerLine) {
@@ -54,11 +66,16 @@ public class Sprite {
 		this.mainFrameSet = mainFrameSet;
 		this.originSpriteSizePos = new Rectangle(originSpriteSizePos);
 		this.outputSpriteSizePos = new Rectangle(outputSpriteSizePos);
+		outputSpritePos = new Position();
 		spriteEffects = new DrawImageEffects();
 		flip =ImageFlip.NONE;
 		alignment = ImageAlignment.CENTER;
 		rotation = 0;
 		alpha = 1;
+		eliticMove = null;
+		rectangleMove = null;
+		jumpMove = null;
+		gotoMove = null;
 	}
 
 	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, int spriteIndex, int spritesPerLine)
@@ -268,10 +285,32 @@ public class Sprite {
 	public DrawImageEffects getEffects()
 		{ return spriteEffects; }
 
-	public int getMaxOutputSpriteY() {
-		int[] spritePos = getOutputDrawCoords();
-		return spritePos[1] + getOutputHeight();
-	}
+	public EliticMove getEliticMove()
+		{ return eliticMove; }
+
+	public void setEliticMove(EliticMove eliticMove)
+		{ this.eliticMove = eliticMove; }
+
+	public RectangleMove getRectangleMove()
+		{ return rectangleMove; }
+
+	public void setRectangleMove(RectangleMove rectangleMove)
+	 { this.rectangleMove = rectangleMove; }
+
+	public JumpMove getJumpMove()
+		{ return jumpMove; }
+	
+	public void setJumpMove(JumpMove jumpMove)
+		{ this.jumpMove = jumpMove; }
+
+	public GotoMove getGotoMove()
+		{ return gotoMove; }
+	
+	public void setGotoMove(GotoMove gotoMove)
+		{ this.gotoMove = gotoMove; }
+
+	public int getMaxOutputSpriteY()
+		{ return (int)getOutputDrawCoords().getY() + getOutputHeight(); }
 
 	public int[] getCurrentSpriteOriginCoords() {
 		if (spriteIndex == -1)
@@ -283,11 +322,19 @@ public class Sprite {
 		return new int[] {x, y};
 	}
 	
-	public int[] getOutputDrawCoords() {
+	public Position getOutputDrawCoords()
+		{ return outputSpritePos; }
+	
+	public void updateOutputDrawCoords() {
 		int x = (int)getAbsoluteX(),
 				y = (int)getAbsoluteY(),
 				w = (int)getOutputWidth(),
 				h = (int)getOutputHeight();
+		if (eliticMove != null) {
+			x += eliticMove.getPosition().getX();
+			y += eliticMove.getPosition().getY();
+			eliticMove.move();
+		}
 		switch (alignment) {
 			case TOP:
 				x += Main.tileSize / 2 - w / 2;
@@ -322,13 +369,15 @@ public class Sprite {
 			default:
 				break;
 		}
-		return new int[] {x, y};
+		outputSpritePos.setPosition(x, y);
 	}
 	 
 	public void draw() {
-		int[] in = getCurrentSpriteOriginCoords(), out = getOutputDrawCoords();
-		ImageUtils.drawImage(Main.gcDraw, spriteIndex == -1 ? Materials.shadow : Materials.mainSprites, in[0], in[1], (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
-			out[0], out[1], getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
+		updateOutputDrawCoords();
+		int[] in = getCurrentSpriteOriginCoords();
+		int sx = in[0], sy = in[1], tx = (int)getOutputDrawCoords().getX(), ty = (int)getOutputDrawCoords().getY();
+		ImageUtils.drawImage(Main.gcDraw, spriteIndex == -1 ? Materials.shadow : Materials.mainSprites, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+			tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 	}
 
 }

@@ -43,8 +43,4 @@ public class IncSprInnerShadowValues extends FrameTag {
 		sprite.getEffects().getInnerShadow().incOffsetY(getIncrementOffsetY());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

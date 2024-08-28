@@ -34,8 +34,4 @@ public class SetSprFlip extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setFlip(getFlip()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

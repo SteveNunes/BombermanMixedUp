@@ -43,8 +43,4 @@ public class IncOutputSprPos extends FrameTag {
 		sprite.incY(getIncrementY());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

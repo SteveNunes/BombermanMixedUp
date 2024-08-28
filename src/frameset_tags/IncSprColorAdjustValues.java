@@ -51,8 +51,4 @@ public class IncSprColorAdjustValues extends FrameTag {
 																									 getIncrementBrightness());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

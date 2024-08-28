@@ -32,8 +32,4 @@ public class SetOutputSprHeight extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setOutputHeight(getValue()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

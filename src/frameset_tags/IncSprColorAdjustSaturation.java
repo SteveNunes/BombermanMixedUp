@@ -32,8 +32,4 @@ public class IncSprColorAdjustSaturation extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getColorAdjust().incSaturation(getIncrement()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

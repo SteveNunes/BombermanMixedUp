@@ -32,8 +32,4 @@ public class SetSprColorAdjustBrightness extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getColorAdjust().setBrightness(getValue()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

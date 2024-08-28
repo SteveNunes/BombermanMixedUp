@@ -32,8 +32,4 @@ public class SetSprMotionBlurRadius extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getMotionBlur().setRadius(getValue()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

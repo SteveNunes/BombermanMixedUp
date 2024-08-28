@@ -10,10 +10,8 @@ public class Tags {
 
 	private List<FrameTag> frameSetTags;
 	private Sprite rootSprite;
-	private int totalTags;
 
 	public Tags(Tags tags) {
-		totalTags = tags.totalTags;
 		frameSetTags = new ArrayList<>();
 		for (FrameTag tag : tags.frameSetTags)
 			frameSetTags.add(tag.getNewInstanceOfThis());
@@ -22,7 +20,6 @@ public class Tags {
 	
 	public <T extends FrameTag> Tags(Sprite rootSprite, T tag) {
 		this.rootSprite = rootSprite;
-		totalTags = 0;
 		frameSetTags = tag == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(tag));
 	}
 
@@ -41,15 +38,11 @@ public class Tags {
 	public List<FrameTag> getFrameSetTags()
 		{ return frameSetTags; }
 	
-	public <T extends FrameTag> void addFrameSetTag(T tag) {
-		frameSetTags.add(tag);
-		totalTags++;
-	}
+	public <T extends FrameTag> void addFrameSetTag(T tag)
+		{ frameSetTags.add(tag); }
 	
-	public <T extends FrameTag> void removeFrameSetTag(T tag) {
-		frameSetTags.remove(tag);
-		totalTags--;
-	}
+	public <T extends FrameTag> void removeFrameSetTag(T tag)
+		{ frameSetTags.remove(tag); }
 	
 	public int size()
 		{ return frameSetTags.size(); }
@@ -61,6 +54,6 @@ public class Tags {
 		{ return frameSetTags.get(index); }
 	
 	public int getTotalTags()
-		{ return totalTags; }
+		{ return frameSetTags.size(); }
 
 }

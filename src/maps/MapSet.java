@@ -7,10 +7,10 @@ public class MapSet {
 	
 	private List<Layer> layers;
 	private List<Bricks> bricks;
-	private int tileSetIndex;
+	private String mapName;
 	
-	public MapSet(int tileSetIndex) {
-		this.tileSetIndex = tileSetIndex;
+	public MapSet(String mapName) {
+		this.mapName = mapName;
 		layers = new ArrayList<>();
 		bricks = new ArrayList<>();
 	}

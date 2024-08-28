@@ -32,8 +32,4 @@ public class SetSprIndex extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setSpriteIndex(getValue()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

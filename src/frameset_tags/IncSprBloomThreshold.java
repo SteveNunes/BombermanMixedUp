@@ -32,8 +32,4 @@ public class IncSprBloomThreshold extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getBloom().incThreshold(getIncrement()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

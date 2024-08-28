@@ -32,8 +32,4 @@ public class IncSprGlowLevel extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().setGlow(sprite.getEffects().getGlow().getLevel() + getIncrement(), sprite.getEffects().getGlow().getBlendMode()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

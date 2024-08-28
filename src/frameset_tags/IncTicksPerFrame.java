@@ -35,8 +35,4 @@ public class IncTicksPerFrame extends FrameTag {
 		frameSet.incFramesPerTick(getIncrement());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

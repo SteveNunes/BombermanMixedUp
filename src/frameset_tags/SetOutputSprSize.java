@@ -43,8 +43,4 @@ public class SetOutputSprSize extends FrameTag {
 		sprite.setOutputHeight(getHeight());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

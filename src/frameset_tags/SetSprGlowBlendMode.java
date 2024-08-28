@@ -33,8 +33,4 @@ public class SetSprGlowBlendMode extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().setGlow(sprite.getEffects().getGlow().getLevel(), getBlendMode()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

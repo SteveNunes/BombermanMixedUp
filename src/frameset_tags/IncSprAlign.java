@@ -21,8 +21,4 @@ public class IncSprAlign extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setAlignment(sprite.getAlignment().getNext()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

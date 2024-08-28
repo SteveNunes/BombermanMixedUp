@@ -32,8 +32,4 @@ public class SetSprAlpha extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.setAlpha(getValue()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

@@ -32,8 +32,4 @@ public class IncSprAlpha extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.incAlpha(getIncrement()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

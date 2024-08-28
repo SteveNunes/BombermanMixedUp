@@ -37,8 +37,4 @@ public class SetEntityInvencibilityFrames extends FrameTag {
 		entity.setInvencibilityFrames(getValue());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }

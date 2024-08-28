@@ -32,8 +32,4 @@ public class IncOriginSprPerLine extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.incSpritesPerLine(getIncrement()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

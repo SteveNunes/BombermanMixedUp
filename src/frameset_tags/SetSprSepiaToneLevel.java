@@ -32,8 +32,4 @@ public class SetSprSepiaToneLevel extends FrameTag {
 	public void process(Sprite sprite)
 		{ sprite.getEffects().getSepiaTone().setLevel(getValue()); }
 
-	@Override
-	public void reset() {
-	}
-
 }

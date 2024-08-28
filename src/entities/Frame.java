@@ -9,14 +9,12 @@ public class Frame {
 	
 	private FrameSet mainFrameSet;
 	private List<Tags> frameSetTagsList;
-	private int totalTags;
 
 	public Frame(Frame frame)
 		{ this(frame, frame.getMainFrameSet()); }
 
 	public Frame(Frame frame, FrameSet mainFrameSet) {
 		this.mainFrameSet = mainFrameSet;
-		totalTags = frame.totalTags;
 		frameSetTagsList = new ArrayList<>();
 		int n = 0;
 		for (Tags tags : frame.frameSetTagsList) {
@@ -28,14 +26,13 @@ public class Frame {
 	public Frame(FrameSet mainFrameSet) {
 		this.mainFrameSet = mainFrameSet;
 		frameSetTagsList = new ArrayList<>();
-		totalTags = 0;
 		int n = mainFrameSet.getTotalSprites(), n2;
 		while ((n2 = getTotalTags()) < n)
 			addFrameTagsList(new Tags(mainFrameSet.getSprites().get(n2)));
 	}
 	
 	public int getTotalTags()
-		{ return totalTags; }
+		{ return frameSetTagsList.size(); }
 	
 	public void setMainFrameSet(FrameSet mainFrameSet)
 		{ this.mainFrameSet = mainFrameSet; }
@@ -55,20 +52,14 @@ public class Frame {
 	public List<Tags> getFrameSetTagsList()
 		{ return frameSetTagsList; }
 	
-	public void addFrameTagsList(Tags tagsList) {
-		frameSetTagsList.add(tagsList);
-		totalTags++;
-	}
+	public void addFrameTagsList(Tags tagsList)
+		{ frameSetTagsList.add(tagsList); }
 	
-	public void removeFrameTagsList(Tags tagsList) {
-		frameSetTagsList.remove(tagsList);
-		totalTags--;
-	}
+	public void removeFrameTagsList(Tags tagsList)
+		{ frameSetTagsList.remove(tagsList); }
 
-	public void removeFrameTagsList(int index) {
-		frameSetTagsList.remove(index);
-		totalTags--;
-	}
+	public void removeFrameTagsList(int index)
+		{ frameSetTagsList.remove(index); }
 
 	public void addFrameTagToSprite(int spriteIndex, FrameTag tag) {
 		if (spriteIndex < 0 || spriteIndex >= mainFrameSet.getTotalSprites())

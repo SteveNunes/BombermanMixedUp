@@ -18,18 +18,18 @@ public abstract class Sound {
 	public static MediaPlayer getMediaPlayer(String partialSoundPath)
 		{ return medias.containsKey(partialSoundPath) ? medias.get(partialSoundPath) : null; }
 	
-	public static void playSound(String partialSoundPath)
-		{ playSound(partialSoundPath, false); }
+	public static MediaPlayer playSound(String partialSoundPath)
+		{ return playSound(partialSoundPath, false); }
 	
-	public static void playSound(String partialSoundPath, boolean stopCurrent) {
+	public static MediaPlayer playSound(String partialSoundPath, boolean stopCurrent) {
 		if (medias.containsKey(partialSoundPath) && stopCurrent)
 			medias.get(partialSoundPath).stop();
+		MediaPlayer mp = new MediaPlayer(new Media(new File("appdata/sounds/" + partialSoundPath).toURI().toString()));
 		new Thread(() -> {
-			Media media = new Media(new File("appdata/sounds/" + partialSoundPath).toURI().toString());
-			MediaPlayer mp = new MediaPlayer(media);
 			medias.put(partialSoundPath, mp);
 			playSoundQueue.add(mp);
 		}).start();
+		return mp;
 	}
 	
 	public static void playAllSoundsFromQueue() {

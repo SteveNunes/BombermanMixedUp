@@ -43,8 +43,4 @@ public class SetOriginSprSize extends FrameTag {
 		sprite.setOriginSpriteHeight(getHeight());
 	}
 
-	@Override
-	public void reset() {
-	}
-
 }
