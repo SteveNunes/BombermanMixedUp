@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +24,8 @@ public class Entity extends Position {
 	private Direction direction;
 	private Elevation elevation;
 	private String currentFrameSetName;
-	private Entity linkedEntity;
+	private Entity linkedEntityFront;
+	private Entity linkedEntityBack;
 	private Position linkedEntityOffset;
 	private boolean noMove;
 	private boolean isDead;
@@ -41,15 +43,16 @@ public class Entity extends Position {
 			freshFrameSets.put(fSetName, new FrameSet(entity.freshFrameSets.get(fSetName), this));
 		}
 		speed = new Position(entity.speed);
-		linkedEntityOffset = entity.linkedEntityOffset == null ? null : new Position(entity.linkedEntityOffset);
-		linkedEntityInfos = new ArrayList<>(entity.linkedEntityInfos);
 		direction = entity.direction;
 		elevation = entity.elevation;
 		noMove = entity.noMove;
 		isDead = entity.isDead;
 		invencibilityFrames = entity.invencibilityFrames;
 		shadowOpacity = entity.shadowOpacity;
-		linkedEntity = entity.linkedEntity;
+		linkedEntityInfos = new LinkedList<>();
+		linkedEntityBack = null;
+		linkedEntityFront = null;
+		linkedEntityOffset = null;
 	}
 	
 	public Entity()
@@ -65,11 +68,12 @@ public class Entity extends Position {
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
 		linkedEntityInfos = new ArrayList<>();
+		linkedEntityBack = null;
+		linkedEntityFront = null;
+		linkedEntityOffset = null;
 		shadow = null;
-		linkedEntity = null;
 		this.direction = direction;
 		speed = new Position();
-		linkedEntityOffset = null;
 		elevation = Elevation.ON_GROUND;
 		invencibilityFrames = 0;
 		shadowOpacity = 0;
@@ -77,32 +81,92 @@ public class Entity extends Position {
 		isDead = false;
 	}
 	
-	public Entity getLinkedEntity()
-		{ return linkedEntity; }
-	
-	public void setLinkedEntity(Entity entity)
-		{ setLinkedEntity(entity, 0, null); }
+	public boolean isLinkedToAnEntity()
+		{ return linkedEntityBack != null || linkedEntityFront != null; }
 
-	public void setLinkedEntity(Entity entity, int delayFrames)
-		{ setLinkedEntity(entity, delayFrames, null); }
+	public boolean isLinkedEntityFirst()
+		{ return linkedEntityFront == null && linkedEntityBack != null; }
 	
-	public void setLinkedEntity(Entity entity, Position linkedEntityOffset)
-		{ setLinkedEntity(entity, 0, linkedEntityOffset); }
-	
-	public void setLinkedEntity(Entity entity, int delayFrames, Position linkedEntityOffset) {
-		linkedEntity = entity;
-		linkedEntityInfos.clear();
-		while (delayFrames-- > 0)
-			linkedEntityInfos.add(new LinkedEntityInfos(entity));
-		this.linkedEntityOffset = linkedEntityOffset == null ? new Position() : new Position(linkedEntityOffset);
+	public boolean isLinkedEntityLast()
+		{ return linkedEntityBack == null && linkedEntityFront != null; }
+
+	public Entity getLinkedEntityFirst() {
+		if (linkedEntityFront == null && linkedEntityBack == null)
+			return null;
+		if (linkedEntityBack != null && linkedEntityFront == null)
+			return this;
+		Entity e1 = this, e2 = null;
+		while (e1 != null) {
+			e2 = e1;
+			e1 = e1.getLinkedEntityFront();
+		}
+		return e2;
 	}
 	
-	public void removeLinkedEntity() {
-		linkedEntity = null;
+	public Entity getLinkedEntityLast() {
+		if (linkedEntityFront == null && linkedEntityBack == null)
+			return null;
+		if (linkedEntityFront != null && linkedEntityBack == null)
+			return this;
+		Entity e1 = this, e2 = null;
+		while (e1 != null) {
+			e2 = e1;
+			e1 = e1.getLinkedEntityBack();
+		}
+		return e2;
+	}
+	
+	public Entity getLinkedEntityBack()
+		{ return linkedEntityBack; }
+	
+	public Entity getLinkedEntityFront()
+		{ return linkedEntityFront; }
+
+	public void linkToEntity(Entity entity)
+		{ linkToEntity(entity, 0, null); }
+
+	public void linkToEntity(Entity entity, int delayFrames)
+		{ linkToEntity(entity, delayFrames, null); }
+	
+	public void linkToEntity(Entity entity, Position linkedEntityOffset)
+		{ linkToEntity(entity, 0, linkedEntityOffset); }
+	
+	public void linkToEntity(Entity entity, int delayFrames, Position linkedEntityOffset) {
+		if (linkedEntityFront == null) {
+			entity.linkedEntityBack = this;
+			linkedEntityFront = entity;
+			linkedEntityInfos.clear();
+			while (delayFrames-- > 0)
+				linkedEntityInfos.add(new LinkedEntityInfos(entity));
+			this.linkedEntityOffset = linkedEntityOffset == null ? new Position() : new Position(linkedEntityOffset);
+		}
+	}
+	
+	public void unlinkFromLinkedEntity() {
+		if (linkedEntityBack != null && linkedEntityFront != null) {
+			linkedEntityFront.linkedEntityBack = linkedEntityBack;
+			linkedEntityBack.linkedEntityFront = linkedEntityFront;
+		}
+		else if (linkedEntityFront != null) {
+			linkedEntityFront.linkedEntityBack = null;
+			if (linkedEntityFront.linkedEntityFront == null)
+				linkedEntityFront.clearLinkedEntityStuffs();
+		}
+		else if (linkedEntityBack != null) {
+			linkedEntityBack.linkedEntityFront = null;
+			if (linkedEntityBack.linkedEntityBack == null)
+				linkedEntityBack.clearLinkedEntityStuffs();
+		}
+		clearLinkedEntityStuffs();
+	}
+	
+	private void clearLinkedEntityStuffs() {
+		linkedEntityBack = null;
+		linkedEntityFront = null;
 		linkedEntityOffset = null;
 		linkedEntityInfos.clear();
 	}
-	
+
 	public Map<String, FrameSet> getFrameSetsMap()
 		{ return frameSets; }
 	
@@ -146,22 +210,24 @@ public class Entity extends Position {
 	
 	public void run(boolean isPaused) {
 		if (frameSets.containsKey(currentFrameSetName)) {
-			if (linkedEntity != null) {
+			
+			if (linkedEntityFront != null) {
 				if (linkedEntityInfos.isEmpty()) {
-					setPosition(linkedEntity.getX() + linkedEntityOffset.getX(),
-											linkedEntity.getY() + linkedEntityOffset.getY());
-					if (direction != linkedEntity.getDirection())
-						setDirection(linkedEntity.getDirection());
+					setPosition(linkedEntityFront.getX() + linkedEntityOffset.getX(),
+							linkedEntityFront.getY() + linkedEntityOffset.getY());
+					if (direction != linkedEntityFront.getDirection())
+						setDirection(linkedEntityFront.getDirection());
 				}
 				else {
 					setPosition(linkedEntityInfos.get(0).x + linkedEntityOffset.getX(),
 											linkedEntityInfos.get(0).y + linkedEntityOffset.getY());
-					linkedEntityInfos.remove(0);
-					linkedEntityInfos.add(new LinkedEntityInfos(linkedEntity));
 					if (direction != linkedEntityInfos.get(0).direction)
 						setDirection(linkedEntityInfos.get(0).direction);
+					linkedEntityInfos.remove(0);
+					linkedEntityInfos.add(new LinkedEntityInfos(linkedEntityFront));
 				}
 			}
+			
 			if (haveShadow()) {
 				Main.gcDraw.save();
 				Main.gcDraw.setFill(Color.BLACK);

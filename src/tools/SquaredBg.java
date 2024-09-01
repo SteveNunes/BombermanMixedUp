@@ -14,7 +14,7 @@ public class SquaredBg {
 	private static int colorMinVal;
 	private static int colorMaxVal;
 	private static int colorIncVal;
-
+	
 	public static void setSquaredBg()
 		{ setSquaredBg(null, 2, 5, 50, 255); }
 	
@@ -43,7 +43,7 @@ public class SquaredBg {
 		{ setSquaredBg(rgb, squareSize, 5, colorMinVal, colorMaxVal); }
 	
 	public static void setSquaredBg(int[] rgb, int squareSize, int colorIncVal, int colorMinVal, int colorMaxVal) {
-		int w = (int)(Main.winW / squareSize), h = (int)(Main.winH / squareSize);
+		int w = (int)(Main.winW / squareSize) + 1, h = (int)(Main.winH / squareSize) + 1;
 		squaresBg = new int[h][w];
 		for (int y = 0; y < h; y++)
 	    for (int x = 0; x < w; x++)
@@ -63,7 +63,8 @@ public class SquaredBg {
 	}
 	
 	public static void draw(GraphicsContext targetGc) {
-		if (squaresBg != null)
+		if (squaresBg != null) {
+    	targetGc.save();
 			for (int y = 0; y < squaresBg.length; y++)
 		    for (int x = 0; x < squaresBg[0].length; x++) {
 		    	if ((squaresBg[y][x] += colorIncVal) >= colorMaxVal)
@@ -71,6 +72,8 @@ public class SquaredBg {
 		    	targetGc.setFill(ImageUtils.argbToColor(ImageUtils.getRgba(rgb[0] == 0 ? 0 : squaresBg[y][x], rgb[1] == 0 ? 0 : squaresBg[y][x], rgb[2] == 0 ? 0 : squaresBg[y][x])));
 		    	targetGc.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
 		    }
+    	targetGc.restore();
+		}
 	}
 
 }

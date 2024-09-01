@@ -96,13 +96,13 @@ public abstract class FrameSetEditor {
 	private static int dragX = 0;
 	private static int dragY = 0;
 	private static int backupIndex;
-	private static List<Entity> frameSets;
+	private static List<Entity> entities;
 	private static int linkEntityToCursor;
 	private static int centerX = Main.tileSize * 10;
 	private static int centerY = Main.tileSize * 7;
 	
 	public static void start(Scene scene) {
-		frameSets = new ArrayList<>();
+		entities = new ArrayList<>();
 		holdedKeys = new ArrayList<>();
 		backupFrameSets = new ArrayList<>();
 		backupFrameSetsMap = new ArrayList<>();
@@ -131,25 +131,16 @@ public abstract class FrameSetEditor {
 
 		currentEntity.setFrameSet("MovingFrames.LEFT");
 		
-		Entity prevEntity = currentEntity;
-		for (int n = 0; n < 10; n++) { // TEMP para testar linkedframes
-			Entity tEntity = new Entity(prevEntity);
-			tEntity.setFrameSet("MovingFrames.LEFT");
-			tEntity.setLinkedEntity(prevEntity, 16);
-			frameSets.add(tEntity);
-			prevEntity = tEntity;
-		}
-
 		setDefaultContextMenu();
 		setSpriteContextMenu();
 		setMouseEvents(scene);
 		setKeyboardEvents(scene);
 		
-		for (int n = 0; n < 0; n++) { // TEMP para desenhar multiplos FrameSets na tela para testar capacidade
+		for (int n = 0; n < 10; n++) { // TEMP para desenhar multiplos FrameSets na tela para testar capacidade
 			Entity entity = new Entity(currentEntity);
-			entity.setFrameSet("MovingFrames");
+			entity.setFrameSet("IntroFrames");
 			entity.setPosition(Main.getRandom(0, 320), Main.getRandom(0, 240));
-			frameSets.add(entity);
+			entities.add(entity);
 		}
 		
 	}
@@ -632,6 +623,8 @@ public abstract class FrameSetEditor {
 				linkEntityToCursor = linkEntityToCursor != 1 ? 1 : 0;
 			else if (e.getCode() == KeyCode.F4)
 				linkEntityToCursor = linkEntityToCursor != 2 ? 2 : 0;
+			else if (e.getCode() == KeyCode.F12 && !(Main.greenBg = !Main.greenBg))
+				SquaredBg.setSquaredBg(3, 3, 50, 255);
 			System.out.println("KeyCode: " + e.getCode());
 		});		
 		scene.setOnKeyReleased(e -> {
@@ -961,8 +954,8 @@ public abstract class FrameSetEditor {
 					currentEntity.incPositionByDirection(currentEntity.getDirection());
 			}
 		}
-		frameSets.sort((e1, e2) -> e1.getCurrentFrameSet().getMaxY() - e2.getCurrentFrameSet().getMaxY());
-		frameSets.forEach(e -> e.run(isPaused));
+		entities.sort((e1, e2) -> e1.getCurrentFrameSet().getMaxY() - e2.getCurrentFrameSet().getMaxY());
+		entities.forEach(e -> e.run(isPaused));
 		if (isChangingSprite) {
 			Sprite sprite = selectedSprites.get(0);
 			int x = (int)sprite.getOutputDrawCoords().getX() * Main.zoom,
@@ -980,7 +973,7 @@ public abstract class FrameSetEditor {
 		if (getCurrentFrame() == null)
 			currentEntity.restartCurrentFrameSet();
 	}
-
+	
 	public static String getTitle() {
 		String title = "";
 		if (getCurrentFrameSetName() != null) {

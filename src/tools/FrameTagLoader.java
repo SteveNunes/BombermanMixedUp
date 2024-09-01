@@ -111,8 +111,10 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new IncSprSepiaToneLevel(s));
 			else if (tag.equals("IncTicksPerFrame"))
 				tags.addFrameSetTag(new IncTicksPerFrame(s));
-			else if (tag.equals("PlaySound"))
-				tags.addFrameSetTag(new PlaySound(s));
+			else if (tag.equals("PlayMp3"))
+				tags.addFrameSetTag(new PlayMp3(s));
+			else if (tag.equals("PlayWav"))
+				tags.addFrameSetTag(new PlayWav(s));
 			else if (tag.equals("RepeatLastFrame"))
 				tags.addFrameSetTag(new RepeatLastFrame(s));
 			else if (tag.equals("SetEntityInvencibilityFrames"))

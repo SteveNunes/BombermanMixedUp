@@ -14,7 +14,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import tools.FrameSetEditor;
 import tools.Materials;
-import tools.Sound;
 import tools.SquaredBg;
 
 
@@ -37,7 +36,7 @@ public class Main extends Application {
 	public static int zoom = 3;
 	public static boolean spriteEditor = true;
 	private static boolean close = false;
-	private static boolean greenBG = true;
+	public static boolean greenBg = false;
 	
 	/* ETAPAS:
 	 * - Fixar o sistema de arrastar sprites para atualizar corretamente as tags
@@ -80,16 +79,15 @@ public class Main extends Application {
 	}
 
 	private void mainLoop() {
-		gcDraw.setFill(greenBG ? Color.valueOf("#00FF00") : Color.BLACK);
+		gcDraw.setFill(greenBg ? Color.valueOf("#00FF00") : Color.BLACK);
 		gcDraw.fillRect(0, 0, winW, winH);
-		if (!greenBG)
+		if (!greenBg)
 			SquaredBg.draw(gcDraw);
 		if (spriteEditor)
 			FrameSetEditor.drawDrawCanvas();
     gcMain.drawImage(canvasDraw.snapshot(null, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
 		if (spriteEditor)
 			FrameSetEditor.drawMainCanvas();
-		Sound.playAllSoundsFromQueue();
 		fpsHandler.fpsCounter();
 		if (!close ) {
 			Platform.runLater(() -> mainLoop());

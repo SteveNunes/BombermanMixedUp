@@ -33,7 +33,7 @@ public class Sprite {
 	private int spritesPerLine;
 	private int spriteIndex;
 	private double alpha;
-	private float rotation;
+	private int rotation;
 	
 	public Sprite(Sprite sprite)
 		{ this(sprite, sprite.getMainFrameSet()); }
@@ -167,7 +167,7 @@ public class Sprite {
 	public float getRotation()
 		{ return rotation; }
 
-	public void setRotation(float rotation)
+	public void setRotation(int rotation)
 		{ this.rotation = rotation; }	
 	
 	public void incRotation(float value)
