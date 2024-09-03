@@ -2,7 +2,7 @@ package enums;
 
 import application.Main;
 
-public enum Items {
+public enum Item {
 	
 	BOMB_UP(0),
 	FIRE_UP(2),
@@ -56,7 +56,7 @@ public enum Items {
 	APPLE_2(50);
 	
 	private int value;
-	private static Items[] list = {BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB, REMOTE_BOMB,
+	private static Item[] list = {BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB, REMOTE_BOMB,
 			P_BOMB, MINE_BOMB, RUBBER_BOMB, FOLLOW_BOMB, MAGNET_BOMB, MAGMA_BOMB, HEART_BOMB,
 			SENSOR_BOMB, SPIKE_REMOTE_BOMB, PASS_BOMB, PASS_WALL, LINED_BOMBS, KICK_BOMB,
 			PUNCH_BOMB, POWER_GLOVE, PUSH_POWER, EXTRA_LIVE, HEART_UP, ARMOR, TIME_STOP,
@@ -65,27 +65,27 @@ public enum Items {
 			PUDDING, CANDY_CONE, BUTTER, CORN_DOG, OLIVES, EXTINGUISHER, RANDOM, FIRE_MAX,
 			SPEED_DOWN, CURSE_SKULL, STRAWBERRY_ICECREAM, FIRE_IMMUNE, APPLE_2};
 	
-	Items(int value)
+	Item(int value)
 		{ this.value = value;	}
 	
 	public int getValue()
 		{ return value; }
 	
-	public Items getNext() {
+	public Item getNext() {
 		int i = value + 1;
 		if (i == list.length)
 			i = 0;
 		return list[i];
 	}
 
-	public Items getPreview() {
+	public Item getPreview() {
 		int i = value - 1;
 		if (i == 0)
 			i = list.length - 1;
 		return list[i];
 	}
 	
-	public static Items getRandom()
+	public static Item getRandom()
 		{ return list[Main.getRandom(0, list.length - 1)]; }
 	
 }

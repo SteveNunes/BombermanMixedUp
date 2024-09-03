@@ -1,6 +1,6 @@
 package enums;
 
-public enum TileProps {
+public enum TileProp {
 	
 	GROUND, // Chão normal, qualquer coisa passa por cima
 	WALL, // Parede (Só pode atravessar pulando)

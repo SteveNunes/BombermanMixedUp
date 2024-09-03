@@ -3,7 +3,8 @@ package maps;
 import java.util.List;
 
 import entities.Sprite;
-import enums.TileProps;
+import enums.TileProp;
+import gui.util.ImageUtils;
 import objmoveutils.Position;
 
 public class Tile {
@@ -15,15 +16,16 @@ public class Tile {
 	private float animationBreakingFrameSpeed;
 	private List<Sprite> animationRegenerating;
 	private float animationRegeneratingFrameSpeed;
-	private List<TileProps> typeProps;
+	private List<TileProp> typeProps;
 	
-	public Tile(Position position, List<TileProps> typeProps, List<Sprite> animationStand, float animationStandFrameSpeed) {
+	public Tile(Position position, List<TileProp> typeProps, List<Sprite> animationStand, float animationStandFrameSpeed) {
 		this.animationStand = animationStand;
 		this.animationStandFrameSpeed = animationStandFrameSpeed;
 		this.typeProps = typeProps;
 		this.position = position;
 		animationBreaking = null;
 		animationRegenerating = null;
+		ImageUtils.copyAreaFromWritableImage(null);
 	}
 
 	public Position getPosotion()
@@ -50,10 +52,10 @@ public class Tile {
 	public void setAnimationRegenerating(List<Sprite> animationRegenerating)
 		{ this.animationRegenerating = animationRegenerating; }
 
-	public List<TileProps> getTypeProps()
+	public List<TileProp> getTypeProps()
 		{ return typeProps; }
 
-	public void setTypeProps(List<TileProps> typeProps)
+	public void setTypeProps(List<TileProp> typeProps)
 		{ this.typeProps = typeProps; }
 
 	public float getAnimationStandFrameSpeed() {

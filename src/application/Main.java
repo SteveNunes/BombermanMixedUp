@@ -6,12 +6,17 @@ import java.util.Random;
 import gameutil.FPSHandler;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import maps.MapSet;
 import tools.FrameSetEditor;
 import tools.Materials;
 import tools.SquaredBg;
@@ -31,12 +36,13 @@ public class Main extends Application {
 	public static Canvas canvasMain;
 	public static GraphicsContext gcDraw;
 	public static GraphicsContext gcMain;
+	public static MapSet mapSet;
 	private static int fps = 0, fps2 = 0;
 	private static long fpsCTime = System.currentTimeMillis();
 	public static int zoom = 3;
 	public static boolean spriteEditor = true;
 	private static boolean close = false;
-	public static boolean greenBg = false;
+	public static int bgType = 1;
 	
 	/* ETAPAS:
 	 * - Fixar o sistema de arrastar sprites para atualizar corretamente as tags
@@ -67,6 +73,7 @@ public class Main extends Application {
 			stageMain.setOnCloseRequest(e -> close());
 			if (spriteEditor)
 				FrameSetEditor.start(scene);
+			mapSet = new MapSet("SBM2_1-1");
 			mainLoop();
 		}
 		catch(Exception e)
@@ -79,10 +86,12 @@ public class Main extends Application {
 	}
 
 	private void mainLoop() {
-		gcDraw.setFill(greenBg ? Color.valueOf("#00FF00") : Color.BLACK);
+		gcDraw.setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
 		gcDraw.fillRect(0, 0, winW, winH);
-		if (!greenBg)
+		if (bgType == 0)
 			SquaredBg.draw(gcDraw);
+		else if (bgType == 1)
+			mapSet.draw(gcDraw);
 		if (spriteEditor)
 			FrameSetEditor.drawDrawCanvas();
     gcMain.drawImage(canvasDraw.snapshot(null, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);

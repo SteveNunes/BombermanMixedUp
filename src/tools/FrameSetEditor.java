@@ -136,9 +136,9 @@ public abstract class FrameSetEditor {
 		setMouseEvents(scene);
 		setKeyboardEvents(scene);
 		
-		for (int n = 0; n < 10; n++) { // TEMP para desenhar multiplos FrameSets na tela para testar capacidade
+		for (int n = 0; n < 0; n++) { // TEMP para desenhar multiplos FrameSets na tela para testar capacidade
 			Entity entity = new Entity(currentEntity);
-			entity.setFrameSet("IntroFrames");
+			entity.setFrameSet("MovingFrames");
 			entity.setPosition(Main.getRandom(0, 320), Main.getRandom(0, 240));
 			entities.add(entity);
 		}
@@ -623,8 +623,12 @@ public abstract class FrameSetEditor {
 				linkEntityToCursor = linkEntityToCursor != 1 ? 1 : 0;
 			else if (e.getCode() == KeyCode.F4)
 				linkEntityToCursor = linkEntityToCursor != 2 ? 2 : 0;
-			else if (e.getCode() == KeyCode.F12 && !(Main.greenBg = !Main.greenBg))
-				SquaredBg.setSquaredBg(3, 3, 50, 255);
+			else if (e.getCode() == KeyCode.F12) {
+				if (++Main.bgType == 3)
+					Main.bgType = 0;
+				if (Main.bgType == 2)
+					SquaredBg.setSquaredBg(3, 3, 50, 255);
+			}
 			System.out.println("KeyCode: " + e.getCode());
 		});		
 		scene.setOnKeyReleased(e -> {
