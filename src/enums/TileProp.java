@@ -22,6 +22,18 @@ public enum TileProp {
 	REDIRECT_BOMB_TO_LEFT, // Faz a bomba chutada que passar por esse tile, ir para a esquerda
 	REDIRECT_BOMB_TO_UP, // Faz a bomba chutada que passar por esse tile, ir para cima
 	REDIRECT_BOMB_TO_RIGHT, // Faz a bomba chutada que passar por esse tile, ir para a direita
-	REDIRECT_BOMB_TO_DOWN; // Faz a bomba chutada que passar por esse tile, ir para baixo
+	REDIRECT_BOMB_TO_DOWN, // Faz a bomba chutada que passar por esse tile, ir para baixo
+	RAIL_UL, // Trilho de BomberKart
+	RAIL_U, // Trilho de BomberKart
+	RAIL_UR, // Trilho de BomberKart
+	RAIL_L, // Trilho de BomberKart
+	RAIL_R, // Trilho de BomberKart
+	RAIL_DL, // Trilho de BomberKart
+	RAIL_D, // Trilho de BomberKart
+	RAIL_DR, // Trilho de BomberKart
+	RAIL_START_JUMP, // Trilho de BomberKart
+	RAIL_END_JUMP, // Trilho de BomberKart
+	RAIL_START, // Trilho de BomberKart
+	RAIL_END; // Trilho de BomberKart
 	
 }

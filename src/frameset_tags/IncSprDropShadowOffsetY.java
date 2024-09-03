@@ -1,7 +1,5 @@
 package frameset_tags;
 
-import entities.Entity;
-import entities.FrameSet;
 import entities.Sprite;
 
 public class IncSprDropShadowOffsetY extends FrameTag {

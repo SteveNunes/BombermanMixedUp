@@ -2,6 +2,7 @@ package frameset_tags;
 
 import application.Main;
 import entities.Sprite;
+import enums.GameMode;
 import tools.FrameSetEditor;
 import tools.Sound;
 
@@ -70,7 +71,7 @@ public class PlayWav extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		if (!Main.spriteEditor || !FrameSetEditor.isPaused) {
+		if (Main.mode == GameMode.GAME || !FrameSetEditor.isPaused) {
 			Sound.playWav(partialSoundPath, getRate(), getPan(), getBalance(), getVolume(), getStopCurrent());
 		}
 	}

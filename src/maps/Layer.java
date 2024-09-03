@@ -13,6 +13,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import util.MyConverters;
 
 public class Layer {
 	
@@ -28,6 +29,7 @@ public class Layer {
 	private int outY;
 	private int width;
 	private int height;
+	public static String[][] tags = new String[200][200];
 	
 	public Layer(MapSet originMapSet, LayerInfo layerInfo, List<String> tileInfos) {
 		this.originMapSet = originMapSet;
@@ -142,6 +144,11 @@ class TileSpriteInfos {
 			n++; b = split.length <= n ? 255 : Integer.parseInt(split[n]);
 			n++; a = split.length <= n ? 255 : Integer.parseInt(split[n]);
 			tint = ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b, a));
+			String str = MyConverters.arrayToString(split, 12);
+			if (!str.isEmpty()) {
+				int dx = outX / 16, dy = outY / 16;
+				Layer.tags[dy][dx] = MyConverters.arrayToString(split, 12);
+			}
 		}
 		catch (Exception e)
 			{ throw new RuntimeException(split[n] + " - Invalid parameter"); }

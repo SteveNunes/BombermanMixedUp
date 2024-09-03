@@ -96,6 +96,7 @@ public abstract class FrameSetEditor {
 	private static int dragX = 0;
 	private static int dragY = 0;
 	private static int backupIndex;
+	private static int bgType = 1;
 	private static List<Entity> entities;
 	private static int linkEntityToCursor;
 	private static int centerX = Main.tileSize * 10;
@@ -624,9 +625,9 @@ public abstract class FrameSetEditor {
 			else if (e.getCode() == KeyCode.F4)
 				linkEntityToCursor = linkEntityToCursor != 2 ? 2 : 0;
 			else if (e.getCode() == KeyCode.F12) {
-				if (++Main.bgType == 3)
-					Main.bgType = 0;
-				if (Main.bgType == 2)
+				if (++bgType == 3)
+					bgType = 0;
+				if (bgType == 2)
 					SquaredBg.setSquaredBg(3, 3, 50, 255);
 			}
 			System.out.println("KeyCode: " + e.getCode());
@@ -933,9 +934,15 @@ public abstract class FrameSetEditor {
 	    		mouseY - Main.winH / 2 / zoomScale,
 	    		Main.winW / zoomScale, Main.winH / zoomScale,
 	    		0, 0, Main.winW * Main.zoom, Main.winH * Main.zoom);
-	}
+ 	}
 
 	public static void drawDrawCanvas() {
+		Main.gcDraw.setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
+		Main.gcDraw.fillRect(0, 0, Main.winW, Main.winH);
+		if (bgType == 0)
+			SquaredBg.draw(Main.gcDraw);
+		else if (bgType == 1)
+			Main.mapSet.draw(Main.gcDraw);
 		if (linkEntityToCursor > 0) {
 			if (linkEntityToCursor == 2)
 				currentEntity.setPosition(mouseX, mouseY);

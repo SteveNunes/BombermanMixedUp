@@ -5,11 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import application.Main;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import tools.MapEditor;
 import tools.Materials;
 import util.IniFile;
+import util.Misc;
 
 public class MapSet {
 	
@@ -28,9 +31,9 @@ public class MapSet {
 		minLayer = 9999;
 		maxLayer = 0;
 		IniFile ini = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
-		tileSetImage = Materials.tileSets.get(ini.read("SETUP", "Tiles"));
 		if (ini == null)
 			throw new RuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
+		tileSetImage = Materials.tileSets.get(ini.read("SETUP", "Tiles"));
 		Map<Integer, LayerInfo> layerInfos = new HashMap<>();
 		Map<Integer, List<String>> tileInfos = new HashMap<>();
 		Integer imageLayer = ini.readAsInteger("SETUP", "ImageLayer", null);
@@ -63,9 +66,12 @@ public class MapSet {
 		{ return tileSetImage; }
 
 	public void draw(GraphicsContext gc) {
-		for (int l = minLayer; l <= maxLayer; l++)
-			if (layers.containsKey(l) && layers.get(l).getLayerImage() != copyImageLayer)
-				layers.get(l).draw(gc);
+		if (!Misc.alwaysTrue())
+			for (int l = minLayer; l <= maxLayer; l++)
+				if (layers.containsKey(l) && layers.get(l).getLayerImage() != copyImageLayer)
+					layers.get(l).draw(gc);
+		if (layers.containsKey(MapEditor.getCurrentLayer()))
+			layers.get(MapEditor.getCurrentLayer()).draw(gc);
 	}
 	
 }

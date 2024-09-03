@@ -3,29 +3,26 @@ package application;
 import java.security.SecureRandom;
 import java.util.Random;
 
+import enums.GameMode;
 import gameutil.FPSHandler;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
-import javafx.scene.image.WritableImage;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import maps.MapSet;
 import tools.FrameSetEditor;
+import tools.MapEditor;
 import tools.Materials;
 import tools.SquaredBg;
 
 
 public class Main extends Application {
 	
-	public final static int winW = 320;
-	public final static int winH = 240;
+	public static int winW = 320;
+	public static int winH = 240;
 	public final static int tileSize = 16;
 
 	private static FPSHandler fpsHandler = new FPSHandler(60); 
@@ -40,9 +37,8 @@ public class Main extends Application {
 	private static int fps = 0, fps2 = 0;
 	private static long fpsCTime = System.currentTimeMillis();
 	public static int zoom = 3;
-	public static boolean spriteEditor = true;
+	public static GameMode mode = GameMode.FRAMESET_EDITOR;
 	private static boolean close = false;
-	public static int bgType = 1;
 	
 	/* ETAPAS:
 	 * - Fixar o sistema de arrastar sprites para atualizar corretamente as tags
@@ -55,13 +51,17 @@ public class Main extends Application {
 		try {
 			random = new Random(new SecureRandom().nextInt(Integer.MAX_VALUE));
 			stageMain = stage;
+			if (mode != GameMode.GAME) {
+				winW = 512;
+				winH = 256;
+			}				
 			canvasDraw = new Canvas(winW, winH);
 			canvasMain = new Canvas(winW * zoom, winH * zoom);
 			gcDraw = canvasDraw.getGraphicsContext2D();
 			gcMain = canvasMain.getGraphicsContext2D();
 			vBoxMain = new VBox();
 			vBoxMain.getChildren().add(canvasMain);
-			stageMain.setTitle("BomberMan for TikTok live");
+			stageMain.setTitle("BomberMan Mixed Up!");
 			stageMain.setResizable(false);
 			Scene scene = new Scene(vBoxMain);
 			stageMain.setScene(scene);
@@ -71,9 +71,11 @@ public class Main extends Application {
 			stageMain.show();
 			SquaredBg.setSquaredBg(3, 3, 50, 255);
 			stageMain.setOnCloseRequest(e -> close());
-			if (spriteEditor)
+			mapSet = new MapSet("SBM_1-1");
+			if (mode == GameMode.FRAMESET_EDITOR)
 				FrameSetEditor.start(scene);
-			mapSet = new MapSet("SBM2_1-1");
+			else if (mode == GameMode.MAP_EDITOR)
+				MapEditor.start(scene);
 			mainLoop();
 		}
 		catch(Exception e)
@@ -86,17 +88,15 @@ public class Main extends Application {
 	}
 
 	private void mainLoop() {
-		gcDraw.setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
-		gcDraw.fillRect(0, 0, winW, winH);
-		if (bgType == 0)
-			SquaredBg.draw(gcDraw);
-		else if (bgType == 1)
-			mapSet.draw(gcDraw);
-		if (spriteEditor)
+		if (mode == GameMode.FRAMESET_EDITOR)
 			FrameSetEditor.drawDrawCanvas();
+		else if (mode == GameMode.MAP_EDITOR)
+			MapEditor.drawDrawCanvas();
     gcMain.drawImage(canvasDraw.snapshot(null, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
-		if (spriteEditor)
+		if (mode == GameMode.FRAMESET_EDITOR)
 			FrameSetEditor.drawMainCanvas();
+		else if (mode == GameMode.MAP_EDITOR)
+			MapEditor.drawMainCanvas();
 		fpsHandler.fpsCounter();
 		if (!close ) {
 			Platform.runLater(() -> mainLoop());
@@ -107,8 +107,10 @@ public class Main extends Application {
 			}
 			else
 				fps++;
-			if (spriteEditor)
+			if (mode == GameMode.FRAMESET_EDITOR)
 				stageMain.setTitle("Sprite Editor \t FPS: " + fps2 + " \t " + FrameSetEditor.getTitle());
+			else if (mode == GameMode.MAP_EDITOR)
+				stageMain.setTitle("Map Editor \t FPS: " + fps2 + " \t " + MapEditor.getTitle());
 			else
 				stageMain.setTitle("BomberMan Mixed Up! \t FPS: " + fps2);
 		}
