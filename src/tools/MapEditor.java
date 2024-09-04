@@ -9,8 +9,8 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import maps.Layer;
 import maps.MapSet;
+import maps.Tile;
 import util.FindFile;
 
 public class MapEditor {
@@ -31,7 +31,8 @@ public class MapEditor {
 		{ return currentLayer; }
 
 	public static void loadPrevMap() {
-		Layer.tags = new String[200][200];
+		currentLayer = 26;
+		Tile.tags = new String[200][200];
 		List<File> maps = FindFile.findFile("appdata/maps/", "*", 0);
 		if (--currentMapPos == -1)
 			currentMapPos = maps.size() - 1;
@@ -39,11 +40,13 @@ public class MapEditor {
 	}
 
 	public static void loadNextMap() {
-		Layer.tags = new String[200][200];
+		currentLayer = 26;
+		Tile.tags = new String[200][200];
 		List<File> maps = FindFile.findFile("appdata/maps/", "*", 0);
 		if (++currentMapPos == maps.size())
 			currentMapPos = 0;
-		currentMapSet = new MapSet(maps.get(currentMapPos).getName().replace(".map", ""));
+		//currentMapSet = new MapSet(maps.get(currentMapPos).getName().replace(".map", ""));
+		currentMapSet = new MapSet("SBM4_1-4");
 	}
 
 	public static void start(Scene scene) {
@@ -58,22 +61,20 @@ public class MapEditor {
 	private static void setKeyboardEvents(Scene scene) {
 		scene.setOnKeyPressed(e -> {
 			holdedKeys.add(e.getCode());
-			if (e.getCode() == KeyCode.F8) {
-				if (currentLayer < 0)
+			if (e.getCode() == KeyCode.F7 || e.getCode() == KeyCode.F8) {
+				if (e.getCode() == KeyCode.F7)
 					currentLayer--;
 				else
 					currentLayer++;
 				while (!currentMapSet.getLayersMap().containsKey(currentLayer)) {
-					if (currentLayer < 0)
+					if (e.getCode() == KeyCode.F7)
 						currentLayer--;
 					else
 						currentLayer++;
 					if (currentLayer > 10000)
-						currentLayer = -1;
-					else if (currentLayer < -10000) {
-						currentLayer = 26;
-						break;
-					}
+						currentLayer = -10000;
+					else if (currentLayer < -10000)
+						currentLayer = 10000;
 				}
 			}
 			else if (e.getCode() == KeyCode.F10)
@@ -100,12 +101,12 @@ public class MapEditor {
 
 	public static void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
 		boolean blink = System.currentTimeMillis() / 50 % 2 == 0;
-		if (Layer.tags[mouseDY][mouseDX] != null) {
+		if (Tile.tags[mouseDY][mouseDX] != null) {
 			Main.gcMain.setFill(Color.LIGHTBLUE);
 			Main.gcMain.setStroke(Color.BLACK);
 			Main.gcMain.setFont(new Font("Lucida Console", 15));
 			Main.gcMain.setLineWidth(3);
-			String str = Layer.tags[mouseDY][mouseDX];
+			String str = Tile.tags[mouseDY][mouseDX];
 			int x = mouseX * Main.zoom, y = mouseY * Main.zoom;
 			Main.gcMain.strokeText(str, x, y);
 			Main.gcMain.fillText(str, x, y);
@@ -115,7 +116,7 @@ public class MapEditor {
 		}
 		for (int y = 0; blink && y < 200; y++)
 			for (int x = 0; x < 200; x++)
-				if (Layer.tags[y][x] != null) {
+				if (Tile.tags[y][x] != null) {
 					Main.gcMain.setStroke(Color.WHITESMOKE);
 					Main.gcMain.setLineWidth(2);
 					Main.gcMain.strokeRect(x * Main.zoom * Main.tileSize, y * Main.zoom * Main.tileSize, 16 * Main.zoom, 16 * Main.zoom);
@@ -123,7 +124,7 @@ public class MapEditor {
  	}
 	
 	public static String getTitle() {
-		return "";
+		return "Map: " + currentMapSet.getMapName() + " Layer: " + currentLayer;
 	}
 
 }

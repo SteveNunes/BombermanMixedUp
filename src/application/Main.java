@@ -1,8 +1,5 @@
 package application;
 	
-import java.security.SecureRandom;
-import java.util.Random;
-
 import enums.GameMode;
 import gameutil.FPSHandler;
 import javafx.application.Application;
@@ -12,7 +9,6 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import maps.MapSet;
 import tools.FrameSetEditor;
 import tools.MapEditor;
 import tools.Materials;
@@ -25,39 +21,35 @@ public class Main extends Application {
 	public static int winH = 240;
 	public final static int tileSize = 16;
 
-	private static FPSHandler fpsHandler = new FPSHandler(60); 
-	private static Random random;
+	public static GameMode mode = GameMode.MAP_EDITOR;
+	private static FPSHandler fpsHandler; 
 	private static Stage stageMain;
 	private static VBox vBoxMain;
 	public static Canvas canvasDraw;
 	public static Canvas canvasMain;
 	public static GraphicsContext gcDraw;
 	public static GraphicsContext gcMain;
-	public static MapSet mapSet;
-	private static int fps = 0, fps2 = 0;
+	private static int fps = 0;
+	private static int fps2 = 0;
 	private static long fpsCTime = System.currentTimeMillis();
 	public static int zoom = 3;
-	public static GameMode mode = GameMode.FRAMESET_EDITOR;
 	private static boolean close = false;
-	
-	/* ETAPAS:
-	 * - Fixar o sistema de arrastar sprites para atualizar corretamente as tags
-	 * - Criar sistema de load de mapa
-	 * - Criar frameset de pelo menos 1 bomberman para poder fazer testes com ele 
-	 */
 	
 	@Override
 	public void start(Stage stage) {
 		try {
-			random = new Random(new SecureRandom().nextInt(Integer.MAX_VALUE));
-			stageMain = stage;
 			if (mode != GameMode.GAME) {
 				winW = 512;
 				winH = 256;
 			}				
+			Materials.loadFromFiles();
+			stageMain = stage;
+			fpsHandler = new FPSHandler(60);
 			canvasDraw = new Canvas(winW, winH);
-			canvasMain = new Canvas(winW * zoom, winH * zoom);
+			canvasDraw.getGraphicsContext2D().setImageSmoothing(false);
 			gcDraw = canvasDraw.getGraphicsContext2D();
+			canvasMain = new Canvas(winW * zoom, winH * zoom);
+			canvasMain.getGraphicsContext2D().setImageSmoothing(false);
 			gcMain = canvasMain.getGraphicsContext2D();
 			vBoxMain = new VBox();
 			vBoxMain.getChildren().add(canvasMain);
@@ -65,13 +57,9 @@ public class Main extends Application {
 			stageMain.setResizable(false);
 			Scene scene = new Scene(vBoxMain);
 			stageMain.setScene(scene);
-			canvasDraw.getGraphicsContext2D().setImageSmoothing(false);
-			canvasMain.getGraphicsContext2D().setImageSmoothing(false);
-			Materials.loadFromFiles();
 			stageMain.show();
-			SquaredBg.setSquaredBg(3, 3, 50, 255);
+			SquaredBg.setSquaredBg(4, 3, 50, 255);
 			stageMain.setOnCloseRequest(e -> close());
-			mapSet = new MapSet("SBM_1-1");
 			if (mode == GameMode.FRAMESET_EDITOR)
 				FrameSetEditor.start(scene);
 			else if (mode == GameMode.MAP_EDITOR)
@@ -118,8 +106,5 @@ public class Main extends Application {
 	
 	public static void main(String[] args)
 		{ launch(args); }
-	
-	public static int getRandom(int min, int max)
-		{ return random.nextInt(++max - min) + min; }
 	
 }

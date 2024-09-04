@@ -31,8 +31,7 @@ public enum TileProp {
 	RAIL_DL, // Trilho de BomberKart
 	RAIL_D, // Trilho de BomberKart
 	RAIL_DR, // Trilho de BomberKart
-	RAIL_START_JUMP, // Trilho de BomberKart
-	RAIL_END_JUMP, // Trilho de BomberKart
+	RAIL_JUMP, // Trilho de BomberKart
 	RAIL_START, // Trilho de BomberKart
 	RAIL_END; // Trilho de BomberKart
 	

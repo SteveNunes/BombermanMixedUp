@@ -1,11 +1,14 @@
 package tools;
 
+import java.security.SecureRandom;
 import java.util.List;
+import java.util.Random;
 
 import util.IniFile;
 
 public abstract class GameMisc {
 	
+	static Random random = new Random(new SecureRandom().nextInt(Integer.MAX_VALUE));
 	static IniFile iniFile = IniFile.getNewIniFileInstance("D:/Java/Bomberman - Mixed Up!/appdata/configs/Monsters.cfg");
 
 	public static <T> void moveItemTo(List<T> list, T item, int index) {
@@ -22,5 +25,7 @@ public abstract class GameMisc {
 		}
 	}
 	
+	public static int getRandom(int min, int max)
+		{ return random.nextInt(++max - min) + min; }
 
 }

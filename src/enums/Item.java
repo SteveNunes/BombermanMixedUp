@@ -1,6 +1,6 @@
 package enums;
 
-import application.Main;
+import tools.GameMisc;
 
 public enum Item {
 	
@@ -86,6 +86,6 @@ public enum Item {
 	}
 	
 	public static Item getRandom()
-		{ return list[Main.getRandom(0, list.length - 1)]; }
+		{ return list[GameMisc.getRandom(0, list.length - 1)]; }
 	
 }

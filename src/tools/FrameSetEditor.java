@@ -70,6 +70,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import maps.MapSet;
 import util.IniFile;
 import util.MyFile;
 
@@ -96,11 +97,12 @@ public abstract class FrameSetEditor {
 	private static int dragX = 0;
 	private static int dragY = 0;
 	private static int backupIndex;
-	private static int bgType = 1;
+	private static int bgType = 2;
 	private static List<Entity> entities;
 	private static int linkEntityToCursor;
 	private static int centerX = Main.tileSize * 10;
 	private static int centerY = Main.tileSize * 7;
+	private static MapSet mapSet = new MapSet("SBM_1-1");
 	
 	public static void start(Scene scene) {
 		entities = new ArrayList<>();
@@ -140,7 +142,7 @@ public abstract class FrameSetEditor {
 		for (int n = 0; n < 0; n++) { // TEMP para desenhar multiplos FrameSets na tela para testar capacidade
 			Entity entity = new Entity(currentEntity);
 			entity.setFrameSet("MovingFrames");
-			entity.setPosition(Main.getRandom(0, 320), Main.getRandom(0, 240));
+			entity.setPosition(GameMisc.getRandom(0, 320), GameMisc.getRandom(0, 240));
 			entities.add(entity);
 		}
 		
@@ -862,6 +864,55 @@ public abstract class FrameSetEditor {
 		});
 	}
 	
+	public static void drawDrawCanvas() {
+		Main.gcDraw.setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
+		Main.gcDraw.fillRect(0, 0, Main.winW, Main.winH);
+		if (bgType == 2)
+			SquaredBg.draw(Main.gcDraw);
+		else if (bgType == 1)
+			mapSet.draw(Main.gcDraw);
+		if (linkEntityToCursor > 0) {
+			if (linkEntityToCursor == 2)
+				currentEntity.setPosition(mouseX, mouseY);
+			else {
+				boolean move = true;
+				if (currentEntity.isPerfectTileCentred()) {
+					int mx = mouseX / Main.tileSize, my = mouseY / Main.tileSize;
+					if (mx > currentEntity.getTileX())
+						currentEntity.setDirection(Direction.RIGHT);
+					else if (mx < currentEntity.getTileX())
+						currentEntity.setDirection(Direction.LEFT);
+					else if (my > currentEntity.getTileY())
+						currentEntity.setDirection(Direction.DOWN);
+					else if (my < currentEntity.getTileY())
+						currentEntity.setDirection(Direction.UP);
+					else
+						move = false;
+				}
+				if (move)
+					currentEntity.incPositionByDirection(currentEntity.getDirection());
+			}
+		}
+		entities.sort((e1, e2) -> e1.getCurrentFrameSet().getMaxY() - e2.getCurrentFrameSet().getMaxY());
+		entities.forEach(e -> e.run(isPaused));
+		if (isChangingSprite) {
+			Sprite sprite = selectedSprites.get(0);
+			int x = (int)sprite.getOutputDrawCoords().getX() * Main.zoom,
+					y = (int)sprite.getOutputDrawCoords().getY() * Main.zoom;
+			Main.gcDraw.drawImage(sprite.getSpriteSource(),
+					sprite.getOriginSpriteX() - 160, sprite.getOriginSpriteY() - 120,
+					480, 360, x - 160, y - 120, 480, 360);
+		}
+		if (currentEntity != null)
+			currentEntity.run(isPaused);
+		Main.gcDraw.setGlobalAlpha(1);
+		Main.gcDraw.setLineWidth(1);
+		Main.gcDraw.setStroke(Color.WHITE);
+		Main.gcDraw.strokeRect(centerX, centerY, Main.tileSize, Main.tileSize);
+		if (getCurrentFrame() == null)
+			currentEntity.restartCurrentFrameSet();
+	}
+	
 	public static void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
 		boolean blink = System.currentTimeMillis() / 50 % 2 == 0;
 		if (currentEntity.getTotalFrameSets() > 0 && !currentEntity.getFrameSet(getCurrentFrameSetName()).isEmptyFrames() && getCurrentFrame() != null) {
@@ -936,55 +987,6 @@ public abstract class FrameSetEditor {
 	    		0, 0, Main.winW * Main.zoom, Main.winH * Main.zoom);
  	}
 
-	public static void drawDrawCanvas() {
-		Main.gcDraw.setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
-		Main.gcDraw.fillRect(0, 0, Main.winW, Main.winH);
-		if (bgType == 0)
-			SquaredBg.draw(Main.gcDraw);
-		else if (bgType == 1)
-			Main.mapSet.draw(Main.gcDraw);
-		if (linkEntityToCursor > 0) {
-			if (linkEntityToCursor == 2)
-				currentEntity.setPosition(mouseX, mouseY);
-			else {
-				boolean move = true;
-				if (currentEntity.isPerfectTileCentred()) {
-					int mx = mouseX / Main.tileSize, my = mouseY / Main.tileSize;
-					if (mx > currentEntity.getTileX())
-						currentEntity.setDirection(Direction.RIGHT);
-					else if (mx < currentEntity.getTileX())
-						currentEntity.setDirection(Direction.LEFT);
-					else if (my > currentEntity.getTileY())
-						currentEntity.setDirection(Direction.DOWN);
-					else if (my < currentEntity.getTileY())
-						currentEntity.setDirection(Direction.UP);
-					else
-						move = false;
-				}
-				if (move)
-					currentEntity.incPositionByDirection(currentEntity.getDirection());
-			}
-		}
-		entities.sort((e1, e2) -> e1.getCurrentFrameSet().getMaxY() - e2.getCurrentFrameSet().getMaxY());
-		entities.forEach(e -> e.run(isPaused));
-		if (isChangingSprite) {
-			Sprite sprite = selectedSprites.get(0);
-			int x = (int)sprite.getOutputDrawCoords().getX() * Main.zoom,
-					y = (int)sprite.getOutputDrawCoords().getY() * Main.zoom;
-			Main.gcDraw.drawImage(sprite.getSpriteSource(),
-					sprite.getOriginSpriteX() - 160, sprite.getOriginSpriteY() - 120,
-					480, 360, x - 160, y - 120, 480, 360);
-		}
-		if (currentEntity != null)
-			currentEntity.run(isPaused);
-		Main.gcDraw.setGlobalAlpha(1);
-		Main.gcDraw.setLineWidth(1);
-		Main.gcDraw.setStroke(Color.WHITE);
-		Main.gcDraw.strokeRect(centerX, centerY, Main.tileSize, Main.tileSize);
-		if (getCurrentFrame() == null)
-			currentEntity.restartCurrentFrameSet();
-	}
-	
 	public static String getTitle() {
 		String title = "";
 		if (getCurrentFrameSetName() != null) {
