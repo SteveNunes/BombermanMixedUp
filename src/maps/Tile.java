@@ -48,10 +48,13 @@ public class Tile {
 			n++; b = split.length <= n ? 255 : Integer.parseInt(split[n]);
 			n++; a = split.length <= n ? 255 : Integer.parseInt(split[n]);
 			tint = ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b, a));
-			String str = MyConverters.arrayToString(split, 12);
-			if (!str.isEmpty() && (originMapSet.getCopyLayer() == null || layer != originMapSet.getCopyLayer())) {
-				int dx = outX / 16, dy = outY / 16;
-				tags[dy][dx] = MyConverters.arrayToString(split, 12);
+			if (Main.mapEditor != null) {
+				String str = MyConverters.arrayToString(split, 12);
+				if (!str.isEmpty() && ((Main.mapEditor.getCurrentLayer() == 26 && layer == 26) ||
+						(originMapSet.getCopyLayer() != null && Main.mapEditor.getCurrentLayer() == originMapSet.getCopyLayer() && layer == originMapSet.getCopyLayer()))) {
+							int dx = outX / 16, dy = outY / 16;
+							tags[dy][dx] = MyConverters.arrayToString(split, 12);
+				}
 			}
 		}
 		catch (Exception e)

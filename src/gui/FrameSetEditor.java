@@ -1,4 +1,4 @@
-package tools;
+package gui;
 	
 import java.awt.Rectangle;
 import java.io.File;
@@ -54,6 +54,8 @@ import frameset_tags.SetSprFlip;
 import frameset_tags.SetSprIndex;
 import frameset_tags.SetSprRotate;
 import gui.util.Alerts;
+import javafx.application.Platform;
+import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -71,40 +73,63 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import maps.MapSet;
+import tools.GameMisc;
+import tools.SquaredBg;
 import util.IniFile;
 import util.MyFile;
 
 
-public abstract class FrameSetEditor {
+public class FrameSetEditor {
 	
-	private static List<Map<String, FrameSet>> backupFrameSetsMap;
-	private static List<KeyCode> holdedKeys;
-	private static List<FrameSet> backupFrameSets;
-	private static List<Sprite> deltaSprites;
-	private static List<Sprite> selectedSprites;
-	private static List<Sprite> copiedSprites;
-	private static Entity currentEntity;
-	private static Frame copiedFrame;
-	private static Sprite focusedSprite;
-	private static ContextMenu defaultContextMenu;
-	private static ContextMenu spriteContextMenu;
-	private static Stage stageHelpWindow;
-	public static boolean isPaused;
-	private static boolean isChangingSprite;
-	private static int zoomScale;
-	private static int mouseX = 0;
-	private static int mouseY = 0;
-	private static int dragX = 0;
-	private static int dragY = 0;
-	private static int backupIndex;
-	private static int bgType = 2;
-	private static List<Entity> entities;
-	private static int linkEntityToCursor;
-	private static int centerX = Main.tileSize * 10;
-	private static int centerY = Main.tileSize * 7;
-	private static MapSet mapSet = new MapSet("SBM_1-1");
+	private final int winW = 312;
+	private final int winH = 240;
+	private final int tileSize = 16;
+	private List<Map<String, FrameSet>> backupFrameSetsMap;
+	private List<KeyCode> holdedKeys;
+	private List<FrameSet> backupFrameSets;
+	private List<Sprite> deltaSprites;
+	private List<Sprite> selectedSprites;
+	private List<Sprite> copiedSprites;
+	private List<Entity> entities;
+	private Scene sceneMain;
+	@FXML
+	private Canvas canvasMain;
+	private GraphicsContext gcMain;
+	private Canvas canvasDraw;
+	private GraphicsContext gcDraw;
+	private Entity currentEntity;
+	private Frame copiedFrame;
+	private Sprite focusedSprite;
+	private ContextMenu defaultContextMenu;
+	private ContextMenu spriteContextMenu;
+	private Stage stageHelpWindow;
+	private Font font;
+	public boolean isPaused;
+	private boolean isChangingSprite;
+	private int zoomScale;
+	private int mouseX;
+	private int mouseY;
+	private int dragX;
+	private int dragY;
+	private int backupIndex;
+	private int bgType;
+	private int zoom = 3;
+	private int linkEntityToCursor;
+	private int centerX;
+	private int centerY;
+	private MapSet mapSet;
 	
-	public static void start(Scene scene) {
+	public void init(Scene scene) {
+		sceneMain = scene;
+		font = new Font("Lucida Console", 15);
+		canvasMain.getGraphicsContext2D().setImageSmoothing(false);
+		canvasDraw = new Canvas(winW, winH);
+		canvasDraw.getGraphicsContext2D().setImageSmoothing(false);
+		canvasMain.setWidth(winW * zoom);
+		canvasMain.setHeight(winH * zoom);
+		gcDraw = canvasDraw.getGraphicsContext2D();
+		gcMain = canvasMain.getGraphicsContext2D();
+		mapSet = new MapSet("SBM_1-1");
 		entities = new ArrayList<>();
 		holdedKeys = new ArrayList<>();
 		backupFrameSets = new ArrayList<>();
@@ -116,10 +141,16 @@ public abstract class FrameSetEditor {
 		copiedFrame = null;
 		isPaused = false;
 		isChangingSprite = false;
+		centerX = tileSize * 10;
+		centerY = tileSize * 7;
 		linkEntityToCursor = 0;
 		zoomScale = 1;
 		backupIndex = -1;
-		
+		mouseX = 0;
+		mouseY = 0;
+		dragX = 0;
+		dragY = 0;
+		bgType = 2;
 		currentEntity = new Entity();
 		currentEntity.setPosition(centerX, centerY);
 
@@ -136,8 +167,9 @@ public abstract class FrameSetEditor {
 		
 		setDefaultContextMenu();
 		setSpriteContextMenu();
-		setMouseEvents(scene);
-		setKeyboardEvents(scene);
+		setMouseEvents();
+		setKeyboardEvents(sceneMain);
+		
 		
 		for (int n = 0; n < 0; n++) { // TEMP para desenhar multiplos FrameSets na tela para testar capacidade
 			Entity entity = new Entity(currentEntity);
@@ -146,9 +178,32 @@ public abstract class FrameSetEditor {
 			entities.add(entity);
 		}
 		
+		mainLoop();
+		
 	}
 	
-	private static void setDefaultContextMenu() {
+	private void mainLoop() {
+		drawDrawCanvas();
+		drawMainCanvas();
+		GameMisc.getFPSHandler().fpsCounter();
+		if (!Main.close )
+			Platform.runLater(() -> {
+				String title = "Sprite Editor \t FPS: " + GameMisc.getFPSHandler().getFPS() + " \t ";
+				if (getCurrentFrameSetName() != null) {
+					title += "Frame Set: " + getCurrentFrameSetName() + 
+							" | Frames: " + (getCurrentFrameSet().getCurrentFrameIndex() + 1) +
+							"/" + getCurrentFrameSet().getTotalFrames() +
+							" | Sprites: " + getCurrentFrameSet().getTotalSprites() +
+							(isPaused ? " | (Paused)" : " | (Playing)") +
+							" | Scroll mode: " + getScrollMode() +
+							" | Move mode: " + getMoveMode();
+				}
+				Main.stageMain.setTitle(title);
+				mainLoop();
+			});
+	}
+	
+	private void setDefaultContextMenu() {
 		defaultContextMenu = new ContextMenu();
 		Menu menu = new Menu("Adicionar FrameSet");
 		MenuItem item1 = new MenuItem("FrameSet em branco");
@@ -210,7 +265,7 @@ public abstract class FrameSetEditor {
 						int sx = Integer.parseInt(split[0]), sy = Integer.parseInt(split[1]),
 								sw = Integer.parseInt(split[2]), sh = Integer.parseInt(split[3]),
 								perLine = Integer.parseInt(split[4]), index = Integer.parseInt(split[5]);
-						Rectangle rect = new Rectangle(Main.winW / 2 - sw / 2, Main.winH / 2 - sh / 2, sw, sh);
+						Rectangle rect = new Rectangle(winW / 2 - sw / 2, winH / 2 - sh / 2, sw, sh);
 						getCurrentFrameSet().addSpriteAtEnd(new Sprite(getCurrentFrameSet(), image, new Rectangle(sx, sy, sw, sh), rect, perLine, index));
 					}
 					catch (Exception ex) {
@@ -234,16 +289,16 @@ public abstract class FrameSetEditor {
 		}
 	}
 	
-	private static String getCurrentFrameSetName()
+	private String getCurrentFrameSetName()
 		{ return currentEntity.getCurrentFrameSetName(); }
 
-	private static FrameSet getCurrentFrameSet()
+	private FrameSet getCurrentFrameSet()
 		{ return currentEntity.getCurrentFrameSet(); }
 
-	private static Frame getCurrentFrame()
+	private Frame getCurrentFrame()
 		{ return getCurrentFrameSet().getCurrentFrame(); }
 	
-	private static void addFrameSet(FrameSet frameSet) {
+	private void addFrameSet(FrameSet frameSet) {
 		String name = Alerts.textPrompt("Prompt", "Adicionar FrameSet", null, "Digite o nome do FrameSet á ser adicionado:");
 		if (currentEntity.getFrameSetsNames().contains(name))
 			Alerts.error("Erro", "Já existe um FrameSet com esse nome!");
@@ -263,17 +318,17 @@ public abstract class FrameSetEditor {
 		}
 	}
 
-	private static void addFrame(int index, Frame frame) {
+	private void addFrame(int index, Frame frame) {
 		getCurrentFrameSet().addFrameAt(index, new Frame(frame));
 		Alerts.information("Info", "Frame(s) adcionado(s) com sucesso!");
 	}
 
-	private static void iterateSelectedSprites(Consumer<Sprite> consumer) {
+	private void iterateSelectedSprites(Consumer<Sprite> consumer) {
 		for (int n = 0, n2 = selectedSprites.size(); n < n2; n++)
 			consumer.accept(selectedSprites.get(n));
 	}
 	
-	private static void setSpriteContextMenu() {
+	private void setSpriteContextMenu() {
 		spriteContextMenu = new ContextMenu();
 		if (!selectedSprites.isEmpty()) {
 			MenuItem itemEditFrameTag = new MenuItem("Editar FrameTag do(s) Sprite(s) selecionado(s)");
@@ -301,7 +356,7 @@ public abstract class FrameSetEditor {
 		}
 	}
 	
-	private static void updateFrameSetTags(KeyCode keyCode, int incX, int incY) {
+	private void updateFrameSetTags(KeyCode keyCode, int incX, int incY) {
 		if (isNoHolds()) {
 			if (keyCode == KeyCode.A)
 				currentEntity.setDirection(Direction.LEFT);
@@ -467,7 +522,7 @@ public abstract class FrameSetEditor {
 		}
 	}
 	
-	private static void setKeyboardEvents(Scene scene) {
+	private void setKeyboardEvents(Scene scene) {
 		scene.setOnKeyPressed(e -> {
 			holdedKeys.add(e.getCode());
 			updateFrameSetTags(e.getCode(), 1, 1);
@@ -641,7 +696,7 @@ public abstract class FrameSetEditor {
 		});		
 	}
 	
-	private static void openHelpWindow() {
+	private void openHelpWindow() {
 		if (stageHelpWindow != null) {
 			stageHelpWindow.close();
 			stageHelpWindow = null;
@@ -684,7 +739,6 @@ public abstract class FrameSetEditor {
 				"ALT SHIFT INSERT|ADICIONAR NOVO FRAME AO FINAL",
 				"ALT CTRL INSERT|ADICIONAR NOVO FRAME AO INICIO"
 		};
-		Font font = new Font("Lucida Console", 15);
 		int ww, w = 0, h = 20 * str.length + 20;
 		for (String s : str) {
 			Text text = new Text(s);
@@ -717,14 +771,14 @@ public abstract class FrameSetEditor {
 		stageHelpWindow.showAndWait();				
 	}
 
-	private static void saveCtrlZ() {
+	private void saveCtrlZ() {
 		System.out.println("saveCtrlZ");
 		backupFrameSets.add(new FrameSet(getCurrentFrameSet(), currentEntity));
 		backupFrameSetsMap.add(currentEntity.getFrameSetsMap());
 		backupIndex++;
 	}
 
-	private static void rollback(int indexInc) {
+	private void rollback(int indexInc) {
 		if (backupIndex >= 0) {
 			if ((backupIndex += indexInc) == -1)
 				backupIndex = backupFrameSets.size() - 1;
@@ -736,13 +790,13 @@ public abstract class FrameSetEditor {
 		}
 	}
 	
-	private static void ctrlZ()
+	private void ctrlZ()
 		{ rollback(-1); }
 
-	private static void ctrlY()
+	private void ctrlY()
 		{ rollback(1); }
 
-	private static String getScrollMode() {
+	private String getScrollMode() {
 		return isNoHolds() ? "Index" :
 					 isHold(1, 0, 0) ? "Alignment" :
 					 isHold(0, 1, 0) ? "Alpha" :
@@ -752,7 +806,7 @@ public abstract class FrameSetEditor {
 					 isHold(1, 0, 1) ? "Output Size" : "None";
 	}
 
-	private static String getMoveMode() {
+	private String getMoveMode() {
 		return isNoHolds() ? "Move Entity Pos" :
 					 isHold(1, 0, 0) ? "Move FrameSet Pos" :
 					 isHold(0, 1, 0) ? "Move Origin Sprite Pos" :
@@ -760,8 +814,8 @@ public abstract class FrameSetEditor {
 					 isHold(1, 1, 0) ? "Change Output Sprite Size" : "None";
 	}
 
-	private static void setMouseEvents(Scene scene) {
-		scene.setOnScroll(e -> {
+	private void setMouseEvents() {
+		canvasMain.setOnScroll(e -> {
 			int inc = (isShiftHold() ? e.getDeltaX() : e.getDeltaY()) < 0 ? -1 : 1;
 			iterateSelectedSprites(sprite -> {
 				isChangingSprite = false;
@@ -820,17 +874,17 @@ public abstract class FrameSetEditor {
 					getCurrentFrame().addFrameTagToSprite(sprite, new SetOutputSprSize(inc, inc));
 			});
 		});
-		scene.setOnMousePressed(e -> {
+		canvasMain.setOnMousePressed(e -> {
 			defaultContextMenu.hide();
 			spriteContextMenu.hide();
 			if (e.getButton() == MouseButton.SECONDARY) {
 				if (focusedSprite != null) {
 					setSpriteContextMenu();
-					spriteContextMenu.show(Main.canvasMain, e.getX(), e.getY());
+					spriteContextMenu.show(canvasMain, e.getX(), e.getY());
 				}
 				else {
 					setDefaultContextMenu();
-					defaultContextMenu.show(Main.canvasMain, e.getX(), e.getY());
+					defaultContextMenu.show(canvasMain, e.getX(), e.getY());
 				}
 			}
 			else if (e.getButton() == MouseButton.PRIMARY) {
@@ -839,45 +893,45 @@ public abstract class FrameSetEditor {
 				if (focusedSprite != null && !selectedSprites.contains(focusedSprite))
 					selectedSprites.add(focusedSprite);
 			}
-			dragX = (int)e.getX() / Main.zoom;
-			dragY = (int)e.getY() / Main.zoom;
+			dragX = (int)e.getX() / zoom;
+			dragY = (int)e.getY() / zoom;
 			deltaSprites.clear();
 			for (Sprite sprite : selectedSprites)
 				deltaSprites.add(new Sprite(sprite));
 		});
-		scene.setOnMouseMoved(e -> {
-			mouseX = (int)e.getX() / Main.zoom;
-			mouseY = (int)e.getY() / Main.zoom;
+		canvasMain.setOnMouseMoved(e -> {
+			mouseX = (int)e.getX() / zoom;
+			mouseY = (int)e.getY() / zoom;
 		});
-		scene.setOnMouseDragged(e -> {
+		canvasMain.setOnMouseDragged(e -> {
 			int oldX = mouseX, oldY = mouseY;
-			mouseX = (int)e.getX() / Main.zoom;
-			mouseY = (int)e.getY() / Main.zoom;
+			mouseX = (int)e.getX() / zoom;
+			mouseY = (int)e.getY() / zoom;
 			if (e.getButton() == MouseButton.PRIMARY) {
 				updateFrameSetTags(oldX < mouseX ? KeyCode.RIGHT : KeyCode.LEFT, Math.abs(mouseX - dragX), 0);
 				updateFrameSetTags(oldY < mouseY ? KeyCode.DOWN : KeyCode.UP, Math.abs(mouseY - dragY), 0);
 			}
 		});
-		scene.setOnMouseReleased(e -> {
+		canvasMain.setOnMouseReleased(e -> {
 			if (e.getButton() == MouseButton.PRIMARY)
 				saveCtrlZ();
 		});
 	}
 	
-	public static void drawDrawCanvas() {
-		Main.gcDraw.setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
-		Main.gcDraw.fillRect(0, 0, Main.winW, Main.winH);
+	public void drawDrawCanvas() {
+		gcDraw.setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
+		gcDraw.fillRect(0, 0, winW, winH);
 		if (bgType == 2)
-			SquaredBg.draw(Main.gcDraw);
+			SquaredBg.draw(gcDraw);
 		else if (bgType == 1)
-			mapSet.draw(Main.gcDraw);
+			mapSet.draw(gcDraw);
 		if (linkEntityToCursor > 0) {
 			if (linkEntityToCursor == 2)
 				currentEntity.setPosition(mouseX, mouseY);
 			else {
 				boolean move = true;
 				if (currentEntity.isPerfectTileCentred()) {
-					int mx = mouseX / Main.tileSize, my = mouseY / Main.tileSize;
+					int mx = mouseX / tileSize, my = mouseY / tileSize;
 					if (mx > currentEntity.getTileX())
 						currentEntity.setDirection(Direction.RIGHT);
 					else if (mx < currentEntity.getTileX())
@@ -894,50 +948,51 @@ public abstract class FrameSetEditor {
 			}
 		}
 		entities.sort((e1, e2) -> e1.getCurrentFrameSet().getMaxY() - e2.getCurrentFrameSet().getMaxY());
-		entities.forEach(e -> e.run(isPaused));
+		entities.forEach(e -> e.run(gcDraw, isPaused));
 		if (isChangingSprite) {
 			Sprite sprite = selectedSprites.get(0);
-			int x = (int)sprite.getOutputDrawCoords().getX() * Main.zoom,
-					y = (int)sprite.getOutputDrawCoords().getY() * Main.zoom;
-			Main.gcDraw.drawImage(sprite.getSpriteSource(),
+			int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
+					y = (int)sprite.getOutputDrawCoords().getY() * zoom;
+			gcDraw.drawImage(sprite.getSpriteSource(),
 					sprite.getOriginSpriteX() - 160, sprite.getOriginSpriteY() - 120,
 					480, 360, x - 160, y - 120, 480, 360);
 		}
 		if (currentEntity != null)
-			currentEntity.run(isPaused);
-		Main.gcDraw.setGlobalAlpha(1);
-		Main.gcDraw.setLineWidth(1);
-		Main.gcDraw.setStroke(Color.WHITE);
-		Main.gcDraw.strokeRect(centerX, centerY, Main.tileSize, Main.tileSize);
+			currentEntity.run(gcDraw, isPaused);
+		gcDraw.setGlobalAlpha(1);
+		gcDraw.setLineWidth(1);
+		gcDraw.setStroke(Color.WHITE);
+		gcDraw.strokeRect(centerX, centerY, tileSize, tileSize);
 		if (getCurrentFrame() == null)
 			currentEntity.restartCurrentFrameSet();
 	}
 	
-	public static void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
+	public void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
+    gcMain.drawImage(canvasDraw.snapshot(null, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
 		boolean blink = System.currentTimeMillis() / 50 % 2 == 0;
 		if (currentEntity.getTotalFrameSets() > 0 && !currentEntity.getFrameSet(getCurrentFrameSetName()).isEmptyFrames() && getCurrentFrame() != null) {
 			focusedSprite = null;
 			Sprite focused = null;
 			int max = 0;
 			for (Sprite sprite : getCurrentFrameSet().getSprites()) {
-				int x = (int)sprite.getOutputDrawCoords().getX() * Main.zoom,
-						y = (int)sprite.getOutputDrawCoords().getY() * Main.zoom;
+				int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
+						y = (int)sprite.getOutputDrawCoords().getY() * zoom;
 				if (sprite.getMaxOutputSpriteY() > max &&
-						mouseX * Main.zoom >= x && mouseY * Main.zoom >= y &&
-						mouseX * Main.zoom <= x + sprite.getOutputWidth() * Main.zoom &&
-						mouseY * Main.zoom <= y + sprite.getOutputHeight() * Main.zoom) {
+						mouseX * zoom >= x && mouseY * zoom >= y &&
+						mouseX * zoom <= x + sprite.getOutputWidth() * zoom &&
+						mouseY * zoom <= y + sprite.getOutputHeight() * zoom) {
 							focused = sprite;
 							max = sprite.getMaxOutputSpriteY();
 				}
 			}
 			if (focused != null) {
-				int x = (int)focused.getOutputDrawCoords().getX() * Main.zoom,
-						y = (int)focused.getOutputDrawCoords().getY() * Main.zoom;
+				int x = (int)focused.getOutputDrawCoords().getX() * zoom,
+						y = (int)focused.getOutputDrawCoords().getY() * zoom;
 				focusedSprite = focused;
-				Main.gcMain.setFill(Color.LIGHTBLUE);
-				Main.gcMain.setStroke(Color.BLACK);
-				Main.gcMain.setFont(new Font("Lucida Console", 15));
-				Main.gcMain.setLineWidth(3);
+				gcMain.setFill(Color.LIGHTBLUE);
+				gcMain.setStroke(Color.BLACK);
+				gcMain.setFont(font);
+				gcMain.setLineWidth(3);
 				int n = 6;
 				String str = 
 						"Index: " + focused.getSpriteIndex() + 
@@ -957,69 +1012,55 @@ public abstract class FrameSetEditor {
 					str += "\n" + tag.toString();
 					n += 2;
 				}
-				Main.gcMain.strokeText(str, x, y - 60 - 7.5 * n);
-				Main.gcMain.fillText(str, x, y - 60 - 7.5 * n);
+				gcMain.strokeText(str, x, y - 60 - 7.5 * n);
+				gcMain.fillText(str, x, y - 60 - 7.5 * n);
 			}
 		}
 		if (blink) { 
 			if (focusedSprite != null) {
-				int x = (int)focusedSprite.getOutputDrawCoords().getX() * Main.zoom,
-						y = (int)focusedSprite.getOutputDrawCoords().getY() * Main.zoom;
-				Main.gcMain.setStroke(Color.YELLOW);
-				Main.gcMain.setLineWidth(2);
-				Main.gcMain.strokeRect(x, y, focusedSprite.getOutputWidth() * Main.zoom, focusedSprite.getOutputHeight() * Main.zoom);
+				int x = (int)focusedSprite.getOutputDrawCoords().getX() * zoom,
+						y = (int)focusedSprite.getOutputDrawCoords().getY() * zoom;
+				gcMain.setStroke(Color.YELLOW);
+				gcMain.setLineWidth(2);
+				gcMain.strokeRect(x, y, focusedSprite.getOutputWidth() * zoom, focusedSprite.getOutputHeight() * zoom);
 			}
 			for (Sprite sprite : selectedSprites) {
-				int x = (int)sprite.getOutputDrawCoords().getX() * Main.zoom,
-						y = (int)sprite.getOutputDrawCoords().getY() * Main.zoom,
-						w = (int)(sprite.getOutputWidth() * Main.zoom),
-						h = (int)(sprite.getOutputHeight() * Main.zoom);
-				Main.gcMain.setStroke(Color.GREEN);
-				Main.gcMain.setLineWidth(2);
-				Main.gcMain.strokeRect(x, y, w, h);
+				int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
+						y = (int)sprite.getOutputDrawCoords().getY() * zoom,
+						w = (int)(sprite.getOutputWidth() * zoom),
+						h = (int)(sprite.getOutputHeight() * zoom);
+				gcMain.setStroke(Color.GREEN);
+				gcMain.setLineWidth(2);
+				gcMain.strokeRect(x, y, w, h);
 			}
 		}
 		if (zoomScale > 1)
-	    Main.gcMain.drawImage(Main.canvasDraw.snapshot(null, null),
-	    		mouseX - Main.winW / 2 / zoomScale,
-	    		mouseY - Main.winH / 2 / zoomScale,
-	    		Main.winW / zoomScale, Main.winH / zoomScale,
-	    		0, 0, Main.winW * Main.zoom, Main.winH * Main.zoom);
+	    gcMain.drawImage(canvasDraw.snapshot(null, null),
+	    		mouseX - winW / 2 / zoomScale,
+	    		mouseY - winH / 2 / zoomScale,
+	    		winW / zoomScale, winH / zoomScale,
+	    		0, 0, winW * zoom, winH * zoom);
  	}
 
-	public static String getTitle() {
-		String title = "";
-		if (getCurrentFrameSetName() != null) {
-			title = "Frame Set: " + getCurrentFrameSetName() + 
-					" | Frames: " + (getCurrentFrameSet().getCurrentFrameIndex() + 1) +
-					"/" + getCurrentFrameSet().getTotalFrames() +
-					" | Sprites: " + getCurrentFrameSet().getTotalSprites() +
-					(isPaused ? " | (Paused)" : " | (Playing)") +
-					" | Scroll mode: " + getScrollMode() +
-					" | Move mode: " + getMoveMode();
-		}
-		return title;
-	}
-	
-	public static boolean isHold(int shift, int ctrl, int alt) {
+	public boolean isHold(int shift, int ctrl, int alt) {
 		return ((shift == 0 && !isShiftHold()) || (shift == 1 && isShiftHold())) &&
 					 ((ctrl == 0 && !isCtrlHold()) || (ctrl == 1 && isCtrlHold())) &&
 					 ((alt == 0 && !isAltHold()) || (alt == 1 && isAltHold()));
 	}
 	
-	public static boolean isCtrlHold()
+	public boolean isCtrlHold()
 		{ return holdedKeys.contains(KeyCode.CONTROL); }
 	
-	public static boolean isShiftHold()
+	public boolean isShiftHold()
 		{ return holdedKeys.contains(KeyCode.SHIFT); }
 
-	public static boolean isAltHold()
+	public boolean isAltHold()
 		{ return holdedKeys.contains(KeyCode.ALT); }
 	
-	public static boolean isNoHolds()
+	public boolean isNoHolds()
 		{ return !isAltHold() && !isCtrlHold() && !isShiftHold(); }
 
-	public static void close() {
+	public void close() {
 	}
 
 }

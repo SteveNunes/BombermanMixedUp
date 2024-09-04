@@ -7,6 +7,7 @@ import java.util.List;
 import frameset_tags.FrameTag;
 import frameset_tags.Goto;
 import frameset_tags.RepeatLastFrame;
+import javafx.scene.canvas.GraphicsContext;
 import objmoveutils.Position;
 import tools.FrameTagLoader;
 import tools.GameMisc;
@@ -107,13 +108,13 @@ public class FrameSet extends Position {
 	public int getMaxY()
 		{ return maxY; }
 	
-	public void run()
-		{ run(false); }
+	public void run(GraphicsContext gc)
+		{ run(gc, false); }
 	
 	public List<Sprite> getSprites()
 		{ return sprites; }
 
-	public void run(boolean isPaused) {
+	public void run(GraphicsContext gc, boolean isPaused) {
 		if (!stop && getTotalFrames() > 0 && currentFrameIndex >= 0 && currentFrameIndex < getTotalFrames()) {
 			if (ticks == 0) {
 				if (isPaused)
@@ -122,13 +123,13 @@ public class FrameSet extends Position {
 			}
 			if (changedIndex) {
 				changedIndex = false;
-				run(isPaused);
+				run(gc, isPaused);
 				return;
 			}
 			for (Sprite sprite : sprites) {
 				if (isStopped())
 					return;
-				sprite.draw();
+				sprite.draw(gc);
 				maxY = sprite.getMaxOutputSpriteY();
 			}
 			if (!isPaused && ++ticks >= framesPerTick) {

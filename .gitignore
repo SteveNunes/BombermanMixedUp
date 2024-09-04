@@ -24,11 +24,11 @@ hs_err_pid*
 
 # My Stuffs #
 /bin/
+/appdata/savegame/
+/appdata/maps2/
 /src/Backup/
 /src/Config/
-/src/teste*/
 /.settings/
 *.txt
 *.bat
 *.lnk
-teste

@@ -4,7 +4,7 @@ import application.Main;
 import entities.FrameSet;
 import entities.Sprite;
 import enums.GameMode;
-import tools.FrameSetEditor;
+import gui.FrameSetEditor;
 
 public class Goto extends FrameTag {
 	
@@ -68,7 +68,7 @@ public class Goto extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getMainFrameSet();
-		if ((Main.mode == GameMode.GAME || !FrameSetEditor.isPaused) && !frameSet.isStopped()) {
+		if (!Main.frameSetEditorIsPaused() && !frameSet.isStopped()) {
 			if (haveLeftCycles()) {
 				incCycles();
 				int index = getIndex() < 0 ? frameSet.getCurrentFrameIndex() + getIndex() : getIndex();

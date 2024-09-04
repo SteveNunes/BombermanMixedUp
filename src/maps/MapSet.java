@@ -7,9 +7,9 @@ import java.util.Map;
 
 import application.Main;
 import enums.GameMode;
+import gui.MapEditor;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import tools.MapEditor;
 import tools.Materials;
 import util.IniFile;
 
@@ -58,6 +58,9 @@ public class MapSet {
 	public Map<Integer, Layer> getLayersMap()
 		{ return layers; }
 	
+	public Layer getLayer(int layerIndex)
+		{ return layers.get(layerIndex); }
+	
 	public Integer getCopyLayer()
 		{ return copyImageLayer; }
 
@@ -68,13 +71,9 @@ public class MapSet {
 		{ return mapName; }
 
 	public void draw(GraphicsContext gc) {
-		if (Main.mode != GameMode.MAP_EDITOR) {
-			for (int l = minLayer; l <= maxLayer; l++)
-				if (layers.containsKey(l) && l != copyImageLayer)
-					layers.get(l).draw(gc);
-		}
-		else if (layers.containsKey(MapEditor.getCurrentLayer()))
-			layers.get(MapEditor.getCurrentLayer()).draw(gc);
+		for (int l = minLayer; l <= maxLayer; l++)
+			if (layers.containsKey(l) && l != copyImageLayer)
+				layers.get(l).draw(gc);
 	}
 	
 }

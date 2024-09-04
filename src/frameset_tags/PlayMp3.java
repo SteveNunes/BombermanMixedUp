@@ -3,7 +3,7 @@ package frameset_tags;
 import application.Main;
 import entities.Sprite;
 import enums.GameMode;
-import tools.FrameSetEditor;
+import gui.FrameSetEditor;
 import tools.Sound;
 
 public class PlayMp3 extends FrameTag {
@@ -65,7 +65,7 @@ public class PlayMp3 extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		if (Main.mode == GameMode.GAME || !FrameSetEditor.isPaused) {
+		if (!Main.frameSetEditorIsPaused()) {
 			Sound.playMp3(partialSoundPath, getRate(), getBalance(), getVolume(), getStopCurrent());
 		}
 	}

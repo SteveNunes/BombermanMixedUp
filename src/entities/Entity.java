@@ -11,6 +11,7 @@ import java.util.Map;
 import application.Main;
 import enums.Direction;
 import enums.Elevation;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import objmoveutils.Position;
 
@@ -208,7 +209,7 @@ public class Entity extends Position {
 		}
 	}
 	
-	public void run(boolean isPaused) {
+	public void run(GraphicsContext gc, boolean isPaused) {
 		if (frameSets.containsKey(currentFrameSetName)) {
 			
 			if (linkedEntityFront != null) {
@@ -229,13 +230,13 @@ public class Entity extends Position {
 			}
 			
 			if (haveShadow()) {
-				Main.gcDraw.save();
-				Main.gcDraw.setFill(Color.BLACK);
-				Main.gcDraw.setGlobalAlpha(shadowOpacity);
-				Main.gcDraw.fillOval(getX() + Main.tileSize / 2 - getShadowWidth() / 2, getY() + Main.tileSize - getShadowHeight(), getShadowWidth(), getShadowHeight());
-				Main.gcDraw.restore();
+				gc.save();
+				gc.setFill(Color.BLACK);
+				gc.setGlobalAlpha(shadowOpacity);
+				gc.fillOval(getX() + Main.tileSize / 2 - getShadowWidth() / 2, getY() + Main.tileSize - getShadowHeight(), getShadowWidth(), getShadowHeight());
+				gc.restore();
 			}
-			frameSets.get(currentFrameSetName).run(isPaused);
+			frameSets.get(currentFrameSetName).run(gc, isPaused);
 		}
 	}
 	
