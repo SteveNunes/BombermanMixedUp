@@ -2,10 +2,14 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
 
 <VBox alignment="CENTER" prefHeight="768.0" prefWidth="1366.0" spacing="10.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.MapEditor">
    <padding>
@@ -14,17 +18,52 @@
    <children>
       <GridPane VBox.vgrow="ALWAYS">
         <columnConstraints>
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+          <ColumnConstraints hgrow="SOMETIMES" />
+          <ColumnConstraints hgrow="SOMETIMES" />
         </columnConstraints>
         <rowConstraints>
           <RowConstraints />
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <VBox>
+            <HBox spacing="10.0">
                <children>
-                  <Canvas fx:id="canvasMain" height="720.0" width="960.0" />
+                  <VBox alignment="TOP_CENTER">
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Layer" />
+                        <ListView fx:id="listViewLayers" prefWidth="50.0" VBox.vgrow="ALWAYS" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="10.0">
+                     <children>
+                        <HBox spacing="30.0">
+                           <children>
+                              <CheckBox fx:id="checkBoxShowGrid" mnemonicParsing="false" text="Exibir grade" />
+                              <CheckBox fx:id="checkBoxShowAim" mnemonicParsing="false" text="Exibir mira" />
+                           </children>
+                        </HBox>
+                        <Canvas fx:id="canvasMain" height="720.0" width="960.0" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            <VBox GridPane.columnIndex="1">
+               <children>
+                  <VBox spacing="3.0">
+                     <children>
+                        <VBox spacing="10.0">
+                           <children>
+                              <Canvas fx:id="canvasTileSet" height="240.0" width="320.0" />
+                           </children>
+                           <VBox.margin>
+                              <Insets />
+                           </VBox.margin>
+                        </VBox>
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </VBox>
                </children>
             </VBox>
          </children>

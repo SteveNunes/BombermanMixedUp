@@ -880,11 +880,11 @@ public class FrameSetEditor {
 			if (e.getButton() == MouseButton.SECONDARY) {
 				if (focusedSprite != null) {
 					setSpriteContextMenu();
-					spriteContextMenu.show(canvasMain, e.getX(), e.getY());
+					spriteContextMenu.show(canvasMain, e.getScreenX(), e.getScreenY());
 				}
 				else {
 					setDefaultContextMenu();
-					defaultContextMenu.show(canvasMain, e.getX(), e.getY());
+					defaultContextMenu.show(canvasMain, e.getScreenX(), e.getScreenY());
 				}
 			}
 			else if (e.getButton() == MouseButton.PRIMARY) {
@@ -969,7 +969,6 @@ public class FrameSetEditor {
 	
 	public void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
     gcMain.drawImage(canvasDraw.snapshot(null, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
-		boolean blink = System.currentTimeMillis() / 50 % 2 == 0;
 		if (currentEntity.getTotalFrameSets() > 0 && !currentEntity.getFrameSet(getCurrentFrameSetName()).isEmptyFrames() && getCurrentFrame() != null) {
 			focusedSprite = null;
 			Sprite focused = null;
@@ -1016,7 +1015,7 @@ public class FrameSetEditor {
 				gcMain.fillText(str, x, y - 60 - 7.5 * n);
 			}
 		}
-		if (blink) { 
+		if (GameMisc.blink()) { 
 			if (focusedSprite != null) {
 				int x = (int)focusedSprite.getOutputDrawCoords().getX() * zoom,
 						y = (int)focusedSprite.getOutputDrawCoords().getY() * zoom;

@@ -5,9 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import application.Main;
-import enums.GameMode;
-import gui.MapEditor;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import tools.Materials;
@@ -66,6 +63,9 @@ public class MapSet {
 
 	public Image getTileSetImage()
 		{ return tileSetImage; }
+	
+	public void setTileSetImage(Image image)
+		{ tileSetImage = image; }
 	
 	public String getMapName()
 		{ return mapName; }
