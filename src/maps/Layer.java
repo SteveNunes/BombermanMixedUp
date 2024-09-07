@@ -32,7 +32,7 @@ public class Layer {
 	public Layer(MapSet originMapSet, String layerInfo, List<String> tileInfos) {
 		String[] split = layerInfo.split(" ");
 		if (split.length < 15)
-			throw new RuntimeException(layerInfo + " - Too few parameters");
+			GameMisc.throwRuntimeException(layerInfo + " - Too few parameters");
 		this.originMapSet = originMapSet;
 		tint = null;
 		tiles = new ArrayList<>();
@@ -52,7 +52,7 @@ public class Layer {
 			n++; effects = split.length <= n ? null : GameMisc.loadEffectsFromString(MyConverters.arrayToString(split, n));
 		}
 		catch (Exception e)
-			{ throw new RuntimeException(split[n] + " - Invalid parameter"); }
+			{ GameMisc.throwRuntimeException(split[n] + " - Invalid parameter"); }
 		for (String s : tileInfos)
 			tiles.add(new Tile(originMapSet, s));
 		buildLayer();

@@ -1,6 +1,7 @@
 package frameset_tags;
 
 import entities.Sprite;
+import tools.GameMisc;
 
 public class SetOutputSprPos extends FrameTag {
 	
@@ -30,7 +31,7 @@ public class SetOutputSprPos extends FrameTag {
 			y = Double.parseDouble(params[n++]);
 		}
 		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+			{ GameMisc.throwRuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
 	@Override

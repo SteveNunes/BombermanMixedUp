@@ -2,11 +2,13 @@ package entities;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.util.Map;
 
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
 import enums.ImageAlignment;
 import enums.ImageFlip;
+import enums.SpriteLayerType;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -32,9 +34,10 @@ public class Sprite {
 	private ImageFlip flip;
 	private ImageAlignment alignment;
 	private int spritesPerLine;
-	private int spriteIndex;
+	private Integer spriteIndex;
 	private double alpha;
 	private int rotation;
+	private SpriteLayerType layerType;
 	
 	public Sprite(Sprite sprite)
 		{ this(sprite, sprite.getMainFrameSet()); }
@@ -57,6 +60,7 @@ public class Sprite {
 		rectangleMove = sprite.rectangleMove == null ? null : new RectangleMove(sprite.rectangleMove);
 		jumpMove = sprite.jumpMove == null ? null : new JumpMove(sprite.jumpMove);
 		gotoMove = sprite.gotoMove == null ? null : new GotoMove(sprite.gotoMove);
+		layerType = sprite.layerType;
 	}
 	
 	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spriteIndex, int spritesPerLine) {
@@ -70,13 +74,14 @@ public class Sprite {
 		outputSpritePos = new Position();
 		spriteEffects = new DrawImageEffects();
 		flip =ImageFlip.NONE;
-		alignment = ImageAlignment.CENTER;
+		alignment = ImageAlignment.NONE;
 		rotation = 0;
 		alpha = 1;
 		eliticMove = null;
 		rectangleMove = null;
 		jumpMove = null;
 		gotoMove = null;
+		layerType = SpriteLayerType.GROUND;
 	}
 
 	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, int spriteIndex, int spritesPerLine)
@@ -106,6 +111,12 @@ public class Sprite {
 	public void setAlignment(ImageAlignment alignment)
 		{ this.alignment = alignment; }
 	
+	public SpriteLayerType getLayerType()
+		{ return layerType; }
+
+	public void setLayerType(SpriteLayerType layerType)
+		{ this.layerType = layerType; } 
+
 	public double getX()
 		{ return outputSpriteSizePos.getX(); }
 	
@@ -180,10 +191,8 @@ public class Sprite {
 	public void setSpriteIndex(int spriteIndex)
 		{ this.spriteIndex = spriteIndex; }
 
-	public void incSpriteIndex(int value) {
-		if (spriteIndex + value >= 0)
-			spriteIndex += value;
-	}
+	public void incSpriteIndex(int value)
+		{ spriteIndex += value; }
 	
 	public void decSpriteIndex() {
 		if (spriteIndex > 0)
@@ -314,7 +323,7 @@ public class Sprite {
 		{ return (int)getOutputDrawCoords().getY() + getOutputHeight(); }
 
 	public int[] getCurrentSpriteOriginCoords() {
-		if (spriteIndex == -1)
+		if (spriteIndex == null)
 			return new int[] {0, 0};
 		int w = (int)getOriginSpriteWidth(),
 				h = (int)getOriginSpriteHeight(),
@@ -373,11 +382,11 @@ public class Sprite {
 		outputSpritePos.setPosition(x, y);
 	}
 	 
-	public void draw(GraphicsContext gc) {
+	public void draw(Map<SpriteLayerType, GraphicsContext> gc) {
 		updateOutputDrawCoords();
 		int[] in = getCurrentSpriteOriginCoords();
 		int sx = in[0], sy = in[1], tx = (int)getOutputDrawCoords().getX(), ty = (int)getOutputDrawCoords().getY();
-		ImageUtils.drawImage(gc, spriteIndex == -1 ? Materials.shadow : Materials.mainSprites, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+		ImageUtils.drawImage(gc.get(layerType), spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 			tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 	}
 

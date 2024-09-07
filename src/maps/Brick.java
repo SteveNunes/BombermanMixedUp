@@ -1,80 +1,29 @@
 package maps;
 
-import java.util.List;
+import java.util.Arrays;
 
-import entities.Sprite;
-import enums.TileProp;
-import gui.util.ImageUtils;
-import objmoveutils.Position;
+import entities.Entity;
+import util.IniFile;
 
-public class Brick {
-	
-	private Position position;
-	private List<Sprite> animationStand;
-	private float animationStandFrameSpeed;
-	private List<Sprite> animationBreaking;
-	private float animationBreakingFrameSpeed;
-	private List<Sprite> animationRegenerating;
-	private float animationRegeneratingFrameSpeed;
-	private List<TileProp> typeProps;
-	
-	public Brick(Position position, List<TileProp> typeProps, List<Sprite> animationStand, float animationStandFrameSpeed) {
-		this.animationStand = animationStand;
-		this.animationStandFrameSpeed = animationStandFrameSpeed;
-		this.typeProps = typeProps;
-		this.position = position;
-		animationBreaking = null;
-		animationRegenerating = null;
-		ImageUtils.copyAreaFromWritableImage(null);
+public class Brick extends Entity {
+
+	private MapSet originMapSet;
+	private Item item;
+
+	public Brick(MapSet originMapSet, int x, int y) {
+		this(originMapSet, x, y, null);
 	}
-
-	public Position getPosotion()
-		{ return position; }
-
-	public void setPosotion(Position position)
-		{ this.position = position; }
-
-	public List<Sprite> getAnimationStand()
-		{ return animationStand; }
-
-	public void setAnimationStand(List<Sprite> animationStand)
-		{ this.animationStand = animationStand; }
-
-	public List<Sprite> getAnimationBreaking()
-		{ return animationBreaking; }
-
-	public void setAnimationBreaking(List<Sprite> animationBreaking)
-		{ this.animationBreaking = animationBreaking; }
-
-	public List<Sprite> getAnimationRegenerating()
-		{ return animationRegenerating; }
-
-	public void setAnimationRegenerating(List<Sprite> animationRegenerating)
-		{ this.animationRegenerating = animationRegenerating; }
-
-	public List<TileProp> getTypeProps()
-		{ return typeProps; }
-
-	public void setTypeProps(List<TileProp> typeProps)
-		{ this.typeProps = typeProps; }
-
-	public float getAnimationStandFrameSpeed() {
-		return animationStandFrameSpeed;
+	
+	public Brick(MapSet originMapSet, int x, int y, Item item) {
+		super();
+		this.originMapSet = originMapSet;
+		this.item = item;
+		IniFile ini = IniFile.getNewIniFileInstance("appdata/maps/" + originMapSet.getMapName() + ".map");
+		IniFile ini2 = IniFile.getNewIniFileInstance("appdata/tileset/" + ini.read("SETUP", "Tiles") + ".tiles");
+		for (String frameSet : Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet"))
+		addNewFrameSetFromString(frameSet, ini2.read("CONFIG", frameSet));
+		setFrameSet("BrickStandFrameSet");
+		setPosition(x, y);
 	}
-
-	public void setAnimationStandFrameSpeed(float animationStandFrameSpeed)
-		{ this.animationStandFrameSpeed = animationStandFrameSpeed; }
-
-	public float getAnimationBreakingFrameSpeed()
-		{ return animationBreakingFrameSpeed; }
-
-	public void setAnimationBreakingFrameSpeed(float animationBreakingFrameSpeed)
-		{ this.animationBreakingFrameSpeed = animationBreakingFrameSpeed; }
-
-	public float getAnimationRegeneratingFrameSpeed()
-		{ return animationRegeneratingFrameSpeed; }
-
-	public void setAnimationRegeneratingFrameSpeed(float animationRegeneratingFrameSpeed)
-		{ this.animationRegeneratingFrameSpeed = animationRegeneratingFrameSpeed; }	
-
+	
 }

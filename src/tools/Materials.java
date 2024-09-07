@@ -17,7 +17,7 @@ public abstract class Materials {
 	public static Image frames;
 	public static Image auras;
 	public static Image thunders;
-	public static Image shadow;
+	public static Image blankImage;
 	public static List<Image> characters;
 	public static List<Image> rides;
 	public static Map<String, Image> tileSets;
@@ -33,7 +33,7 @@ public abstract class Materials {
 		rides = new ArrayList<>();
 		tileSets = new HashMap<>();
 		bomberSpriteIndex = new HashMap<>();
-		shadow = new WritableImage(320, 320);
+		blankImage = new WritableImage(320, 240);
 		for (int n = 0; n <= 34; n++)
 			rides.add(loadImage("/rides/" + n, Color.valueOf("#03E313")));
 

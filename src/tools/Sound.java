@@ -44,7 +44,7 @@ public abstract class Sound {
 			mp3s.get(mp3Path).stop();
   	File file = new File("appdata/musics/" + mp3Path);
 		if (!file.exists())
-			throw new RuntimeException("Não foi possível reproduzir o arquivo \"" + file.getName() + "\" Arquivo não encontrado no local informado.");
+			GameMisc.throwRuntimeException("Não foi possível reproduzir o arquivo \"" + file.getName() + "\" Arquivo não encontrado no local informado.");
 		try {
 			MediaPlayer mp3;
 			if (mp3s.containsKey(mp3Path))
@@ -106,7 +106,7 @@ public abstract class Sound {
 	    protected Void call() throws Exception {
 	    	File file = new File("appdata/sounds/" + wavPath);
 				if (!file.exists())
-					throw new RuntimeException("Não foi possível reproduzir o arquivo \"" + file.getName() + "\" Arquivo não encontrado no local informado.");
+					GameMisc.throwRuntimeException("Não foi possível reproduzir o arquivo \"" + file.getName() + "\" Arquivo não encontrado no local informado.");
 				try {
 					final AudioClip clip;
 					if (waves.containsKey(wavPath))

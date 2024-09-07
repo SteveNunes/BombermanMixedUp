@@ -11,6 +11,7 @@ import java.util.Map;
 import application.Main;
 import enums.Direction;
 import enums.Elevation;
+import enums.SpriteLayerType;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import objmoveutils.Position;
@@ -190,7 +191,7 @@ public class Entity extends Position {
 		{ return frameSets.get(frameSetName); }
 	
 	public void setFrameSet(String frameSetName) {
-		if (getCurrentFrameSet() != null)
+		if (freshFrameSets.containsKey(frameSetName))
 			frameSets.put(frameSetName, new FrameSet(freshFrameSets.get(frameSetName), this));
 		currentFrameSetName = frameSetName;
 	}
@@ -210,8 +211,14 @@ public class Entity extends Position {
 	}
 	
 	public void run(GraphicsContext gc, boolean isPaused) {
+		Map<SpriteLayerType, GraphicsContext> map = new HashMap<>();
+		for (SpriteLayerType lt : SpriteLayerType.getList())
+			map.put(lt, gc);
+		run(map, isPaused);
+	}
+	
+	public void run(Map<SpriteLayerType, GraphicsContext> gc, boolean isPaused) {
 		if (frameSets.containsKey(currentFrameSetName)) {
-			
 			if (linkedEntityFront != null) {
 				if (linkedEntityInfos.isEmpty()) {
 					setPosition(linkedEntityFront.getX() + linkedEntityOffset.getX(),
@@ -230,11 +237,11 @@ public class Entity extends Position {
 			}
 			
 			if (haveShadow()) {
-				gc.save();
-				gc.setFill(Color.BLACK);
-				gc.setGlobalAlpha(shadowOpacity);
-				gc.fillOval(getX() + Main.tileSize / 2 - getShadowWidth() / 2, getY() + Main.tileSize - getShadowHeight(), getShadowWidth(), getShadowHeight());
-				gc.restore();
+				gc.get(SpriteLayerType.GROUND).save();
+				gc.get(SpriteLayerType.GROUND).setFill(Color.BLACK);
+				gc.get(SpriteLayerType.GROUND).setGlobalAlpha(shadowOpacity);
+				gc.get(SpriteLayerType.GROUND).fillOval(getX() + Main.tileSize / 2 - getShadowWidth() / 2, getY() + Main.tileSize - getShadowHeight(), getShadowWidth(), getShadowHeight());
+				gc.get(SpriteLayerType.GROUND).restore();
 			}
 			frameSets.get(currentFrameSetName).run(gc, isPaused);
 		}

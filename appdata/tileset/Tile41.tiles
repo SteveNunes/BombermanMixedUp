@@ -1,11 +1,11 @@
 [CONFIG]
 HurryUpTile=16 0
-Breakable=0 160 1 2 0.05,1 0.05,3 0.05,1 0.05,4 0.05,1 0.05,5 0.05,1 0.05
-Destroyable=0 208 6
-Regenerable=80 208 -6
 GroundTile=48 0
 GroundWithShadowFromBlock=64 0
 GroundWithShadowFromWall=64 0
+BrickStandFrameSet={SetSprSource;/tileset/Tile41;0;160;16;16;0;0;0;0;16;16},{SetTicksPerFrame;20},{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;0}|{SetSprIndex;3}|{SetSprIndex;0}|{SetSprIndex;4}|{SetSprIndex;0}|{Goto;0}
+BrickBreakFrameSet={SetSprSource;/tileset/Tile41;0;208;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
+BrickRegenFrameSet={SetSprSource;/tileset/Tile41;80;208;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}
 
 [Effect-1]
 FrameSet_Default=0/FrameSpd"0.25"/Layer"0",-,1,-,2,-,3,-,4

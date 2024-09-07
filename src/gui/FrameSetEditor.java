@@ -3,6 +3,7 @@ package gui;
 import java.awt.Rectangle;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -13,6 +14,7 @@ import entities.Frame;
 import entities.FrameSet;
 import entities.Sprite;
 import enums.Direction;
+import enums.SpriteLayerType;
 import frameset_tags.DecSprAlign;
 import frameset_tags.DecSprFlip;
 import frameset_tags.FrameTag;
@@ -56,7 +58,9 @@ import frameset_tags.SetSprRotate;
 import gui.util.Alerts;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ContextMenu;
@@ -95,8 +99,8 @@ public class FrameSetEditor {
 	@FXML
 	private Canvas canvasMain;
 	private GraphicsContext gcMain;
-	private Canvas canvasDraw;
-	private GraphicsContext gcDraw;
+	private Map<SpriteLayerType, Canvas> canvas;
+	private Map<SpriteLayerType, GraphicsContext> gcs;
 	private Entity currentEntity;
 	private Frame copiedFrame;
 	private Sprite focusedSprite;
@@ -104,6 +108,7 @@ public class FrameSetEditor {
 	private ContextMenu spriteContextMenu;
 	private Stage stageHelpWindow;
 	private Font font;
+	private SnapshotParameters params;
 	public boolean isPaused;
 	private boolean isChangingSprite;
 	private int zoomScale;
@@ -120,14 +125,21 @@ public class FrameSetEditor {
 	private MapSet mapSet;
 	
 	public void init(Scene scene) {
+		params = new SnapshotParameters();
+		params.setFill(Color.TRANSPARENT);
+		params.setViewport(new Rectangle2D(0, 0, canvasMain.getWidth(), canvasMain.getHeight()));
+		canvas = new HashMap<>();
+		gcs = new HashMap<>();
+		for (SpriteLayerType layerType : SpriteLayerType.getList()) {
+			canvas.put(layerType, new Canvas(winW, winH));
+			gcs.put(layerType, canvas.get(layerType).getGraphicsContext2D());
+			gcs.get(layerType).setImageSmoothing(false);
+		}
 		sceneMain = scene;
 		font = new Font("Lucida Console", 15);
 		canvasMain.getGraphicsContext2D().setImageSmoothing(false);
-		canvasDraw = new Canvas(winW, winH);
-		canvasDraw.getGraphicsContext2D().setImageSmoothing(false);
 		canvasMain.setWidth(winW * zoom);
 		canvasMain.setHeight(winH * zoom);
-		gcDraw = canvasDraw.getGraphicsContext2D();
 		gcMain = canvasMain.getGraphicsContext2D();
 		mapSet = new MapSet("SBM_1-1");
 		entities = new ArrayList<>();
@@ -919,12 +931,18 @@ public class FrameSetEditor {
 	}
 	
 	public void drawDrawCanvas() {
-		gcDraw.setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
-		gcDraw.fillRect(0, 0, winW, winH);
+		for (SpriteLayerType layerType : SpriteLayerType.getList()) {
+			if (layerType == SpriteLayerType.BACKGROUND) {
+				gcs.get(layerType).setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
+				gcs.get(layerType).fillRect(0, 0, winW, winH);
+			}
+			else
+				gcs.get(layerType).clearRect(0, 0, winW, winH);
+		}
 		if (bgType == 2)
-			SquaredBg.draw(gcDraw);
+			SquaredBg.draw(gcs.get(SpriteLayerType.BACKGROUND));
 		else if (bgType == 1)
-			mapSet.draw(gcDraw);
+			mapSet.draw(gcs.get(SpriteLayerType.BACKGROUND));
 		if (linkEntityToCursor > 0) {
 			if (linkEntityToCursor == 2)
 				currentEntity.setPosition(mouseX, mouseY);
@@ -948,27 +966,28 @@ public class FrameSetEditor {
 			}
 		}
 		entities.sort((e1, e2) -> e1.getCurrentFrameSet().getMaxY() - e2.getCurrentFrameSet().getMaxY());
-		entities.forEach(e -> e.run(gcDraw, isPaused));
+		entities.forEach(e -> e.run(gcs, isPaused));
 		if (isChangingSprite) {
 			Sprite sprite = selectedSprites.get(0);
 			int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
 					y = (int)sprite.getOutputDrawCoords().getY() * zoom;
-			gcDraw.drawImage(sprite.getSpriteSource(),
+			gcs.get(sprite.getLayerType()).drawImage(sprite.getSpriteSource(),
 					sprite.getOriginSpriteX() - 160, sprite.getOriginSpriteY() - 120,
 					480, 360, x - 160, y - 120, 480, 360);
 		}
 		if (currentEntity != null)
-			currentEntity.run(gcDraw, isPaused);
-		gcDraw.setGlobalAlpha(1);
-		gcDraw.setLineWidth(1);
-		gcDraw.setStroke(Color.WHITE);
-		gcDraw.strokeRect(centerX, centerY, tileSize, tileSize);
+			currentEntity.run(gcs, isPaused);
+		gcs.get(SpriteLayerType.CLOUD).setGlobalAlpha(1);
+		gcs.get(SpriteLayerType.CLOUD).setLineWidth(1);
+		gcs.get(SpriteLayerType.CLOUD).setStroke(Color.WHITE);
+		gcs.get(SpriteLayerType.CLOUD).strokeRect(centerX, centerY, tileSize, tileSize);
 		if (getCurrentFrame() == null)
 			currentEntity.restartCurrentFrameSet();
 	}
 	
 	public void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
-    gcMain.drawImage(canvasDraw.snapshot(null, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
+		for (SpriteLayerType layerType : SpriteLayerType.getList())
+			gcMain.drawImage(canvas.get(layerType).snapshot(params, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
 		if (currentEntity.getTotalFrameSets() > 0 && !currentEntity.getFrameSet(getCurrentFrameSetName()).isEmptyFrames() && getCurrentFrame() != null) {
 			focusedSprite = null;
 			Sprite focused = null;
@@ -1034,7 +1053,7 @@ public class FrameSetEditor {
 			}
 		}
 		if (zoomScale > 1)
-	    gcMain.drawImage(canvasDraw.snapshot(null, null),
+	    gcMain.drawImage(canvasMain.snapshot(null, null),
 	    		mouseX - winW / 2 / zoomScale,
 	    		mouseY - winH / 2 / zoomScale,
 	    		winW / zoomScale, winH / zoomScale,

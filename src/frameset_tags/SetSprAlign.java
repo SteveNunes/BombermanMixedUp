@@ -2,6 +2,7 @@ package frameset_tags;
 
 import entities.Sprite;
 import enums.ImageAlignment;
+import tools.GameMisc;
 
 public class SetSprAlign extends FrameTag {
 	
@@ -22,7 +23,7 @@ public class SetSprAlign extends FrameTag {
 		try
 			{ alignment = ImageAlignment.valueOf(params[0]); }
 		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+			{ GameMisc.throwRuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
 	@Override

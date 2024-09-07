@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Random;
 
+import application.Main;
 import drawimage_stuffs.DrawImageEffects;
 import gameutil.FPSHandler;
 import util.IniFile;
@@ -27,7 +28,7 @@ public abstract class GameMisc {
 		if (list.contains(item)) {
 			int max = list.size();
 			if (index < -1 || index > max)
-				throw new RuntimeException(index + " - Invalid Index (Min: -1, Max: " + max + ")");
+				GameMisc.throwRuntimeException(index + " - Invalid Index (Min: -1, Max: " + max + ")");
 			if (index == -1)
 				index = max - 1;
 			else if (index == max)
@@ -50,5 +51,15 @@ public abstract class GameMisc {
 
 	public static int getRandom(int min, int max)
 		{ return random.nextInt(++max - min) + min; }
+
+	public static void throwRuntimeException(String string) {
+		Main.close();
+		throw new RuntimeException(string);
+	}
+
+	public static void sleep(int delay) {
+		try { Thread.sleep(delay); }
+		catch (InterruptedException e) {}
+	}
 
 }

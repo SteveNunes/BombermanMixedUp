@@ -2,6 +2,7 @@ package frameset_tags;
 
 import entities.Sprite;
 import enums.ImageFlip;
+import tools.GameMisc;
 
 public class SetSprFlip extends FrameTag {
 	
@@ -23,7 +24,7 @@ public class SetSprFlip extends FrameTag {
 		try
 			{ flip = ImageFlip.valueOf(params[n++]); }
 		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+			{ GameMisc.throwRuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
 	@Override

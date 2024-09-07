@@ -2,6 +2,7 @@ package frameset_tags;
 
 import entities.Sprite;
 import javafx.scene.effect.BlendMode;
+import tools.GameMisc;
 
 public class SetSprMotionBlurValues extends FrameTag {
 	
@@ -40,7 +41,7 @@ public class SetSprMotionBlurValues extends FrameTag {
 			blendMode = BlendMode.valueOf(params[n++]);
 		}
 		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+			{ GameMisc.throwRuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
 	@Override

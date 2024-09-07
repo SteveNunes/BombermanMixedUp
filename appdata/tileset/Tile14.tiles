@@ -1,8 +1,8 @@
 [CONFIG]
 HurryUpTile=16 0
-Breakable=0 192 1 1 0.25
-Destroyable=16 192 5
-Regenerable=80 192 -5
 GroundTile=32 0
 GroundWithShadowFromBlock=48 0
 GroundWithShadowFromWall=48 0
+BrickStandFrameSet={SetSprSource;/tileset/Tile14;0;192;16;16;0;0;0;0;16;16},{SetTicksPerFrame;4},{SetSprIndex;0}|{Goto;0}
+BrickBreakFrameSet={SetSprSource;/tileset/Tile14;16;192;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
+BrickRegenFrameSet={SetSprSource;/tileset/Tile14;80;192;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}

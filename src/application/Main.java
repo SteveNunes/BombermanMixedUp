@@ -14,6 +14,8 @@ import javafx.stage.Stage;
 import tools.GameMisc;
 import tools.Materials;
 import tools.SquaredBg;
+import util.IniFile;
+import util.Misc;
 
 
 public class Main extends Application {
@@ -74,14 +76,21 @@ public class Main extends Application {
 			stageMain.setResizable(false);
 			stageMain.setScene(scene);
 			stageMain.show();
-			stageMain.setOnCloseRequest(e -> close());
+			stageMain.setOnCloseRequest(e -> close(false));
 		}
 		catch(Exception e)
 			{ e.printStackTrace(); }
 	}
 	
-	private void close() {
+	public static void close()
+		{ close(true); }
+	
+	public static void close(boolean wait) {
 		close = true;
+		if (wait)
+			GameMisc.sleep(1000); 
+		IniFile.closeAllOpenedIniFiles();
+		Platform.exit();
 	}
 
 	private void mainLoop() {

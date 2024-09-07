@@ -1,6 +1,7 @@
 package frameset_tags;
 
 import entities.Sprite;
+import tools.GameMisc;
 
 public class IncSprColorTintAlpha extends FrameTag {
 	
@@ -21,7 +22,7 @@ public class IncSprColorTintAlpha extends FrameTag {
 		try
 			{ increment = Double.parseDouble(params[0]); }
 		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+			{ GameMisc.throwRuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
 	@Override

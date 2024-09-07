@@ -3,6 +3,7 @@ package frameset_tags;
 import entities.Entity;
 import entities.FrameSet;
 import entities.Sprite;
+import tools.GameMisc;
 
 public class SetEntityShadow extends FrameTag {
 	
@@ -50,7 +51,7 @@ public class SetEntityShadow extends FrameTag {
 			opacity = Float.parseFloat(params[n++]);
 		}
 		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+			{ GameMisc.throwRuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package frameset_tags;
 
 import entities.FrameSet;
 import entities.Sprite;
+import tools.GameMisc;
 
 public class SetObjPos extends FrameTag {
 	
@@ -31,7 +32,7 @@ public class SetObjPos extends FrameTag {
 			y = Integer.parseInt(params[n++]);
 		}
 		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+			{ GameMisc.throwRuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
 	@Override

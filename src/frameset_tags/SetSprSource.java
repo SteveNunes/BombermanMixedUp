@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 
 import entities.Sprite;
 import javafx.scene.image.Image;
+import tools.GameMisc;
 import tools.Materials;
 
 public class SetSprSource extends FrameTag {
@@ -58,26 +59,27 @@ public class SetSprSource extends FrameTag {
 
 	public SetSprSource(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags);
-		if (Materials.getImageFromSpriteName(params[0]) == null)
-			throw new RuntimeException(params[1] + " - Invalid sprite source name");
-		spriteSource = Materials.getImageFromSpriteName(params[0]);
+		Image	image = Materials.getImageFromSpriteName(params[0]);
+		if (image == null)
+			GameMisc.throwRuntimeException(params[1] + " - Invalid sprite source name");
+		spriteSource = image;
 		int n = 0, t = params.length;
 		try {
 			int sx = Integer.parseInt(params[n = 1]),
 					sy = Integer.parseInt(params[n = 2]),
 					sw = Integer.parseInt(params[n = 3]),
 					sh = Integer.parseInt(params[n = 4]),
-					tx = t < 9 ? 0 : Integer.parseInt(params[n = 7]),
-					ty = t < 10 ? 0 : Integer.parseInt(params[n = 8]),
-					tw = t < 11 ? sw : Integer.parseInt(params[n = 9]),
-					th = t < 12 ? sh : Integer.parseInt(params[n = 10]);
-			spriteIndex = t < 7 ? 0 : Integer.parseInt(params[n = 5]);
-			spritesPerLine = t < 8 ? 0 : Integer.parseInt(params[n = 6]);
+					tx = t < 8 ? 0 : Integer.parseInt(params[n = 7]),
+					ty = t < 9 ? 0 : Integer.parseInt(params[n = 8]),
+					tw = t < 10 ? sw : Integer.parseInt(params[n = 9]),
+					th = t < 11 ? sh : Integer.parseInt(params[n = 10]);
+			spriteIndex = t < 6 ? 0 : Integer.parseInt(params[n = 5]);
+			spritesPerLine = t < 7 ? 0 : Integer.parseInt(params[n = 6]);
 			originSprSizePos = new Rectangle(sx, sy, sw, sh);
 			outputSprSizePos = new Rectangle(tx, ty, tw, th);
 		}
 		catch (Exception e)
-			{ throw new RuntimeException(params[n] + " - Invalid parameter"); }
+			{ GameMisc.throwRuntimeException(params[n] + " - Invalid parameter"); }
 	}
 
 	@Override

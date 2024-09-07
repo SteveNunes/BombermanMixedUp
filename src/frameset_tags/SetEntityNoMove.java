@@ -3,6 +3,7 @@ package frameset_tags;
 import entities.Entity;
 import entities.FrameSet;
 import entities.Sprite;
+import tools.GameMisc;
 
 public class SetEntityNoMove extends FrameTag {
 	
@@ -23,7 +24,7 @@ public class SetEntityNoMove extends FrameTag {
 		try
 			{ value = Boolean.parseBoolean(params[0]); }
 		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+			{ GameMisc.throwRuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
 	@Override

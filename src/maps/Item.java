@@ -1,5 +1,7 @@
 package maps;
 
-public class Item {
+import entities.Entity;
+
+public class Item extends Entity {
 
 }

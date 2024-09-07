@@ -1,15 +1,16 @@
 package frameset_tags;
 
 import entities.Sprite;
+import tools.GameMisc;
 
 public class SetSprIndex extends FrameTag {
 	
-	private int value;
+	private Integer value;
 	
-	public SetSprIndex(int value)
+	public SetSprIndex(Integer value)
 		{ this.value = value; }
 
-	public int getValue()
+	public Integer getValue()
 		{ return value; }
 
 	@Override
@@ -19,9 +20,9 @@ public class SetSprIndex extends FrameTag {
 	public SetSprIndex(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags, 1);
 		try
-			{ value = Integer.parseInt(params[0]); }
+			{ value = params[0].equals("-") ? null : Integer.parseInt(params[0]); }
 		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+			{ GameMisc.throwRuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
 	@Override

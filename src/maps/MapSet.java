@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import objmoveutils.Position;
+import tools.GameMisc;
 import tools.Materials;
 import util.IniFile;
 
@@ -17,6 +19,10 @@ public class MapSet {
 	private Image tileSetImage;
 	private Integer copyImageLayer;
 	private String mapName;
+	private Position groundTile;
+	private Position wallTile;
+	private Position groundWithBlockShadow;
+	private Position groundWithWallShadow;
 	private int minLayer;
 	private int maxLayer;
 	
@@ -28,7 +34,7 @@ public class MapSet {
 		maxLayer = 0;
 		IniFile ini = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
 		if (ini == null)
-			throw new RuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
+			GameMisc.throwRuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
 		tileSetImage = Materials.tileSets.get(ini.read("SETUP", "Tiles"));
 		Map<Integer, String> layerInfos = new HashMap<>();
 		Map<Integer, List<String>> tileInfos = new HashMap<>();
@@ -50,7 +56,37 @@ public class MapSet {
 			Layer layer = new Layer(this, layerInfos.get(i), tileInfos.get(i));
 			layers.put(i, layer);
 		}
+		groundTile = getTilePositionFromIni(ini, "GroundTile");
+		groundWithBlockShadow = getTilePositionFromIni(ini, "GroundWithShadowFromBlock");
+		groundWithWallShadow = getTilePositionFromIni(ini, "GroundWithShadowFromWall");
+		wallTile = getTilePositionFromIni(ini, "HurryUpTile");
 	}
+	
+	private Position getTilePositionFromIni(IniFile ini, String tileStr) {
+		Position position = new Position();
+		IniFile ini2 = IniFile.getNewIniFileInstance("appdata/tileset/" + ini.read("SETUP", "Tiles") + ".tiles");
+		String[] split2 = ini2.read("CONFIG", tileStr).split(" ");
+		if (split2.length > 0) {
+			try
+				{ position.setPosition(Integer.parseInt(split2[0]), Integer.parseInt(split2[1])); }
+			catch (Exception e) {
+				throw new RuntimeException(ini2.read("CONFIG", tileStr) + " - Invalid data on file \"" + ini2.getFilePath().getFileName() + "\"");
+			}
+		}
+		return position;
+	}
+
+	public Position getGroundTile()
+		{ return groundTile; }
+	
+	public Position getWallTile()
+		{ return wallTile; }
+	
+	public Position getGroundWithBlockShadow()
+		{ return groundWithBlockShadow; }
+	
+	public Position getGroundWithWallShadow()
+		{ return groundWithWallShadow; }
 
 	public Map<Integer, Layer> getLayersMap()
 		{ return layers; }
@@ -74,6 +110,13 @@ public class MapSet {
 		for (int l = minLayer; l <= maxLayer; l++)
 			if (layers.containsKey(l) && l != copyImageLayer)
 				layers.get(l).draw(gc);
+	}
+
+	public Tile getTileAt(int layerIndex, int x, int y) {
+		for (Tile tile : getLayer(layerIndex).getTiles())
+			if (tile.getTileDX() == x && tile.getTileDY() == y)
+				return tile;
+		return null;
 	}
 	
 }

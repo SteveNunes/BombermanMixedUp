@@ -3,7 +3,9 @@ package entities;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import enums.SpriteLayerType;
 import frameset_tags.FrameTag;
 import frameset_tags.Goto;
 import frameset_tags.RepeatLastFrame;
@@ -108,13 +110,13 @@ public class FrameSet extends Position {
 	public int getMaxY()
 		{ return maxY; }
 	
-	public void run(GraphicsContext gc)
+	public void run(Map<SpriteLayerType, GraphicsContext> gc)
 		{ run(gc, false); }
 	
 	public List<Sprite> getSprites()
 		{ return sprites; }
 
-	public void run(GraphicsContext gc, boolean isPaused) {
+	public void run(Map<SpriteLayerType, GraphicsContext> gc, boolean isPaused) {
 		if (!stop && getTotalFrames() > 0 && currentFrameIndex >= 0 && currentFrameIndex < getTotalFrames()) {
 			if (ticks == 0) {
 				if (isPaused)
@@ -156,22 +158,22 @@ public class FrameSet extends Position {
 
 	public Tags getFrameSetTagsFrom(int frameIndex, Sprite sprite) {
 		if (!getSprites().contains(sprite))
-			throw new RuntimeException("Sprite not found on the sprite list");
+			GameMisc.throwRuntimeException("Sprite not found on the sprite list");
 		return getFrameSetTagsFrom(frameIndex, getSprites().indexOf(sprite));
 	}
 
 	public Tags getFrameSetTagsFrom(Frame frame, int spriteIndex) {
 		if (!getFrames().contains(frame))
-			throw new RuntimeException("Frame not found on the frame list");
+			GameMisc.throwRuntimeException("Frame not found on the frame list");
 		int i = getFrames().indexOf(frame);
 		return getFrameSetTagsFrom(i, spriteIndex);
 	}
 
 	public Tags getFrameSetTagsFrom(Frame frame, Sprite sprite) {
 		if (!getSprites().contains(sprite))
-			throw new RuntimeException("Sprite not found on the sprite list");
+			GameMisc.throwRuntimeException("Sprite not found on the sprite list");
 		if (!getFrames().contains(frame))
-			throw new RuntimeException("Frame not found on the frame list");
+			GameMisc.throwRuntimeException("Frame not found on the frame list");
 		int spriteIndex = getSprites().indexOf(sprite);
 		int frameIndex = getFrames().indexOf(frame);
 		return getFrameSetTagsFrom(frameIndex, spriteIndex);
@@ -302,7 +304,7 @@ public class FrameSet extends Position {
 
 	public void addSpriteAt(int index, Sprite sprite) {
 		if (index < 0 || (getTotalSprites() > 0 && index > getTotalSprites()))
-			throw new RuntimeException(index + " - Invalid Index (Min: 0, Max: " + (getTotalSprites() - 1) + ")");
+			GameMisc.throwRuntimeException(index + " - Invalid Index (Min: 0, Max: " + (getTotalSprites() - 1) + ")");
 		sprite.setMainFrameSet(this);
 		if (getTotalSprites() == 0 || index == getTotalSprites()) {
 			sprites.add(sprite);
@@ -330,7 +332,7 @@ public class FrameSet extends Position {
 
 	public void removeSprite(int index) {
 		if (index < 0 || index >= getTotalSprites())
-			throw new RuntimeException(index + " - Invalid Index (Min: 0, Max: " + (getTotalSprites() - 1) + ")");
+			GameMisc.throwRuntimeException(index + " - Invalid Index (Min: 0, Max: " + (getTotalSprites() - 1) + ")");
 		sprites.remove(index);
 		for (Frame frame : frames)
 			frame.getFrameSetTagsList().remove(index);
@@ -371,7 +373,7 @@ public class FrameSet extends Position {
 
 	public void loadFromString(String tags) {
 		if (tags == null)
-			throw new RuntimeException("Unable to load FrameSet from String because its null");
+			GameMisc.throwRuntimeException("Unable to load FrameSet from String because its null");
 		sprites.clear();
 		frames.clear();
 		currentFrameIndex = 0;
