@@ -3,6 +3,7 @@ package enums;
 public enum TileProp {
 	
 	UNKNOWN, // Desconhecido
+	NOTHING, // Tiles que não tem função alguma
 	GROUND, // Chão normal, qualquer coisa passa por cima
 	GROUND_HOLE, // Buraco (Só pode atravessar voando ou pulando, explosão passa por cima)
 	FRAGILE_GROUND_LV1, // Chão intacto que raxa ao passar por cima
@@ -11,6 +12,8 @@ public enum TileProp {
 	GROUND_NO_FIRE, // Chão normal, que não passa explosão
 	GROUND_NO_PLAYER, // Chão normal, que player não passa
 	GROUND_NO_MOB, // Chão normal, que mob não passa
+	JUMP_OVER, // O personagem pula por cima desse bloco ao andar na direção dele
+	PINE, // TEMP - Considerado como parede (Por alguma razão eu separei dessa forma, se for constatado que só serve como parede, converter todos os tipos PINE para WALL)
 	WALL, // Parede (Só pode atravessar pulando)
 	HIGH_WALL, // Parede (Não dá para passar nem pulando)
 	PLAYER_INITIAL_POSITION,
@@ -20,6 +23,7 @@ public enum TileProp {
 	MOVING_BLOCK_HOLE, // Buraco onde encaixa o bloco que move com explosão
 	DEEP_HOLE, // Buraco (Só pode atravessar voando ou pulando, explosão passa por cima)
 	WATER, // Água (Igual GROUND, mas gera efeito visual de água cobrindo as pernas)
+	DEEP_WATER, // Água profunda (Se o personagem cair nesse tile, causa o efeito dele se afogando)
 	SLIPPY, // Personagem escorrega ao andar em cima
 	DAMAGE_PLAYER, // Causa dano no jogador que passar por cima
 	DAMAGE_MOB, // Causa dano no mob que passar por cima
@@ -38,6 +42,8 @@ public enum TileProp {
 	REDIRECT_BOMB_TO_UP, // Faz a bomba chutada que passar por esse tile, ir para cima
 	REDIRECT_BOMB_TO_RIGHT, // Faz a bomba chutada que passar por esse tile, ir para a direita
 	REDIRECT_BOMB_TO_DOWN, // Faz a bomba chutada que passar por esse tile, ir para baixo
+	TELEPORT_FROM_FLOATING_PLATFORM, // Tile especial que deve ficar ao redor de plataformas flutuantes, que teleporta a bomba ou o player para o tile correspondente como se ele tivesse pulado para fora da plataforma
+	MAP_EDGE, // Borda do mapa que dá para cair (Personagem fica se equilibrando)
 	RAIL_UL, // Trilho de BomberKart
 	RAIL_U, // Trilho de BomberKart
 	RAIL_UR, // Trilho de BomberKart

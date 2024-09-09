@@ -209,6 +209,9 @@ public class Entity extends Position {
 			freshFrameSets.remove(frameSetName);
 		}
 	}
+
+	public void run(GraphicsContext gc)
+		{ run(gc, false); }
 	
 	public void run(GraphicsContext gc, boolean isPaused) {
 		Map<SpriteLayerType, GraphicsContext> map = new HashMap<>();
@@ -216,7 +219,10 @@ public class Entity extends Position {
 			map.put(lt, gc);
 		run(map, isPaused);
 	}
-	
+
+	public void run(Map<SpriteLayerType, GraphicsContext> gc)
+		{ run(gc, false); }
+
 	public void run(Map<SpriteLayerType, GraphicsContext> gc, boolean isPaused) {
 		if (frameSets.containsKey(currentFrameSetName)) {
 			if (linkedEntityFront != null) {

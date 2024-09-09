@@ -110,6 +110,8 @@ public class MapSet {
 		for (int l = minLayer; l <= maxLayer; l++)
 			if (layers.containsKey(l) && l != copyImageLayer)
 				layers.get(l).draw(gc);
+		for (Brick brick : bricks)
+			brick.run(gc, false);
 	}
 
 	public Tile getTileAt(int layerIndex, int x, int y) {

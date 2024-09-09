@@ -13,7 +13,9 @@ import enums.TileProp;
 import gui.util.ListenerHandle;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
@@ -37,8 +39,6 @@ import util.FindFile;
 
 public class MapEditor {
 
-	private final static int WIN_W = 320;
-	private final static int WIN_H = 240;
 	private final static int TILE_SIZE = 16;
 	
 
@@ -85,6 +85,7 @@ public class MapEditor {
 
 	private ListenerHandle<Integer> listenerHandleLayersListView;
 	private Rectangle selection;
+	private SnapshotParameters params;
 	private Scene sceneMain;
 	private GraphicsContext gcMain;
 	private GraphicsContext gcTileSet;
@@ -113,12 +114,19 @@ public class MapEditor {
 	private int mouseY;
 	private int mouseDX;
 	private int mouseDY;
+	private int dragX;
+	private int dragY;
+	private int movedX;
+	private int movedY;
+	private int mouseStartDragX;
+	private int mouseStartDragY;
 	private int mouseStartDragDX;
 	private int mouseStartDragDY;
 	private int zoom;
 	private int ctrlZPos;
 	private long resetBricks;
-	
+	private Map<Integer, List<String>> unknownTileProps = new HashMap<>(); // TEMP
+
 	public void init(Scene scene) {
 		resetBricks = System.currentTimeMillis();
 		canvasList = new Canvas[] {canvasBrickStand, canvasBrickBreaking, canvasBrickRegen, canvasWallSprite, canvasGroundSprite, canvasGroundWithBrickShadow, canvasGroundWithWallShadow};
@@ -137,7 +145,7 @@ public class MapEditor {
 		gcGroundWithBrickShadow.setImageSmoothing(false);
 		gcGroundWithWallShadow.setImageSmoothing(false);
 	  sceneMain = scene;
-		canvasDraw = new Canvas(WIN_W, WIN_H);
+		canvasDraw = new Canvas(1000, 1000);
 		gcDraw = canvasDraw.getGraphicsContext2D();
 		gcMain = canvasMain.getGraphicsContext2D();
 		gcTileSet = canvasTileSet.getGraphicsContext2D();
@@ -163,7 +171,11 @@ public class MapEditor {
 		mouseY = 0;
 		mouseDX = 0;
 		mouseDY = 0;
+		dragX = 0;
+		dragY = 0;
 		ctrlZPos = -1;
+		mouseStartDragX = 0;
+		mouseStartDragY = 0;
 		mouseStartDragDX = 0;
 		mouseStartDragDY = 0;
 		currentMapPos = 24; // TEMP
@@ -224,7 +236,7 @@ public class MapEditor {
 	
 	private void loadMap(String mapName, boolean resetCurrentLayerIndex) {
 		listenerHandleLayersListView.detach();
-		Tile.tags = new String[200][200];
+		Tile.tags = new HashMap<>();
 		currentLayerIndex = resetCurrentLayerIndex ? 26 : currentLayerIndex;
 		currentMapSet = new MapSet(mapName);
 		listViewLayers.getItems().clear();
@@ -243,6 +255,27 @@ public class MapEditor {
 		bricks[2].setFrameSet("BrickRegenFrameSet");
 		resetBricks = System.currentTimeMillis() + 1500;
 		tilePosition = new Position[] {currentMapSet.getWallTile(), currentMapSet.getGroundTile(), currentMapSet.getGroundWithBlockShadow(), currentMapSet.getGroundWithWallShadow()};
+		movedX = 0;
+		movedY = 0;
+		selection = null;
+		params = new SnapshotParameters();
+		params.setFill(Color.TRANSPARENT);
+		params.setViewport(new Rectangle2D(0, 0, canvasDraw.getWidth(), canvasDraw.getHeight()));
+		// DAQUI PRA BAIXO TEMP
+		for (Layer layer : currentMapSet.getLayersMap().values())
+			for (Tile tile : layer.getTiles())
+				for (TileProp prop : tile.tileProp.keySet()) {
+					if (prop == TileProp.UNKNOWN) {
+						int val = tile.tileProp.get(prop);
+						List<String> maps = unknownTileProps.get(val);
+						if (maps == null)
+							unknownTileProps.put(val, new ArrayList<>(Arrays.asList(mapName)));
+						else if (!maps.contains(mapName)) {
+							maps.add(mapName);
+							unknownTileProps.put(val, maps);
+						}
+					}
+				}
 	}
 	
 	public void loadPrevMap() {
@@ -280,6 +313,23 @@ public class MapEditor {
 					}
 					loadMap(currentMapSet.getMapName(), false);
 				}
+				else if (e.getCode() == KeyCode.DELETE) {
+					if (isNoHolds() && mouseDX >= 0 && mouseDY >= 0 && (mouseDX * 16 + 16) <= getCurrentLayer().getWidth() && (mouseDY * 16 + 16) <= getCurrentLayer().getHeight()) {
+						removeFirstTileSprite(mouseDX, mouseDY);
+						rebuildCurrentLayer();
+					}
+				}
+				else if (e.getCode() == KeyCode.F12) {
+					if (!unknownTileProps.isEmpty()) {
+						System.out.println("Tiles desconhecidos: ");
+						for (Integer i : unknownTileProps.keySet()) {
+							System.out.print(i + " -> ");
+							for (String s : unknownTileProps.get(i))
+								System.out.print(s + " ");
+							System.out.println();
+						}
+					}
+				}
 				else if (e.getCode() == KeyCode.F10)
 					loadNextMap();
 				else if (e.getCode() == KeyCode.F9)
@@ -313,42 +363,56 @@ public class MapEditor {
 
 	private void setMainCanvasMouseEvents() {
 		canvasMain.setOnMouseDragged(e -> {
-			mouseX = (int)e.getX();
-			mouseY = (int)e.getY();
-			mouseDX = mouseX / (Main.tileSize * zoom);
-			mouseDY = mouseY / (Main.tileSize * zoom);
-			if (e.getButton() == MouseButton.PRIMARY) {
-				if (selection == null)
-					selection = new Rectangle();
-				selection.setFrameFromDiagonal(mouseStartDragDX < mouseDX ? mouseStartDragDX : mouseDX,
-																				mouseStartDragDY < mouseDY ? mouseStartDragDY : mouseDY,
-																				(mouseStartDragDX > mouseDX ? mouseStartDragDX : mouseDX) + 1,
-																				(mouseStartDragDY > mouseDY ? mouseStartDragDY : mouseDY) + 1);
+			mouseX = (int)e.getX() + deslocX();
+			mouseY = (int)e.getY() + deslocY();
+			mouseDX = ((int)e.getX() - deslocX()) / (Main.tileSize * zoom);
+			mouseDY = ((int)e.getY() - deslocY()) / (Main.tileSize * zoom);
+			if (!isAltHold()) {
+				if (e.getButton() == MouseButton.PRIMARY) {
+					if (selection == null)
+						selection = new Rectangle();
+					selection.setFrameFromDiagonal(mouseStartDragDX < mouseDX ? mouseStartDragDX : mouseDX,
+																					mouseStartDragDY < mouseDY ? mouseStartDragDY : mouseDY,
+																					(mouseStartDragDX > mouseDX ? mouseStartDragDX : mouseDX) + 1,
+																					(mouseStartDragDY > mouseDY ? mouseStartDragDY : mouseDY) + 1);
+				}
+			}
+			else {
+				dragX = ((int)e.getX() - mouseStartDragX);
+				dragY = ((int)e.getY() - mouseStartDragY);
 			}
 		});
 
 		canvasMain.setOnMouseMoved(e -> {
-			mouseX = (int)e.getX();
-			mouseY = (int)e.getY();
-			mouseDX = mouseX / (Main.tileSize * zoom);
-			mouseDY = mouseY / (Main.tileSize * zoom);
+			mouseX = (int)e.getX() + deslocX();
+			mouseY = (int)e.getY() + deslocY();
+			mouseDX = ((int)e.getX() - deslocX()) / (Main.tileSize * zoom);
+			mouseDY = ((int)e.getY() - deslocY()) / (Main.tileSize * zoom);
 		});
 		canvasMain.setOnMousePressed(e -> {
+			mouseStartDragX = (int)e.getX();
+			mouseStartDragY = (int)e.getY();
 			mouseStartDragDX = mouseDX;
 			mouseStartDragDY = mouseDY;
-			if (e.getButton() == MouseButton.PRIMARY)
+			if (e.getButton() == MouseButton.PRIMARY && !isAltHold())
 				selection = null;
 		});
 		canvasMain.setOnMouseReleased(e -> {
 			if (selection == null) {
 				if (e.getButton() == MouseButton.PRIMARY) {
-					Map<TileProp, Integer> map = new HashMap<>();
-					map.put(TileProp.GROUND, 1);
-					Tile tile = new Tile(currentMapSet, (int)tileSetPos.getX() * 16, (int)tileSetPos.getY() * 16, mouseDX * 16, mouseDY * 16, map);
-					getCurrentLayer().getTiles().add(tile);
-					rebuildCurrentLayer();
+					if (isNoHolds() && mouseDX >= 0 && mouseDY >= 0 && (mouseDX * 16 + 16) <= getCurrentLayer().getWidth() && (mouseDY * 16 + 16) <= getCurrentLayer().getHeight()) {
+						Map<TileProp, Integer> map = new HashMap<>();
+						map.put(TileProp.GROUND, 1);
+						Tile tile = new Tile(currentMapSet, (int)tileSetPos.getX() * 16, (int)tileSetPos.getY() * 16, mouseDX * 16, mouseDY * 16, map);
+						getCurrentLayer().getTiles().add(tile);
+						rebuildCurrentLayer();
+					}
 				}
 			}
+			movedX += dragX;
+			movedY += dragY;
+			dragX = 0;
+			dragY = 0;
 		});
 		canvasMain.setOnMouseClicked(e -> {
 			if (e.getButton() == MouseButton.SECONDARY) {
@@ -368,15 +432,23 @@ public class MapEditor {
 
 	public void drawDrawCanvas() {
 		gcDraw.setFill(Color.BLACK);
-		gcDraw.fillRect(0, 0, WIN_W, WIN_H);
+		gcDraw.fillRect(0, 0, canvasDraw.getWidth(), canvasDraw.getHeight());
 		if (currentMapSet.getLayersMap().containsKey(currentLayerIndex))
-			currentMapSet.getLayer(currentLayerIndex).draw(gcDraw);
+			getCurrentLayer().draw(gcDraw);
 		gcDraw.drawImage(currentMapSet.getTileSetImage(), tileSetPos.getX() * 16, tileSetPos.getY() * 16, 16, 16, mouseDX * Main.tileSize, mouseDY * Main.tileSize, Main.tileSize, Main.tileSize);
+    drawBlockTypeMark();
 	}
 	
+	private int deslocX()
+		{ return movedX + dragX; }
+
+	private int deslocY()
+		{ return movedY + dragY; }
+
 	public void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
-    gcMain.drawImage(canvasDraw.snapshot(null, null), 0, 0, WIN_W, WIN_H, 0, 0, WIN_W * zoom, WIN_H * zoom);
-    drawBlockTypeMark();
+		gcMain.setFill(Color.BLACK);
+		gcMain.fillRect(0, 0, canvasMain.getWidth(), canvasMain.getHeight());
+    gcMain.drawImage(canvasDraw.snapshot(params, null), 0, 0, canvasDraw.getWidth(), canvasDraw.getHeight(), deslocX(), deslocY(), canvasDraw.getWidth() * zoom, canvasDraw.getHeight() * zoom);
     drawGridAndAim();
     drawTileTagsOverCursor();
     drawTileSetCanvas();
@@ -386,19 +458,25 @@ public class MapEditor {
 	  			y = (int)selection.getMinY() * Main.tileSize * zoom,
 	  			w = (int)selection.getWidth() * Main.tileSize * zoom,
 	  			h = (int)selection.getHeight() * Main.tileSize * zoom;
-			gcMain.strokeRect(x, y, w, h);
+			gcMain.strokeRect(x + deslocX(), y + deslocY(), w, h);
 		}
 		if (checkBoxShowBlockType.isSelected()) {
 	    Tile tile = currentMapSet.getTileAt(currentLayerIndex, mouseDX, mouseDY);
 	    if (tile != null) {
-	    	int x = tile.outX * zoom, y = tile.outY * zoom + (Main.tileSize * zoom) / 2 - 20;
+	    	int x = tile.outX * zoom + deslocX(),
+	    			y = tile.outY * zoom + (Main.tileSize * zoom) / 2 - 20 + deslocY();
 				gcMain.setFill(Color.LIGHTBLUE);
 				gcMain.setStroke(Color.BLACK);
 				gcMain.setFont(font);
 				gcMain.setLineWidth(3);
 				for (TileProp prop : tile.tileProp.keySet()) {
-					gcMain.strokeText(prop.name() + " (" + tile.tileProp.get(prop) + ")", x, y += 20);
-					gcMain.fillText(prop.name() + " (" + tile.tileProp.get(prop) + ")", x, y);
+					String s = prop.name() + " (" + tile.tileProp.get(prop) + ")";
+					Text text = new Text(s);
+					text.setFont(font);
+					while (x + (int)text.getBoundsInLocal().getWidth() + 20 >= canvasMain.getWidth())
+						x -= 20;
+					gcMain.strokeText(s, x, y += 20);
+					gcMain.fillText(s, x, y);
 				}
 	    }
     }
@@ -441,14 +519,14 @@ public class MapEditor {
 	private void drawTileTagsOverCursor() {
 		if (!checkBoxShowBlockType.isSelected()) {
 			boolean blink = System.currentTimeMillis() / 50 % 2 == 0;
-			if (Tile.tags[mouseDY][mouseDX] != null) {
+			if (Tile.getStringTag(mouseDX, mouseDY) != null) {
 				gcMain.setFill(Color.LIGHTBLUE);
 				gcMain.setStroke(Color.BLACK);
 				gcMain.setFont(font);
 				gcMain.setLineWidth(3);
-				String str[] = Tile.tags[mouseDY][mouseDX].split(" ");
-				int x = mouseX + 30, y = mouseY - 10, yy = str.length * 20;
-				while (y + yy >= WIN_H * zoom - 30)
+				String str[] = Tile.getStringTag(mouseDX, mouseDY).split(" ");
+				int x = mouseX + 30 - deslocX(), y = mouseY - 10 - deslocY(), yy = str.length * 20;
+				while (y + yy >= canvasMain.getWidth() - 30)
 					y -= 20;
 				yy = 0;
 				for (String s : str) {
@@ -463,14 +541,14 @@ public class MapEditor {
 				}
 				gcMain.setStroke(Color.GREENYELLOW);
 				gcMain.setLineWidth(2);
-				gcMain.strokeRect(mouseDX * zoom * TILE_SIZE, mouseDY * zoom * TILE_SIZE, 16 * zoom, 16 * zoom);
+				gcMain.strokeRect(mouseDX * zoom * TILE_SIZE + deslocX(), mouseDY * zoom * TILE_SIZE + deslocY(), 16 * zoom, 16 * zoom);
 			}
 			for (int y = 0; blink && y < 200; y++)
 				for (int x = 0; x < 200; x++)
-					if (Tile.tags[y][x] != null) {
+					if (Tile.getStringTag(x, y) != null) {
 						gcMain.setStroke(Color.WHITESMOKE);
 						gcMain.setLineWidth(2);
-						gcMain.strokeRect(x * zoom * TILE_SIZE, y * zoom * TILE_SIZE, 16 * zoom, 16 * zoom);
+						gcMain.strokeRect(x * zoom * TILE_SIZE + deslocX(), y * zoom * TILE_SIZE + deslocY(), 16 * zoom, 16 * zoom);
 					}
 		}
 	}
@@ -582,35 +660,49 @@ public class MapEditor {
 	}
 	
 	private void drawBlockTypeMark() {
+		Map<String, Boolean> ok = new HashMap<>();
 		if (checkBoxShowBlockType.isSelected()) {
     	for (Tile tile : getTileListFromCurrentLayer()) {
     		Color color;
-    		if (tile.tileProp.containsKey(TileProp.GROUND))
-    			color = Color.YELLOW;
-    		else if (tile.tileProp.containsKey(TileProp.GROUND_NO_MOB) || tile.tileProp.containsKey(TileProp.GROUND_NO_PLAYER) || tile.tileProp.containsKey(TileProp.GROUND_NO_BOMB) || tile.tileProp.containsKey(TileProp.GROUND_NO_FIRE))
-    			color = Color.LIGHTGOLDENRODYELLOW;
-    		else if (tile.tileProp.containsKey(TileProp.FRAGILE_GROUND_LV1) || tile.tileProp.containsKey(TileProp.FRAGILE_GROUND_LV2))
-    			color = Color.LIGHTPINK;
-    		else if (tile.tileProp.containsKey(TileProp.WALL) || tile.tileProp.containsKey(TileProp.HIGH_WALL))
-    			color = Color.RED;
-    		else if (tile.tileProp.containsKey(TileProp.BRICK_RANDOM_SPAWNER))
-    			color = Color.LIGHTGREEN;
-    		else if (tile.tileProp.containsKey(TileProp.FIXED_BRICK))
-    			color = Color.GREEN;
-    		else if (tile.tileProp.containsKey(TileProp.GROUND_HOLE) || tile.tileProp.containsKey(TileProp.MOVING_BLOCK_HOLE))
-    			color = Color.ALICEBLUE;
-    		else if (tile.tileProp.containsKey(TileProp.DEEP_HOLE))
-    			color = Color.GRAY;
-    		else if (tile.tileProp.containsKey(TileProp.WATER))
-    			color = Color.LIGHTBLUE;
-    		else
-    			color = Color.ORANGE;
-    		gcMain.save();
-    		gcMain.setFill(color);
-    		gcMain.setLineWidth(1);
-    		gcMain.setGlobalAlpha(0.6);
-	    	gcMain.fillRect(tile.getTileDX() * Main.tileSize * zoom, tile.getTileDY() * Main.tileSize * zoom, Main.tileSize * zoom, Main.tileSize * zoom);
-    		gcMain.restore();
+    		if (!ok.containsKey(tile.getTileDX() + "," + tile.getTileDY())) {
+	    		if (tile.tileProp.containsKey(TileProp.GROUND))
+	    			color = Color.YELLOW;
+	    		else if (tile.tileProp.containsKey(TileProp.GROUND_NO_MOB) || tile.tileProp.containsKey(TileProp.GROUND_NO_PLAYER) || tile.tileProp.containsKey(TileProp.GROUND_NO_BOMB) || tile.tileProp.containsKey(TileProp.GROUND_NO_FIRE))
+	    			color = Color.LIGHTGOLDENRODYELLOW;
+	    		else if (tile.tileProp.containsKey(TileProp.FRAGILE_GROUND_LV1) || tile.tileProp.containsKey(TileProp.FRAGILE_GROUND_LV2))
+	    			color = Color.LIGHTPINK;
+	    		else if (tile.tileProp.containsKey(TileProp.WALL) || tile.tileProp.containsKey(TileProp.HIGH_WALL) || tile.tileProp.containsKey(TileProp.PINE))
+	    			color = Color.RED;
+	    		else if (tile.tileProp.containsKey(TileProp.BRICK_RANDOM_SPAWNER))
+	    			color = Color.LIGHTGREEN;
+	    		else if (tile.tileProp.containsKey(TileProp.FIXED_BRICK))
+	    			color = Color.GREEN;
+	    		else if (tile.tileProp.containsKey(TileProp.GROUND_HOLE) || tile.tileProp.containsKey(TileProp.MOVING_BLOCK_HOLE))
+	    			color = Color.ALICEBLUE;
+	    		else if (tile.tileProp.containsKey(TileProp.DEEP_HOLE))
+	    			color = Color.GRAY;
+	    		else if (tile.tileProp.containsKey(TileProp.JUMP_OVER))
+	    			color = Color.CORAL;
+	    		else if (tile.tileProp.containsKey(TileProp.MAP_EDGE))
+	    			color = Color.SADDLEBROWN;
+	    		else if (tile.tileProp.containsKey(TileProp.WATER))
+	    			color = Color.LIGHTBLUE;
+	    		else if (tile.tileProp.containsKey(TileProp.DEEP_WATER))
+	    			color = Color.DARKBLUE;
+	    		else if (tile.tileProp.containsKey(TileProp.TELEPORT_FROM_FLOATING_PLATFORM))
+	    			color = Color.ROSYBROWN;
+	    		else
+	    			color = Color.ORANGE;
+	    		gcDraw.save();
+	    		gcDraw.setFill(color);
+	    		gcDraw.setLineWidth(1);
+	    		gcDraw.setGlobalAlpha(0.6);
+		    	gcDraw.fillRect(tile.getTileDX() * Main.tileSize,
+		    									tile.getTileDY() * Main.tileSize,
+		    									Main.tileSize, Main.tileSize);
+	    		gcDraw.restore();
+	    		ok.put(tile.getTileDX() + "," + tile.getTileDY(), true);
+    		}
     	}
 		}
 	}
