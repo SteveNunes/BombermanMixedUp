@@ -1,59 +1,165 @@
 package enums;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum TileProp {
 	
-	UNKNOWN, // Desconhecido
-	NOTHING, // Tiles que não tem função alguma
-	GROUND, // Chão normal, qualquer coisa passa por cima
-	GROUND_HOLE, // Buraco (Só pode atravessar voando ou pulando, explosão passa por cima)
-	FRAGILE_GROUND_LV1, // Chão intacto que raxa ao passar por cima
-	FRAGILE_GROUND_LV2, // Chão raxado que quebra e vira buraco ao passar por cima
-	GROUND_NO_BOMB, // Chão normal, que não pode por bomba
-	GROUND_NO_FIRE, // Chão normal, que não passa explosão
-	GROUND_NO_PLAYER, // Chão normal, que player não passa
-	GROUND_NO_MOB, // Chão normal, que mob não passa
-	JUMP_OVER, // O personagem pula por cima desse bloco ao andar na direção dele
-	PINE, // TEMP - Considerado como parede (Por alguma razão eu separei dessa forma, se for constatado que só serve como parede, converter todos os tipos PINE para WALL)
-	WALL, // Parede (Só pode atravessar pulando)
-	HIGH_WALL, // Parede (Não dá para passar nem pulando)
-	PLAYER_INITIAL_POSITION,
-	MOB_INITIAL_POSITION,
-	BRICK_RANDOM_SPAWNER, // Tile onde pode ser gerado um tijolo aleatoriamente
-	FIXED_BRICK, // Tile onde deverá haver um tijolo obrigatoriamente
-	MOVING_BLOCK_HOLE, // Buraco onde encaixa o bloco que move com explosão
-	DEEP_HOLE, // Buraco (Só pode atravessar voando ou pulando, explosão passa por cima)
-	WATER, // Água (Igual GROUND, mas gera efeito visual de água cobrindo as pernas)
-	DEEP_WATER, // Água profunda (Se o personagem cair nesse tile, causa o efeito dele se afogando)
-	SLIPPY, // Personagem escorrega ao andar em cima
-	DAMAGE_PLAYER, // Causa dano no jogador que passar por cima
-	DAMAGE_MOB, // Causa dano no mob que passar por cima
-	DAMAGE_BOMB, // Explode bombas que forem colocadas em cima
-	QUICKSAND, // Areia movediça (Deixa o movimento mais lento)
-	SLIMY, // Pegajoso (Deixa o movimento mais lento, não dá para chutar nem agarrar bomba depositada nesse tile)
-	PUSH_PLAYER_TO_LEFT, // Empurra o personagem para a esquerda
-	PUSH_PLAYER_TO_UP, // Empurra o personagem para cima
-	PUSH_PLAYER_TO_RIGHT, // Empurra o personagem para a direita
-	PUSH_PLAYER_TO_DOWN, // Empurra o personagem para baixo
-	TREADMILL_TO_LEFT, // Esteira (Vai empurrando objetos em cima dela (incluindo bombas e itens) para a esquerda  
-	TREADMILL_TO_UP, // Esteira (Vai empurrando objetos em cima dela (incluindo bombas e itens) para cima  
-	TREADMILL_TO_RIGHT, // Esteira (Vai empurrando objetos em cima dela (incluindo bombas e itens) para a direita  
-	TREADMILL_TO_DOWN, // Esteira (Vai empurrando objetos em cima dela (incluindo bombas e itens) para baixo  
-	REDIRECT_BOMB_TO_LEFT, // Faz a bomba chutada que passar por esse tile, ir para a esquerda
-	REDIRECT_BOMB_TO_UP, // Faz a bomba chutada que passar por esse tile, ir para cima
-	REDIRECT_BOMB_TO_RIGHT, // Faz a bomba chutada que passar por esse tile, ir para a direita
-	REDIRECT_BOMB_TO_DOWN, // Faz a bomba chutada que passar por esse tile, ir para baixo
-	TELEPORT_FROM_FLOATING_PLATFORM, // Tile especial que deve ficar ao redor de plataformas flutuantes, que teleporta a bomba ou o player para o tile correspondente como se ele tivesse pulado para fora da plataforma
-	MAP_EDGE, // Borda do mapa que dá para cair (Personagem fica se equilibrando)
-	RAIL_UL, // Trilho de BomberKart
-	RAIL_U, // Trilho de BomberKart
-	RAIL_UR, // Trilho de BomberKart
-	RAIL_L, // Trilho de BomberKart
-	RAIL_R, // Trilho de BomberKart
-	RAIL_DL, // Trilho de BomberKart
-	RAIL_D, // Trilho de BomberKart
-	RAIL_DR, // Trilho de BomberKart
-	RAIL_JUMP, // Trilho de BomberKart
-	RAIL_START, // Trilho de BomberKart
-	RAIL_END; // Trilho de BomberKart
+	NOTHING(0), // Tiles que não tem função alguma
+	GROUND(1), // Chão normal, qualquer coisa passa por cima
+	GROUND_HOLE(2), // Buraco (Só pode atravessar voando ou pulando, explosão passa por cima)
+	FRAGILE_GROUND_LV1(3), // Chão intacto que raxa ao passar por cima
+	FRAGILE_GROUND_LV2(4), // Chão raxado que quebra e vira buraco ao passar por cima
+	GROUND_NO_PLAYER(5), // Chão normal, que player não passa
+	GROUND_NO_MOB(6), // Chão normal, que mob não passa
+	GROUND_NO_BOMB(7), // Chão normal, que não pode por bomba
+	GROUND_NO_FIRE(8), // Chão normal, que não passa explosão
+	GROUND_NO_ITEM(9), // Chão normal, que não para item que estiver kikando e cair nesse tile
+	GROUND_NO_BLOCK(10), // Chão normal, que não para bloco que estiver kikando e cair nesse tile
+	JUMP_OVER(11), // O personagem pula por cima desse bloco ao andar na direção dele
+	WALL(12), // Parede (Só pode atravessar pulando)
+	HIGH_WALL(13), // Parede (Não dá para passar nem pulando)
+	PLAYER_INITIAL_POSITION(14), // Define o tile onde os players vão iniciar nos mapas
+	MOB_INITIAL_POSITION(15), // Define o tile onde os mobs vão iniciar nos mapas
+	BRICK_RANDOM_SPAWNER(16), // Tile onde pode ser gerado um tijolo aleatoriamente
+	FIXED_BRICK(17), // Tile onde deverá haver um tijolo obrigatoriamente
+	HOLE(19), // Buraco (Só pode atravessar voando ou pulando, explosão passa por cima)
+	DEEP_HOLE(20), // Buraco profundo (Se a bomba cair nesse tile, causa o efeito da bomba caindo diminuindo)
+	WATER(21), // Água (Igual GROUND, mas gera efeito visual de água cobrindo as pernas)
+	DEEP_WATER(22), // Água profunda (Se o personagem cair nesse tile, causa o efeito dele se afogando)
+	SLIPPY(23), // Personagem escorrega ao andar em cima
+	DAMAGE_PLAYER(24), // Causa dano no jogador que passar por cima
+	DAMAGE_MOB(25), // Causa dano no mob que passar por cima
+	DAMAGE_BOMB(26), // Explode bombas que forem colocadas em cima
+	SPEED_MIN(27), // Deixa a velocidade de movimento no minimo
+	SPEED_HALF(28), // Deixa a velocidade de movimento pela metade
+	SPEED_NORMAL(29), // Normaliza a velocidade de movimento, caso tenha sido alterada
+	SPEED_HIGH(30), // Deixa a velocidade de movimento no dobro
+	SPEED_MAX(31), // Deixa a velocidade de movimento no maximo
+	SLIMY(32), // Pegajoso (Igual SPEED_MIN, além de não permitir chutar nem agarrar bomba depositada nesse tile)
+	PUSH_PLAYER_TO_LEFT(33), // Empurra o personagem para a esquerda
+	PUSH_PLAYER_TO_UP(34), // Empurra o personagem para cima
+	PUSH_PLAYER_TO_RIGHT(35), // Empurra o personagem para a direita
+	PUSH_PLAYER_TO_DOWN(36), // Empurra o personagem para baixo
+	TREADMILL_TO_LEFT(37), // Esteira (Vai empurrando objetos em cima dela (incluindo bombas e itens) para a esquerda  
+	TREADMILL_TO_UP(38), // Esteira (Vai empurrando objetos em cima dela (incluindo bombas e itens) para cima  
+	TREADMILL_TO_RIGHT(39), // Esteira (Vai empurrando objetos em cima dela (incluindo bombas e itens) para a direita  
+	TREADMILL_TO_DOWN(40), // Esteira (Vai empurrando objetos em cima dela (incluindo bombas e itens) para baixo  
+	REDIRECT_BOMB_TO_LEFT(41), // Faz a bomba chutada que passar por esse tile, ir para a esquerda
+	REDIRECT_BOMB_TO_UP(42), // Faz a bomba chutada que passar por esse tile, ir para cima
+	REDIRECT_BOMB_TO_RIGHT(43), // Faz a bomba chutada que passar por esse tile, ir para a direita
+	REDIRECT_BOMB_TO_DOWN(44), // Faz a bomba chutada que passar por esse tile, ir para baixo
+	TELEPORT_FROM_FLOATING_PLATFORM(45), // Tile especial que deve ficar ao redor de plataformas flutuantes, que teleporta a bomba ou o player para o tile correspondente como se ele tivesse pulado para fora da plataforma
+	MAP_EDGE(46), // Borda do mapa que dá para cair (Personagem fica se equilibrando)
+	STAGE_CLEAR(47), // Tile de Stage Clear
+	MOVING_BLOCK(48), // Tile do tipo parede, que se move 1 bloco quando recebe uma explosão
+	RAIL_UL(52), // Trilho de curva de cima para a direita do BomberKart
+	RAIL_UR(53), // Trilho de curva BomberKart
+	RAIL_DL(54), // Trilho de curva BomberKart
+	RAIL_DR(55), // Trilho de curva BomberKart
+	RAIL_H(56), // Trilho horizontal de BomberKart
+	RAIL_V(57), // Trilho vertiacl de BomberKart
+	RAIL_JUMP(58), // Trilho que faz o BomberKart iniciar/finalizar um salto
+	RAIL_START(59), // Trilho de partida do BomberKart
+	RAIL_END(60), // Trilho de chegada do BomberKart
+	MAGNET_D(61), // Ima (Tile que puxa a bomba colocada até 4 tiles de distancia abaixo desse tile)
+	MAGNET_R(62), // Ima (Tile que puxa a bomba colocada até 4 tiles de distancia a direita desse tile)
+	MAGNET_U(63), // Ima (Tile que puxa a bomba colocada até 4 tiles de distancia acima desse tile)
+	MAGNET_L(64), // Ima (Tile que puxa a bomba colocada até 4 tiles de distancia a esquerda desse tile)
+	TRIGGER_BY_PLAYER(65), // As Tags de tile só são disparadas se o jogador (COM ou SEM montaria) pisar no tile
+	TRIGGER_BY_UNRIDE_PLAYER(66), // As Tags de tile só são disparadas se o jogador (SEM montaria) pisar no tile
+	TRIGGER_BY_RIDE(67), // As Tags de tile só são disparadas se o jogador (COM montaria) pisar no tile
+	TRIGGER_BY_BOMB(68), // As Tags de tile só são disparadas se uma bomba for depositada/chutada no tile
+	TRIGGER_BY_STOPPED_BOMB(69), // As Tags de tile só são disparadas se uma bomba for depositada no tile
+	TRIGGER_BY_EXPLOSION(70), // As Tags de tile só são disparadas se uma explosão acertar o tile
+	TRIGGER_BY_MOB(71), // As Tags de tile só são disparadas se um mob passar pelo tile
+	TRIGGER_BY_ITEM(72), // As Tags de tile só são disparadas se um item cair no tile
+	TRIGGER_BY_BLOCK(73); // As Tags de tile só são disparadas se um bloco cair no tile
+	// VAGOS: 18 49 50 51
+	
+	private int value;
+	
+	@SuppressWarnings("serial")
+	private static Map<Integer, TileProp> propFromValueList = new HashMap<>() {{
+		put(0, NOTHING);
+		put(1, GROUND);
+		put(2, GROUND_HOLE);
+		put(3, FRAGILE_GROUND_LV1);
+		put(4, FRAGILE_GROUND_LV2);
+		put(5, GROUND_NO_PLAYER);
+		put(6, GROUND_NO_MOB);
+		put(7, GROUND_NO_BOMB);
+		put(8, GROUND_NO_FIRE);
+		put(9, GROUND_NO_ITEM);
+		put(10, GROUND_NO_BLOCK);
+		put(11, JUMP_OVER);
+		put(12, WALL);
+		put(13, HIGH_WALL);
+		put(14, PLAYER_INITIAL_POSITION);
+		put(15, MOB_INITIAL_POSITION);
+		put(16, BRICK_RANDOM_SPAWNER);
+		put(17, FIXED_BRICK);
+		put(19, HOLE);
+		put(20, DEEP_HOLE);
+		put(21, WATER);
+		put(22, DEEP_WATER);
+		put(23, SLIPPY);
+		put(24, DAMAGE_PLAYER);
+		put(25, DAMAGE_MOB);
+		put(26, DAMAGE_BOMB);
+		put(27, SPEED_MIN);
+		put(28, SPEED_HALF);
+		put(29, SPEED_NORMAL);
+		put(30, SPEED_HIGH);
+		put(31, SPEED_MAX);
+		put(32, SLIMY);
+		put(33, PUSH_PLAYER_TO_LEFT);
+		put(34, PUSH_PLAYER_TO_UP);
+		put(35, PUSH_PLAYER_TO_RIGHT);
+		put(36, PUSH_PLAYER_TO_DOWN);
+		put(37, TREADMILL_TO_LEFT);
+		put(38, TREADMILL_TO_UP);
+		put(39, TREADMILL_TO_RIGHT);
+		put(40, TREADMILL_TO_DOWN);
+		put(41, REDIRECT_BOMB_TO_LEFT);
+		put(42, REDIRECT_BOMB_TO_UP);
+		put(43, REDIRECT_BOMB_TO_RIGHT);
+		put(44, REDIRECT_BOMB_TO_DOWN);
+		put(45, TELEPORT_FROM_FLOATING_PLATFORM);
+		put(46, MAP_EDGE);
+		put(47, STAGE_CLEAR);
+		put(48, MOVING_BLOCK);
+		put(52, RAIL_UL);
+		put(53, RAIL_UR);
+		put(54, RAIL_DL);
+		put(55, RAIL_DR);
+		put(56, RAIL_H);
+		put(57, RAIL_V);
+		put(58, RAIL_JUMP);
+		put(59, RAIL_START);
+		put(60, RAIL_END);
+		put(61, MAGNET_D);
+		put(62, MAGNET_R);
+		put(63, MAGNET_U);
+		put(64, MAGNET_L);
+		put(64, TRIGGER_BY_PLAYER);
+		put(65, TRIGGER_BY_UNRIDE_PLAYER);
+		put(66, TRIGGER_BY_RIDE);
+		put(67, TRIGGER_BY_BOMB);
+		put(68, TRIGGER_BY_STOPPED_BOMB);
+		put(69, TRIGGER_BY_EXPLOSION);
+		put(70, TRIGGER_BY_MOB);
+		put(71, TRIGGER_BY_ITEM);
+		put(72, TRIGGER_BY_BLOCK);
+	}};
+	
+	private TileProp(int value)
+		{ this.value = value; }
+	
+	public long getValue()
+		{ return (int)Math.pow(1, value); }
+	
+	public static TileProp getPropFromValue(int value)
+		{ return propFromValueList.containsKey(value) ? propFromValueList.get(value) : null; }
 	
 }

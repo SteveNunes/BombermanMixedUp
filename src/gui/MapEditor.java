@@ -81,6 +81,8 @@ public class MapEditor {
   @FXML
   private CheckBox checkBoxShowBlockType;
   @FXML
+  private CheckBox checkBoxShowBricks;
+  @FXML
 	private ListView<Integer> listViewLayers;
 
 	private ListenerHandle<Integer> listenerHandleLayersListView;
@@ -125,9 +127,9 @@ public class MapEditor {
 	private int zoom;
 	private int ctrlZPos;
 	private long resetBricks;
-	private Map<Integer, List<String>> unknownTileProps = new HashMap<>(); // TEMP
 
 	public void init(Scene scene) {
+		checkBoxShowBricks.setSelected(true);
 		resetBricks = System.currentTimeMillis();
 		canvasList = new Canvas[] {canvasBrickStand, canvasBrickBreaking, canvasBrickRegen, canvasWallSprite, canvasGroundSprite, canvasGroundWithBrickShadow, canvasGroundWithWallShadow};
 		gcBrickStand = canvasBrickStand.getGraphicsContext2D();
@@ -261,21 +263,6 @@ public class MapEditor {
 		params = new SnapshotParameters();
 		params.setFill(Color.TRANSPARENT);
 		params.setViewport(new Rectangle2D(0, 0, canvasDraw.getWidth(), canvasDraw.getHeight()));
-		// DAQUI PRA BAIXO TEMP
-		for (Layer layer : currentMapSet.getLayersMap().values())
-			for (Tile tile : layer.getTiles())
-				for (TileProp prop : tile.tileProp.keySet()) {
-					if (prop == TileProp.UNKNOWN) {
-						int val = tile.tileProp.get(prop);
-						List<String> maps = unknownTileProps.get(val);
-						if (maps == null)
-							unknownTileProps.put(val, new ArrayList<>(Arrays.asList(mapName)));
-						else if (!maps.contains(mapName)) {
-							maps.add(mapName);
-							unknownTileProps.put(val, maps);
-						}
-					}
-				}
 	}
 	
 	public void loadPrevMap() {
@@ -317,17 +304,6 @@ public class MapEditor {
 					if (isNoHolds() && mouseDX >= 0 && mouseDY >= 0 && (mouseDX * 16 + 16) <= getCurrentLayer().getWidth() && (mouseDY * 16 + 16) <= getCurrentLayer().getHeight()) {
 						removeFirstTileSprite(mouseDX, mouseDY);
 						rebuildCurrentLayer();
-					}
-				}
-				else if (e.getCode() == KeyCode.F12) {
-					if (!unknownTileProps.isEmpty()) {
-						System.out.println("Tiles desconhecidos: ");
-						for (Integer i : unknownTileProps.keySet()) {
-							System.out.print(i + " -> ");
-							for (String s : unknownTileProps.get(i))
-								System.out.print(s + " ");
-							System.out.println();
-						}
 					}
 				}
 				else if (e.getCode() == KeyCode.F10)
@@ -401,9 +377,7 @@ public class MapEditor {
 			if (selection == null) {
 				if (e.getButton() == MouseButton.PRIMARY) {
 					if (isNoHolds() && mouseDX >= 0 && mouseDY >= 0 && (mouseDX * 16 + 16) <= getCurrentLayer().getWidth() && (mouseDY * 16 + 16) <= getCurrentLayer().getHeight()) {
-						Map<TileProp, Integer> map = new HashMap<>();
-						map.put(TileProp.GROUND, 1);
-						Tile tile = new Tile(currentMapSet, (int)tileSetPos.getX() * 16, (int)tileSetPos.getY() * 16, mouseDX * 16, mouseDY * 16, map);
+						Tile tile = new Tile(currentMapSet, (int)tileSetPos.getX() * 16, (int)tileSetPos.getY() * 16, mouseDX * 16, mouseDY * 16, new ArrayList<>());
 						getCurrentLayer().getTiles().add(tile);
 						rebuildCurrentLayer();
 					}
@@ -435,6 +409,8 @@ public class MapEditor {
 		gcDraw.fillRect(0, 0, canvasDraw.getWidth(), canvasDraw.getHeight());
 		if (currentMapSet.getLayersMap().containsKey(currentLayerIndex))
 			getCurrentLayer().draw(gcDraw);
+		if (checkBoxShowBricks.isSelected() && currentLayerIndex == 26)
+			Brick.drawBricks(gcDraw);
 		gcDraw.drawImage(currentMapSet.getTileSetImage(), tileSetPos.getX() * 16, tileSetPos.getY() * 16, 16, 16, mouseDX * Main.tileSize, mouseDY * Main.tileSize, Main.tileSize, Main.tileSize);
     drawBlockTypeMark();
 	}
@@ -469,8 +445,8 @@ public class MapEditor {
 				gcMain.setStroke(Color.BLACK);
 				gcMain.setFont(font);
 				gcMain.setLineWidth(3);
-				for (TileProp prop : tile.tileProp.keySet()) {
-					String s = prop.name() + " (" + tile.tileProp.get(prop) + ")";
+				for (TileProp prop : tile.tileProp) {
+					String s = prop.name();
 					Text text = new Text(s);
 					text.setFont(font);
 					while (x + (int)text.getBoundsInLocal().getWidth() + 20 >= canvasMain.getWidth())
@@ -665,32 +641,48 @@ public class MapEditor {
     	for (Tile tile : getTileListFromCurrentLayer()) {
     		Color color;
     		if (!ok.containsKey(tile.getTileDX() + "," + tile.getTileDY())) {
-	    		if (tile.tileProp.containsKey(TileProp.GROUND))
-	    			color = Color.YELLOW;
-	    		else if (tile.tileProp.containsKey(TileProp.GROUND_NO_MOB) || tile.tileProp.containsKey(TileProp.GROUND_NO_PLAYER) || tile.tileProp.containsKey(TileProp.GROUND_NO_BOMB) || tile.tileProp.containsKey(TileProp.GROUND_NO_FIRE))
-	    			color = Color.LIGHTGOLDENRODYELLOW;
-	    		else if (tile.tileProp.containsKey(TileProp.FRAGILE_GROUND_LV1) || tile.tileProp.containsKey(TileProp.FRAGILE_GROUND_LV2))
-	    			color = Color.LIGHTPINK;
-	    		else if (tile.tileProp.containsKey(TileProp.WALL) || tile.tileProp.containsKey(TileProp.HIGH_WALL) || tile.tileProp.containsKey(TileProp.PINE))
-	    			color = Color.RED;
-	    		else if (tile.tileProp.containsKey(TileProp.BRICK_RANDOM_SPAWNER))
-	    			color = Color.LIGHTGREEN;
-	    		else if (tile.tileProp.containsKey(TileProp.FIXED_BRICK))
-	    			color = Color.GREEN;
-	    		else if (tile.tileProp.containsKey(TileProp.GROUND_HOLE) || tile.tileProp.containsKey(TileProp.MOVING_BLOCK_HOLE))
-	    			color = Color.ALICEBLUE;
-	    		else if (tile.tileProp.containsKey(TileProp.DEEP_HOLE))
-	    			color = Color.GRAY;
-	    		else if (tile.tileProp.containsKey(TileProp.JUMP_OVER))
-	    			color = Color.CORAL;
-	    		else if (tile.tileProp.containsKey(TileProp.MAP_EDGE))
+	    		if (tile.tileProp.contains(TileProp.PLAYER_INITIAL_POSITION))
+	    			color = Color.DEEPPINK;
+	    		else if (tile.tileProp.contains(TileProp.MOB_INITIAL_POSITION))
+	    			color = Color.INDIANRED;
+	    		else if (tile.tileProp.contains(TileProp.REDIRECT_BOMB_TO_DOWN) || tile.tileProp.contains(TileProp.REDIRECT_BOMB_TO_RIGHT) || tile.tileProp.contains(TileProp.REDIRECT_BOMB_TO_UP) || tile.tileProp.contains(TileProp.REDIRECT_BOMB_TO_LEFT))
+	    			color = Color.MEDIUMPURPLE;
+	    		else if (tile.tileProp.contains(TileProp.RAIL_DL) || tile.tileProp.contains(TileProp.RAIL_DR) || tile.tileProp.contains(TileProp.RAIL_UL) || tile.tileProp.contains(TileProp.RAIL_UR) || tile.tileProp.contains(TileProp.RAIL_H) || tile.tileProp.contains(TileProp.RAIL_V) || tile.tileProp.contains(TileProp.RAIL_JUMP) || tile.tileProp.contains(TileProp.RAIL_START) || tile.tileProp.contains(TileProp.RAIL_END))
 	    			color = Color.SADDLEBROWN;
-	    		else if (tile.tileProp.containsKey(TileProp.WATER))
+	    		else if (tile.tileProp.contains(TileProp.GROUND_NO_MOB) || tile.tileProp.contains(TileProp.GROUND_NO_PLAYER) || tile.tileProp.contains(TileProp.GROUND_NO_BOMB) || tile.tileProp.contains(TileProp.GROUND_NO_FIRE))
+	    			color = Color.LIGHTGOLDENRODYELLOW;
+	    		else if (tile.tileProp.contains(TileProp.FRAGILE_GROUND_LV1) || tile.tileProp.contains(TileProp.FRAGILE_GROUND_LV2))
+	    			color = Color.LIGHTPINK;
+	    		else if (tile.tileProp.contains(TileProp.TRIGGER_BY_BLOCK) || tile.tileProp.contains(TileProp.TRIGGER_BY_BOMB) || tile.tileProp.contains(TileProp.TRIGGER_BY_EXPLOSION) || tile.tileProp.contains(TileProp.TRIGGER_BY_ITEM) || tile.tileProp.contains(TileProp.TRIGGER_BY_MOB) || tile.tileProp.contains(TileProp.TRIGGER_BY_PLAYER) || tile.tileProp.contains(TileProp.TRIGGER_BY_RIDE) || tile.tileProp.contains(TileProp.TRIGGER_BY_UNRIDE_PLAYER) || tile.tileProp.contains(TileProp.TRIGGER_BY_STOPPED_BOMB))
+	    			color = Color.DARKORANGE;
+	    		else if (tile.tileProp.contains(TileProp.BRICK_RANDOM_SPAWNER))
+	    			color = Color.LIGHTGREEN;
+	    		else if (tile.tileProp.contains(TileProp.MAGNET_D)|| tile.tileProp.contains(TileProp.MAGNET_R)|| tile.tileProp.contains(TileProp.MAGNET_U)|| tile.tileProp.contains(TileProp.MAGNET_L))
+	    			color = Color.LIGHTSLATEGRAY;
+	    		else if (tile.tileProp.contains(TileProp.FIXED_BRICK))
+	    			color = Color.GREEN;
+	    		else if (tile.tileProp.contains(TileProp.MOVING_BLOCK))
+	    			color = Color.PALEVIOLETRED;
+	    		else if (tile.tileProp.contains(TileProp.GROUND_HOLE))
+	    			color = Color.ALICEBLUE;
+	    		else if (tile.tileProp.contains(TileProp.DEEP_HOLE))
+	    			color = Color.GRAY;
+	    		else if (tile.tileProp.contains(TileProp.JUMP_OVER))
+	    			color = Color.CORAL;
+	    		else if (tile.tileProp.contains(TileProp.MAP_EDGE))
+	    			color = Color.SADDLEBROWN;
+	    		else if (tile.tileProp.contains(TileProp.WATER))
 	    			color = Color.LIGHTBLUE;
-	    		else if (tile.tileProp.containsKey(TileProp.DEEP_WATER))
+	    		else if (tile.tileProp.contains(TileProp.DEEP_WATER))
 	    			color = Color.DARKBLUE;
-	    		else if (tile.tileProp.containsKey(TileProp.TELEPORT_FROM_FLOATING_PLATFORM))
+	    		else if (tile.tileProp.contains(TileProp.TELEPORT_FROM_FLOATING_PLATFORM))
 	    			color = Color.ROSYBROWN;
+	    		else if (tile.tileProp.contains(TileProp.STAGE_CLEAR))
+	    			color = Color.AQUA;
+	    		else if (tile.tileProp.contains(TileProp.GROUND))
+	    			color = Color.YELLOW;
+	    		else if (tile.tileProp.contains(TileProp.WALL) || tile.tileProp.contains(TileProp.HIGH_WALL))
+	    			color = Color.RED;
 	    		else
 	    			color = Color.ORANGE;
 	    		gcDraw.save();

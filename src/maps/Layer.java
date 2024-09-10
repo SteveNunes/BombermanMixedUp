@@ -64,7 +64,7 @@ public class Layer {
 		canvas.getGraphicsContext2D().setImageSmoothing(false);
 		for (Tile tile : tiles)
 		ImageUtils.drawImage(gc, originMapSet.getTileSetImage(),
-												 tile.tileX, tile.tileY, 16, 16,
+												 tile.spriteX, tile.spriteY, 16, 16,
 												 tile.outX, tile.outY, 16, 16,
 												 tile.flip, tile.rotate);
 		SnapshotParameters params = new SnapshotParameters();

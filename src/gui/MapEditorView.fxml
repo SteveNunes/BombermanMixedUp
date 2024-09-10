@@ -45,6 +45,7 @@
                                     <CheckBox fx:id="checkBoxShowGrid" mnemonicParsing="false" text="Exibir grade" />
                                     <CheckBox fx:id="checkBoxShowAim" mnemonicParsing="false" text="Exibir mira" />
                                     <CheckBox fx:id="checkBoxShowBlockType" mnemonicParsing="false" text="Exibir contorno do tipo de bloco" />
+                                    <CheckBox fx:id="checkBoxShowBricks" mnemonicParsing="false" text="Exibir tijolos" />
                                  </children>
                               </HBox>
                               <Canvas fx:id="canvasMain" height="720.0" width="960.0" />

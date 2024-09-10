@@ -30,7 +30,13 @@ public class SetSprIndex extends FrameTag {
 		{ return new SetSprIndex(value); }
 	
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.setSpriteIndex(getValue()); }
+	public void process(Sprite sprite) {
+		if (getValue() == null)
+			sprite.setVisibleSprite(false);
+		else {
+			sprite.setVisibleSprite(true);
+			sprite.setSpriteIndex(getValue());
+		}
+	}
 
 }

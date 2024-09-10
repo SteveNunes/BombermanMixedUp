@@ -37,6 +37,7 @@ public class Sprite {
 	private Integer spriteIndex;
 	private double alpha;
 	private int rotation;
+	private boolean visibleSprite;
 	private SpriteLayerType layerType;
 	
 	public Sprite(Sprite sprite)
@@ -61,6 +62,7 @@ public class Sprite {
 		jumpMove = sprite.jumpMove == null ? null : new JumpMove(sprite.jumpMove);
 		gotoMove = sprite.gotoMove == null ? null : new GotoMove(sprite.gotoMove);
 		layerType = sprite.layerType;
+		visibleSprite = sprite.visibleSprite;
 	}
 	
 	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spriteIndex, int spritesPerLine) {
@@ -81,6 +83,7 @@ public class Sprite {
 		rectangleMove = null;
 		jumpMove = null;
 		gotoMove = null;
+		visibleSprite = true;
 		layerType = SpriteLayerType.GROUND;
 	}
 
@@ -116,6 +119,12 @@ public class Sprite {
 
 	public void setLayerType(SpriteLayerType layerType)
 		{ this.layerType = layerType; } 
+	
+	public boolean isVisibleSprite()
+		{ return visibleSprite; }
+	
+	public void setVisibleSprite(boolean state)
+		{ visibleSprite = state; }
 
 	public double getX()
 		{ return outputSpriteSizePos.getX(); }
@@ -383,11 +392,13 @@ public class Sprite {
 	}
 	 
 	public void draw(Map<SpriteLayerType, GraphicsContext> gc) {
-		updateOutputDrawCoords();
-		int[] in = getCurrentSpriteOriginCoords();
-		int sx = in[0], sy = in[1], tx = (int)getOutputDrawCoords().getX(), ty = (int)getOutputDrawCoords().getY();
-		ImageUtils.drawImage(gc.get(layerType), spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
-			tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
+		if (visibleSprite) {
+			updateOutputDrawCoords();
+			int[] in = getCurrentSpriteOriginCoords();
+			int sx = in[0], sy = in[1], tx = (int)getOutputDrawCoords().getX(), ty = (int)getOutputDrawCoords().getY();
+			ImageUtils.drawImage(gc.get(layerType), spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+				tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
+		}
 	}
 
 }

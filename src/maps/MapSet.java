@@ -15,7 +15,6 @@ import util.IniFile;
 public class MapSet {
 	
 	private Map<Integer, Layer> layers;
-	private List<Brick> bricks;
 	private Image tileSetImage;
 	private Integer copyImageLayer;
 	private String mapName;
@@ -27,9 +26,9 @@ public class MapSet {
 	private int maxLayer;
 	
 	public MapSet(String mapName) {
+		Brick.clearBricks();
 		this.mapName = mapName;
 		layers = new HashMap<>();
-		bricks = new ArrayList<>();
 		minLayer = 9999;
 		maxLayer = 0;
 		IniFile ini = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
@@ -110,9 +109,9 @@ public class MapSet {
 		for (int l = minLayer; l <= maxLayer; l++)
 			if (layers.containsKey(l) && l != copyImageLayer)
 				layers.get(l).draw(gc);
-		for (Brick brick : bricks)
-			brick.run(gc, false);
+		Brick.drawBricks(gc);
 	}
+	
 
 	public Tile getTileAt(int layerIndex, int x, int y) {
 		for (Tile tile : getLayer(layerIndex).getTiles())
