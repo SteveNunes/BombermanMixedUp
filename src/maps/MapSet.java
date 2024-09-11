@@ -5,46 +5,51 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javafx.scene.canvas.GraphicsContext;
+import application.Main;
+import entities.Entity;
+import enums.TileProp;
 import javafx.scene.image.Image;
 import objmoveutils.Position;
 import tools.GameMisc;
 import tools.Materials;
 import util.IniFile;
 
-public class MapSet {
+public class MapSet extends Entity{
 	
 	private Map<Integer, Layer> layers;
 	private Image tileSetImage;
 	private Integer copyImageLayer;
 	private String mapName;
+	private String iniMapName;
+	private String tileSetName;
 	private Position groundTile;
 	private Position wallTile;
-	private Position groundWithBlockShadow;
-	private Position groundWithWallShadow;
+	private Position groundWithBrickShadow;
+	private Position fragileGround;
 	private int minLayer;
 	private int maxLayer;
 	
-	public MapSet(String mapName) {
+	public MapSet(String iniMapName) {
 		Brick.clearBricks();
-		this.mapName = mapName;
+		setTileSize(Main.tileSize);
+		this.iniMapName = iniMapName;
 		layers = new HashMap<>();
 		minLayer = 9999;
 		maxLayer = 0;
-		IniFile ini = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
-		if (ini == null)
+		IniFile ini = IniFile.getNewIniFileInstance("appdata/configs/Stages.cfg");
+		mapName = ini.read(iniMapName, "File");
+		IniFile ini2 = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
+		if (ini2 == null)
 			GameMisc.throwRuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
-		tileSetImage = Materials.tileSets.get(ini.read("SETUP", "Tiles"));
-		Map<Integer, String> layerInfos = new HashMap<>();
+		tileSetName = ini2.read("SETUP", "Tiles");
+		tileSetImage = Materials.tileSets.get(tileSetName);
 		Map<Integer, List<String>> tileInfos = new HashMap<>();
-		copyImageLayer = ini.readAsInteger("SETUP", "ImageLayer", null);
-		for (String item : ini.getItemList("TILES")) {
-			String line = ini.read("TILES", item);
+		copyImageLayer = ini2.readAsInteger("SETUP", "ImageLayer", null);
+		for (String item : ini2.getItemList("TILES")) {
+			String line = ini2.read("TILES", item);
 			int layer = Integer.parseInt(line.split(" ")[0]);
-			if (!layerInfos.containsKey(layer)) {
-				layerInfos.put(layer, ini.read("WININFO", "" + layer));
+			if (!tileInfos.containsKey(layer))
 				tileInfos.put(layer, new ArrayList<>());
-			}
 			tileInfos.get(layer).add(line);
 			if (layer > maxLayer)
 				maxLayer = layer;
@@ -52,18 +57,43 @@ public class MapSet {
 				minLayer = layer;
 		}
 		for (Integer i : tileInfos.keySet()) {
-			Layer layer = new Layer(this, layerInfos.get(i), tileInfos.get(i));
+			Layer layer = new Layer(this, tileInfos.get(i));
 			layers.put(i, layer);
 		}
-		groundTile = getTilePositionFromIni(ini, "GroundTile");
-		groundWithBlockShadow = getTilePositionFromIni(ini, "GroundWithShadowFromBlock");
-		groundWithWallShadow = getTilePositionFromIni(ini, "GroundWithShadowFromWall");
-		wallTile = getTilePositionFromIni(ini, "HurryUpTile");
+		groundTile = getTilePositionFromIni(ini2, "GroundTile");
+		groundWithBrickShadow = getTilePositionFromIni(ini2, "GroundWithBrickShadow");
+		wallTile = getTilePositionFromIni(ini2, "WallTile");
+		fragileGround = getTilePositionFromIni(ini2, "FragileGround");
+		setFrameSet("DefaultFrameSet");
+		if (ini.read(iniMapName, "Blocks") != null && !ini.read(iniMapName, "Blocks").equals("0")) {
+			String[] split = ini.read(iniMapName, "Blocks").split("!");
+			int minBricks = Integer.parseInt(split[0]);
+			int maxBricks = Integer.parseInt(split[split.length == 1 ? 0 : 1]);
+			int totalBricks = GameMisc.getRandom(minBricks, maxBricks);
+			int bricksQuant = 0;
+			while (totalBricks > 0) {
+				int totalBrickSpawners = 0;
+				for (Tile t : getLayer(26).getTiles())
+					for (TileProp p : t.tileProp)
+						if (p == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(t.getTileDX(), t.getTileDY())) {
+							totalBrickSpawners++;
+							if (GameMisc.getRandom(0, 3) == 0) {
+								Brick.addBrick(this, t.getTileDX(), t.getTileDY(), null);
+								if (++bricksQuant == totalBricks)
+									return;
+							}
+						}
+				if (bricksQuant >= totalBrickSpawners)
+					return;
+			}
+		}
 	}
 	
 	private Position getTilePositionFromIni(IniFile ini, String tileStr) {
 		Position position = new Position();
 		IniFile ini2 = IniFile.getNewIniFileInstance("appdata/tileset/" + ini.read("SETUP", "Tiles") + ".tiles");
+		if (ini2.read("CONFIG", tileStr) == null)
+			return null;
 		String[] split2 = ini2.read("CONFIG", tileStr).split(" ");
 		if (split2.length > 0) {
 			try
@@ -82,11 +112,11 @@ public class MapSet {
 		{ return wallTile; }
 	
 	public Position getGroundWithBlockShadow()
-		{ return groundWithBlockShadow; }
+		{ return groundWithBrickShadow; }
 	
-	public Position getGroundWithWallShadow()
-		{ return groundWithWallShadow; }
-
+	public Position getFragileGround()
+		{ return fragileGround; }
+	
 	public Map<Integer, Layer> getLayersMap()
 		{ return layers; }
 	
@@ -102,16 +132,14 @@ public class MapSet {
 	public void setTileSetImage(Image image)
 		{ tileSetImage = image; }
 	
+	public String getTileSetName()
+		{ return tileSetName; }
+		
 	public String getMapName()
 		{ return mapName; }
 
-	public void draw(GraphicsContext gc) {
-		for (int l = minLayer; l <= maxLayer; l++)
-			if (layers.containsKey(l) && l != copyImageLayer)
-				layers.get(l).draw(gc);
-		Brick.drawBricks(gc);
-	}
-	
+	public String getIniMapName()
+		{ return iniMapName; }
 
 	public Tile getTileAt(int layerIndex, int x, int y) {
 		for (Tile tile : getLayer(layerIndex).getTiles())
@@ -119,5 +147,5 @@ public class MapSet {
 				return tile;
 		return null;
 	}
-	
+
 }

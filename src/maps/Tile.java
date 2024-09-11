@@ -17,18 +17,17 @@ import util.MyConverters;
 
 public class Tile {
 
-	public MapSet originMapSet;
-	public int layer;
-	public int spriteX;
-	public int spriteY;
+	MapSet originMapSet;
+	int spriteX;
+	int spriteY;
 	public int outX;
 	public int outY;
-	public ImageFlip flip;
-	public int rotate;
+	ImageFlip flip;
+	int rotate;
 	public List<TileProp> tileProp;
-	public Color tint;
-	private double opacity;
-	private DrawImageEffects effects;
+	Color tint;
+	double opacity;
+	DrawImageEffects effects;
 	public static Map<String, String> tags = new HashMap<>();
 	
 	public Tile(MapSet originMapSet, int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp)
@@ -59,7 +58,7 @@ public class Tile {
 		String[] split = strFromIni.split(" ");
 		if (split.length < 14)
 			GameMisc.throwRuntimeException(strFromIni + " - Too few parameters");
-		int n = 0, r, g, b, a;
+		int n = 0, r, g, b, a, layer;
 		this.originMapSet = originMapSet;
 		try {
 			layer = split.length <= n ? 0 : Integer.parseInt(split[n]);
@@ -76,9 +75,8 @@ public class Tile {
 				if (TileProp.getPropFromValue(v) != null) {
 					TileProp prop = TileProp.getPropFromValue(v);
 					tileProp.add(prop);
-					if (prop == TileProp.FIXED_BRICK) {
+					if (layer == 26 && prop == TileProp.FIXED_BRICK)
 						Brick.addBrick(originMapSet, outX / Main.tileSize, outY / Main.tileSize, null);
-					}					
 				}
 			}			
 			n++; opacity = split.length <= n ? 1 : Double.parseDouble(split[n]);

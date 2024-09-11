@@ -1,9 +1,8 @@
 [CONFIG]
 Convertido=1
-HurryUpTile=64 32
+WallTile=64 32
 GroundTile=0 48
-GroundWithShadowFromBlock=80 48
-GroundWithShadowFromWall=80 48
+GroundWithBrickShadow=80 48
 BrickStandFrameSet={SetSprSource;/tileset/Tile48;240;0;16;16;0;0;0;0;16;16},{SetTicksPerFrame;20},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{Goto;0}
 BrickBreakFrameSet={SetSprSource;/tileset/Tile48;288;0;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 BrickRegenFrameSet={SetSprSource;/tileset/Tile48;336;0;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}

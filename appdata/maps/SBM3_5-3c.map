@@ -91,7 +91,7 @@
 89=26 4 5 80 64 0 0 12 1 255 255 255 255 -
 90=26 4 5 304 96 0 0 12 1 255 255 255 255 -
 91=26 4 7 64 64 0 0 16 1 255 255 255 255 -
-92=26 4 10 64 64 0 0 1 1 255 255 255 255 - ExplosionTrigger!1 DisableTileEffect!0!-!- CallID!Iglu1!FrameSet!FrameSet_TakeDamage Delay66!EnableTileEffect!0!-!-
+92=26 4 10 64 64 0 0 1!70 1 255 255 255 255 - DisableTileEffect!0!-!- CallID!Iglu1!FrameSet!FrameSet_TakeDamage Delay66!EnableTileEffect!0!-!-
 93=26 4 10 176 32 0 0 12 1 255 255 255 255 -
 94=26 10 5 64 64 0 0 16 1 255 255 255 255 -
 95=26 10 4 64 64 0 0 16 1 255 255 255 255 -
@@ -110,7 +110,7 @@
 108=26 3 6 80 64 0 0 16 1 255 255 255 255 -
 109=26 15 9 0 32 0 0 12 1 255 255 255 255 -
 110=26 12 7 64 64 0 0 16 1 255 255 255 255 -
-111=26 12 10 64 64 0 0 1 1 255 255 255 255 - ExplosionTrigger!1 DisableTileEffect!0!-!- CallID!Iglu2!FrameSet!FrameSet_TakeDamage Delay66!EnableTileEffect!0!-!-
+111=26 12 10 64 64 0 0 1!70 1 255 255 255 255 - DisableTileEffect!0!-!- CallID!Iglu2!FrameSet!FrameSet_TakeDamage Delay66!EnableTileEffect!0!-!-
 112=26 12 10 176 32 0 0 12 1 255 255 255 255 -
 113=26 12 5 64 64 0 0 16 1 255 255 255 255 -
 114=26 12 4 64 64 0 0 16 1 255 255 255 255 -

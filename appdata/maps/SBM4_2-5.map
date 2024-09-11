@@ -20,8 +20,8 @@
 18=26 11 5 80 48 1 0 12 1 255 255 255 255 -
 19=26 11 7 80 48 1 0 12 1 255 255 255 255 -
 20=26 11 10 128 0 0 0 16 1 255 255 255 255 -
-21=26 8 10 128 0 0 0 1 1 255 255 255 255 - NoTriggerWithBlock StepTrigger RunEffect!-1!X!Y PlaySound!MonsterDied5 JumpTP!8!4
-22=26 8 4 112 16 0 0 1 1 255 255 255 255 - NoTriggerWithBlock StepTrigger RunEffect!-1!X!Y PlaySound!MonsterDied5 JumpTP!8!10
+21=26 8 10 128 0 0 0 1!76!78!65 1 255 255 255 255 - RunEffect!-1!X!Y PlaySound!MonsterDied5 JumpTP!8!4
+22=26 8 4 112 16 0 0 1!76!78!65 1 255 255 255 255 - RunEffect!-1!X!Y PlaySound!MonsterDied5 JumpTP!8!10
 23=26 8 5 112 16 0 0 16 1 255 255 255 255 -
 24=26 8 7 112 16 0 0 16 1 255 255 255 255 -
 25=26 9 1 96 16 0 0 12 1 255 255 255 255 -

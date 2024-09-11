@@ -234,7 +234,7 @@
 232=27 1 1 0 192 0 0 12 1 255 255 255 255 -
 233=27 1 2 128 144 0 0 12 1 255 255 255 255 -
 234=27 2 1 16 192 0 0 12 1 255 255 255 255 -
-235=27 2 2 144 48 0 0 6!8 1 255 255 255 255 - StepTrigger Centre ChangeDir!0 StageDone!2BlockMoving Delay120!PlaySound!Elevator2 Delay120!DeslocY!-1!-1 Delay176!MapChange!1!1
+235=27 2 2 144 48 0 0 6!8!65 1 255 255 255 255 - Centre ChangeDir!0 StageDone!2BlockMoving Delay120!PlaySound!Elevator2 Delay120!DeslocY!-1!-1 Delay176!MapChange!1!1
 
 [SETUP]
 AutoStartEvent=RunEffect!47!5!6 RunEffect!47!7!8

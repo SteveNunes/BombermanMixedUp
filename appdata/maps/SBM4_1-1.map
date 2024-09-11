@@ -21,7 +21,7 @@
 19=26 16 8 64 64 1 0 12 1 255 255 255 255 -
 20=26 8 7 32 144 0 0 12 1 255 255 255 255 -
 21=26 8 7 48 96 0 0 12 1 255 255 255 255 -
-22=26 8 10 16 224 0 0 6!7!8!10 1 255 255 255 255 - StepTrigger CopyTileImage!3!1!3!3!2!26!7!9 CopyTileImage!3!4!3!1!2!76!0!1 DisableTileEffect!1!-!- EnableTileEffect!1!6!10 EnableTileEffect!1!7!10 EnableTileEffect!1!9!10 EnableTileEffect!1!10!10 DeslocY!4
+22=26 8 10 16 224 0 0 6!7!8!10!65 1 255 255 255 255 - CopyTileImage!3!1!3!3!2!26!7!9 CopyTileImage!3!4!3!1!2!76!0!1 DisableTileEffect!1!-!- EnableTileEffect!1!6!10 EnableTileEffect!1!7!10 EnableTileEffect!1!9!10 EnableTileEffect!1!10!10 DeslocY!4
 23=26 11 10 128 0 0 0 1 1 255 255 255 255 -
 24=26 11 4 128 0 0 0 16 1 255 255 255 255 -
 25=26 8 4 128 0 0 0 1!15 1 255 255 255 255 -
@@ -35,7 +35,7 @@
 33=26 1 2 80 64 0 0 12 1 255 255 255 255 -
 34=26 16 7 64 64 1 0 12 1 255 255 255 255 -
 35=26 13 10 128 0 0 0 1 1 255 255 255 255 -
-36=26 6 10 128 0 0 0 10 1 255 255 255 255 - StepTrigger CopyTileImage!9!1!3!3!2!26!7!9 CopyTileImage!9!4!3!1!2!76!0!1 DisableTileEffect!1!-!- EnableTileEffect!1!7!10 EnableTileEffect!1!8!10 EnableTileEffect!1!9!10 EnableTileEffect!1!10!10 DeslocY!0
+36=26 6 10 128 0 0 0 10!65 1 255 255 255 255 - CopyTileImage!9!1!3!3!2!26!7!9 CopyTileImage!9!4!3!1!2!76!0!1 DisableTileEffect!1!-!- EnableTileEffect!1!7!10 EnableTileEffect!1!8!10 EnableTileEffect!1!9!10 EnableTileEffect!1!10!10 DeslocY!0
 37=26 13 4 128 0 0 0 16 1 255 255 255 255 -
 38=26 6 4 128 0 0 0 16 1 255 255 255 255 -
 39=26 6 5 128 0 0 0 16 1 255 255 255 255 -
@@ -72,8 +72,8 @@
 70=26 12 8 128 0 0 0 10 1 255 255 255 255 -
 71=26 7 7 16 144 0 0 12 1 255 255 255 255 -
 72=26 7 7 48 96 0 0 12 1 255 255 255 255 -
-73=26 7 10 0 224 0 0 6!7!8!10 1 255 255 255 255 - StepTrigger CopyTileImage!0!1!3!3!2!26!7!9 CopyTileImage!0!4!3!1!2!76!0!1 DisableTileEffect!1!-!- EnableTileEffect!1!6!10 EnableTileEffect!1!8!10 EnableTileEffect!1!9!10 EnableTileEffect!1!10!10 DeslocY!2
-74=26 10 10 128 0 0 0 10 1 255 255 255 255 - StepTrigger CopyTileImage!9!1!3!3!2!26!7!9 CopyTileImage!9!4!3!1!2!76!0!1 DisableTileEffect!1!-!- EnableTileEffect!1!6!10 EnableTileEffect!1!7!10 EnableTileEffect!1!8!10 EnableTileEffect!1!9!10 DeslocY!0
+73=26 7 10 0 224 0 0 6!7!8!10!65 1 255 255 255 255 - CopyTileImage!0!1!3!3!2!26!7!9 CopyTileImage!0!4!3!1!2!76!0!1 DisableTileEffect!1!-!- EnableTileEffect!1!6!10 EnableTileEffect!1!8!10 EnableTileEffect!1!9!10 EnableTileEffect!1!10!10 DeslocY!2
+74=26 10 10 128 0 0 0 10!65 1 255 255 255 255 - CopyTileImage!9!1!3!3!2!26!7!9 CopyTileImage!9!4!3!1!2!76!0!1 DisableTileEffect!1!-!- EnableTileEffect!1!6!10 EnableTileEffect!1!7!10 EnableTileEffect!1!8!10 EnableTileEffect!1!9!10 DeslocY!0
 75=26 5 10 128 0 0 0 1 1 255 255 255 255 -
 76=26 4 10 128 0 0 0 1!15 1 255 255 255 255 -
 77=26 10 4 128 0 0 0 16 1 255 255 255 255 -
@@ -236,7 +236,7 @@
 234=26 11 3 128 64 0 0 20 1 255 255 255 255 -
 235=26 9 7 48 144 0 0 12 1 255 255 255 255 -
 236=26 9 7 48 96 0 0 12 1 255 255 255 255 -
-237=26 9 10 0 224 1 0 6!7!8!10 1 255 255 255 255 - StepTrigger CopyTileImage!6!1!3!3!2!26!7!9 CopyTileImage!6!4!3!1!2!76!0!1 DisableTileEffect!1!-!- EnableTileEffect!1!6!10 EnableTileEffect!1!7!10 EnableTileEffect!1!8!10 EnableTileEffect!1!10!10 DeslocY!2
+237=26 9 10 0 224 1 0 6!7!8!10!65 1 255 255 255 255 - CopyTileImage!6!1!3!3!2!26!7!9 CopyTileImage!6!4!3!1!2!76!0!1 DisableTileEffect!1!-!- EnableTileEffect!1!6!10 EnableTileEffect!1!7!10 EnableTileEffect!1!8!10 EnableTileEffect!1!10!10 DeslocY!2
 238=26 14 7 32 32 0 0 12 1 255 255 255 255 -
 239=26 14 7 80 48 1 0 12 1 255 255 255 255 -
 240=26 14 10 80 64 1 0 12 1 255 255 255 255 -

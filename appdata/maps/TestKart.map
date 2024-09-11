@@ -494,7 +494,7 @@
 492=27 4 2 48 112 0 0 16 1 255 255 255 255 -
 493=27 1 2 144 144 0 0 12 1 255 255 255 255 -
 494=27 2 1 160 128 0 0 12 1 255 255 255 255 -
-495=27 2 2 160 144 0 0 6!8 1 255 255 255 255 - StepTrigger ProgramedWalking!0!-!0!2!0.5!-!X!Y-48 MapChange!1!1
+495=27 2 2 160 144 0 0 6!8!65 1 255 255 255 255 - ProgramedWalking!0!-!0!2!0.5!-!X!Y-48 MapChange!1!1
 
 [SETUP]
 AutoStartEvent=RunEffect!47!8!3 RunEffect!47!12!6 RunEffect!47!4!11

@@ -4,6 +4,7 @@
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -40,12 +41,18 @@
                         </VBox>
                         <VBox spacing="10.0">
                            <children>
-                              <HBox spacing="30.0">
+                              <HBox alignment="CENTER_LEFT" spacing="30.0">
                                  <children>
                                     <CheckBox fx:id="checkBoxShowGrid" mnemonicParsing="false" text="Exibir grade" />
                                     <CheckBox fx:id="checkBoxShowAim" mnemonicParsing="false" text="Exibir mira" />
                                     <CheckBox fx:id="checkBoxShowBlockType" mnemonicParsing="false" text="Exibir contorno do tipo de bloco" />
                                     <CheckBox fx:id="checkBoxShowBricks" mnemonicParsing="false" text="Exibir tijolos" />
+                                    <HBox alignment="CENTER_LEFT" spacing="5.0">
+                                       <children>
+                                          <Button fx:id="buttonPlay" mnemonicParsing="false" prefWidth="32.0" />
+                                          <ComboBox fx:id="comboBoxMapFrameSets" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
                                  </children>
                               </HBox>
                               <Canvas fx:id="canvasMain" height="720.0" width="960.0" />
@@ -130,7 +137,7 @@
                               <Canvas fx:id="canvasGroundWithBrickShadow" height="48.0" width="48.0" />
                               <VBox spacing="5.0">
                                  <children>
-                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Chão com sombra de bloco único" />
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Chão com sombra de tijolo" />
                                     <Button fx:id="buttonSetFrameSetGroundWithBrickShadow" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Definir como bloco selecionado" />
                                  </children>
                               </VBox>
@@ -138,10 +145,10 @@
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                            <children>
-                              <Canvas fx:id="canvasGroundWithWallShadow" height="48.0" width="48.0" />
+                              <Canvas fx:id="canvasFragileGround" height="48.0" width="48.0" />
                               <VBox spacing="5.0">
                                  <children>
-                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Chão com sobra da parede" />
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Chão frágil" />
                                     <Button fx:id="buttonSetFrameSetGroundWithWallShadow" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Definir como bloco selecionado" />
                                  </children>
                               </VBox>

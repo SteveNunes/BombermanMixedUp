@@ -1,9 +1,8 @@
 [CONFIG]
-HurryUpTile=0 48
+WallTile=0 48
 GroundTile=32 48
-GroundWithShadowFromBlock=16 48
-GroundWithShadowFromWall=16 48
-Fragile=48 48 2
+GroundWithBrickShadow=16 48
+FragileGround=48 48
 BrickStandFrameSet={SetSprSource;/tileset/Tile02Clouds;0;64;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}
 BrickBreakFrameSet={SetSprSource;/tileset/Tile02Clouds;0;80;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 BrickRegenFrameSet={SetSprSource;/tileset/Tile02Clouds;80;80;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}

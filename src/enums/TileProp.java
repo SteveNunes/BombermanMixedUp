@@ -74,7 +74,12 @@ public enum TileProp {
 	TRIGGER_BY_EXPLOSION(70), // As Tags de tile só são disparadas se uma explosão acertar o tile
 	TRIGGER_BY_MOB(71), // As Tags de tile só são disparadas se um mob passar pelo tile
 	TRIGGER_BY_ITEM(72), // As Tags de tile só são disparadas se um item cair no tile
-	TRIGGER_BY_BLOCK(73); // As Tags de tile só são disparadas se um bloco cair no tile
+	TRIGGER_BY_BLOCK(73), // As Tags de tile só são disparadas se um bloco cair no tile
+	NO_TRIGGER_WHILE_HAVE_PLAYER(74), // As Tags de tile só são disparadas se não houver player no bloco atual
+	NO_TRIGGER_WHILE_HAVE_MOB(75), // As Tags de tile só são disparadas se não houver mob no bloco atual
+	NO_TRIGGER_WHILE_HAVE_BRICK(76), // As Tags de tile só são disparadas se não houver tijolo no bloco atual
+	NO_TRIGGER_WHILE_HAVE_ITEM(77), // As Tags de tile só são disparadas se não houver item no bloco atual
+	NO_TRIGGER_WHILE_HAVE_BOMB(78); // As Tags de tile só são disparadas se não houver bomba no bloco atual
 	// VAGOS: 18 49 50 51
 	
 	private int value;
@@ -142,15 +147,20 @@ public enum TileProp {
 		put(62, MAGNET_R);
 		put(63, MAGNET_U);
 		put(64, MAGNET_L);
-		put(64, TRIGGER_BY_PLAYER);
-		put(65, TRIGGER_BY_UNRIDE_PLAYER);
-		put(66, TRIGGER_BY_RIDE);
-		put(67, TRIGGER_BY_BOMB);
-		put(68, TRIGGER_BY_STOPPED_BOMB);
-		put(69, TRIGGER_BY_EXPLOSION);
-		put(70, TRIGGER_BY_MOB);
-		put(71, TRIGGER_BY_ITEM);
-		put(72, TRIGGER_BY_BLOCK);
+		put(65, TRIGGER_BY_PLAYER);
+		put(66, TRIGGER_BY_UNRIDE_PLAYER);
+		put(67, TRIGGER_BY_RIDE);
+		put(68, TRIGGER_BY_BOMB);
+		put(69, TRIGGER_BY_STOPPED_BOMB);
+		put(70, TRIGGER_BY_EXPLOSION);
+		put(71, TRIGGER_BY_MOB);
+		put(72, TRIGGER_BY_ITEM);
+		put(73, TRIGGER_BY_BLOCK);
+		put(74, NO_TRIGGER_WHILE_HAVE_PLAYER);
+		put(75, NO_TRIGGER_WHILE_HAVE_MOB);
+		put(76, NO_TRIGGER_WHILE_HAVE_BRICK);
+		put(77, NO_TRIGGER_WHILE_HAVE_ITEM);
+		put(78, NO_TRIGGER_WHILE_HAVE_BOMB);
 	}};
 	
 	private TileProp(int value)

@@ -1,8 +1,7 @@
 [CONFIG]
-HurryUpTile=48 16
+WallTile=48 16
 GroundTile=64 16
-GroundWithShadowFromBlock=32 16
-GroundWithShadowFromWall=32 16
+GroundWithBrickShadow=32 16
 BrickStandFrameSet={SetSprSource;/tileset/Tile24;0;64;16;16;0;0;0;0;16;16},{SetTicksPerFrame;4},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{SetSprIndex;4}|{SetSprIndex;5}|{SetSprIndex;6}|{SetSprIndex;7}|{SetSprIndex;8}|{SetSprIndex;9}|{SetSprIndex;10}|{SetSprIndex;11}|{Goto;0}
 BrickBreakFrameSet={SetSprSource;/tileset/Tile24;0;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 BrickRegenFrameSet={SetSprSource;/tileset/Tile24;80;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}

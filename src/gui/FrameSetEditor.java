@@ -942,7 +942,7 @@ public class FrameSetEditor {
 		if (bgType == 2)
 			SquaredBg.draw(gcs.get(SpriteLayerType.BACKGROUND));
 		else if (bgType == 1)
-			mapSet.draw(gcs.get(SpriteLayerType.BACKGROUND));
+			mapSet.run(gcs.get(SpriteLayerType.BACKGROUND));
 		if (linkEntityToCursor > 0) {
 			if (linkEntityToCursor == 2)
 				currentEntity.setPosition(mouseX, mouseY);
