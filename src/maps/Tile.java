@@ -8,6 +8,7 @@ import java.util.Map;
 
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
+import entities.TileCoord;
 import enums.ImageFlip;
 import enums.TileProp;
 import gui.util.ImageUtils;
@@ -28,7 +29,7 @@ public class Tile {
 	Color tint;
 	double opacity;
 	DrawImageEffects effects;
-	public static Map<String, String> tags = new HashMap<>();
+	public static Map<TileCoord, String> tags = new HashMap<>();
 	
 	public Tile(MapSet originMapSet, int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp)
 		{ this(originMapSet, spriteX, spriteY, outX, outY, tileProp, ImageFlip.NONE, 0, 1, Color.WHITE, null); }
@@ -76,7 +77,7 @@ public class Tile {
 					TileProp prop = TileProp.getPropFromValue(v);
 					tileProp.add(prop);
 					if (layer == 26 && prop == TileProp.FIXED_BRICK)
-						Brick.addBrick(originMapSet, outX / Main.tileSize, outY / Main.tileSize, null);
+						Brick.addBrick(originMapSet, getTileCoord(), null);
 				}
 			}			
 			n++; opacity = split.length <= n ? 1 : Double.parseDouble(split[n]);
@@ -98,15 +99,20 @@ public class Tile {
 	}
 	
 	public static void addStringTag(int tileDX, int tileDY, String tag)
-		{ tags.put(tileDX + "," + tileDY, tag); }
+		{ tags.put(new TileCoord(tileDX, tileDY), tag); }
 	
-	public static String getStringTag(int tileDX, int tileDY)
-		{ return tags.containsKey(tileDX + "," + tileDY) ? tags.get(tileDX + "," + tileDY) : null; }
+	public static String getStringTag(int tileDX, int tileDY) {
+		TileCoord coord = new TileCoord(tileDX, tileDY);
+		return tags.containsKey(coord) ? tags.get(coord) : null;
+	}
 	
-	public int getTileDX()
+	public TileCoord getTileCoord()
+		{ return new TileCoord(outX / 16, outY / 16); }
+	
+	public int getTileX()
 		{ return outX / 16; }
 	
-	public int getTileDY()
+	public int getTileY()
 		{ return outY / 16; }
 	
 }

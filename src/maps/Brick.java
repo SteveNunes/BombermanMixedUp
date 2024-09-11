@@ -8,14 +8,13 @@ import java.util.Map;
 
 import application.Main;
 import entities.Entity;
-import entities.FrameSet;
-import entities.TilePos;
+import entities.TileCoord;
 import javafx.scene.canvas.GraphicsContext;
 import util.IniFile;
 
 public class Brick extends Entity {
 
-	private static Map<TilePos, Brick> bricks = new HashMap<>();
+	private static Map<TileCoord, Brick> bricks = new HashMap<>();
 	private MapSet originMapSet;
 	private Item item;
 	
@@ -26,10 +25,13 @@ public class Brick extends Entity {
 		item = brick.item;
 	}
 
-	public Brick(MapSet originMapSet, int tileX, int tileY)
-		{ this(originMapSet, tileX, tileY, null); }
+	public Brick(MapSet originMapSet)
+		{ this(originMapSet, new TileCoord(), null); }
+
+	public Brick(MapSet originMapSet, TileCoord coord)
+		{ this(originMapSet, coord, null); }
 	
-	public Brick(MapSet originMapSet, int tileX, int tileY, Item item) {
+	public Brick(MapSet originMapSet, TileCoord coord, Item item) {
 		super();
 		setTileSize(Main.tileSize);
 		this.originMapSet = originMapSet;
@@ -39,37 +41,32 @@ public class Brick extends Entity {
 		for (String frameSet : Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet"))
 		addNewFrameSetFromString(frameSet, ini2.read("CONFIG", frameSet));
 		setFrameSet("BrickStandFrameSet");
-		setPosition(tileX * Main.tileSize, tileY * Main.tileSize);
+		setPosition(coord.getPosition());
 	}
 	
 	public static void addBrick(Brick brick)
-		{ addBrick(brick, brick.getTileX(), brick.getTileY()); }
+		{ addBrick(brick, brick.getTileCoord()); }
 
-	public static void addBrick(Brick brick, int tileX, int tileY) {
-		brick.setPosition(tileX * Main.tileSize, tileY * Main.tileSize);
-		bricks.put(new TilePos(tileX, tileY), brick);
+	public static void addBrick(Brick brick, TileCoord coord) {
+		brick.setPosition(coord.getPosition());
+		bricks.put(coord, brick);
 	}
 
-	public static void addBrick(MapSet originMapSet, int tileX, int tileY, Item item) {
-		Brick brick = new Brick(originMapSet, tileX, tileY, item);
-		bricks.put(new TilePos(tileX, tileY), brick);
+	public static void addBrick(MapSet originMapSet, TileCoord coord, Item item) {
+		Brick brick = new Brick(originMapSet, coord, item);
+		bricks.put(coord, brick);
 	}
 	
 	public static void removeBrick(Brick brick) {
-		for (TilePos tilePos : bricks.keySet())
+		for (TileCoord tilePos : bricks.keySet())
 			if (bricks.get(tilePos) == brick) {
 				bricks.remove(tilePos);
 				return;
 			}
 	}
 	
-	public static void removeBrick(int tileX, int tileY) {
-		for (Brick brick : bricks.values())
-			if (brick.getTileX() == tileX && brick.getTileY() == tileY) {
-				removeBrick(brick);
-				return;
-			}
-	}
+	public static void removeBrick(TileCoord coord)
+		{ bricks.remove(coord); }
 	
 	public static void clearBricks()
 		{ bricks.clear(); }
@@ -82,7 +79,7 @@ public class Brick extends Entity {
 			brick.run(gc, false);
 	}
 
-	public static boolean haveBrickAt(int tileDX, int tileDY)
-		{ return bricks.containsKey(new TilePos(tileDX, tileDY)); }
+	public static boolean haveBrickAt(TileCoord coord)
+		{ return bricks.containsKey(coord); }
 	
 }

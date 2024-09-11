@@ -8,15 +8,15 @@ import objmoveutils.Position;
 
 public class Portal {
 
-	private String destinationMap;
+	private String originMapSet;
 	private int spawnMobsUponExplodesQuantity;
 	private List<PortalCriteria> portalDisplayCriterias;
 	private List<PortalCriteria> portalJoinCriterias;
 	private Position tilePosition;
 	private String activationSound;
 	
-	public Portal(String destinationMap, Position tilePosition) {
-		this.destinationMap = destinationMap;
+	public Portal(String oroginMapSet, Position tilePosition) {
+		this.originMapSet = oroginMapSet;
 		this.tilePosition = new Position(tilePosition);
 		spawnMobsUponExplodesQuantity = 0;
 		portalDisplayCriterias = new ArrayList<>();

@@ -64,7 +64,7 @@ public class MapSet extends Entity{
 		groundWithBrickShadow = getTilePositionFromIni(ini2, "GroundWithBrickShadow");
 		wallTile = getTilePositionFromIni(ini2, "WallTile");
 		fragileGround = getTilePositionFromIni(ini2, "FragileGround");
-		setFrameSet("DefaultFrameSet");
+		//setFrameSet("DefaultFrameSet"); // REABILITAR LINHA DEPOIS DE IMPLEMENTAR FRAMESET DE MAPA
 		if (ini.read(iniMapName, "Blocks") != null && !ini.read(iniMapName, "Blocks").equals("0")) {
 			String[] split = ini.read(iniMapName, "Blocks").split("!");
 			int minBricks = Integer.parseInt(split[0]);
@@ -73,12 +73,13 @@ public class MapSet extends Entity{
 			int bricksQuant = 0;
 			while (totalBricks > 0) {
 				int totalBrickSpawners = 0;
-				for (Tile t : getLayer(26).getTiles())
+				System.out.println(mapName);
+				for (Tile t : getLayer(26).getTileList())
 					for (TileProp p : t.tileProp)
-						if (p == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(t.getTileDX(), t.getTileDY())) {
+						if (p == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(t.getTileCoord())) {
 							totalBrickSpawners++;
 							if (GameMisc.getRandom(0, 3) == 0) {
-								Brick.addBrick(this, t.getTileDX(), t.getTileDY(), null);
+								Brick.addBrick(this, t.getTileCoord(), null);
 								if (++bricksQuant == totalBricks)
 									return;
 							}
@@ -98,9 +99,8 @@ public class MapSet extends Entity{
 		if (split2.length > 0) {
 			try
 				{ position.setPosition(Integer.parseInt(split2[0]), Integer.parseInt(split2[1])); }
-			catch (Exception e) {
-				throw new RuntimeException(ini2.read("CONFIG", tileStr) + " - Invalid data on file \"" + ini2.getFilePath().getFileName() + "\"");
-			}
+			catch (Exception e)
+				{ GameMisc.throwRuntimeException(ini2.read("CONFIG", tileStr) + " - Invalid data on file \"" + ini2.getFilePath().getFileName() + "\""); }
 		}
 		return position;
 	}
@@ -120,8 +120,11 @@ public class MapSet extends Entity{
 	public Map<Integer, Layer> getLayersMap()
 		{ return layers; }
 	
-	public Layer getLayer(int layerIndex)
-		{ return layers.get(layerIndex); }
+	public Layer getLayer(int layerIndex) {
+		if (!layers.containsKey(layerIndex))
+			GameMisc.throwRuntimeException(layerIndex + " - Invalid layer index");
+		return layers.get(layerIndex);
+	}
 	
 	public Integer getCopyLayer()
 		{ return copyImageLayer; }
@@ -140,12 +143,5 @@ public class MapSet extends Entity{
 
 	public String getIniMapName()
 		{ return iniMapName; }
-
-	public Tile getTileAt(int layerIndex, int x, int y) {
-		for (Tile tile : getLayer(layerIndex).getTiles())
-			if (tile.getTileDX() == x && tile.getTileDY() == y)
-				return tile;
-		return null;
-	}
 
 }

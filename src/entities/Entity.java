@@ -15,6 +15,7 @@ import enums.SpriteLayerType;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import objmoveutils.Position;
+import tools.GameMisc;
 
 public class Entity extends Position {
 	
@@ -83,6 +84,9 @@ public class Entity extends Position {
 		isDead = false;
 	}
 	
+	public TileCoord getTileCoord()
+		{ return new TileCoord(getTileX(), getTileY()); }
+
 	public boolean isLinkedToAnEntity()
 		{ return linkedEntityBack != null || linkedEntityFront != null; }
 
@@ -191,23 +195,29 @@ public class Entity extends Position {
 		{ return frameSets.get(frameSetName); }
 	
 	public void setFrameSet(String frameSetName) {
-		if (freshFrameSets.containsKey(frameSetName))
-			frameSets.put(frameSetName, new FrameSet(freshFrameSets.get(frameSetName), this));
+		if (!frameSets.containsKey(frameSetName))
+			GameMisc.throwRuntimeException(frameSetName + " - Invalid FrameSet name for this entity");
+		frameSets.put(frameSetName, new FrameSet(freshFrameSets.get(frameSetName), this));
 		currentFrameSetName = frameSetName;
 	}
 	
 	public void addFrameSet(String frameSetName, FrameSet frameSet) {
-		if (!frameSets.containsKey(frameSetName)) {
-			frameSets.put(frameSetName, frameSet);
-			freshFrameSets.put(frameSetName, new FrameSet(frameSet, this));
-		}
+		if (frameSets.containsKey(frameSetName))
+			GameMisc.throwRuntimeException(frameSetName + " - This entity already have a FrameSet with this name. Use 'replaceFrameSet()' instead.");
+		frameSets.put(frameSetName, frameSet);
+		freshFrameSets.put(frameSetName, new FrameSet(frameSet, this));
+	}
+		
+	public void replaceFrameSet(String existingFrameSetName, FrameSet newFrameSet) {
+		removeFrameSet(existingFrameSetName);
+		addFrameSet(existingFrameSetName, newFrameSet);
 	}
 	
 	public void removeFrameSet(String frameSetName) {
-		if (frameSets.containsKey(frameSetName)) {
-			frameSets.remove(frameSetName);
-			freshFrameSets.remove(frameSetName);
-		}
+		if (!frameSets.containsKey(frameSetName))
+			GameMisc.throwRuntimeException(frameSetName + " - This entity don't have a FrameSet with this name.");
+		frameSets.remove(frameSetName);
+		freshFrameSets.remove(frameSetName);
 	}
 
 	public void run(GraphicsContext gc)
@@ -224,6 +234,8 @@ public class Entity extends Position {
 		{ run(gc, false); }
 
 	public void run(Map<SpriteLayerType, GraphicsContext> gc, boolean isPaused) {
+		if (frameSets.isEmpty())
+			GameMisc.throwRuntimeException("This entity have no FrameSets");
 		if (frameSets.containsKey(currentFrameSetName)) {
 			if (linkedEntityFront != null) {
 				if (linkedEntityInfos.isEmpty()) {
@@ -361,8 +373,7 @@ public class Entity extends Position {
 			frameSet = new FrameSet(this);
 			frameSet.loadFromString(stringWithFrameTags);
 		}
-		frameSets.put(frameSetName, frameSet);
-		freshFrameSets.put(frameSetName, new FrameSet(frameSet, this));
+		addFrameSet(frameSetName, frameSet);
 	}
 	
 	public void restartCurrentFrameSet()
@@ -372,9 +383,9 @@ public class Entity extends Position {
 
 class LinkedEntityInfos {
 	
-	public double x;
-	public double y;
-	public Direction direction;
+	double x;
+	double y;
+	Direction direction;
 	
 	public LinkedEntityInfos(Entity entity) {
 		x = entity.getX();
