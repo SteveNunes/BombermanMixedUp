@@ -7,16 +7,23 @@ import java.util.Map;
 
 import application.Main;
 import entities.Entity;
+import enums.SpriteLayerType;
 import enums.TileProp;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import objmoveutils.Position;
 import tools.GameMisc;
+import tools.IniFiles;
 import tools.Materials;
 import util.IniFile;
 
 public class MapSet extends Entity{
 	
+	public static Map<SpriteLayerType, Map<Integer, WritableImage>> layerImages = null;
+
 	private Map<Integer, Layer> layers;
+	private IniFile iniFileMap;
+	private IniFile iniFileTileSet;
 	private Image tileSetImage;
 	private Integer copyImageLayer;
 	private String mapName;
@@ -25,55 +32,76 @@ public class MapSet extends Entity{
 	private Position groundTile;
 	private Position wallTile;
 	private Position groundWithBrickShadow;
+	private Position groundWithWallShadow;
 	private Position fragileGround;
-	private int minLayer;
-	private int maxLayer;
 	
 	public MapSet(String iniMapName) {
-		Brick.clearBricks();
+		layerImages = new HashMap<>();
 		setTileSize(Main.tileSize);
 		this.iniMapName = iniMapName;
 		layers = new HashMap<>();
-		minLayer = 9999;
-		maxLayer = 0;
-		IniFile ini = IniFile.getNewIniFileInstance("appdata/configs/Stages.cfg");
-		mapName = ini.read(iniMapName, "File");
-		IniFile ini2 = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
-		if (ini2 == null)
+		mapName = IniFiles.stages.read(iniMapName, "File");
+		iniFileMap = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
+		if (iniFileMap == null)
 			GameMisc.throwRuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
-		tileSetName = ini2.read("SETUP", "Tiles");
+		tileSetName = iniFileMap.read("SETUP", "Tiles");
+		iniFileTileSet = IniFile.getNewIniFileInstance("appdata/tileset/" + tileSetName + ".tiles");
+		if (iniFileTileSet == null)
+			GameMisc.throwRuntimeException("Unable to load map \"" + mapName + "\" (Invalid TileSet (" + tileSetName + ".tiles))");
 		tileSetImage = Materials.tileSets.get(tileSetName);
 		Map<Integer, List<String>> tileInfos = new HashMap<>();
-		copyImageLayer = ini2.readAsInteger("SETUP", "ImageLayer", null);
-		for (String item : ini2.getItemList("TILES")) {
-			String line = ini2.read("TILES", item);
+		copyImageLayer = iniFileMap.readAsInteger("SETUP", "ImageLayer", null);
+		for (String item : iniFileMap.getItemList("TILES")) {
+			String line = iniFileMap.read("TILES", item);
 			int layer = Integer.parseInt(line.split(" ")[0]);
 			if (!tileInfos.containsKey(layer))
 				tileInfos.put(layer, new ArrayList<>());
 			tileInfos.get(layer).add(line);
-			if (layer > maxLayer)
-				maxLayer = layer;
-			if (layer < minLayer)
-				minLayer = layer;
 		}
 		for (Integer i : tileInfos.keySet()) {
 			Layer layer = new Layer(this, tileInfos.get(i));
 			layers.put(i, layer);
+			if (!layerImages.containsKey(layer.getSpriteLayerType()))
+				layerImages.put(layer.getSpriteLayerType(), new HashMap<>());
+			if (!layerImages.get(layer.getSpriteLayerType()).containsKey(i))
+				layerImages.get(layer.getSpriteLayerType()).put(i, layer.getLayerImage());
 		}
-		groundTile = getTilePositionFromIni(ini2, "GroundTile");
-		groundWithBrickShadow = getTilePositionFromIni(ini2, "GroundWithBrickShadow");
-		wallTile = getTilePositionFromIni(ini2, "WallTile");
-		fragileGround = getTilePositionFromIni(ini2, "FragileGround");
+		groundTile = getTilePositionFromIni(iniFileMap, "GroundTile");
+		groundWithBrickShadow = getTilePositionFromIni(iniFileMap, "GroundWithBrickShadow");
+		groundWithWallShadow = getTilePositionFromIni(iniFileMap, "GroundWithWallShadow");
+		wallTile = getTilePositionFromIni(iniFileMap, "WallTile");
+		fragileGround = getTilePositionFromIni(iniFileMap, "FragileGround");
+		if (groundWithBrickShadow == null && groundWithWallShadow != null)
+			groundWithBrickShadow = new Position(groundWithWallShadow);
+		if (groundWithWallShadow == null && groundWithBrickShadow != null)
+			groundWithWallShadow = new Position(groundWithBrickShadow);
 		//setFrameSet("DefaultFrameSet"); // REABILITAR LINHA DEPOIS DE IMPLEMENTAR FRAMESET DE MAPA
-		if (ini.read(iniMapName, "Blocks") != null && !ini.read(iniMapName, "Blocks").equals("0")) {
-			String[] split = ini.read(iniMapName, "Blocks").split("!");
+		setBricks();
+	}
+	
+	public void setTileSet(String tileSetName) {
+		this.tileSetName = tileSetName; 
+		tileSetImage = Materials.tileSets.get(tileSetName);
+		iniFileTileSet = IniFile.getNewIniFileInstance("appdata/tileset/" + tileSetName + ".tiles");
+		for (Layer layer : layers.values())
+			layer.buildLayer();
+		setBricks();
+	}
+
+	public void setBricks() {
+		Brick.clearBricks();
+		for (Tile t : getLayer(26).getTileList())
+			for (TileProp p : t.tileProp)
+				if (p == TileProp.FIXED_BRICK)
+					Brick.addBrick(this, t.getTileCoord(), null);
+		if (IniFiles.stages.read(iniMapName, "Blocks") != null && !IniFiles.stages.read(iniMapName, "Blocks").equals("0")) {
+			String[] split = IniFiles.stages.read(iniMapName, "Blocks").split("!");
 			int minBricks = Integer.parseInt(split[0]);
 			int maxBricks = Integer.parseInt(split[split.length == 1 ? 0 : 1]);
 			int totalBricks = GameMisc.getRandom(minBricks, maxBricks);
 			int bricksQuant = 0;
 			while (totalBricks > 0) {
 				int totalBrickSpawners = 0;
-				System.out.println(mapName);
 				for (Tile t : getLayer(26).getTileList())
 					for (TileProp p : t.tileProp)
 						if (p == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(t.getTileCoord())) {
@@ -90,17 +118,22 @@ public class MapSet extends Entity{
 		}
 	}
 	
+	public IniFile getMapIniFile()
+		{ return iniFileMap; }
+	
+	public IniFile getTileSetIniFile()
+		{ return iniFileTileSet; }
+
 	private Position getTilePositionFromIni(IniFile ini, String tileStr) {
 		Position position = new Position();
-		IniFile ini2 = IniFile.getNewIniFileInstance("appdata/tileset/" + ini.read("SETUP", "Tiles") + ".tiles");
-		if (ini2.read("CONFIG", tileStr) == null)
+		if (iniFileTileSet.read("CONFIG", tileStr) == null)
 			return null;
-		String[] split2 = ini2.read("CONFIG", tileStr).split(" ");
+		String[] split2 = iniFileTileSet.read("CONFIG", tileStr).split(" ");
 		if (split2.length > 0) {
 			try
 				{ position.setPosition(Integer.parseInt(split2[0]), Integer.parseInt(split2[1])); }
 			catch (Exception e)
-				{ GameMisc.throwRuntimeException(ini2.read("CONFIG", tileStr) + " - Invalid data on file \"" + ini2.getFilePath().getFileName() + "\""); }
+				{ GameMisc.throwRuntimeException(iniFileTileSet.read("CONFIG", tileStr) + " - Invalid data on file \"" + iniFileTileSet.getFilePath().getFileName() + "\""); }
 		}
 		return position;
 	}
@@ -111,9 +144,12 @@ public class MapSet extends Entity{
 	public Position getWallTile()
 		{ return wallTile; }
 	
-	public Position getGroundWithBlockShadow()
+	public Position getGroundWithBrickShadow()
 		{ return groundWithBrickShadow; }
 	
+	public Position getGroundWithWallShadow()
+		{ return groundWithWallShadow; }
+
 	public Position getFragileGround()
 		{ return fragileGround; }
 	

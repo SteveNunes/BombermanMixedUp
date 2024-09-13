@@ -7,6 +7,7 @@ import java.util.Random;
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
 import gameutil.FPSHandler;
+import javafx.scene.Node;
 import util.IniFile;
 
 public abstract class GameMisc {
@@ -18,7 +19,6 @@ public abstract class GameMisc {
 	static {
 		fpsHandler = new FPSHandler(60);
 		random = new Random(new SecureRandom().nextInt(Integer.MAX_VALUE));
-		iniFile = IniFile.getNewIniFileInstance("D:/Java/Bomberman - Mixed Up!/appdata/configs/Monsters.cfg");
 	}
 	
 	public static FPSHandler getFPSHandler()
@@ -61,5 +61,8 @@ public abstract class GameMisc {
 		try { Thread.sleep(delay); }
 		catch (InterruptedException e) {}
 	}
+
+	public static void setNodeFont(Node buttonPlay, String fontName, int fontSize)
+		{ buttonPlay.setStyle("-fx-font-family: '" + fontName + "'; -fx-font-size: " + fontSize + "px;"); }
 
 }

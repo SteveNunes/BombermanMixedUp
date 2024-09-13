@@ -63,7 +63,8 @@ public class Tile {
 		this.originMapSet = originMapSet;
 		try {
 			layer = split.length <= n ? 0 : Integer.parseInt(split[n]);
-			n++; outX = split.length <= n ? 0 : Integer.parseInt(split[n]) * Main.tileSize;
+			// O segundo parametro eh ignorado pq so eh util no construtor da classe Layer
+			n += 2; outX = split.length <= n ? 0 : Integer.parseInt(split[n]) * Main.tileSize;
 			n++; outY = split.length <= n ? 0 : Integer.parseInt(split[n]) * Main.tileSize;
 			n++; spriteX = split.length <= n ? 0 : Integer.parseInt(split[n]);
 			n++; spriteY = split.length <= n ? 0 : Integer.parseInt(split[n]);
@@ -76,8 +77,6 @@ public class Tile {
 				if (TileProp.getPropFromValue(v) != null) {
 					TileProp prop = TileProp.getPropFromValue(v);
 					tileProp.add(prop);
-					if (layer == 26 && prop == TileProp.FIXED_BRICK)
-						Brick.addBrick(originMapSet, getTileCoord(), null);
 				}
 			}			
 			n++; opacity = split.length <= n ? 1 : Double.parseDouble(split[n]);
@@ -87,8 +86,8 @@ public class Tile {
 			n++; a = split.length <= n ? 255 : Integer.parseInt(split[n]);
 			tint = ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b, a));
 			n++; effects = split.length <= n ? null : GameMisc.loadEffectsFromString(MyConverters.arrayToString(split, n));
-			if (Main.mapEditor != null && split.length >= 14) {
-				String str = MyConverters.arrayToString(split, 14);
+			if (Main.mapEditor != null && split.length >= 15) {
+				String str = MyConverters.arrayToString(split, 15);
 				if (!str.isEmpty() && ((Main.mapEditor.getCurrentLayerIndex() == 26 && layer == 26) ||
 						(originMapSet.getCopyLayer() != null && Main.mapEditor.getCurrentLayerIndex() == originMapSet.getCopyLayer() && layer == originMapSet.getCopyLayer())))
 							addStringTag(outX / Main.tileSize, outY / Main.tileSize, str);

@@ -47,7 +47,7 @@ public class SquaredBg {
 		squaresBg = new int[h][w];
 		for (int y = 0; y < h; y++)
 	    for (int x = 0; x < w; x++)
-	      squaresBg[y][x] = GameMisc.getRandom(colorMinVal, colorMaxVal);
+	    	squaresBg[y][x] = GameMisc.getRandom(colorMinVal, colorMaxVal);
 		SquaredBg.squareSize = squareSize;
 		SquaredBg.colorMinVal = colorMinVal;
 		SquaredBg.colorMaxVal = colorMaxVal;

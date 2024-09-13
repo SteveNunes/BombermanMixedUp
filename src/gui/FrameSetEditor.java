@@ -78,8 +78,8 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import maps.MapSet;
 import tools.GameMisc;
+import tools.IniFiles;
 import tools.SquaredBg;
-import util.IniFile;
 import util.MyFile;
 
 
@@ -166,14 +166,13 @@ public class FrameSetEditor {
 		currentEntity = new Entity();
 		currentEntity.setPosition(centerX, centerY);
 
-		IniFile ini = IniFile.getNewIniFileInstance("./appdata/configs/Monsters.ini");
-		currentEntity.addNewFrameSetFromString("MovingFrames.LEFT", ini.read("2", "MovingFrames.LEFT"));
-		currentEntity.addNewFrameSetFromString("MovingFrames.RIGHT", ini.read("2", "MovingFrames.RIGHT"));
-		currentEntity.addNewFrameSetFromString("MovingFrames.UP", ini.read("2", "MovingFrames.UP"));
-		currentEntity.addNewFrameSetFromString("MovingFrames.DOWN", ini.read("2", "MovingFrames.DOWN"));
+		currentEntity.addNewFrameSetFromString("MovingFrames.LEFT", IniFiles.monsters.read("2", "MovingFrames.LEFT"));
+		currentEntity.addNewFrameSetFromString("MovingFrames.RIGHT", IniFiles.monsters.read("2", "MovingFrames.RIGHT"));
+		currentEntity.addNewFrameSetFromString("MovingFrames.UP", IniFiles.monsters.read("2", "MovingFrames.UP"));
+		currentEntity.addNewFrameSetFromString("MovingFrames.DOWN", IniFiles.monsters.read("2", "MovingFrames.DOWN"));
 
-		currentEntity.addNewFrameSetFromString("IntroFrames", ini.read("1000", "IntroFrames"));
-		currentEntity.addNewFrameSetFromString("MovingFrames", ini.read("1000", "MovingFrames"));
+		currentEntity.addNewFrameSetFromString("IntroFrames", IniFiles.monsters.read("1000", "IntroFrames"));
+		currentEntity.addNewFrameSetFromString("MovingFrames", IniFiles.monsters.read("1000", "MovingFrames"));
 
 		currentEntity.setFrameSet("MovingFrames.LEFT");
 		
@@ -194,28 +193,28 @@ public class FrameSetEditor {
 		
 	}
 	
-	private void mainLoop() {
+	void mainLoop() {
 		drawDrawCanvas();
 		drawMainCanvas();
 		GameMisc.getFPSHandler().fpsCounter();
 		if (!Main.close )
 			Platform.runLater(() -> {
-				String title = "Sprite Editor \t FPS: " + GameMisc.getFPSHandler().getFPS() + " \t ";
+				String title = "Sprite Editor     FPS: " + GameMisc.getFPSHandler().getFPS() + "     ";
 				if (getCurrentFrameSetName() != null) {
 					title += "Frame Set: " + getCurrentFrameSetName() + 
-							" | Frames: " + (getCurrentFrameSet().getCurrentFrameIndex() + 1) +
+							"     Frames: " + (getCurrentFrameSet().getCurrentFrameIndex() + 1) +
 							"/" + getCurrentFrameSet().getTotalFrames() +
-							" | Sprites: " + getCurrentFrameSet().getTotalSprites() +
-							(isPaused ? " | (Paused)" : " | (Playing)") +
-							" | Scroll mode: " + getScrollMode() +
-							" | Move mode: " + getMoveMode();
+							"     Sprites: " + getCurrentFrameSet().getTotalSprites() +
+							(isPaused ? "     (Paused)" : "     (Playing)") +
+							"     Scroll mode: " + getScrollMode() +
+							"     Move mode: " + getMoveMode();
 				}
 				Main.stageMain.setTitle(title);
 				mainLoop();
 			});
 	}
 	
-	private void setDefaultContextMenu() {
+	void setDefaultContextMenu() {
 		defaultContextMenu = new ContextMenu();
 		Menu menu = new Menu("Adicionar FrameSet");
 		MenuItem item1 = new MenuItem("FrameSet em branco");
@@ -301,16 +300,16 @@ public class FrameSetEditor {
 		}
 	}
 	
-	private String getCurrentFrameSetName()
+	String getCurrentFrameSetName()
 		{ return currentEntity.getCurrentFrameSetName(); }
 
-	private FrameSet getCurrentFrameSet()
+	FrameSet getCurrentFrameSet()
 		{ return currentEntity.getCurrentFrameSet(); }
 
-	private Frame getCurrentFrame()
+	Frame getCurrentFrame()
 		{ return getCurrentFrameSet().getCurrentFrame(); }
 	
-	private void addFrameSet(FrameSet frameSet) {
+	void addFrameSet(FrameSet frameSet) {
 		String name = Alerts.textPrompt("Prompt", "Adicionar FrameSet", null, "Digite o nome do FrameSet á ser adicionado:");
 		if (currentEntity.getFrameSetsNames().contains(name))
 			Alerts.error("Erro", "Já existe um FrameSet com esse nome!");
@@ -330,17 +329,17 @@ public class FrameSetEditor {
 		}
 	}
 
-	private void addFrame(int index, Frame frame) {
+	void addFrame(int index, Frame frame) {
 		getCurrentFrameSet().addFrameAt(index, new Frame(frame));
 		Alerts.information("Info", "Frame(s) adcionado(s) com sucesso!");
 	}
 
-	private void iterateSelectedSprites(Consumer<Sprite> consumer) {
+	void iterateSelectedSprites(Consumer<Sprite> consumer) {
 		for (int n = 0, n2 = selectedSprites.size(); n < n2; n++)
 			consumer.accept(selectedSprites.get(n));
 	}
 	
-	private void setSpriteContextMenu() {
+	void setSpriteContextMenu() {
 		spriteContextMenu = new ContextMenu();
 		if (!selectedSprites.isEmpty()) {
 			MenuItem itemEditFrameTag = new MenuItem("Editar FrameTag do(s) Sprite(s) selecionado(s)");
@@ -368,7 +367,7 @@ public class FrameSetEditor {
 		}
 	}
 	
-	private void updateFrameSetTags(KeyCode keyCode, int incX, int incY) {
+	void updateFrameSetTags(KeyCode keyCode, int incX, int incY) {
 		if (isNoHolds()) {
 			if (keyCode == KeyCode.A)
 				currentEntity.setDirection(Direction.LEFT);
@@ -534,7 +533,7 @@ public class FrameSetEditor {
 		}
 	}
 	
-	private void setKeyboardEvents(Scene scene) {
+	void setKeyboardEvents(Scene scene) {
 		scene.setOnKeyPressed(e -> {
 			holdedKeys.add(e.getCode());
 			updateFrameSetTags(e.getCode(), 1, 1);
@@ -708,7 +707,7 @@ public class FrameSetEditor {
 		});		
 	}
 	
-	private void openHelpWindow() {
+	void openHelpWindow() {
 		if (stageHelpWindow != null) {
 			stageHelpWindow.close();
 			stageHelpWindow = null;
@@ -754,7 +753,7 @@ public class FrameSetEditor {
 		int ww, w = 0, h = 20 * str.length + 20;
 		for (String s : str) {
 			Text text = new Text(s);
-			text.setFont(font);
+			GameMisc.setNodeFont(text, "Lucida Console", 15);
 			if ((ww = (int)text.getBoundsInLocal().getWidth() + 110) > w)
 				w = ww;
 		}
@@ -783,14 +782,14 @@ public class FrameSetEditor {
 		stageHelpWindow.showAndWait();				
 	}
 
-	private void saveCtrlZ() {
+	void saveCtrlZ() {
 		System.out.println("saveCtrlZ");
 		backupFrameSets.add(new FrameSet(getCurrentFrameSet(), currentEntity));
 		backupFrameSetsMap.add(currentEntity.getFrameSetsMap());
 		backupIndex++;
 	}
 
-	private void rollback(int indexInc) {
+	void rollback(int indexInc) {
 		if (backupIndex >= 0) {
 			if ((backupIndex += indexInc) == -1)
 				backupIndex = backupFrameSets.size() - 1;
@@ -802,13 +801,13 @@ public class FrameSetEditor {
 		}
 	}
 	
-	private void ctrlZ()
+	void ctrlZ()
 		{ rollback(-1); }
 
-	private void ctrlY()
+	void ctrlY()
 		{ rollback(1); }
 
-	private String getScrollMode() {
+	String getScrollMode() {
 		return isNoHolds() ? "Index" :
 					 isHold(1, 0, 0) ? "Alignment" :
 					 isHold(0, 1, 0) ? "Alpha" :
@@ -818,7 +817,7 @@ public class FrameSetEditor {
 					 isHold(1, 0, 1) ? "Output Size" : "None";
 	}
 
-	private String getMoveMode() {
+	String getMoveMode() {
 		return isNoHolds() ? "Move Entity Pos" :
 					 isHold(1, 0, 0) ? "Move FrameSet Pos" :
 					 isHold(0, 1, 0) ? "Move Origin Sprite Pos" :
@@ -826,7 +825,7 @@ public class FrameSetEditor {
 					 isHold(1, 1, 0) ? "Change Output Sprite Size" : "None";
 	}
 
-	private void setMouseEvents() {
+	void setMouseEvents() {
 		canvasMain.setOnScroll(e -> {
 			int inc = (isShiftHold() ? e.getDeltaX() : e.getDeltaY()) < 0 ? -1 : 1;
 			iterateSelectedSprites(sprite -> {
@@ -930,7 +929,7 @@ public class FrameSetEditor {
 		});
 	}
 	
-	public void drawDrawCanvas() {
+	void drawDrawCanvas() {
 		for (SpriteLayerType layerType : SpriteLayerType.getList()) {
 			if (layerType == SpriteLayerType.BACKGROUND) {
 				gcs.get(layerType).setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
@@ -985,7 +984,7 @@ public class FrameSetEditor {
 			currentEntity.restartCurrentFrameSet();
 	}
 	
-	public void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
+	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
 		for (SpriteLayerType layerType : SpriteLayerType.getList())
 			gcMain.drawImage(canvas.get(layerType).snapshot(params, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
 		if (currentEntity.getTotalFrameSets() > 0 && !currentEntity.getFrameSet(getCurrentFrameSetName()).isEmptyFrames() && getCurrentFrame() != null) {
@@ -1060,25 +1059,25 @@ public class FrameSetEditor {
 	    		0, 0, winW * zoom, winH * zoom);
  	}
 
-	public boolean isHold(int shift, int ctrl, int alt) {
+	boolean isHold(int shift, int ctrl, int alt) {
 		return ((shift == 0 && !isShiftHold()) || (shift == 1 && isShiftHold())) &&
 					 ((ctrl == 0 && !isCtrlHold()) || (ctrl == 1 && isCtrlHold())) &&
 					 ((alt == 0 && !isAltHold()) || (alt == 1 && isAltHold()));
 	}
 	
-	public boolean isCtrlHold()
+	boolean isCtrlHold()
 		{ return holdedKeys.contains(KeyCode.CONTROL); }
 	
-	public boolean isShiftHold()
+	boolean isShiftHold()
 		{ return holdedKeys.contains(KeyCode.SHIFT); }
 
-	public boolean isAltHold()
+	boolean isAltHold()
 		{ return holdedKeys.contains(KeyCode.ALT); }
 	
-	public boolean isNoHolds()
+	boolean isNoHolds()
 		{ return !isAltHold() && !isCtrlHold() && !isShiftHold(); }
 
-	public void close() {
+	void close() {
 	}
 
 }

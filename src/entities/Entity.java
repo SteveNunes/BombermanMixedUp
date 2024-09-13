@@ -219,6 +219,9 @@ public class Entity extends Position {
 		frameSets.remove(frameSetName);
 		freshFrameSets.remove(frameSetName);
 	}
+	
+	public boolean haveFrameSet(String frameSetName)
+		{ return frameSets.containsKey(frameSetName); }
 
 	public void run(GraphicsContext gc)
 		{ run(gc, false); }

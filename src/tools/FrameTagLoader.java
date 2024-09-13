@@ -247,6 +247,8 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new SetSprSource(s));
 			else if (tag.equals("SetTicksPerFrame"))
 				tags.addFrameSetTag(new SetTicksPerFrame(s));
+			else if (tag.equals("SetFrameSet"))
+				tags.addFrameSetTag(new SetFrameSet(s));
 		}
 	}
 

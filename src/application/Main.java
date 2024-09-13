@@ -98,7 +98,7 @@ public class Main extends Application {
 		GameMisc.getFPSHandler().fpsCounter();
 		if (!close )
 			Platform.runLater(() -> {
-				stageMain.setTitle("BomberMan Mixed Up! \t FPS: " + GameMisc.getFPSHandler());
+				stageMain.setTitle("BomberMan Mixed Up!     FPS: " + GameMisc.getFPSHandler());
 				mainLoop();
 			});
 	}

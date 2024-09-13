@@ -10,7 +10,6 @@ import application.Main;
 import entities.Entity;
 import entities.TileCoord;
 import javafx.scene.canvas.GraphicsContext;
-import util.IniFile;
 
 public class Brick extends Entity {
 
@@ -36,10 +35,8 @@ public class Brick extends Entity {
 		setTileSize(Main.tileSize);
 		this.originMapSet = originMapSet;
 		this.item = item;
-		IniFile ini = IniFile.getNewIniFileInstance("appdata/maps/" + originMapSet.getMapName() + ".map");
-		IniFile ini2 = IniFile.getNewIniFileInstance("appdata/tileset/" + ini.read("SETUP", "Tiles") + ".tiles");
 		for (String frameSet : Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet"))
-		addNewFrameSetFromString(frameSet, ini2.read("CONFIG", frameSet));
+		addNewFrameSetFromString(frameSet, originMapSet.getTileSetIniFile().read("CONFIG", frameSet));
 		setFrameSet("BrickStandFrameSet");
 		setPosition(coord.getPosition());
 	}
@@ -71,7 +68,7 @@ public class Brick extends Entity {
 	public static void clearBricks()
 		{ bricks.clear(); }
 	
-	public List<Brick> getBricks()
+	public static List<Brick> getBricks()
 		{ return new ArrayList<>(bricks.values()); }
 	
 	public static void drawBricks(GraphicsContext gc) {

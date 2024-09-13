@@ -7,6 +7,7 @@ import java.util.Map;
 
 import application.Main;
 import entities.TileCoord;
+import enums.SpriteLayerType;
 import gui.util.ImageUtils;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
@@ -22,12 +23,18 @@ public class Layer {
 	private WritableImage layerImage;
 	private MapSet originMapSet;
 	private int layer;
+	private SpriteLayerType layerType;
 	
 	public Layer(MapSet originMapSet, List<String> tileInfos) {
 		this.originMapSet = originMapSet;
 		tilesMap = new HashMap<>();
 		tileList = new ArrayList<>();
 		for (String s : tileInfos) {
+			String[] split = s.split(" ");
+			try
+				{ layerType = SpriteLayerType.valueOf(split[1]); }
+			catch (Exception e)
+				{ GameMisc.throwRuntimeException(split[1] + " - Invalid SpriteLayerType param"); }
 			Tile tile = new Tile(originMapSet, s);
 			addTile(tile.getTileCoord(), tile);
 		}
@@ -56,7 +63,7 @@ public class Layer {
 		params.setFill(Color.TRANSPARENT);
 		layerImage = canvas.snapshot(params, null);
 	}
-
+	
 	public WritableImage getLayerImage()
 		{ return layerImage; }
 	
@@ -72,8 +79,13 @@ public class Layer {
 	public List<Tile> getTileList()
 		{ return tileList; }
 
-	public void setTilesMap(Map<TileCoord, List<Tile>> tilesMap)
-		{ this.tilesMap = new HashMap<>(tilesMap); }	
+	public void setTilesMap(Map<TileCoord, List<Tile>> tilesMap) {
+		this.tilesMap = new HashMap<>(tilesMap);
+		tileList.clear();
+		for (TileCoord coord : tilesMap.keySet())
+			for (Tile tile : tilesMap.get(coord))
+				tileList.add(tile);
+	}
 
 	public void addTile(TileCoord coord, Tile tile) {
 		if (!tilesMap.containsKey(coord))
@@ -127,5 +139,11 @@ public class Layer {
 
 	public int getHeight()
 		{ return (int)layerImage.getHeight(); }
+	
+	public SpriteLayerType getSpriteLayerType()
+		{ return layerType; }
+
+	public void setSpriteLayerType(SpriteLayerType layerType)
+		{ this.layerType = layerType; }
 
 }

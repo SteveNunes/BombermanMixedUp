@@ -67,7 +67,7 @@ public abstract class Sound {
 			mp3.setRate(rate);
 			mp3.setBalance(balance);
 			mp3.setVolume(volume);
-      mp3.play();
+			mp3.play();
 		}
 		catch (Exception e)
 			{ e.printStackTrace(); }
@@ -122,7 +122,7 @@ public abstract class Sound {
 					clip.setPan(pan);
 					clip.setBalance(balance);
 					clip.setVolume(volume);
-	        clip.play();
+					clip.play();
 				}
 				catch (Exception e)
 					{ e.printStackTrace(); }
