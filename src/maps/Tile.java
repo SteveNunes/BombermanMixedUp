@@ -13,6 +13,7 @@ import enums.ImageFlip;
 import enums.TileProp;
 import gui.util.ImageUtils;
 import javafx.scene.paint.Color;
+import objmoveutils.Position;
 import tools.GameMisc;
 import util.MyConverters;
 
@@ -29,7 +30,7 @@ public class Tile {
 	Color tint;
 	double opacity;
 	DrawImageEffects effects;
-	public static Map<TileCoord, String> tags = new HashMap<>();
+	public static Map<Integer, Map<TileCoord, String>> tags = new HashMap<>();
 	
 	public Tile(MapSet originMapSet, int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp)
 		{ this(originMapSet, spriteX, spriteY, outX, outY, tileProp, ImageFlip.NONE, 0, 1, Color.WHITE, null); }
@@ -88,21 +89,23 @@ public class Tile {
 			n++; effects = split.length <= n ? null : GameMisc.loadEffectsFromString(MyConverters.arrayToString(split, n));
 			if (Main.mapEditor != null && split.length >= 15) {
 				String str = MyConverters.arrayToString(split, 15);
-				if (!str.isEmpty() && ((Main.mapEditor.getCurrentLayerIndex() == 26 && layer == 26) ||
-						(originMapSet.getCopyLayer() != null && Main.mapEditor.getCurrentLayerIndex() == originMapSet.getCopyLayer() && layer == originMapSet.getCopyLayer())))
-							addStringTag(outX / Main.tileSize, outY / Main.tileSize, str);
+				if (!str.isEmpty())
+					addStringTag(layer, outX / Main.tileSize, outY / Main.tileSize, str);
 			}
 		}
 		catch (Exception e)
 			{ GameMisc.throwRuntimeException(split[n] + " - Invalid parameter"); }
 	}
 	
-	public static void addStringTag(int tileDX, int tileDY, String tag)
-		{ tags.put(new TileCoord(tileDX, tileDY), tag); }
+	public static void addStringTag(int layer, int tileDX, int tileDY, String tag) {
+		if (!tags.containsKey(layer))
+			tags.put(layer, new HashMap<>());
+		tags.get(layer).put(new TileCoord(tileDX, tileDY), tag);
+	}
 	
-	public static String getStringTag(int tileDX, int tileDY) {
+	public static String getStringTag(int layer, int tileDX, int tileDY) {
 		TileCoord coord = new TileCoord(tileDX, tileDY);
-		return tags.containsKey(coord) ? tags.get(coord) : null;
+		return tags.containsKey(layer) && tags.get(layer).containsKey(coord) ? tags.get(layer).get(coord) : null;
 	}
 	
 	public TileCoord getTileCoord()
@@ -113,5 +116,38 @@ public class Tile {
 	
 	public int getTileY()
 		{ return outY / 16; }
+
+	public static void addTileShadow(MapSet mapSet, Position shadowType, TileCoord coord)
+		{ addTileShadow(mapSet, coord, shadowType, true); }
 	
+	public static void addTileShadow(MapSet mapSet, TileCoord coord, Position shadowType, boolean updateLayer) {
+		Tile tile = mapSet.getLayer(26).getFirstTileFromCoord(coord);
+		Position groundTile = mapSet.getGroundTile();
+		if (tile.spriteX == groundTile.getX() && tile.spriteY == groundTile.getY()) {
+			tile = new Tile(mapSet, (int)shadowType.getX(), (int)shadowType.getY(), tile.outX, tile.outY, new ArrayList<>(tile.tileProp));
+			mapSet.getLayer(26).removeFirstTileFromCoord(coord);
+			mapSet.getLayer(26).addTile(tile);
+			if (updateLayer)
+				mapSet.getLayer(26).buildLayer();
+		}
+	}
+	
+	public static void removeTileShadow(MapSet mapSet, TileCoord coord)
+		{ removeTileShadow(mapSet, coord, true); }
+	
+	public static void removeTileShadow(MapSet mapSet, TileCoord coord, boolean updateLayer) {
+		Tile tile = mapSet.getLayer(26).getFirstTileFromCoord(coord);
+		Position groundTile = mapSet.getGroundTile(),
+						 brickShadow = mapSet.getGroundWithBrickShadow(),
+						 wallShadow = mapSet.getGroundWithWallShadow();
+		if ((tile.spriteX == brickShadow.getX() && tile.spriteY == brickShadow.getY()) ||
+				(tile.spriteX == wallShadow.getX() && tile.spriteY == wallShadow.getY())) {
+					tile = new Tile(mapSet, (int)groundTile.getX(), (int)groundTile.getY(), tile.outX, tile.outY, new ArrayList<>(tile.tileProp));
+					mapSet.getLayer(26).removeFirstTileFromCoord(coord);
+					mapSet.getLayer(26).addTile(tile);
+					if (updateLayer)
+						mapSet.getLayer(26).buildLayer();
+		}
+	}
+
 }

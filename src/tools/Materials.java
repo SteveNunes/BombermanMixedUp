@@ -26,7 +26,7 @@ public abstract class Materials {
 	public static Map<Image, String> loadedSprites2;
 	
 	public static void loadFromFiles() {
-		System.out.print("Carregando materiais... ");
+		System.out.println("Carregando materiais...");
 		long ms = System.currentTimeMillis();
 		loadedSprites = new HashMap<>();
 		loadedSprites2 = new HashMap<>();
@@ -70,7 +70,7 @@ public abstract class Materials {
 		thunders = loadImage("Thunders", Color.valueOf("#03E313"));
 		FindFile.findFile("./appdata/sprites/tileset", "Tile*.png").forEach(file ->
 			{ tileSets.put(file.getName().replace(".png", ""), loadImage("/tileset/" + file.getName().replace(".png", ""), Color.valueOf("#FF00FF"))); });
-		System.out.println("concluido em " + (System.currentTimeMillis() - ms) + "ms");
+		System.out.println("... Concluido em " + (System.currentTimeMillis() - ms) + "ms");
 	}
 
 	public static Image loadImage(String imagePartialPath, Color removeColor) throws RuntimeException { // Informe apenas o nome do arquivo (com pasta ou nao) a partir da pasta sprites, sem o .png

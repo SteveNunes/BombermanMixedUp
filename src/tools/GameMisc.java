@@ -45,7 +45,7 @@ public abstract class GameMisc {
 		{ return System.currentTimeMillis() / speed % 2 == 0; }
 	
 	public static DrawImageEffects loadEffectsFromString(String string) {
-		// TODO Auto-generated method stub
+		// NOTA: Implementar método
 		return null;
 	}
 

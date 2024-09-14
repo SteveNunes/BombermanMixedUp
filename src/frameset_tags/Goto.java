@@ -1,8 +1,8 @@
 package frameset_tags;
 
 import application.Main;
-import entities.FrameSet;
-import entities.Sprite;
+import frameset.FrameSet;
+import frameset.Sprite;
 import tools.GameMisc;
 
 public class Goto extends FrameTag {

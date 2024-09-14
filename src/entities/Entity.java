@@ -12,6 +12,7 @@ import application.Main;
 import enums.Direction;
 import enums.Elevation;
 import enums.SpriteLayerType;
+import frameset.FrameSet;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import objmoveutils.Position;
@@ -381,7 +382,7 @@ public class Entity extends Position {
 	
 	public void restartCurrentFrameSet()
 		{ setFrameSet(currentFrameSetName);	}
-
+	
 }
 
 class LinkedEntityInfos {

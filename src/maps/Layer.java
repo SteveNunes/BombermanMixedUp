@@ -36,9 +36,8 @@ public class Layer {
 			catch (Exception e)
 				{ GameMisc.throwRuntimeException(split[1] + " - Invalid SpriteLayerType param"); }
 			Tile tile = new Tile(originMapSet, s);
-			addTile(tile.getTileCoord(), tile);
+			addTile(tile);
 		}
-		buildLayer();
 	}
 	
 	public void buildLayer() {
@@ -87,10 +86,10 @@ public class Layer {
 				tileList.add(tile);
 	}
 
-	public void addTile(TileCoord coord, Tile tile) {
-		if (!tilesMap.containsKey(coord))
-			tilesMap.put(coord, new ArrayList<>());
-		tilesMap.get(coord).add(tile);
+	public void addTile(Tile tile) {
+		if (!tilesMap.containsKey(tile.getTileCoord()))
+			tilesMap.put(tile.getTileCoord(), new ArrayList<>());
+		tilesMap.get(tile.getTileCoord()).add(tile);
 		tileList.add(tile);
 	}
 	

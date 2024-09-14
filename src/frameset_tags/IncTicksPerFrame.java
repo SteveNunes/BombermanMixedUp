@@ -1,7 +1,7 @@
 package frameset_tags;
 
-import entities.FrameSet;
-import entities.Sprite;
+import frameset.FrameSet;
+import frameset.Sprite;
 import tools.GameMisc;
 
 public class IncTicksPerFrame extends FrameTag {

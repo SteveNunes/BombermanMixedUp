@@ -1,6 +1,6 @@
 package frameset_tags;
 
-import entities.Sprite;
+import frameset.Sprite;
 
 public class IncSprAlign extends FrameTag {
 	

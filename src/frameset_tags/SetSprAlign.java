@@ -1,7 +1,7 @@
 package frameset_tags;
 
-import entities.Sprite;
 import enums.ImageAlignment;
+import frameset.Sprite;
 import tools.GameMisc;
 
 public class SetSprAlign extends FrameTag {

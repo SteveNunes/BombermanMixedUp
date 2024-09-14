@@ -1,7 +1,7 @@
 package frameset_tags;
 
-import entities.Sprite;
 import enums.DirectionOrientation;
+import frameset.Sprite;
 import objmoveutils.EliticMove;
 import tools.GameMisc;
 

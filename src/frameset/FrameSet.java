@@ -1,10 +1,11 @@
-package entities;
+package frameset;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import entities.Entity;
 import enums.SpriteLayerType;
 import frameset_tags.FrameTag;
 import frameset_tags.Goto;

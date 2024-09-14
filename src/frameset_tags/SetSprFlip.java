@@ -1,7 +1,7 @@
 package frameset_tags;
 
-import entities.Sprite;
 import enums.ImageFlip;
+import frameset.Sprite;
 import tools.GameMisc;
 
 public class SetSprFlip extends FrameTag {

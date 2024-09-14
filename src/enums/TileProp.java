@@ -80,7 +80,7 @@ public enum TileProp {
 	NO_TRIGGER_WHILE_HAVE_BRICK(76), // As Tags de tile só são disparadas se não houver tijolo no bloco atual
 	NO_TRIGGER_WHILE_HAVE_ITEM(77), // As Tags de tile só são disparadas se não houver item no bloco atual
 	NO_TRIGGER_WHILE_HAVE_BOMB(78); // As Tags de tile só são disparadas se não houver bomba no bloco atual
-	// VAGOS: 18 49 50 51
+	// NOTA: VAGOS: 18 49 50 51
 	
 	private int value;
 	
@@ -171,5 +171,10 @@ public enum TileProp {
 	
 	public static TileProp getPropFromValue(int value)
 		{ return propFromValueList.containsKey(value) ? propFromValueList.get(value) : null; }
+
+	public boolean isCrossableBy(Elevation elevation) {
+		// NOTA: Implementar método
+		return false;
+	}
 	
 }

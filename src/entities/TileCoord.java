@@ -2,7 +2,6 @@ package entities;
 
 import java.util.Objects;
 
-import application.Main;
 import objmoveutils.Position;
 
 public class TileCoord {
@@ -41,8 +40,8 @@ public class TileCoord {
 	public Position getTilePosition()
 		{ return new Position(x, y); }
 	
-	public Position getPosition()
-		{ return new Position(x * Main.tileSize, y * Main.tileSize); }
+	public Position getPosition(int tileSize)
+		{ return new Position(x * tileSize, y * tileSize); }
 
 	@Override
 	public int hashCode()

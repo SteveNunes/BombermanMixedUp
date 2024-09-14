@@ -10,11 +10,11 @@ import java.util.function.Consumer;
 
 import application.Main;
 import entities.Entity;
-import entities.Frame;
-import entities.FrameSet;
-import entities.Sprite;
 import enums.Direction;
 import enums.SpriteLayerType;
+import frameset.Frame;
+import frameset.FrameSet;
+import frameset.Sprite;
 import frameset_tags.DecSprAlign;
 import frameset_tags.DecSprFlip;
 import frameset_tags.FrameTag;
@@ -182,7 +182,7 @@ public class FrameSetEditor {
 		setKeyboardEvents(sceneMain);
 		
 		
-		for (int n = 0; n < 0; n++) { // TEMP para desenhar multiplos FrameSets na tela para testar capacidade
+		for (int n = 0; n < 0; n++) { // NOTA: TEMP para desenhar multiplos FrameSets na tela para testar capacidade
 			Entity entity = new Entity(currentEntity);
 			entity.setFrameSet("MovingFrames");
 			entity.setPosition(GameMisc.getRandom(0, 320), GameMisc.getRandom(0, 240));

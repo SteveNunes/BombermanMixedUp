@@ -36,37 +36,63 @@ public class Brick extends Entity {
 		this.originMapSet = originMapSet;
 		this.item = item;
 		for (String frameSet : Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet"))
-		addNewFrameSetFromString(frameSet, originMapSet.getTileSetIniFile().read("CONFIG", frameSet));
+			addNewFrameSetFromString(frameSet, originMapSet.getTileSetIniFile().read("CONFIG", frameSet));
 		setFrameSet("BrickStandFrameSet");
-		setPosition(coord.getPosition());
+		setPosition(coord.getPosition(Main.tileSize));
 	}
 	
+	public static void addBrick(MapSet originMapSet, TileCoord coord)
+		{ addBrick(new Brick(originMapSet, coord, null), true); }
+	
+	public static void addBrick(MapSet originMapSet, TileCoord coord, boolean updateLayer)
+		{ addBrick(new Brick(originMapSet, coord, null), updateLayer); }
+
+	public static void addBrick(MapSet originMapSet, TileCoord coord, Item item)
+		{ addBrick(new Brick(originMapSet, coord, item), true); }
+
+	public static void addBrick(MapSet originMapSet, TileCoord coord, Item item, boolean updateLayer)
+		{ addBrick(new Brick(originMapSet, coord, item), updateLayer); }
+
 	public static void addBrick(Brick brick)
-		{ addBrick(brick, brick.getTileCoord()); }
+		{ addBrick(brick, true); }
 
-	public static void addBrick(Brick brick, TileCoord coord) {
-		brick.setPosition(coord.getPosition());
-		bricks.put(coord, brick);
+	public static void addBrick(Brick brick, boolean updateLayer) {
+		TileCoord coord = brick.getTileCoord();
+		if (!haveBrickAt(coord)) {
+			TileCoord coord2 = new TileCoord(coord);
+			coord2.setY(coord.getY() + 1);
+			brick.setPosition(coord.getPosition(Main.tileSize));
+			bricks.put(coord, brick);
+			Tile.addTileShadow(brick.originMapSet, brick.originMapSet.getGroundWithBrickShadow(), coord2);
+		}
 	}
 
-	public static void addBrick(MapSet originMapSet, TileCoord coord, Item item) {
-		Brick brick = new Brick(originMapSet, coord, item);
-		bricks.put(coord, brick);
-	}
-	
-	public static void removeBrick(Brick brick) {
-		for (TileCoord tilePos : bricks.keySet())
-			if (bricks.get(tilePos) == brick) {
-				bricks.remove(tilePos);
-				return;
-			}
-	}
+	public static void removeBrick(Brick brick)
+		{ removeBrick(brick.getTileCoord()); }
 	
 	public static void removeBrick(TileCoord coord)
-		{ bricks.remove(coord); }
+		{ removeBrick(coord, true); }
+
+	public static void removeBrick(TileCoord coord, boolean updateLayer) {
+		if (haveBrickAt(coord)) {
+			Brick brick = bricks.get(coord);
+			TileCoord coord2 = new TileCoord(coord);
+			coord2.setY(coord.getY() + 1);
+			bricks.remove(coord);
+			Tile.removeTileShadow(brick.originMapSet, coord2);
+		}
+	}
 	
-	public static void clearBricks()
-		{ bricks.clear(); }
+	public static void clearBricks() {
+		if (!bricks.isEmpty()) {
+			Brick brick = null;
+			while (!bricks.isEmpty()) {
+				brick = bricks.values().iterator().next();
+				removeBrick(brick.getTileCoord(), false);
+			}
+			brick.originMapSet.getLayer(26).buildLayer();
+		}
+	}
 	
 	public static List<Brick> getBricks()
 		{ return new ArrayList<>(bricks.values()); }

@@ -2,7 +2,7 @@ package frameset_tags;
 
 import java.awt.Rectangle;
 
-import entities.Sprite;
+import frameset.Sprite;
 import javafx.scene.image.Image;
 import tools.GameMisc;
 import tools.Materials;

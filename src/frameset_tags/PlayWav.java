@@ -1,7 +1,7 @@
 package frameset_tags;
 
 import application.Main;
-import entities.Sprite;
+import frameset.Sprite;
 import tools.GameMisc;
 import tools.Sound;
 
