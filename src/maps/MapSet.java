@@ -9,10 +9,12 @@ import java.util.Map;
 import application.Main;
 import entities.Entity;
 import entities.TileCoord;
+import enums.ItemType;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import objmoveutils.PathFind;
 import objmoveutils.Position;
 import tools.GameMisc;
 import tools.IniFiles;
@@ -25,8 +27,8 @@ public class MapSet extends Entity{
 	public static Map<SpriteLayerType, Map<Integer, WritableImage>> layerImages = null;
 
 	private Map<Integer, Layer> layers;
-	private Map<Integer, TileCoord> initialPlayerCoords;
-	private Map<Integer, TileCoord> initialMonsterCoords;
+	private Map<TileCoord, Integer> initialPlayerCoords;
+	private Map<TileCoord, Integer> initialMonsterCoords;
 	private IniFile iniFileMap;
 	private IniFile iniFileTileSet;
 	private Image tileSetImage;
@@ -70,6 +72,12 @@ public class MapSet extends Entity{
 				layerImages.put(layer.getSpriteLayerType(), new HashMap<>());
 			if (!layerImages.get(layer.getSpriteLayerType()).containsKey(i))
 				layerImages.get(layer.getSpriteLayerType()).put(i, layer.getLayerImage());
+			for (Tile tile : layer.getTileList()) {
+				if (tile.tileProp.contains(TileProp.PLAYER_INITIAL_POSITION))
+					initialPlayerCoords.put(tile.getTileCoord(), initialPlayerCoords.size());
+				else if (tile.tileProp.contains(TileProp.MOB_INITIAL_POSITION))
+					initialMonsterCoords.put(tile.getTileCoord(), initialMonsterCoords.size());
+			}
 		}
 		groundTile = getTilePositionFromIni(iniFileMap, "GroundTile");
 		groundWithBrickShadow = Misc.notNull(getTilePositionFromIni(iniFileMap, "GroundWithBrickShadow"), new Position(groundTile));
@@ -83,14 +91,6 @@ public class MapSet extends Entity{
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
 	}
 	
-	public boolean entityCanCrossTileAt(Entity entity, TileCoord coord) {
-		for (Tile tile : getLayer(26).getTilesFromCoord(coord))
-			for (TileProp prop : tile.tileProp)
-				if (!prop.isCrossableBy(entity.getElevation()))
-					return false;
-		return true;
-	}
-
 	public void setTileSet(String tileSetName) {
 		this.tileSetName = tileSetName; 
 		iniFileTileSet = IniFile.getNewIniFileInstance("appdata/tileset/" + tileSetName + ".tiles");
@@ -107,16 +107,21 @@ public class MapSet extends Entity{
 				if (p == TileProp.FIXED_BRICK)
 					addBricks.add(new Brick(this, t.getTileCoord(), null));
 		if (IniFiles.stages.read(iniMapName, "Blocks") != null && !IniFiles.stages.read(iniMapName, "Blocks").equals("0")) {
-			String[] split = IniFiles.stages.read(iniMapName, "Blocks").split("!");
-			int minBricks = Integer.parseInt(split[0]),
-					maxBricks = Integer.parseInt(split[split.length == 1 ? 0 : 1]),
-					totalBricks = GameMisc.getRandom(minBricks, maxBricks),
-					bricksQuant = 0;
-			int totalBrickSpawners = 0;
-			for (Tile t : getLayer(26).getTileList())
-				for (TileProp p : t.tileProp)
-					if (p == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(t.getTileCoord()))
-						totalBrickSpawners++;
+			int totalBricks = 0,
+					bricksQuant = 0,
+					totalBrickSpawners = 0;
+			try {
+				String[] split = IniFiles.stages.read(iniMapName, "Blocks").split("!");
+				int minBricks = Integer.parseInt(split[0]),
+						maxBricks = Integer.parseInt(split[split.length == 1 ? 0 : 1]);
+						totalBricks = GameMisc.getRandom(minBricks, maxBricks);
+				for (Tile t : getLayer(26).getTileList())
+					for (TileProp p : t.tileProp)
+						if (p == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(t.getTileCoord()))
+							totalBrickSpawners++;
+			}
+			catch (Exception e)
+				{ GameMisc.throwRuntimeException(IniFiles.stages.read(iniMapName, "Blocks") + " - Wrong data for this item"); }
 			done:
 			while (totalBricks > 0) {
 				for (Tile t : getLayer(26).getTileList())
@@ -133,15 +138,39 @@ public class MapSet extends Entity{
 		addBricks.sort((b1, b2) -> (int)b2.getY() - (int)b1.getY());
 		addBricks.forEach(brick -> Brick.addBrick(brick, false));
 		getLayer(26).buildLayer();
+		addItensToBricks();
+	}
+	
+	private void addItensToBricks() {
+		if (IniFiles.stages.read(iniMapName, "Items") != null && !IniFiles.stages.read(iniMapName, "Items").equals("0")) {
+			String[] split = IniFiles.stages.read(iniMapName, "Items").split(" ");
+			try {
+				for (int n = 0; n < split.length && n < Brick.totalBricks(); n++) {
+					int itemId = Integer.parseInt(split[n]);
+					Brick brick = null;
+					do
+						{ brick = Brick.getBricks().get(GameMisc.getRandom(0, Brick.totalBricks() - 1));	}
+					while (brick.getItem() != null);
+					brick.setItem(ItemType.getItemById(itemId));
+				}
+			}
+			catch (Exception e)
+				{ GameMisc.throwRuntimeException(IniFiles.stages.read(iniMapName, "Items") + " - Wrong data for this item"); }
+		}		
 	}
 	
 	public void setRandomWalls() {
 		if (IniFiles.stages.read(iniMapName, "FixedBlocks") != null && !IniFiles.stages.read(iniMapName, "FixedBlocks").equals("0")) {
 			List<Position> addWalls = new ArrayList<>();
-			String[] split = IniFiles.stages.read(iniMapName, "FixedBlocks").split("!");
-			int minWalls = Integer.parseInt(split[0]),
-					maxWalls = Integer.parseInt(split[split.length == 1 ? 0 : 1]),
-					totalWalls = GameMisc.getRandom(minWalls, maxWalls);
+			int totalWalls = 0;
+			try {
+				String[] split = IniFiles.stages.read(iniMapName, "FixedBlocks").split("!");
+				int minWalls = Integer.parseInt(split[0]),
+						maxWalls = Integer.parseInt(split[split.length == 1 ? 0 : 1]);
+				totalWalls = GameMisc.getRandom(minWalls, maxWalls);
+			}
+			catch (Exception e)
+				{ GameMisc.throwRuntimeException(IniFiles.stages.read(iniMapName, "FixedBlocks") + " - Wrong data for this item"); }
 			done:
 			while (totalWalls > 0) {
 				for (TileCoord coord : getLayer(26).getTilesMap().keySet()) {
@@ -176,6 +205,25 @@ public class MapSet extends Entity{
 		}
 	}
 	
+	public boolean testPlayerAcessibility(TileCoord coord) {
+		PathFind pf = new PathFind();
+		return false;
+	}
+	
+	public TileCoord getInitialPlayerPosition(int playerIndex) {
+		for (TileCoord coord : initialPlayerCoords.keySet())
+			if (initialPlayerCoords.get(coord) == playerIndex)
+				return coord;
+		return null;
+	}
+	
+	public TileCoord getInitialMonsterPosition(int monsterIndex) {
+		for (TileCoord coord : initialMonsterCoords.keySet())
+			if (initialMonsterCoords.get(coord) == monsterIndex)
+				return coord;
+		return null;
+	}
+
 	public IniFile getMapIniFile()
 		{ return iniFileMap; }
 	

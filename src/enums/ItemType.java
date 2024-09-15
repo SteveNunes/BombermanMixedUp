@@ -2,9 +2,9 @@ package enums;
 
 import tools.GameMisc;
 
-public enum Item {
+public enum ItemType {
 	
-	BOMB_UP(0),
+	BOMB_UP(1),
 	FIRE_UP(2),
 	SPEED_UP(3),
 	SPIKE_BOMB(4),
@@ -56,7 +56,7 @@ public enum Item {
 	APPLE_2(50);
 	
 	private int value;
-	private static Item[] list = {BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB, REMOTE_BOMB,
+	private static ItemType[] list = {null, BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB, REMOTE_BOMB,
 			P_BOMB, MINE_BOMB, RUBBER_BOMB, FOLLOW_BOMB, MAGNET_BOMB, MAGMA_BOMB, HEART_BOMB,
 			SENSOR_BOMB, SPIKE_REMOTE_BOMB, PASS_BOMB, PASS_WALL, LINED_BOMBS, KICK_BOMB,
 			PUNCH_BOMB, POWER_GLOVE, PUSH_POWER, EXTRA_LIVE, HEART_UP, ARMOR, TIME_STOP,
@@ -65,27 +65,33 @@ public enum Item {
 			PUDDING, CANDY_CONE, BUTTER, CORN_DOG, OLIVES, EXTINGUISHER, RANDOM, FIRE_MAX,
 			SPEED_DOWN, CURSE_SKULL, STRAWBERRY_ICECREAM, FIRE_IMMUNE, APPLE_2};
 	
-	Item(int value)
+	ItemType(int value)
 		{ this.value = value;	}
 	
 	public int getValue()
 		{ return value; }
 	
-	public Item getNext() {
+	public ItemType getNext() {
 		int i = value + 1;
 		if (i == list.length)
 			i = 0;
 		return list[i];
 	}
 
-	public Item getPreview() {
+	public ItemType getPreview() {
 		int i = value - 1;
 		if (i == 0)
 			i = list.length - 1;
 		return list[i];
 	}
 	
-	public static Item getRandom()
-		{ return list[GameMisc.getRandom(0, list.length - 1)]; }
+	public static ItemType getRandom()
+		{ return list[GameMisc.getRandom(1, list.length - 1)]; }
+	
+	public static ItemType getItemById(int itemId) {
+		if (itemId < 1 || itemId >= list.length)
+			GameMisc.throwRuntimeException(itemId + " - Invalid item ID");
+		return list[itemId];
+	}
 	
 }

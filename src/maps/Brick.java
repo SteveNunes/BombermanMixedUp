@@ -9,13 +9,14 @@ import java.util.Map;
 import application.Main;
 import entities.Entity;
 import entities.TileCoord;
+import enums.ItemType;
 import javafx.scene.canvas.GraphicsContext;
 
 public class Brick extends Entity {
 
 	private static Map<TileCoord, Brick> bricks = new HashMap<>();
 	private MapSet originMapSet;
-	private Item item;
+	private ItemType item;
 	
 	public Brick(Brick brick) {
 		super(brick);
@@ -30,7 +31,7 @@ public class Brick extends Entity {
 	public Brick(MapSet originMapSet, TileCoord coord)
 		{ this(originMapSet, coord, null); }
 	
-	public Brick(MapSet originMapSet, TileCoord coord, Item item) {
+	public Brick(MapSet originMapSet, TileCoord coord, ItemType item) {
 		super();
 		setTileSize(Main.tileSize);
 		this.originMapSet = originMapSet;
@@ -41,16 +42,28 @@ public class Brick extends Entity {
 		setPosition(coord.getPosition(Main.tileSize));
 	}
 	
+	public ItemType getItem()
+		{ return item; }
+
+	public void setItem(ItemType item)
+		{ this.item = item; }
+	
+	public void setItem(int itemId)
+		{ item = ItemType.getItemById(itemId); }
+
+	public void removeItem()
+		{ item = null; }
+	
 	public static void addBrick(MapSet originMapSet, TileCoord coord)
 		{ addBrick(new Brick(originMapSet, coord, null), true); }
 	
 	public static void addBrick(MapSet originMapSet, TileCoord coord, boolean updateLayer)
 		{ addBrick(new Brick(originMapSet, coord, null), updateLayer); }
 
-	public static void addBrick(MapSet originMapSet, TileCoord coord, Item item)
+	public static void addBrick(MapSet originMapSet, TileCoord coord, ItemType item)
 		{ addBrick(new Brick(originMapSet, coord, item), true); }
 
-	public static void addBrick(MapSet originMapSet, TileCoord coord, Item item, boolean updateLayer)
+	public static void addBrick(MapSet originMapSet, TileCoord coord, ItemType item, boolean updateLayer)
 		{ addBrick(new Brick(originMapSet, coord, item), updateLayer); }
 
 	public static void addBrick(Brick brick)
@@ -94,6 +107,9 @@ public class Brick extends Entity {
 		}
 	}
 	
+	public static int totalBricks()
+		{ return bricks.size(); }
+
 	public static List<Brick> getBricks()
 		{ return new ArrayList<>(bricks.values()); }
 	
@@ -104,5 +120,5 @@ public class Brick extends Entity {
 
 	public static boolean haveBrickAt(TileCoord coord)
 		{ return bricks.containsKey(coord); }
-	
+
 }

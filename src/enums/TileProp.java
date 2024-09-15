@@ -1,6 +1,8 @@
 package enums;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public enum TileProp {
@@ -81,6 +83,26 @@ public enum TileProp {
 	NO_TRIGGER_WHILE_HAVE_ITEM(77), // As Tags de tile só são disparadas se não houver item no bloco atual
 	NO_TRIGGER_WHILE_HAVE_BOMB(78); // As Tags de tile só são disparadas se não houver bomba no bloco atual
 	// NOTA: VAGOS: 18 49 50 51
+	
+	@SuppressWarnings("serial")
+	private static Map<Elevation, List<TileProp>> cantCross = new HashMap<>() {{
+		put(Elevation.ON_GROUND, Arrays.asList(
+				JUMP_OVER,
+				WALL,
+				HIGH_WALL,
+				HOLE,
+				DEEP_HOLE,
+				WATER,
+				DEEP_WATER,
+				MAP_EDGE,
+				MOVING_BLOCK));
+		put(Elevation.FLYING, Arrays.asList(
+				JUMP_OVER,
+				WALL,
+				HIGH_WALL,
+				MOVING_BLOCK));
+		put(Elevation.HIGH_FLYING, Arrays.asList(HIGH_WALL));
+	}};
 	
 	private int value;
 	
@@ -163,6 +185,9 @@ public enum TileProp {
 		put(78, NO_TRIGGER_WHILE_HAVE_BOMB);
 	}};
 	
+	public static List<TileProp> getCantCrossList(Elevation elevation)
+		{ return cantCross.get(elevation); }
+	
 	private TileProp(int value)
 		{ this.value = value; }
 	
@@ -172,9 +197,4 @@ public enum TileProp {
 	public static TileProp getPropFromValue(int value)
 		{ return propFromValueList.containsKey(value) ? propFromValueList.get(value) : null; }
 
-	public boolean isCrossableBy(Elevation elevation) {
-		// NOTA: Implementar método
-		return false;
-	}
-	
 }

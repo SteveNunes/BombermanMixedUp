@@ -49,10 +49,19 @@
          <children>
             <HBox alignment="CENTER_LEFT" spacing="30.0">
                <children>
-                  <CheckBox fx:id="checkBoxShowGrid" mnemonicParsing="false" text="Exibir grade" />
-                  <CheckBox fx:id="checkBoxShowAim" mnemonicParsing="false" text="Exibir mira" />
-                  <CheckBox fx:id="checkBoxShowBlockType" mnemonicParsing="false" text="Exibir contorno do tipo de bloco" />
-                  <CheckBox fx:id="checkBoxShowBricks" mnemonicParsing="false" text="Exibir tijolos" />
+                  <VBox alignment="CENTER_LEFT">
+                     <children>
+                        <CheckBox fx:id="checkBoxShowGrid" mnemonicParsing="false" text="Exibir grade" />
+                        <CheckBox fx:id="checkBoxShowAim" mnemonicParsing="false" text="Exibir mira" />
+                     </children>
+                  </VBox>
+                  <CheckBox fx:id="checkBoxShowBlockType" mnemonicParsing="false" text="Exibir tipo de bloco" />
+                  <VBox alignment="CENTER_LEFT">
+                     <children>
+                        <CheckBox fx:id="checkBoxShowBricks" mnemonicParsing="false" text="Exibir tijolos" />
+                        <CheckBox fx:id="checkBoxShowItens" mnemonicParsing="false" text="Exibir itens" />
+                     </children>
+                  </VBox>
                   <HBox alignment="CENTER_LEFT" spacing="5.0">
                      <children>
                         <Button fx:id="buttonPlay" mnemonicParsing="false" prefWidth="32.0" />

@@ -87,7 +87,6 @@ public class FrameSetEditor {
 	
 	private final int winW = 312;
 	private final int winH = 240;
-	private final int tileSize = 16;
 	private List<Map<String, FrameSet>> backupFrameSetsMap;
 	private List<KeyCode> holdedKeys;
 	private List<FrameSet> backupFrameSets;
@@ -153,8 +152,8 @@ public class FrameSetEditor {
 		copiedFrame = null;
 		isPaused = false;
 		isChangingSprite = false;
-		centerX = tileSize * 10;
-		centerY = tileSize * 7;
+		centerX = Main.tileSize * 10;
+		centerY = Main.tileSize * 7;
 		linkEntityToCursor = 0;
 		zoomScale = 1;
 		backupIndex = -1;
@@ -948,7 +947,7 @@ public class FrameSetEditor {
 			else {
 				boolean move = true;
 				if (currentEntity.isPerfectTileCentred()) {
-					int mx = mouseX / tileSize, my = mouseY / tileSize;
+					int mx = mouseX / Main.tileSize, my = mouseY / Main.tileSize;
 					if (mx > currentEntity.getTileX())
 						currentEntity.setDirection(Direction.RIGHT);
 					else if (mx < currentEntity.getTileX())
@@ -979,7 +978,7 @@ public class FrameSetEditor {
 		gcs.get(SpriteLayerType.CLOUD).setGlobalAlpha(1);
 		gcs.get(SpriteLayerType.CLOUD).setLineWidth(1);
 		gcs.get(SpriteLayerType.CLOUD).setStroke(Color.WHITE);
-		gcs.get(SpriteLayerType.CLOUD).strokeRect(centerX, centerY, tileSize, tileSize);
+		gcs.get(SpriteLayerType.CLOUD).strokeRect(centerX, centerY, Main.tileSize, Main.tileSize);
 		if (getCurrentFrame() == null)
 			currentEntity.restartCurrentFrameSet();
 	}

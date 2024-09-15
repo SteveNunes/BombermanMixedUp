@@ -121,11 +121,12 @@ public class Tile {
 		{ addTileShadow(mapSet, coord, shadowType, true); }
 	
 	public static void addTileShadow(MapSet mapSet, TileCoord coord, Position shadowType, boolean updateLayer) {
-		Tile tile = mapSet.getLayer(26).getFirstTileFromCoord(coord);
+		Tile tile = !mapSet.getLayer(26).haveTilesOnCoord(coord) ? null : mapSet.getLayer(26).getFirstTileFromCoord(coord);
 		Position groundTile = mapSet.getGroundTile();
-		if (tile.spriteX == groundTile.getX() && tile.spriteY == groundTile.getY()) {
-			tile = new Tile(mapSet, (int)shadowType.getX(), (int)shadowType.getY(), tile.outX, tile.outY, new ArrayList<>(tile.tileProp));
-			mapSet.getLayer(26).removeFirstTileFromCoord(coord);
+		if (tile == null || (tile.spriteX == groundTile.getX() && tile.spriteY == groundTile.getY())) {
+			if (tile != null)
+				mapSet.getLayer(26).removeFirstTileFromCoord(coord);
+			tile = new Tile(mapSet, (int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition(Main.tileSize).getX(), (int)coord.getPosition(Main.tileSize).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
 			mapSet.getLayer(26).addTile(tile);
 			if (updateLayer)
 				mapSet.getLayer(26).buildLayer();
@@ -136,14 +137,15 @@ public class Tile {
 		{ removeTileShadow(mapSet, coord, true); }
 	
 	public static void removeTileShadow(MapSet mapSet, TileCoord coord, boolean updateLayer) {
-		Tile tile = mapSet.getLayer(26).getFirstTileFromCoord(coord);
+		Tile tile = !mapSet.getLayer(26).haveTilesOnCoord(coord) ? null : mapSet.getLayer(26).getFirstTileFromCoord(coord);
 		Position groundTile = mapSet.getGroundTile(),
 						 brickShadow = mapSet.getGroundWithBrickShadow(),
 						 wallShadow = mapSet.getGroundWithWallShadow();
-		if ((tile.spriteX == brickShadow.getX() && tile.spriteY == brickShadow.getY()) ||
+		if (tile == null || (tile.spriteX == brickShadow.getX() && tile.spriteY == brickShadow.getY()) ||
 				(tile.spriteX == wallShadow.getX() && tile.spriteY == wallShadow.getY())) {
-					tile = new Tile(mapSet, (int)groundTile.getX(), (int)groundTile.getY(), tile.outX, tile.outY, new ArrayList<>(tile.tileProp));
-					mapSet.getLayer(26).removeFirstTileFromCoord(coord);
+					if (tile != null)
+						mapSet.getLayer(26).removeFirstTileFromCoord(coord);
+					tile = new Tile(mapSet, (int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition(Main.tileSize).getX(), (int)coord.getPosition(Main.tileSize).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
 					mapSet.getLayer(26).addTile(tile);
 					if (updateLayer)
 						mapSet.getLayer(26).buildLayer();

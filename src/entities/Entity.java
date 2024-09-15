@@ -11,10 +11,15 @@ import java.util.Map;
 import application.Main;
 import enums.Direction;
 import enums.Elevation;
+import enums.PassThrough;
 import enums.SpriteLayerType;
+import enums.TileProp;
 import frameset.FrameSet;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import maps.Brick;
+import maps.MapSet;
+import maps.Tile;
 import objmoveutils.Position;
 import tools.GameMisc;
 
@@ -24,6 +29,7 @@ public class Entity extends Position {
 	private Map<String, FrameSet> frameSets;
 	private Map<String, FrameSet> freshFrameSets;
 	private List<LinkedEntityInfos> linkedEntityInfos;
+	private List<PassThrough> passThrough;
 	private Position speed;
 	private Direction direction;
 	private Elevation elevation;
@@ -42,6 +48,7 @@ public class Entity extends Position {
 		shadow = entity.shadow == null ? null : new Rectangle(entity.shadow);
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
+		passThrough = new ArrayList<>();
 		for (String fSetName : entity.frameSets.keySet()) {
 			frameSets.put(fSetName, new FrameSet(entity.frameSets.get(fSetName), this));
 			freshFrameSets.put(fSetName, new FrameSet(entity.freshFrameSets.get(fSetName), this));
@@ -85,6 +92,44 @@ public class Entity extends Position {
 		isDead = false;
 	}
 	
+	private void addPassThrough(PassThrough pass) {
+		if (!passThrough.contains(pass))
+			passThrough.add(pass);
+	}
+	
+	private void removePassThrough(PassThrough pass)
+		{ passThrough.remove(pass); }
+	
+	public void setPassThroughBrick(boolean state) {
+		if (state)
+			addPassThrough(PassThrough.BRICK);
+		else
+			removePassThrough(PassThrough.BRICK);
+	}
+	
+	public void setPassThroughBomb(boolean state) {
+		if (state)
+			addPassThrough(PassThrough.BOMB);
+		else
+			removePassThrough(PassThrough.BOMB);
+	}
+	
+	public void setPassThroughMonster(boolean state) {
+		if (state)
+			addPassThrough(PassThrough.MONSTER);
+		else
+			removePassThrough(PassThrough.MONSTER);
+	}
+	
+	public boolean canPassThroughBrick()
+		{ return passThrough.contains(PassThrough.BRICK); }
+	
+	public boolean canPassThroughBomb()
+		{ return passThrough.contains(PassThrough.BOMB); }
+
+	public boolean canPassThroughMonster()
+		{ return passThrough.contains(PassThrough.MONSTER); }
+
 	public TileCoord getTileCoord()
 		{ return new TileCoord(getTileX(), getTileY()); }
 
@@ -378,6 +423,19 @@ public class Entity extends Position {
 			frameSet.loadFromString(stringWithFrameTags);
 		}
 		addFrameSet(frameSetName, frameSet);
+	}
+	
+	public boolean canCross(MapSet mapSet, TileCoord coord) {
+		// NOTA: Implementar a parte de mob nao passar por mob
+		Elevation elevation = getElevation();
+		Tile tile = mapSet.getLayer(26).getFirstTileFromCoord(coord);
+		for (TileProp prop : tile.tileProp) {
+			if (TileProp.getCantCrossList(elevation).contains(prop) ||
+					elevation != Elevation.HIGH_FLYING &&
+					((Brick.haveBrickAt(coord) && !canPassThroughBrick()) || (Bomb.haveBombAt(coord) && !canPassThroughBomb())))
+						return false;
+		}
+		return true;
 	}
 	
 	public void restartCurrentFrameSet()

@@ -47,12 +47,11 @@ import maps.Tile;
 import objmoveutils.Position;
 import tools.GameMisc;
 import tools.IniFiles;
+import tools.Materials;
 import util.FindFile;
 
 public class MapEditor {
 
-	private final static int TILE_SIZE = 16;
-	
 	@FXML
 	private VBox vBoxTileSet;
 	@FXML
@@ -117,6 +116,8 @@ public class MapEditor {
   private CheckBox checkBoxShowBlockType;
   @FXML
   private CheckBox checkBoxShowBricks;
+  @FXML
+  private CheckBox checkBoxShowItens;
   @FXML
 	private ListView<HBox> listViewLayers;
   @FXML
@@ -231,6 +232,14 @@ public class MapEditor {
 		ControllerUtils.addIconToButton(buttonTileSetZoom1, Icons.ZOOM_PLUS.getValue(), 20, 20, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonTileSetZoom2, Icons.ZOOM_MINUS.getValue(), 20, 20, Color.WHITE, 150);
 		checkBoxShowBricks.setSelected(true);
+		checkBoxShowItens.setSelected(true);
+		checkBoxShowBricks.setOnAction(e -> {
+			if (!checkBoxShowBricks.isSelected())
+				Brick.clearBricks();
+			else
+				currentMapSet.setBricks();
+			checkBoxShowItens.setDisable(!checkBoxShowBricks.isSelected());
+		});
 		buttonTileSetZoom1.setOnAction(e -> {
 			if (zoomTileSet < 3) {
 				zoomTileSet++;
@@ -619,8 +628,13 @@ public class MapEditor {
 			currentMapSet.run(gcs);
 		else if (currentMapSet.getLayersMap().containsKey(currentLayerIndex))
 			gcDraw.drawImage(getCurrentLayer().getLayerImage(), 0, 0);
-		if (checkBoxShowBricks.isSelected() && currentLayerIndex == 26)
+		if (checkBoxShowBricks.isSelected() && currentLayerIndex == 26) {
 			Brick.drawBricks(gcDraw);
+			if (checkBoxShowItens.isSelected() && GameMisc.blink(200))
+				for (Brick brick : Brick.getBricks())
+					if (brick.getItem() != null)
+						gcDraw.drawImage(Materials.mainSprites, (brick.getItem().getValue() - 1) * 16, 16, 16, 16, brick.getTileX() * Main.tileSize, brick.getTileY() * Main.tileSize, Main.tileSize, Main.tileSize);
+		}
 		fragileTiles.values().forEach(e -> e.run(gcDraw));
 		for (int y = 0; y < tileSelection.getHeight(); y++)
 			for (int x = 0; x < tileSelection.getWidth(); x++)
@@ -737,14 +751,14 @@ public class MapEditor {
 				}
 				gcMain.setStroke(Color.GREENYELLOW);
 				gcMain.setLineWidth(2);
-				gcMain.strokeRect(canvasMouseDraw.getCoordX() * zoomMain * TILE_SIZE + deslocX(), canvasMouseDraw.getCoordY() * zoomMain * TILE_SIZE + deslocY(), 16 * zoomMain, 16 * zoomMain);
+				gcMain.strokeRect(canvasMouseDraw.getCoordX() * zoomMain * Main.tileSize + deslocX(), canvasMouseDraw.getCoordY() * zoomMain * Main.tileSize + deslocY(), 16 * zoomMain, 16 * zoomMain);
 			}
 			for (int y = 0; blink && y < 200; y++)
 				for (int x = 0; x < 200; x++)
 					if (Tile.getStringTag(currentLayerIndex, x, y) != null) {
 						gcMain.setStroke(Color.WHITESMOKE);
 						gcMain.setLineWidth(2);
-						gcMain.strokeRect(x * zoomMain * TILE_SIZE + deslocX(), y * zoomMain * TILE_SIZE + deslocY(), 16 * zoomMain, 16 * zoomMain);
+						gcMain.strokeRect(x * zoomMain * Main.tileSize + deslocX(), y * zoomMain * Main.tileSize + deslocY(), 16 * zoomMain, 16 * zoomMain);
 					}
 		}
 	}
