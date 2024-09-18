@@ -72,7 +72,7 @@ public class Brick extends Entity {
 	public static void addBrick(Brick brick, boolean updateLayer) {
 		TileCoord coord = brick.getTileCoord();
 		if (!haveBrickAt(coord)) {
-			TileCoord coord2 = new TileCoord(coord);
+			TileCoord coord2 = coord.getNewInstance();
 			coord2.setY(coord.getY() + 1);
 			brick.setPosition(coord.getPosition(Main.tileSize));
 			bricks.put(coord, brick);
@@ -89,7 +89,7 @@ public class Brick extends Entity {
 	public static void removeBrick(TileCoord coord, boolean updateLayer) {
 		if (haveBrickAt(coord)) {
 			Brick brick = bricks.get(coord);
-			TileCoord coord2 = new TileCoord(coord);
+			TileCoord coord2 = coord.getNewInstance();
 			coord2.setY(coord.getY() + 1);
 			bricks.remove(coord);
 			Tile.removeTileShadow(brick.originMapSet, coord2);

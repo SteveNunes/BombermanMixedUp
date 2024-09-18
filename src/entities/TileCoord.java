@@ -2,6 +2,7 @@ package entities;
 
 import java.util.Objects;
 
+import enums.Direction;
 import objmoveutils.Position;
 
 public class TileCoord {
@@ -19,6 +20,9 @@ public class TileCoord {
 		this.x = x;
 		this.y = y;
 	}
+	
+	public TileCoord getNewInstance()	
+		{ return new TileCoord(x, y); }
 
 	public int getX()
 		{ return x; }
@@ -36,6 +40,14 @@ public class TileCoord {
 		setX(x);
 		setY(y);
 	}
+	
+	public void incByDirection(Direction direction, int inc) {
+		x += direction == Direction.LEFT ? -inc : direction == Direction.RIGHT ? inc : 0;
+		y += direction == Direction.UP ? -inc : direction == Direction.DOWN ? inc : 0;
+	}
+	
+	public void incByDirection(Direction direction)
+		{ incByDirection(direction, 1); }
 	
 	public Position getTilePosition()
 		{ return new Position(x, y); }
@@ -62,7 +74,5 @@ public class TileCoord {
 	@Override
 	public String toString()
 		{ return "TileCoord [" + x + "," + y + "]"; }
-	
-	
 
 }

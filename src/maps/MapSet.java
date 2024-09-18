@@ -188,7 +188,7 @@ public class MapSet extends Entity{
 				Tile tile = new Tile(this, (int)wallTile.getX(), (int)wallTile.getY(), (int)pos.getX(), (int)pos.getY(), new ArrayList<>(Arrays.asList(TileProp.WALL)));
 				getLayer(26).removeFirstTileFromCoord(tile.getTileCoord());
 				getLayer(26).addTile(tile);
-				TileCoord coord = new TileCoord(tile.getTileCoord());
+				TileCoord coord = tile.getTileCoord();
 				coord.setY(coord.getY() + 1);
 				Tile.addTileShadow(this, groundWithWallShadow, coord);
 				/* NOTA:
