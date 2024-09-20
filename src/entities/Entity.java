@@ -49,10 +49,10 @@ public class Entity extends Position {
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
 		passThrough = new ArrayList<>();
-		for (String fSetName : entity.frameSets.keySet()) {
+		entity.frameSets.keySet().forEach(fSetName -> {
 			frameSets.put(fSetName, new FrameSet(entity.frameSets.get(fSetName), this));
 			freshFrameSets.put(fSetName, new FrameSet(entity.freshFrameSets.get(fSetName), this));
-		}
+		});
 		speed = new Position(entity.speed);
 		direction = entity.direction;
 		elevation = entity.elevation;

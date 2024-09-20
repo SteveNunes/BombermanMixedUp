@@ -1,6 +1,7 @@
 package enums;
 
-import tools.GameMisc;
+import util.CollectionUtils;
+import util.MyMath;
 
 public enum Curse {
 	
@@ -41,6 +42,6 @@ public enum Curse {
 	}
 	
 	public static Curse getRandom()
-		{ return list[GameMisc.getRandom(0, list.length - 1)]; }
+		{ return CollectionUtils.getRandomItemFromArray(list); }
 
 }

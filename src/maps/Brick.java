@@ -36,8 +36,8 @@ public class Brick extends Entity {
 		setTileSize(Main.tileSize);
 		this.originMapSet = originMapSet;
 		this.item = item;
-		for (String frameSet : Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet"))
-			addNewFrameSetFromString(frameSet, originMapSet.getTileSetIniFile().read("CONFIG", frameSet));
+		Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet").forEach(frameSet ->
+			addNewFrameSetFromString(frameSet, originMapSet.getTileSetIniFile().read("CONFIG", frameSet)));
 		setFrameSet("BrickStandFrameSet");
 		setPosition(coord.getPosition(Main.tileSize));
 	}

@@ -1,6 +1,8 @@
 package enums;
 
 import tools.GameMisc;
+import util.CollectionUtils;
+import util.MyMath;
 
 public enum ItemType {
 	
@@ -86,7 +88,7 @@ public enum ItemType {
 	}
 	
 	public static ItemType getRandom()
-		{ return list[GameMisc.getRandom(1, list.length - 1)]; }
+		{ return CollectionUtils.getRandomItemFromArray(list); }
 	
 	public static ItemType getItemById(int itemId) {
 		if (itemId < 1 || itemId >= list.length)

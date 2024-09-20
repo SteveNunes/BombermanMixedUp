@@ -5,6 +5,7 @@ import java.security.SecureRandom;
 import application.Main;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.GraphicsContext;
+import util.MyMath;
 
 public class SquaredBg {
 
@@ -47,7 +48,7 @@ public class SquaredBg {
 		squaresBg = new int[h][w];
 		for (int y = 0; y < h; y++)
 	    for (int x = 0; x < w; x++)
-	    	squaresBg[y][x] = GameMisc.getRandom(colorMinVal, colorMaxVal);
+	    	squaresBg[y][x] = (int)MyMath.getRandom(colorMinVal, colorMaxVal);
 		SquaredBg.squareSize = squareSize;
 		SquaredBg.colorMinVal = colorMinVal;
 		SquaredBg.colorMaxVal = colorMaxVal;

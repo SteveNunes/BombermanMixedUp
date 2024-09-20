@@ -56,6 +56,7 @@ import frameset_tags.SetSprFlip;
 import frameset_tags.SetSprIndex;
 import frameset_tags.SetSprRotate;
 import gui.util.Alerts;
+import gui.util.ControllerUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Rectangle2D;
@@ -80,7 +81,9 @@ import maps.MapSet;
 import tools.GameMisc;
 import tools.IniFiles;
 import tools.SquaredBg;
+import util.Misc;
 import util.MyFile;
+import util.MyMath;
 
 
 public class FrameSetEditor {
@@ -184,7 +187,7 @@ public class FrameSetEditor {
 		for (int n = 0; n < 0; n++) { // NOTA: TEMP para desenhar multiplos FrameSets na tela para testar capacidade
 			Entity entity = new Entity(currentEntity);
 			entity.setFrameSet("MovingFrames");
-			entity.setPosition(GameMisc.getRandom(0, 320), GameMisc.getRandom(0, 240));
+			entity.setPosition((int)MyMath.getRandom(0, 320), (int)MyMath.getRandom(0, 240));
 			entities.add(entity);
 		}
 		
@@ -595,8 +598,7 @@ public class FrameSetEditor {
 			}
 			else if (e.getCode() == KeyCode.V) {
 				if (isCtrlHold() && !isAltHold() && !isShiftHold()) {
-					for (Sprite sprite : copiedSprites)
-						getCurrentFrameSet().addSpriteAtEnd(new Sprite(sprite));
+					copiedSprites.forEach(sprite -> getCurrentFrameSet().addSpriteAtEnd(new Sprite(sprite)));
 					selectedSprites = new ArrayList<>(copiedSprites);
 					saveCtrlZ();
 				}
@@ -752,7 +754,7 @@ public class FrameSetEditor {
 		int ww, w = 0, h = 20 * str.length + 20;
 		for (String s : str) {
 			Text text = new Text(s);
-			GameMisc.setNodeFont(text, "Lucida Console", 15);
+			ControllerUtils.setNodeFont(text, "Lucida Console", 15);
 			if ((ww = (int)text.getBoundsInLocal().getWidth() + 110) > w)
 				w = ww;
 		}
@@ -906,8 +908,7 @@ public class FrameSetEditor {
 			dragX = (int)e.getX() / zoom;
 			dragY = (int)e.getY() / zoom;
 			deltaSprites.clear();
-			for (Sprite sprite : selectedSprites)
-				deltaSprites.add(new Sprite(sprite));
+			selectedSprites.forEach(sprite -> deltaSprites.add(new Sprite(sprite)));
 		});
 		canvasMain.setOnMouseMoved(e -> {
 			mouseX = (int)e.getX() / zoom;
@@ -1032,7 +1033,7 @@ public class FrameSetEditor {
 				gcMain.fillText(str, x, y - 60 - 7.5 * n);
 			}
 		}
-		if (GameMisc.blink()) { 
+		if (Misc.blink(50)) { 
 			if (focusedSprite != null) {
 				int x = (int)focusedSprite.getOutputDrawCoords().getX() * zoom,
 						y = (int)focusedSprite.getOutputDrawCoords().getY() * zoom;

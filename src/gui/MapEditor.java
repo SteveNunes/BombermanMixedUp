@@ -8,15 +8,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import application.Main;
 import entities.Entity;
 import entities.TileCoord;
-import enums.Direction;
 import enums.Icons;
-import enums.PathFindDistance;
-import enums.PathFindIgnoreInitialBackDirection;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import gui.util.ControllerUtils;
@@ -44,7 +40,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.util.Pair;
 import maps.Brick;
 import maps.Layer;
 import maps.MapSet;
@@ -53,8 +48,8 @@ import objmoveutils.Position;
 import tools.GameMisc;
 import tools.IniFiles;
 import tools.Materials;
-import tools.PathFinder;
 import util.FindFile;
+import util.Misc;
 
 public class MapEditor {
 
@@ -170,13 +165,6 @@ public class MapEditor {
 	private int ctrlZPos;
 	private long resetBricks;
 	private boolean playing;
-	private PathFinder pathFinder;
-	private TileCoord pathFinderTarget;
-	private Function<TileCoord, Boolean> pathFinderFunc;
-	private Direction pathFinderDirection;
-	private PathFindIgnoreInitialBackDirection pathFinderIgnoreBackDir;
-	private PathFindDistance pathFinderDistance;
-	public static GraphicsContext gcTemp;
 
 	public void init(Scene scene) {
 		sceneMain = scene;
@@ -200,27 +188,9 @@ public class MapEditor {
 		setKeyboardEvents();
 		setMainCanvasMouseEvents();
 		rebuildTileSetCanvas();
-		initPathFinderTest();
-		gcTemp = canvasMain.getGraphicsContext2D();
 		mainLoop();
 	}
 	
-	private void initPathFinderTest() {
-		pathFinder = null;
-		pathFinderDirection = Direction.LEFT;
-		pathFinderIgnoreBackDir = PathFindIgnoreInitialBackDirection.NO_IGNORE;
-		pathFinderDistance = PathFindDistance.RANDOM;
-		pathFinderTarget = new TileCoord();
-		pathFinderFunc = new Function<TileCoord, Boolean>() {
-			@Override
-			public Boolean apply(TileCoord coord) {
-				Tile tile = currentMapSet == null || getCurrentLayer() == null || !getCurrentLayer().haveTilesOnCoord(coord) ? null :
-										 getCurrentLayer().getFirstTileFromCoord(coord);
-				return tile != null && tile.tileProp.contains(TileProp.GROUND) && !Brick.haveBrickAt(coord);
-			}
-		};
-	}
-
 	void setAllCanvas() {
 		gcs = new HashMap<>();
 		canvas = new HashMap<>();
@@ -318,7 +288,7 @@ public class MapEditor {
 			loadMap(newV);
 		});
 		comboBoxMapList.getSelectionModel().select(0);
-		GameMisc.setNodeFont(buttonPlay, "Lucida Console", 14);
+		ControllerUtils.setNodeFont(buttonPlay, "Lucida Console", 14);
 		buttonPlay.setText("►");
 		buttonPlay.setOnAction(e -> {
 			reloadCurrentMap();
@@ -344,7 +314,7 @@ public class MapEditor {
 			Platform.runLater(() -> {
 				String title = "Map Editor"
 						+ "     FPS: " + GameMisc.getFPSHandler().getFPS()
-						+ "     " + canvasMouseDraw.tileCoord + " (Free: " + pathFinderFunc.apply(canvasMouseDraw.tileCoord) + ")"
+						+ "     " + canvasMouseDraw.tileCoord
 						+ "     Zoom: x" + zoomMain
 						+ "     Tileset Zoom: x" + zoomTileSet;
 				Main.stageMain.setTitle(title);
@@ -400,7 +370,7 @@ public class MapEditor {
 		listViewLayers.getItems().clear();
 		List<Integer> list = new ArrayList<Integer>(currentMapSet.getLayersMap().keySet());
 		list.sort((n1, n2) -> n2 - n1);
-		for (int layer : list) {
+		list.forEach(layer -> {
 			HBox hBox = new HBox(new Text("" + layer));
 			ComboBox<SpriteLayerType> comboBox = new ComboBox<>();
 			ControllerUtils.setListToComboBox(comboBox, Arrays.asList(SpriteLayerType.getList()));
@@ -411,7 +381,7 @@ public class MapEditor {
 			hBox.getChildren().add(comboBox);
 			hBox.setOnMouseClicked(event -> setLayer(layer));
 			listViewLayers.getItems().add(hBox);
-		}
+		});
 		listViewLayers.getSelectionModel().select(Integer.valueOf(currentLayerIndex));
 		canvasTileSet.setWidth(currentMapSet.getTileSetImage().getWidth());
 		canvasTileSet.setHeight(currentMapSet.getTileSetImage().getHeight());
@@ -446,13 +416,14 @@ public class MapEditor {
 			sampleFragileTile.addNewFrameSetFromString("FragileGroundFrameSet", fragileGroundFrameSet);
 			sampleFragileTile.setFrameSet("FragileGroundFrameSet");
 		}
-		for (Tile tile : currentMapSet.getLayer(26).getTileList())
+		currentMapSet.getLayer(26).getTileList().forEach(tile -> {
 			if (tile.tileProp.contains(TileProp.FRAGILE_GROUND_LV1)) {
 				Entity fragileTile = new Entity(sampleFragileTile);
 				fragileTiles.put(tile.getTileCoord(), fragileTile);
 				fragileTile.setFrameSet("FragileGroundFrameSet");
 				fragileTile.setPosition(tile.getTileX() * Main.tileSize, tile.getTileY() * Main.tileSize);
 			}
+		});
 	}
 	
 	void setKeyboardEvents() {
@@ -469,10 +440,6 @@ public class MapEditor {
 						i = 0;
 					comboBoxMapList.getSelectionModel().select(i);
 				}
-			}
-			else if (e.getCode() == KeyCode.A || e.getCode() == KeyCode.S || e.getCode() == KeyCode.D || e.getCode() == KeyCode.W) {
-				pathFinderTarget.incByDirection(e.getCode() == KeyCode.W ? Direction.UP : e.getCode() == KeyCode.S ? Direction.DOWN : e.getCode() == KeyCode.A ? Direction.LEFT : Direction.RIGHT);
-				pathFinder.recalculatePath(canvasMouseDraw.tileCoord, pathFinderTarget, pathFinderDirection);
 			}
 			else if (e.getCode() == KeyCode.DELETE) {
 				if (selection == null) {
@@ -600,14 +567,7 @@ public class MapEditor {
 		canvasMain.setOnMouseMoved(e -> {
 			canvasMouseDraw.x = (int)e.getX() + deslocX();
 			canvasMouseDraw.y = (int)e.getY() + deslocY();
-			TileCoord oldPos = canvasMouseDraw.tileCoord.getNewInstance(); 
 			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.tileSize * zoomMain), ((int)e.getY() - deslocY()) / (Main.tileSize * zoomMain));
-			if (pathFinder != null && !oldPos.equals(canvasMouseDraw.tileCoord)) {
-				Direction dir = oldPos.getX() == canvasMouseDraw.tileCoord.getX() ?
-											 (oldPos.getY() < canvasMouseDraw.tileCoord.getY() ? Direction.DOWN : Direction.UP) :
-												oldPos.getX() < canvasMouseDraw.tileCoord.getX() ? Direction.RIGHT : Direction.LEFT;
-				pathFinder.recalculatePath(canvasMouseDraw.tileCoord, pathFinderTarget, dir);
-			}
 		});
 		canvasMain.setOnMousePressed(e -> {
 			canvasMouseDraw.startDragX = (int)e.getX();
@@ -630,11 +590,7 @@ public class MapEditor {
 		});
 		canvasMain.setOnMouseClicked(e -> {
 			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.tileSize * zoomMain), ((int)e.getY() - deslocY()) / (Main.tileSize * zoomMain));
-			if (isCtrlHold()) {
-				if (e.getButton() == MouseButton.PRIMARY) {
-					pathFinderTarget = canvasMouseDraw.tileCoord.getNewInstance();
-					setNewPathFinder();
-				}
+			if (isAltHold()) {
 			}
 			else if (e.getButton() == MouseButton.SECONDARY) {
 				if (defaultContextMenu != null)
@@ -645,9 +601,6 @@ public class MapEditor {
 		});
 	}
 	
-	private void setNewPathFinder()
-		{ pathFinder = new PathFinder(canvasMouseDraw.tileCoord, pathFinderTarget, pathFinderDirection, pathFinderIgnoreBackDir, pathFinderDistance, pathFinderFunc); }
-
 	void addSelectedTileOnCurrentCursorPosition() {
 		for (int y = 0; y < tileSelection.getHeight(); y++)
 			for (int x = 0; x < tileSelection.getWidth(); x++) {
@@ -683,7 +636,7 @@ public class MapEditor {
 			gcDraw.drawImage(getCurrentLayer().getLayerImage(), 0, 0);
 		if (checkBoxShowBricks.isSelected() && currentLayerIndex == 26) {
 			Brick.drawBricks(gcDraw);
-			if (checkBoxShowItens.isSelected() && GameMisc.blink(200))
+			if (checkBoxShowItens.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
 						gcDraw.drawImage(Materials.mainSprites, (brick.getItem().getValue() - 1) * 16, 16, 16, 16, brick.getTileX() * Main.tileSize, brick.getTileY() * Main.tileSize, Main.tileSize, Main.tileSize);
@@ -693,30 +646,8 @@ public class MapEditor {
 			for (int x = 0; x < tileSelection.getWidth(); x++)
 				gcDraw.drawImage(currentMapSet.getTileSetImage(), (int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, 16, 16, canvasMouseDraw.getCoordX() * 16 + x * 16, canvasMouseDraw.getCoordY() * 16 + y * 16, Main.tileSize, Main.tileSize);
     drawBlockTypeMark();
-    pathFinderTest();
 	}
 	
-	private void pathFinderTest() {
-		if (pathFinder != null) {
-	    gcDraw.save();
-	    gcDraw.setLineWidth(2);
-	    if (pathFinder.getCurrentPath() != null) { // Mostra o pontilhado do caminho encontrado (Apertar F e R para alterar o caminho visualizado)
-		    List<Pair<TileCoord, Direction>> dirs = pathFinder.getCurrentPath();
-	      TileCoord coord = canvasMouseDraw.tileCoord.getNewInstance();
-		    for (Pair<TileCoord, Direction> dir : dirs) {
-		    	gcDraw.setFill(Color.GREEN);
-		    	gcDraw.fillRect(coord.getX() * 16 + 6, coord.getY() * 16 + 6, 4 , 4);
-		    	coord.incByDirection(dir.getValue());
-		    	gcDraw.setFill(Color.GREEN);
-		    	gcDraw.fillRect(coord.getX() * 16 + 6, coord.getY() * 16 + 6, 4 , 4);
-		    }
-	    }
-    	gcDraw.setStroke(GameMisc.blink() ? Color.YELLOW : Color.LIGHTGREEN);
-    	gcDraw.strokeRect(pathFinderTarget.getX() * 16, pathFinderTarget.getY() * 16, 16 , 16);
-	    gcDraw.restore();
-		}
-	}
-
 	int deslocX()
 		{ return canvasMouseDraw.movedX + canvasMouseDraw.dragX; }
 
@@ -730,10 +661,10 @@ public class MapEditor {
     drawGridAndAim();
     drawTileTagsOverCursor();
     drawTileSetCanvas();
-    for (Rectangle rect : Arrays.asList(selection, tileSelection))
+    Arrays.asList(selection, tileSelection).forEach(rect -> {
 			if (rect != null) {
 				GraphicsContext gc = rect == selection ? gcMain : gcTileSet;
-		  	gc.setStroke(GameMisc.blink() ? Color.GREEN : Color.YELLOW);
+		  	gc.setStroke(Misc.blink(50) ? Color.GREEN : Color.YELLOW);
 		  	int z = rect == selection ? zoomMain : zoomTileSet, 
 		  			x = (int)rect.getMinX() * Main.tileSize * z,
 		  			y = (int)rect.getMinY() * Main.tileSize * z,
@@ -741,6 +672,7 @@ public class MapEditor {
 		  			h = (int)rect.getHeight() * Main.tileSize * z;
 				gc.strokeRect(x + deslocX(), y + deslocY(), w, h);
 			}
+    });
 		if (checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
 	    Tile tile = getCurrentLayer().getFirstTileFromCoord(canvasMouseDraw.tileCoord);
 	    if (tile != null) {
@@ -753,7 +685,7 @@ public class MapEditor {
 				for (TileProp prop : tile.tileProp) {
 					String s = prop.name();
 					Text text = new Text(s);
-					GameMisc.setNodeFont(text, "Lucida Console", 15);
+					ControllerUtils.setNodeFont(text, "Lucida Console", 15);
 					while (x + (int)text.getBoundsInLocal().getWidth() + 20 >= canvasMain.getWidth())
 						x -= 20;
 					gcMain.strokeText(s, x, y += 20);
@@ -816,7 +748,7 @@ public class MapEditor {
 				yy = 0;
 				for (String s : str) {
 					Text text = new Text(s);
-					GameMisc.setNodeFont(text, "Lucida Console", 15);
+					ControllerUtils.setNodeFont(text, "Lucida Console", 15);
 					while (x + (int)text.getBoundsInLocal().getWidth() + 20 >= canvasMain.getWidth())
 						x -= 10;
 				}
@@ -929,7 +861,7 @@ public class MapEditor {
 	void drawBlockTypeMark() {
 		Map<TileCoord, Boolean> ok = new HashMap<>();
 		if (checkBoxShowBlockType.isSelected()) {
-    	for (Tile tile : getTilesFromCurrentLayer()) {
+			getTilesFromCurrentLayer().forEach(tile -> {
     		Color color;
     		if (!ok.containsKey(tile.getTileCoord())) {
 	    		if (tile.tileProp.contains(TileProp.PLAYER_INITIAL_POSITION))
@@ -1022,7 +954,7 @@ public class MapEditor {
 	    		gcDraw.restore();
 	    		ok.put(tile.getTileCoord(), true);
     		}
-    	}
+    	});
 		}
 	}
 	

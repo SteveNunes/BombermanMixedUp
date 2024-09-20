@@ -17,6 +17,7 @@ public abstract class Materials {
 	public static Image frames;
 	public static Image auras;
 	public static Image thunders;
+	public static Image setas;
 	public static Image blankImage;
 	public static List<Image> characters;
 	public static List<Image> rides;
@@ -68,6 +69,7 @@ public abstract class Materials {
 		frames = loadImage("HUD", Color.valueOf("#03E313"));
 		auras = loadImage("Auras", Color.valueOf("#03E313"));
 		thunders = loadImage("Thunders", Color.valueOf("#03E313"));
+		setas = loadImage("Setas", Color.valueOf("#03E313"));
 		FindFile.findFile("./appdata/sprites/tileset", "Tile*.png").forEach(file ->
 			{ tileSets.put(file.getName().replace(".png", ""), loadImage("/tileset/" + file.getName().replace(".png", ""), Color.valueOf("#FF00FF"))); });
 		System.out.println("... Concluido em " + (System.currentTimeMillis() - ms) + "ms");

@@ -31,11 +31,9 @@ public class FrameSet extends Position {
 	public FrameSet(FrameSet frameSet, Entity entity) {
 		super(frameSet);
 		sprites = new ArrayList<>();
-		for (Sprite sprite : frameSet.sprites)
-			sprites.add(sprite = new Sprite(sprite, this));
 		frames = new ArrayList<>();
-		for (Frame frame : frameSet.frames)
-			frames.add(frame = new Frame(frame, this));
+		frameSet.sprites.forEach(sprite -> sprites.add(sprite = new Sprite(sprite, this)));
+		frameSet.frames.forEach(frame -> frames.add(frame = new Frame(frame, this)));
 		this.entity = entity;
 		framesPerTick = frameSet.framesPerTick;
 		maxY = frameSet.maxY;
@@ -309,13 +307,11 @@ public class FrameSet extends Position {
 		sprite.setMainFrameSet(this);
 		if (getTotalSprites() == 0 || index == getTotalSprites()) {
 			sprites.add(sprite);
-			for (Frame frame : frames)
-				frame.getFrameSetTagsList().add(new Tags(sprite));
+			frames.forEach(frame -> frame.getFrameSetTagsList().add(new Tags(sprite)));
 		}
 		else {
 			sprites.add(index, sprite);
-			for (Frame frame : frames)
-				frame.getFrameSetTagsList().add(index, new Tags(sprite));
+			frames.forEach(frame -> frame.getFrameSetTagsList().add(index, new Tags(sprite)));
 		}
 	}
 
@@ -335,8 +331,7 @@ public class FrameSet extends Position {
 		if (index < 0 || index >= getTotalSprites())
 			GameMisc.throwRuntimeException(index + " - Invalid Index (Min: 0, Max: " + (getTotalSprites() - 1) + ")");
 		sprites.remove(index);
-		for (Frame frame : frames)
-			frame.getFrameSetTagsList().remove(index);
+		frames.forEach(frame -> frame.getFrameSetTagsList().remove(index));
 	}
 	
 	public void removeSprite(Sprite sprite) {
@@ -347,8 +342,7 @@ public class FrameSet extends Position {
 	private void moveSpriteTo(Sprite sprite, int index) {
 		int i = sprites.indexOf(sprite);
 		GameMisc.moveItemTo(sprites, sprite, index);
-		for (Frame frame : frames)
-			GameMisc.moveItemTo(frame.getFrameSetTagsList(), frame.getFrameSetTagsList().get(i), index);
+		frames.forEach(frame -> GameMisc.moveItemTo(frame.getFrameSetTagsList(), frame.getFrameSetTagsList().get(i), index));
 	}
 	
 	public void moveSpriteToBack(Sprite sprite)
@@ -417,7 +411,7 @@ public class FrameSet extends Position {
 	}
 
 	public void resetTags() {
-		for (Frame frame : frames)
+		frames.forEach(frame -> {
 			for (Tags tags : frame.getFrameSetTagsList())
 				for (FrameTag tag : tags.getFrameSetTags()) {
 					if (tag instanceof Goto)
@@ -425,6 +419,7 @@ public class FrameSet extends Position {
 					else if (tag instanceof RepeatLastFrame)
 						((RepeatLastFrame)tag).resetCycles();
 				}
+		});
 	}
 
 }

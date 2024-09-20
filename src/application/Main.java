@@ -1,5 +1,9 @@
 package application;
 	
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import enums.GameMode;
 import gui.FrameSetEditor;
 import gui.MapEditor;
@@ -15,6 +19,7 @@ import tools.GameMisc;
 import tools.Materials;
 import tools.SquaredBg;
 import util.IniFile;
+import util.Misc;
 
 
 public class Main extends Application {
@@ -87,7 +92,7 @@ public class Main extends Application {
 	public static void close(boolean wait) {
 		close = true;
 		if (wait)
-			GameMisc.sleep(1000); 
+			Misc.sleep(1000); 
 		IniFile.closeAllOpenedIniFiles();
 		Platform.exit();
 	}
@@ -110,8 +115,9 @@ public class Main extends Application {
 	private void drawDrawCanvas() {
 	}
 
-	public static void main(String[] args)
-		{ launch(args); }
+	public static void main(String[] args) {
+		launch(args);
+	}
 
 	public static boolean frameSetEditorIsPaused()
 		{ return (frameSetEditor != null && frameSetEditor.isPaused); }

@@ -7,7 +7,6 @@ import java.util.Random;
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
 import gameutil.FPSHandler;
-import javafx.scene.Node;
 import util.IniFile;
 
 public abstract class GameMisc {
@@ -38,31 +37,14 @@ public abstract class GameMisc {
 		}
 	}
 	
-	public static boolean blink()
-		{ return blink(50); }
-	
-	public static boolean blink(int speed)
-		{ return System.currentTimeMillis() / speed % 2 == 0; }
-	
 	public static DrawImageEffects loadEffectsFromString(String string) {
 		// NOTA: Implementar método
 		return null;
 	}
 
-	public static int getRandom(int min, int max)
-		{ return random.nextInt(++max - min) + min; }
-
 	public static void throwRuntimeException(String string) {
 		Main.close();
 		throw new RuntimeException(string);
 	}
-
-	public static void sleep(int delay) {
-		try { Thread.sleep(delay); }
-		catch (InterruptedException e) {}
-	}
-
-	public static void setNodeFont(Node buttonPlay, String fontName, int fontSize)
-		{ buttonPlay.setStyle("-fx-font-family: '" + fontName + "'; -fx-font-size: " + fontSize + "px;"); }
 
 }

@@ -73,10 +73,8 @@ public abstract class Sound {
 			{ e.printStackTrace(); }
 	}
 	
-	public static void stopAllMp3s() {
-		for (MediaPlayer mp3 : new ArrayList<>(mp3s.values()))
-			mp3.stop();
-	}
+	public static void stopAllMp3s()
+		{ mp3s.values().forEach(mp3 -> mp3.stop()); }
 	
 	// ============================ PLAY Wav =====================================
 	
@@ -134,8 +132,7 @@ public abstract class Sound {
 		thread.start();
 	}
 	
-	public static void stopAllWaves() {
-		for (AudioClip clip : new ArrayList<>(waves.values()))
-			clip.stop();
-	}
+	public static void stopAllWaves()
+		{ waves.values().forEach(clip -> clip.stop()); }
+	
 }

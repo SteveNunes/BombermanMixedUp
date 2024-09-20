@@ -41,6 +41,9 @@ public class TileCoord {
 		setY(y);
 	}
 	
+	public void setCoord(TileCoord tileCoord)
+		{ setCoord(tileCoord.getX(), tileCoord.getY()); }
+
 	public void incByDirection(Direction direction, int inc) {
 		x += direction == Direction.LEFT ? -inc : direction == Direction.RIGHT ? inc : 0;
 		y += direction == Direction.UP ? -inc : direction == Direction.DOWN ? inc : 0;

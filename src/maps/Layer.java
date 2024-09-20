@@ -52,12 +52,13 @@ public class Layer {
 		Canvas canvas = new Canvas(width, height);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		canvas.getGraphicsContext2D().setImageSmoothing(false);
-		for (TileCoord coord : tilesMap.keySet())
-			for (Tile tile : tilesMap.get(coord))
+		tilesMap.values().forEach(tiles ->
+			tiles.forEach(tile ->
 				ImageUtils.drawImage(gc, originMapSet.getTileSetImage(),
 														 tile.spriteX, tile.spriteY, 16, 16,
 														 tile.outX, tile.outY, 16, 16,
-														 tile.flip, tile.rotate, tile.opacity, tile.effects);
+														 tile.flip, tile.rotate,
+														 tile.opacity, tile.effects)));
 		SnapshotParameters params = new SnapshotParameters();
 		params.setFill(Color.TRANSPARENT);
 		layerImage = canvas.snapshot(params, null);
@@ -81,9 +82,8 @@ public class Layer {
 	public void setTilesMap(Map<TileCoord, List<Tile>> tilesMap) {
 		this.tilesMap = new HashMap<>(tilesMap);
 		tileList.clear();
-		for (TileCoord coord : tilesMap.keySet())
-			for (Tile tile : tilesMap.get(coord))
-				tileList.add(tile);
+		tilesMap.values().forEach(tiles ->
+			tiles.forEach(tile -> tileList.add(tile)));
 	}
 
 	public void addTile(Tile tile) {

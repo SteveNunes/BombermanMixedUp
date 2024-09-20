@@ -17,11 +17,11 @@ public class Frame {
 	public Frame(Frame frame, FrameSet mainFrameSet) {
 		this.mainFrameSet = mainFrameSet;
 		frameSetTagsList = new ArrayList<>();
-		int n = 0;
-		for (Tags tags : frame.frameSetTagsList) {
+		int[] n = {0};
+		frame.frameSetTagsList.forEach(tags -> {
 			frameSetTagsList.add(tags = new Tags(tags));
-			tags.setRootSprite(this.mainFrameSet.getSprite(n++));
-		}
+			tags.setRootSprite(this.mainFrameSet.getSprite(n[0]++));
+		});
 	}
 	
 	public Frame(FrameSet mainFrameSet) {
@@ -42,8 +42,7 @@ public class Frame {
 		for (Tags tags : frameSetTagsList) {
 			if (mainFrameSet.isStopped())
 				return;
-			for (FrameTag tag : tags.getFrameSetTags())
-				tag.process(tags.getRootSprite());
+			tags.getFrameSetTags().forEach(tag -> tag.process(tags.getRootSprite()));
 		}
 	}
 	

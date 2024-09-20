@@ -3,6 +3,8 @@ package tools;
 import java.security.SecureRandom;
 import java.util.Random;
 
+import util.CollectionUtils;
+
 public class FindTag {
 
 	private String foundTag;
@@ -28,6 +30,6 @@ public class FindTag {
 		{ return tagValues; }
 
 	public String getRandomFoundTagValue()
-		{ return foundTag == null ? null : tagValues[random.nextInt(tagValues.length)]; }
+		{ return CollectionUtils.getRandomItemFromArray(tagValues); }
 	
 }
