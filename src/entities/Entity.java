@@ -428,11 +428,12 @@ public class Entity extends Position {
 	public boolean canCross(MapSet mapSet, TileCoord coord) {
 		// NOTA: Implementar a parte de mob nao passar por mob
 		Elevation elevation = getElevation();
-		Tile tile = mapSet.getLayer(26).getFirstTileFromCoord(coord);
+		if (elevation != Elevation.HIGH_FLYING)
+			return true;
+		Tile tile = mapSet.getLayer(26).getTopTileFromCoord(coord);
 		for (TileProp prop : tile.tileProp) {
 			if (TileProp.getCantCrossList(elevation).contains(prop) ||
-					elevation != Elevation.HIGH_FLYING &&
-					((Brick.haveBrickAt(coord) && !canPassThroughBrick()) || (Bomb.haveBombAt(coord) && !canPassThroughBomb())))
+					(Brick.haveBrickAt(coord) && !canPassThroughBrick()) || (Bomb.haveBombAt(coord) && !canPassThroughBomb()))
 						return false;
 		}
 		return true;

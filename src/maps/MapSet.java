@@ -7,15 +7,19 @@ import java.util.List;
 import java.util.Map;
 
 import application.Main;
+import entities.Bomb;
 import entities.Entity;
 import entities.TileCoord;
+import enums.Direction;
+import enums.Elevation;
 import enums.ItemType;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import objmoveutils.PathFind;
 import objmoveutils.Position;
+import pathfinder.PathFinder;
+import pathfinder.PathFinderTileCoord;
 import tools.GameMisc;
 import tools.IniFiles;
 import tools.Materials;
@@ -164,7 +168,7 @@ public class MapSet extends Entity{
 	
 	public void setRandomWalls() {
 		if (IniFiles.stages.read(iniMapName, "FixedBlocks") != null && !IniFiles.stages.read(iniMapName, "FixedBlocks").equals("0")) {
-			List<Position> addWalls = new ArrayList<>();
+			List<Tile> addWalls = new ArrayList<>();
 			int totalWalls = 0;
 			try {
 				String[] split = IniFiles.stages.read(iniMapName, "FixedBlocks").split("!");
@@ -174,45 +178,68 @@ public class MapSet extends Entity{
 			}
 			catch (Exception e)
 				{ GameMisc.throwRuntimeException(IniFiles.stages.read(iniMapName, "FixedBlocks") + " - Wrong data for this item"); }
+			Map<Tile, List<TileProp>> recProp = new HashMap<>();
 			done:
 			while (totalWalls > 0) {
-				for (TileCoord coord : getLayer(26).getTilesMap().keySet()) {
-					Tile tile = getLayer(26).getFirstTileFromCoord(coord);
+				List<TileCoord> coords = new ArrayList<>();
+				for (TileCoord coord : getLayer(26).getTilesMap().keySet())
+					coords.add(coord.getNewInstance());
+				for (TileCoord coord : coords) {
+					Tile tile = getLayer(26).getTopTileFromCoord(coord);
 					if (tile.tileProp.contains(TileProp.GROUND) && (int)MyMath.getRandom(0, 9) == 0) {
-						addWalls.add(new Position(tile.outX, tile.outY));
-						if (--totalWalls == 0)
-							break done;
+						Tile tile2 = new Tile(this, (int)wallTile.getX(), (int)wallTile.getY(), coord.getX() * Main.tileSize, coord.getY() * Main.tileSize, new ArrayList<>(Arrays.asList(TileProp.WALL)));
+						Tile tile3 = getLayer(26).getFirstBottomTileFromCoord(coord);
+						List<TileProp> backupProps = tile3.tileProp;
+						tile3.tileProp = Arrays.asList(TileProp.WALL);
+						if (testCoordForInsertFixedBlock(coord)) {
+							recProp .put(tile3, tile3.tileProp);
+							addWalls.add(tile2);
+							if (--totalWalls == 0)
+								break done;
+						}
+						else
+							tile3.tileProp = backupProps;
 					}
 				}
 			}
-			addWalls.sort((p1, p2) -> (int)p2.getY() - (int)p1.getY());
-			addWalls.forEach(pos -> {
-				Position wallTile = getWallTile();
-				Tile tile = new Tile(this, (int)wallTile.getX(), (int)wallTile.getY(), (int)pos.getX(), (int)pos.getY(), new ArrayList<>(Arrays.asList(TileProp.WALL)));
-				getLayer(26).removeFirstTileFromCoord(tile.getTileCoord());
-				getLayer(26).addTile(tile);
+			recProp.forEach((tile, props) -> tile.tileProp = props);
+			addWalls.sort((t1, t2) -> (int)t2.outY - (int)t1.outY);
+			addWalls.forEach(tile -> {
 				TileCoord coord = tile.getTileCoord();
+				getLayer(26).removeFirstTileFromCoord(coord);
+				getLayer(26).addTile(tile);
 				coord.setY(coord.getY() + 1);
 				Tile.addTileShadow(this, groundWithWallShadow, coord);
-				/* NOTA:
-				 * Apos implementar as saidas, criar um metodo que passa o ponto inicial
-				 * do jogador e a coordenada da saida, para verificar se tem como chegar
-				 * do ponto inicial ate a saida, e realizar esse teste apos definir
-				 * cada nova wall, para evitar que bloqueie a saida ao gerar as paredes aleatorias.
-				 * Testar tambem acesso aos tijolos, para evitar de gerar tijolo dentro de uma
-				 * area inacessivel. O teste do tijolo deve ser realizado ao tentar gerar cada
-				 * tijolo aleatorio, verificando se o jogador consegue chegar até o tijolo andando.
-				 */
 			});
 			getLayer(26).buildLayer();
 		}
 	}
 	
-	public boolean testPlayerAcessibility(TileCoord coord) {
-		PathFind pf = new PathFind();
-		return false;
+	private boolean testCoordForInsertFixedBlock(TileCoord coord) {
+		PathFinderTileCoord coord1 = new PathFinderTileCoord(),
+												coord2 = new PathFinderTileCoord(),
+												coord3 = new PathFinderTileCoord(coord.getX(), coord.getY());
+		Direction dir1 = Direction.LEFT;
+		for (int n = 0; n < 4; n++) {
+			dir1 = dir1.getNext4WayClockwiseDirection();
+			coord1.setCoord(coord3);
+			coord1.incByDirection(dir1);
+			Direction dir2 = Direction.LEFT;
+			if (tileIsFree(new TileCoord(coord1.getX(), coord1.getY())))
+				for (int n2 = 0; n2 < 4; n2++) {
+					dir2 = dir2.getNext4WayClockwiseDirection();
+					coord2.setCoord(coord3);
+					coord2.incByDirection(dir2);
+					if (dir1 != dir2 && tileIsFree(new TileCoord(coord2.getX(), coord2.getY()))) {
+						PathFinder pf = new PathFinder(coord1, coord2, dir1, t -> tileIsFree(new TileCoord(t.getX(), t.getY())));
+						if (!pf.pathWasFound())
+							return false;
+					}
+				}
+		}
+		return true;
 	}
-	
+
 	public TileCoord getInitialPlayerPosition(int playerIndex) {
 		for (TileCoord coord : initialPlayerCoords.keySet())
 			if (initialPlayerCoords.get(coord) == playerIndex)
@@ -307,4 +334,15 @@ public class MapSet extends Entity{
 	public String getIniMapName()
 		{ return iniMapName; }
 
+	public boolean tileIsFree(TileCoord coord) {
+		if (!getLayer(26).haveTilesOnCoord(coord))
+			return false;
+		Tile tile = getLayer(26).getTopTileFromCoord(coord);
+		for (TileProp prop : tile.tileProp)
+			if (TileProp.getCantCrossList(Elevation.ON_GROUND).contains(prop) ||
+					Brick.haveBrickAt(coord) || Bomb.haveBombAt(coord))
+						return false;
+		return true;
+	}
+	
 }

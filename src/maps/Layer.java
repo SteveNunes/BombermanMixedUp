@@ -96,9 +96,12 @@ public class Layer {
 	public boolean haveTilesOnCoord(TileCoord coord)
 		{ return tilesMap.containsKey(coord); } 
 	
-	public Tile getFirstTileFromCoord(TileCoord coord)
+	public Tile getTopTileFromCoord(TileCoord coord)
 		{ return getTileFromCoord(coord, 0); }
 	
+	public Tile getFirstBottomTileFromCoord(TileCoord coord)
+		{ return getTileFromCoord(coord, tilesMap.get(coord).size() - 1); }
+
 	public Tile getTileFromCoord(TileCoord coord, int tileIndex) {
 		if (tileIndex < 0)
 			GameMisc.throwRuntimeException("Index must be 0 or higher");

@@ -121,7 +121,7 @@ public class Tile {
 		{ addTileShadow(mapSet, coord, shadowType, true); }
 	
 	public static void addTileShadow(MapSet mapSet, TileCoord coord, Position shadowType, boolean updateLayer) {
-		Tile tile = !mapSet.getLayer(26).haveTilesOnCoord(coord) ? null : mapSet.getLayer(26).getFirstTileFromCoord(coord);
+		Tile tile = !mapSet.getLayer(26).haveTilesOnCoord(coord) ? null : mapSet.getLayer(26).getTopTileFromCoord(coord);
 		Position groundTile = mapSet.getGroundTile();
 		if (tile == null || (tile.spriteX == groundTile.getX() && tile.spriteY == groundTile.getY())) {
 			if (tile != null)
@@ -137,7 +137,7 @@ public class Tile {
 		{ removeTileShadow(mapSet, coord, true); }
 	
 	public static void removeTileShadow(MapSet mapSet, TileCoord coord, boolean updateLayer) {
-		Tile tile = !mapSet.getLayer(26).haveTilesOnCoord(coord) ? null : mapSet.getLayer(26).getFirstTileFromCoord(coord);
+		Tile tile = !mapSet.getLayer(26).haveTilesOnCoord(coord) ? null : mapSet.getLayer(26).getTopTileFromCoord(coord);
 		Position groundTile = mapSet.getGroundTile(),
 						 brickShadow = mapSet.getGroundWithBrickShadow(),
 						 wallShadow = mapSet.getGroundWithWallShadow();

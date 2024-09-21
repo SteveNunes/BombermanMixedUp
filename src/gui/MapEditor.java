@@ -314,7 +314,7 @@ public class MapEditor {
 			Platform.runLater(() -> {
 				String title = "Map Editor"
 						+ "     FPS: " + GameMisc.getFPSHandler().getFPS()
-						+ "     " + canvasMouseDraw.tileCoord
+						+ "     " + canvasMouseDraw.tileCoord + "     (" + (currentMapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BLOCKED") + ")"
 						+ "     Zoom: x" + zoomMain
 						+ "     Tileset Zoom: x" + zoomTileSet;
 				Main.stageMain.setTitle(title);
@@ -622,8 +622,8 @@ public class MapEditor {
 	List<Tile> getTilesFromCoord(TileCoord coord)
 		{ return getCurrentLayer().getTilesFromCoord(coord); }
 
-	Tile getFirstTileFromCoord(TileCoord coord)
-		{ return getCurrentLayer().getFirstTileFromCoord(coord); }
+	Tile getTopTileFromCoord(TileCoord coord)
+		{ return getCurrentLayer().getTopTileFromCoord(coord); }
 
 	void drawDrawCanvas() {
 		gcDraw.setFill(Color.DIMGRAY);
@@ -674,7 +674,7 @@ public class MapEditor {
 			}
     });
 		if (checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
-	    Tile tile = getCurrentLayer().getFirstTileFromCoord(canvasMouseDraw.tileCoord);
+	    Tile tile = getCurrentLayer().getTopTileFromCoord(canvasMouseDraw.tileCoord);
 	    if (tile != null) {
 	    	int x = tile.outX * zoomMain + deslocX(),
 	    			y = tile.outY * zoomMain + (Main.tileSize * zoomMain) / 2 - 20 + deslocY();
@@ -830,7 +830,7 @@ public class MapEditor {
 		if (Brick.haveBrickAt(coord))
 			Brick.removeBrick(coord);
 		else if (getCurrentLayer().haveTilesOnCoord(coord)) {
-			if (getFirstTileFromCoord(coord).tileProp.contains(TileProp.FRAGILE_GROUND_LV1) && fragileTiles.containsKey(coord))
+			if (getTopTileFromCoord(coord).tileProp.contains(TileProp.FRAGILE_GROUND_LV1) && fragileTiles.containsKey(coord))
 				fragileTiles.remove(coord);
 			if (!removeOnlyTopSprite)
 				getCurrentLayer().removeAllTilesFromCoord(coord);
