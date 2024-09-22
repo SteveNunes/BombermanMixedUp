@@ -10,34 +10,31 @@ import application.Main;
 import entities.Entity;
 import entities.TileCoord;
 import enums.ItemType;
-import javafx.scene.canvas.GraphicsContext;
+import enums.TileProp;
 
 public class Brick extends Entity {
 
 	private static Map<TileCoord, Brick> bricks = new HashMap<>();
-	private MapSet originMapSet;
 	private ItemType item;
 	
 	public Brick(Brick brick) {
 		super(brick);
 		setTileSize(Main.tileSize);
-		originMapSet = brick.originMapSet;
 		item = brick.item;
 	}
 
-	public Brick(MapSet originMapSet)
-		{ this(originMapSet, new TileCoord(), null); }
+	public Brick()
+		{ this(new TileCoord(), null); }
 
-	public Brick(MapSet originMapSet, TileCoord coord)
-		{ this(originMapSet, coord, null); }
+	public Brick(TileCoord coord)
+		{ this(coord, null); }
 	
-	public Brick(MapSet originMapSet, TileCoord coord, ItemType item) {
+	public Brick(TileCoord coord, ItemType item) {
 		super();
 		setTileSize(Main.tileSize);
-		this.originMapSet = originMapSet;
 		this.item = item;
 		Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet").forEach(frameSet ->
-			addNewFrameSetFromString(frameSet, originMapSet.getTileSetIniFile().read("CONFIG", frameSet)));
+			addNewFrameSetFromString(frameSet, MapSet.getTileSetIniFile().read("CONFIG", frameSet)));
 		setFrameSet("BrickStandFrameSet");
 		setPosition(coord.getPosition(Main.tileSize));
 	}
@@ -54,17 +51,17 @@ public class Brick extends Entity {
 	public void removeItem()
 		{ item = null; }
 	
-	public static void addBrick(MapSet originMapSet, TileCoord coord)
-		{ addBrick(new Brick(originMapSet, coord, null), true); }
+	public static void addBrick(TileCoord coord)
+		{ addBrick(new Brick(coord, null), true); }
 	
-	public static void addBrick(MapSet originMapSet, TileCoord coord, boolean updateLayer)
-		{ addBrick(new Brick(originMapSet, coord, null), updateLayer); }
+	public static void addBrick(TileCoord coord, boolean updateLayer)
+		{ addBrick(new Brick(coord, null), updateLayer); }
 
-	public static void addBrick(MapSet originMapSet, TileCoord coord, ItemType item)
-		{ addBrick(new Brick(originMapSet, coord, item), true); }
+	public static void addBrick(TileCoord coord, ItemType item)
+		{ addBrick(new Brick(coord, item), true); }
 
-	public static void addBrick(MapSet originMapSet, TileCoord coord, ItemType item, boolean updateLayer)
-		{ addBrick(new Brick(originMapSet, coord, item), updateLayer); }
+	public static void addBrick(TileCoord coord, ItemType item, boolean updateLayer)
+		{ addBrick(new Brick(coord, item), updateLayer); }
 
 	public static void addBrick(Brick brick)
 		{ addBrick(brick, true); }
@@ -76,7 +73,7 @@ public class Brick extends Entity {
 			coord2.setY(coord.getY() + 1);
 			brick.setPosition(coord.getPosition(Main.tileSize));
 			bricks.put(coord, brick);
-			Tile.addTileShadow(brick.originMapSet, brick.originMapSet.getGroundWithBrickShadow(), coord2);
+			Tile.addTileShadow(MapSet.getGroundWithBrickShadow(), coord2);
 		}
 	}
 
@@ -92,7 +89,7 @@ public class Brick extends Entity {
 			TileCoord coord2 = coord.getNewInstance();
 			coord2.setY(coord.getY() + 1);
 			bricks.remove(coord);
-			Tile.removeTileShadow(brick.originMapSet, coord2);
+			Tile.removeTileShadow(coord2);
 		}
 	}
 	
@@ -103,7 +100,7 @@ public class Brick extends Entity {
 				brick = bricks.values().iterator().next();
 				removeBrick(brick.getTileCoord(), false);
 			}
-			brick.originMapSet.getLayer(26).buildLayer();
+			MapSet.getLayer(26).buildLayer();
 		}
 	}
 	
@@ -113,10 +110,22 @@ public class Brick extends Entity {
 	public static List<Brick> getBricks()
 		{ return new ArrayList<>(bricks.values()); }
 	
-	public static void drawBricks(GraphicsContext gc) {
-		for (Brick brick : bricks.values())
-			brick.run(gc, false);
+	public static void drawBricks() {
+		List<Brick> removeBricks = new ArrayList<>();
+		for (Brick brick : bricks.values()) {
+			if (brick.getCurrentFrameSetName().equals("BrickStandFrameSet") &&
+					MapSet.tileContainsProp(brick.getTileCoord(), TileProp.EXPLOSION))
+				brick.setFrameSet("BrickBreakFrameSet");
+			brick.run();
+			if (brick.isBreaked()) {
+				removeBricks.add(brick);
+			}
+		}
+		removeBricks.forEach(brick -> removeBrick(brick));
 	}
+
+	private boolean isBreaked()
+		{ return getCurrentFrameSetName().equals("BrickBreakFrameSet") && !getCurrentFrameSet().isRunning(); }
 
 	public static boolean haveBrickAt(TileCoord coord)
 		{ return bricks.containsKey(coord); }

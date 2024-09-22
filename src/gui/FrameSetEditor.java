@@ -3,7 +3,6 @@ package gui;
 import java.awt.Rectangle;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -101,8 +100,6 @@ public class FrameSetEditor {
 	@FXML
 	private Canvas canvasMain;
 	private GraphicsContext gcMain;
-	private Map<SpriteLayerType, Canvas> canvas;
-	private Map<SpriteLayerType, GraphicsContext> gcs;
 	private Entity currentEntity;
 	private Frame copiedFrame;
 	private Sprite focusedSprite;
@@ -124,26 +121,19 @@ public class FrameSetEditor {
 	private int linkEntityToCursor;
 	private int centerX;
 	private int centerY;
-	private MapSet mapSet;
 	
 	public void init(Scene scene) {
 		params = new SnapshotParameters();
 		params.setFill(Color.TRANSPARENT);
 		params.setViewport(new Rectangle2D(0, 0, canvasMain.getWidth(), canvasMain.getHeight()));
-		canvas = new HashMap<>();
-		gcs = new HashMap<>();
-		for (SpriteLayerType layerType : SpriteLayerType.getList()) {
-			canvas.put(layerType, new Canvas(winW, winH));
-			gcs.put(layerType, canvas.get(layerType).getGraphicsContext2D());
-			gcs.get(layerType).setImageSmoothing(false);
-		}
+		GameMisc.generateDrawCanvasMap();
 		sceneMain = scene;
 		font = new Font("Lucida Console", 15);
 		canvasMain.getGraphicsContext2D().setImageSmoothing(false);
 		canvasMain.setWidth(winW * zoom);
 		canvasMain.setHeight(winH * zoom);
 		gcMain = canvasMain.getGraphicsContext2D();
-		mapSet = new MapSet("SBM_1-1");
+		MapSet.loadMap("SBM_1-1");
 		entities = new ArrayList<>();
 		holdedKeys = new ArrayList<>();
 		backupFrameSets = new ArrayList<>();
@@ -930,6 +920,7 @@ public class FrameSetEditor {
 	}
 	
 	void drawDrawCanvas() {
+		Map<SpriteLayerType, GraphicsContext> gcs = GameMisc.getGcMap();
 		for (SpriteLayerType layerType : SpriteLayerType.getList()) {
 			if (layerType == SpriteLayerType.BACKGROUND) {
 				gcs.get(layerType).setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
@@ -939,9 +930,9 @@ public class FrameSetEditor {
 				gcs.get(layerType).clearRect(0, 0, winW, winH);
 		}
 		if (bgType == 2)
-			SquaredBg.draw(gcs.get(SpriteLayerType.BACKGROUND));
+			SquaredBg.draw();
 		else if (bgType == 1)
-			mapSet.run(gcs.get(SpriteLayerType.BACKGROUND));
+			MapSet.run();
 		if (linkEntityToCursor > 0) {
 			if (linkEntityToCursor == 2)
 				currentEntity.setPosition(mouseX, mouseY);
@@ -965,7 +956,7 @@ public class FrameSetEditor {
 			}
 		}
 		entities.sort((e1, e2) -> e1.getCurrentFrameSet().getMaxY() - e2.getCurrentFrameSet().getMaxY());
-		entities.forEach(e -> e.run(gcs, isPaused));
+		entities.forEach(e -> e.run(isPaused));
 		if (isChangingSprite) {
 			Sprite sprite = selectedSprites.get(0);
 			int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
@@ -975,7 +966,7 @@ public class FrameSetEditor {
 					480, 360, x - 160, y - 120, 480, 360);
 		}
 		if (currentEntity != null)
-			currentEntity.run(gcs, isPaused);
+			currentEntity.run(isPaused);
 		gcs.get(SpriteLayerType.CLOUD).setGlobalAlpha(1);
 		gcs.get(SpriteLayerType.CLOUD).setLineWidth(1);
 		gcs.get(SpriteLayerType.CLOUD).setStroke(Color.WHITE);
@@ -986,7 +977,7 @@ public class FrameSetEditor {
 	
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
 		for (SpriteLayerType layerType : SpriteLayerType.getList())
-			gcMain.drawImage(canvas.get(layerType).snapshot(params, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
+			gcMain.drawImage(GameMisc.getCanvasMap().get(layerType).snapshot(params, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
 		if (currentEntity.getTotalFrameSets() > 0 && !currentEntity.getFrameSet(getCurrentFrameSetName()).isEmptyFrames() && getCurrentFrame() != null) {
 			focusedSprite = null;
 			Sprite focused = null;

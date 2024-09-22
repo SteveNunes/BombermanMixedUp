@@ -21,12 +21,10 @@ public class Layer {
 	private Map<TileCoord, List<Tile>> tilesMap;
 	private List<Tile> tileList;
 	private WritableImage layerImage;
-	private MapSet originMapSet;
 	private int layer;
 	private SpriteLayerType layerType;
 	
-	public Layer(MapSet originMapSet, List<String> tileInfos) {
-		this.originMapSet = originMapSet;
+	public Layer(List<String> tileInfos) {
 		tilesMap = new HashMap<>();
 		tileList = new ArrayList<>();
 		for (String s : tileInfos) {
@@ -35,7 +33,7 @@ public class Layer {
 				{ layerType = SpriteLayerType.valueOf(split[1]); }
 			catch (Exception e)
 				{ GameMisc.throwRuntimeException(split[1] + " - Invalid SpriteLayerType param"); }
-			Tile tile = new Tile(originMapSet, s);
+			Tile tile = new Tile(s);
 			addTile(tile);
 		}
 	}
@@ -54,7 +52,7 @@ public class Layer {
 		canvas.getGraphicsContext2D().setImageSmoothing(false);
 		tilesMap.values().forEach(tiles ->
 			tiles.forEach(tile ->
-				ImageUtils.drawImage(gc, originMapSet.getTileSetImage(),
+				ImageUtils.drawImage(gc, MapSet.getTileSetImage(),
 														 tile.spriteX, tile.spriteY, 16, 16,
 														 tile.outX, tile.outY, 16, 16,
 														 tile.flip, tile.rotate,
@@ -130,9 +128,6 @@ public class Layer {
 		tilesMap.remove(coord);
 	}
 	
-	public MapSet getOriginMapSet()
-		{ return originMapSet; }
-
 	public int getLayer()
 		{ return layer; }
 

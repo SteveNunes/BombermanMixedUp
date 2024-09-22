@@ -1,10 +1,6 @@
 package application;
 	
-import java.util.ArrayList;
-import java.util.List;
-
 import enums.GameMode;
-import enums.TileProp;
 import gui.FrameSetEditor;
 import gui.MapEditor;
 import javafx.application.Application;
@@ -31,10 +27,8 @@ public class Main extends Application {
 	public static MapEditor mapEditor = null;
 
 	public static GameMode mode = GameMode.MAP_EDITOR;
-	public static Canvas canvasDraw;
 	public static Canvas canvasMain;
 	public static Canvas canvasOverall;
-	public static GraphicsContext gcDraw;
 	public static GraphicsContext gcMain;
 	public static GraphicsContext gcOverall;
 	private static VBox vBoxMain;
@@ -50,9 +44,6 @@ public class Main extends Application {
 			SquaredBg.setSquaredBg(4, 3, 50, 255);
 			Scene scene = null;
 			if (mode == GameMode.GAME) {
-				canvasDraw = new Canvas(winW, winH);
-				canvasDraw.getGraphicsContext2D().setImageSmoothing(false);
-				gcDraw = canvasDraw.getGraphicsContext2D();
 				canvasMain = new Canvas(winW * zoom, winH * zoom);
 				canvasMain.getGraphicsContext2D().setImageSmoothing(false);
 				gcMain = canvasMain.getGraphicsContext2D();
@@ -109,7 +100,7 @@ public class Main extends Application {
 	}
 	
 	private void drawMainCanvas() {
-    gcMain.drawImage(canvasDraw.snapshot(null, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
+		GameMisc.drawAllCanvas(canvasMain, zoom);
 	}
 
 	private void drawDrawCanvas() {

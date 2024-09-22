@@ -3,6 +3,7 @@ package tools;
 import java.security.SecureRandom;
 
 import application.Main;
+import enums.SpriteLayerType;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.GraphicsContext;
 import util.MyMath;
@@ -63,17 +64,18 @@ public class SquaredBg {
 		while (r == 0 && g == 0 && b == 0);
 	}
 	
-	public static void draw(GraphicsContext targetGc) {
+	public static void draw() {
 		if (squaresBg != null) {
-    	targetGc.save();
+			GraphicsContext gc = GameMisc.getGcMap().get(SpriteLayerType.BACKGROUND);
+    	gc.save();
 			for (int y = 0; y < squaresBg.length; y++)
 		    for (int x = 0; x < squaresBg[0].length; x++) {
 		    	if ((squaresBg[y][x] += colorIncVal) >= colorMaxVal)
 		    		squaresBg[y][x] = colorMinVal;
-		    	targetGc.setFill(ImageUtils.argbToColor(ImageUtils.getRgba(rgb[0] == 0 ? 0 : squaresBg[y][x], rgb[1] == 0 ? 0 : squaresBg[y][x], rgb[2] == 0 ? 0 : squaresBg[y][x])));
-		    	targetGc.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
+		    	gc.setFill(ImageUtils.argbToColor(ImageUtils.getRgba(rgb[0] == 0 ? 0 : squaresBg[y][x], rgb[1] == 0 ? 0 : squaresBg[y][x], rgb[2] == 0 ? 0 : squaresBg[y][x])));
+		    	gc.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
 		    }
-    	targetGc.restore();
+    	gc.restore();
 		}
 	}
 

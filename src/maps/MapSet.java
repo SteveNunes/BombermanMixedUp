@@ -8,7 +8,6 @@ import java.util.Map;
 
 import application.Main;
 import entities.Bomb;
-import entities.Entity;
 import entities.TileCoord;
 import enums.Direction;
 import enums.Elevation;
@@ -28,32 +27,30 @@ import util.IniFile;
 import util.Misc;
 import util.MyMath;
 
-public class MapSet extends Entity{
+public class MapSet {
 	
 	public static Map<SpriteLayerType, Map<Integer, WritableImage>> layerImages = null;
-
-	private Map<Integer, Layer> layers;
-	private Map<TileCoord, Integer> initialPlayerCoords;
-	private Map<TileCoord, Integer> initialMonsterCoords;
-	private IniFile iniFileMap;
-	private IniFile iniFileTileSet;
-	private Image tileSetImage;
-	private Integer copyImageLayer;
-	private String mapName;
-	private String iniMapName;
-	private String tileSetName;
-	private Position groundTile;
-	private Position wallTile;
-	private Position groundWithBrickShadow;
-	private Position groundWithWallShadow;
-	private Position fragileGround;
+	private static Map<Integer, Layer> layers;
+	private static Map<TileCoord, Integer> initialPlayerCoords;
+	private static Map<TileCoord, Integer> initialMonsterCoords;
+	private static IniFile iniFileMap;
+	private static IniFile iniFileTileSet;
+	private static Image tileSetImage;
+	private static Integer copyImageLayer;
+	private static String mapName;
+	private static String iniMapName;
+	private static String tileSetName;
+	private static Position groundTile;
+	private static Position wallTile;
+	private static Position groundWithBrickShadow;
+	private static Position groundWithWallShadow;
+	private static Position fragileGround;
 	
-	public MapSet(String iniMapName) {
+	public static void loadMap(String iniMapName) {
 		long ct = System.currentTimeMillis();
 		System.out.println("Carregando mapa " + iniMapName + " ...");
+		MapSet.iniMapName = iniMapName;
 		layerImages = new HashMap<>();
-		setTileSize(Main.tileSize);
-		this.iniMapName = iniMapName;
 		layers = new HashMap<>();
 		initialPlayerCoords = new HashMap<>();
 		initialMonsterCoords = new HashMap<>();
@@ -72,7 +69,7 @@ public class MapSet extends Entity{
 			tileInfos.get(layer).add(line);
 		});
 		tileInfos.keySet().forEach(i -> {
-			Layer layer = new Layer(this, tileInfos.get(i));
+			Layer layer = new Layer(tileInfos.get(i));
 			layers.put(i, layer);
 			if (!layerImages.containsKey(layer.getSpriteLayerType()))
 				layerImages.put(layer.getSpriteLayerType(), new HashMap<>());
@@ -97,21 +94,21 @@ public class MapSet extends Entity{
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
 	}
 	
-	public void setTileSet(String tileSetName) {
-		this.tileSetName = tileSetName; 
+	public static void setTileSet(String tileSetName) {
+		MapSet.tileSetName = tileSetName; 
 		iniFileTileSet = IniFile.getNewIniFileInstance("appdata/tileset/" + tileSetName + ".tiles");
 		if (iniFileTileSet == null)
 			GameMisc.throwRuntimeException("Unable to load map \"" + mapName + "\" (Invalid TileSet (" + tileSetName + ".tiles))");
 		tileSetImage = Materials.tileSets.get(tileSetName);
 	}
 
-	public void setBricks() {
+	public static void setBricks() {
 		Brick.clearBricks();
 		List<Brick> addBricks = new ArrayList<>();
 		getLayer(26).getTileList().forEach(tile ->
 			tile.tileProp.forEach(prop -> {
 				if (prop == TileProp.FIXED_BRICK)
-					addBricks.add(new Brick(this, tile.getTileCoord(), null));
+					addBricks.add(new Brick(tile.getTileCoord(), null));
 			}));
 		if (IniFiles.stages.read(iniMapName, "Blocks") != null && !IniFiles.stages.read(iniMapName, "Blocks").equals("0")) {
 			int totalBricks = 0,
@@ -136,7 +133,7 @@ public class MapSet extends Entity{
 					for (TileProp p : t.tileProp)
 						if (p == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(t.getTileCoord())) {
 							if ((int)MyMath.getRandom(0, 3) == 0) {
-								addBricks.add(new Brick(this, t.getTileCoord(), null));
+								addBricks.add(new Brick(t.getTileCoord(), null));
 								if (--totalBricks == 0 || ++bricksQuant >= totalBrickSpawners[0])
 									break done;
 							}
@@ -149,7 +146,7 @@ public class MapSet extends Entity{
 		addItensToBricks();
 	}
 	
-	private void addItensToBricks() {
+	private static void addItensToBricks() {
 		if (IniFiles.stages.read(iniMapName, "Items") != null && !IniFiles.stages.read(iniMapName, "Items").equals("0")) {
 			String[] split = IniFiles.stages.read(iniMapName, "Items").split(" ");
 			try {
@@ -167,7 +164,7 @@ public class MapSet extends Entity{
 		}		
 	}
 	
-	public void setRandomWalls() {
+	public static void setRandomWalls() {
 		if (IniFiles.stages.read(iniMapName, "FixedBlocks") != null && !IniFiles.stages.read(iniMapName, "FixedBlocks").equals("0")) {
 			List<Tile> addWalls = new ArrayList<>();
 			int totalWalls = 0;
@@ -188,7 +185,7 @@ public class MapSet extends Entity{
 				for (TileCoord coord : coords) {
 					Tile tile = getLayer(26).getTopTileFromCoord(coord);
 					if (tile.tileProp.contains(TileProp.GROUND) && (int)MyMath.getRandom(0, 9) == 0) {
-						Tile tile2 = new Tile(this, (int)wallTile.getX(), (int)wallTile.getY(), coord.getX() * Main.tileSize, coord.getY() * Main.tileSize, new ArrayList<>(Arrays.asList(TileProp.WALL)));
+						Tile tile2 = new Tile((int)wallTile.getX(), (int)wallTile.getY(), coord.getX() * Main.tileSize, coord.getY() * Main.tileSize, new ArrayList<>(Arrays.asList(TileProp.WALL)));
 						Tile tile3 = getLayer(26).getFirstBottomTileFromCoord(coord);
 						List<TileProp> backupProps = tile3.tileProp;
 						tile3.tileProp = Arrays.asList(TileProp.WALL);
@@ -210,13 +207,13 @@ public class MapSet extends Entity{
 				getLayer(26).removeFirstTileFromCoord(coord);
 				getLayer(26).addTile(tile);
 				coord.setY(coord.getY() + 1);
-				Tile.addTileShadow(this, groundWithWallShadow, coord);
+				Tile.addTileShadow(groundWithWallShadow, coord);
 			});
 			getLayer(26).buildLayer();
 		}
 	}
 	
-	private boolean testCoordForInsertFixedBlock(TileCoord coord) {
+	private static boolean testCoordForInsertFixedBlock(TileCoord coord) {
 		PathFinderTileCoord coord1 = new PathFinderTileCoord(),
 												coord2 = new PathFinderTileCoord(),
 												coord3 = new PathFinderTileCoord(coord.getX(), coord.getY());
@@ -241,39 +238,39 @@ public class MapSet extends Entity{
 		return true;
 	}
 
-	public TileCoord getInitialPlayerPosition(int playerIndex) {
+	public static TileCoord getInitialPlayerPosition(int playerIndex) {
 		for (TileCoord coord : initialPlayerCoords.keySet())
 			if (initialPlayerCoords.get(coord) == playerIndex)
 				return coord;
 		return null;
 	}
 	
-	public TileCoord getInitialMonsterPosition(int monsterIndex) {
+	public static TileCoord getInitialMonsterPosition(int monsterIndex) {
 		for (TileCoord coord : initialMonsterCoords.keySet())
 			if (initialMonsterCoords.get(coord) == monsterIndex)
 				return coord;
 		return null;
 	}
 	
-	public List<TileProp> getTilePropsFromCoord(TileCoord coord)
+	public static List<TileProp> getTilePropsFromCoord(TileCoord coord)
 		{ return getLayer(26).getFirstBottomTileFromCoord(coord).tileProp; }
 	
-	public boolean tileContainsProp(TileCoord coord, TileProp prop)
+	public static boolean tileContainsProp(TileCoord coord, TileProp prop)
 		{ return getTilePropsFromCoord(coord).contains(prop); }
 	
-	public void addPropToTile(TileCoord coord, TileProp prop)
+	public static void addPropToTile(TileCoord coord, TileProp prop)
 		{ getLayer(26).getFirstBottomTileFromCoord(coord).tileProp.add(prop); }
 
-	public void removePropFromTile(TileCoord coord, TileProp prop)
+	public static void removePropFromTile(TileCoord coord, TileProp prop)
 		{ getLayer(26).getFirstBottomTileFromCoord(coord).tileProp.remove(prop); }
 
-	public IniFile getMapIniFile()
+	public static IniFile getMapIniFile()
 		{ return iniFileMap; }
 	
-	public IniFile getTileSetIniFile()
+	public static IniFile getTileSetIniFile()
 		{ return iniFileTileSet; }
 
-	private Position getTilePositionFromIni(IniFile ini, String tileStr) {
+	private static Position getTilePositionFromIni(IniFile ini, String tileStr) {
 		Position position = new Position();
 		if (iniFileTileSet.read("CONFIG", tileStr) == null)
 			return null;
@@ -287,70 +284,70 @@ public class MapSet extends Entity{
 		return position;
 	}
 
-	public Position getGroundTile()
+	public static Position getGroundTile()
 		{ return groundTile; }
 	
-	public Position getWallTile()
+	public static Position getWallTile()
 		{ return wallTile; }
 	
-	public Position getGroundWithBrickShadow()
+	public static Position getGroundWithBrickShadow()
 		{ return groundWithBrickShadow; }
 	
-	public Position getGroundWithWallShadow()
+	public static Position getGroundWithWallShadow()
 		{ return groundWithWallShadow; }
 
-	public Position getFragileGround()
+	public static Position getFragileGround()
 		{ return fragileGround; }
 	
-	public void rebuildAllLayers()
+	public static void rebuildAllLayers()
 		{ layers.values().forEach(layer -> layer.buildLayer()); }
 	
-	public void setGroundTile(Position groundTile)
-		{ this.groundTile = new Position(groundTile); }
+	public static void setGroundTile(Position groundTile)
+		{ MapSet.groundTile = new Position(groundTile); }
 
-	public void setWallTile(Position wallTile)
-		{ this.wallTile = new Position(wallTile); }
+	public static void setWallTile(Position wallTile)
+		{ MapSet.wallTile = new Position(wallTile); }
 
-	public void setGroundWithBrickShadow(Position groundWithBrickShadow)
-		{ this.groundWithBrickShadow = new Position(groundWithBrickShadow); }
+	public static void setGroundWithBrickShadow(Position groundWithBrickShadow)
+		{ MapSet.groundWithBrickShadow = new Position(groundWithBrickShadow); }
 
-	public void setGroundWithWallShadow(Position groundWithWallShadow)
-		{ this.groundWithWallShadow = new Position(groundWithWallShadow); }
+	public static void setGroundWithWallShadow(Position groundWithWallShadow)
+		{ MapSet.groundWithWallShadow = new Position(groundWithWallShadow); }
 
-	public void setFragileGround(Position fragileGround)
-		{ this.fragileGround = new Position(fragileGround); }
+	public static void setFragileGround(Position fragileGround)
+		{ MapSet.fragileGround = new Position(fragileGround); }
 
-	public Map<Integer, Layer> getLayersMap()
+	public static Map<Integer, Layer> getLayersMap()
 		{ return layers; }
 	
-	public Layer getLayer(int layerIndex) {
+	public static Layer getLayer(int layerIndex) {
 		if (!layers.containsKey(layerIndex))
 			GameMisc.throwRuntimeException(layerIndex + " - Invalid layer index");
 		return layers.get(layerIndex);
 	}
 	
-	public Integer getCopyLayer()
+	public static Integer getCopyLayer()
 		{ return copyImageLayer; }
 
-	public Image getTileSetImage()
+	public static Image getTileSetImage()
 		{ return tileSetImage; }
 	
-	public void setTileSetImage(Image image)
+	public static void setTileSetImage(Image image)
 		{ tileSetImage = image; }
 	
-	public String getTileSetName()
+	public static String getTileSetName()
 		{ return tileSetName; }
 		
-	public String getMapName()
+	public static String getMapName()
 		{ return mapName; }
 
-	public String getIniMapName()
+	public static String getIniMapName()
 		{ return iniMapName; }
 
-	public boolean tileIsFree(TileCoord coord)
+	public static boolean tileIsFree(TileCoord coord)
 		{ return tileIsFree(coord, null); }
 	
-	public boolean tileIsFree(TileCoord coord, List<PassThrough> passThrough) {
+	public static boolean tileIsFree(TileCoord coord, List<PassThrough> passThrough) {
 		if (!haveTilesOnCoord(coord))
 			return false;
 		for (TileProp prop : getTilePropsFromCoord(coord))
@@ -361,7 +358,11 @@ public class MapSet extends Entity{
 		return true;
 	}
 
-	public boolean haveTilesOnCoord(TileCoord coord)
+	public static boolean haveTilesOnCoord(TileCoord coord)
 		{ return getLayer(26).haveTilesOnCoord(coord); }
+
+	public static void run() {
+		// NOTA: implementar (criar um Entity no mapa que fará o desenho do mapa usando os sprites das layers
+	}
 	
 }

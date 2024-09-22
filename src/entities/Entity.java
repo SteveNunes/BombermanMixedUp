@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import application.Main;
+import enums.Curse;
 import enums.Direction;
 import enums.Elevation;
 import enums.PassThrough;
@@ -30,6 +31,7 @@ public class Entity extends Position {
 	private Map<String, FrameSet> freshFrameSets;
 	private List<LinkedEntityInfos> linkedEntityInfos;
 	private List<PassThrough> passThrough;
+	private List<Curse> curses;
 	private Position speed;
 	private Direction direction;
 	private Elevation elevation;
@@ -48,7 +50,8 @@ public class Entity extends Position {
 		shadow = entity.shadow == null ? null : new Rectangle(entity.shadow);
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
-		passThrough = new ArrayList<>();
+		passThrough = new ArrayList<>(entity.passThrough);
+		curses = new ArrayList<>(entity.curses);
 		entity.frameSets.keySet().forEach(fSetName -> {
 			frameSets.put(fSetName, new FrameSet(entity.frameSets.get(fSetName), this));
 			freshFrameSets.put(fSetName, new FrameSet(entity.freshFrameSets.get(fSetName), this));
@@ -76,6 +79,8 @@ public class Entity extends Position {
 		super(x, y);
 		setTileSize(Main.tileSize);
 		currentFrameSetName = null;
+		passThrough = new ArrayList<>();
+		curses = new ArrayList<>();
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
 		linkedEntityInfos = new ArrayList<>();
@@ -91,6 +96,17 @@ public class Entity extends Position {
 		noMove = false;
 		isDead = false;
 	}
+	
+	public List<Curse> getCurses()
+		{ return curses; }
+	
+	public void addCurse(Curse curse) {
+		if (!curses.contains(curse))
+			curses.add(curse);
+	}
+	
+	public void removeCurse(Curse curse)
+		{ curses.remove(curse); }
 	
 	private void addPassThrough(PassThrough pass) {
 		if (!passThrough.contains(pass))
@@ -269,21 +285,10 @@ public class Entity extends Position {
 	public boolean haveFrameSet(String frameSetName)
 		{ return frameSets.containsKey(frameSetName); }
 
-	public void run(GraphicsContext gc)
-		{ run(gc, false); }
-	
-	public void run(GraphicsContext gc, boolean isPaused) {
-		Map<SpriteLayerType, GraphicsContext> map = new HashMap<>();
-		for (SpriteLayerType lt : SpriteLayerType.getList())
-			map.put(lt, gc);
-		run(map, isPaused);
-		
-	}
+	public void run()
+		{ run(false); }
 
-	public void run(Map<SpriteLayerType, GraphicsContext> gc)
-		{ run(gc, false); }
-
-	public void run(Map<SpriteLayerType, GraphicsContext> gc, boolean isPaused) {
+	public void run(boolean isPaused) {
 		if (frameSets.isEmpty())
 			GameMisc.throwRuntimeException("This entity have no FrameSets");
 		if (frameSets.containsKey(currentFrameSetName)) {
@@ -303,15 +308,15 @@ public class Entity extends Position {
 					linkedEntityInfos.add(new LinkedEntityInfos(linkedEntityFront));
 				}
 			}
-			
 			if (haveShadow()) {
-				gc.get(SpriteLayerType.GROUND).save();
-				gc.get(SpriteLayerType.GROUND).setFill(Color.BLACK);
-				gc.get(SpriteLayerType.GROUND).setGlobalAlpha(shadowOpacity);
-				gc.get(SpriteLayerType.GROUND).fillOval(getX() + Main.tileSize / 2 - getShadowWidth() / 2, getY() + Main.tileSize - getShadowHeight(), getShadowWidth(), getShadowHeight());
-				gc.get(SpriteLayerType.GROUND).restore();
+				Map<SpriteLayerType, GraphicsContext> gcList = GameMisc.getGcMap();
+				gcList.get(SpriteLayerType.GROUND).save();
+				gcList.get(SpriteLayerType.GROUND).setFill(Color.BLACK);
+				gcList.get(SpriteLayerType.GROUND).setGlobalAlpha(shadowOpacity);
+				gcList.get(SpriteLayerType.GROUND).fillOval(getX() + Main.tileSize / 2 - getShadowWidth() / 2, getY() + Main.tileSize - getShadowHeight(), getShadowWidth(), getShadowHeight());
+				gcList.get(SpriteLayerType.GROUND).restore();
 			}
-			frameSets.get(currentFrameSetName).run(gc, isPaused);
+			frameSets.get(currentFrameSetName).run(isPaused);
 		}
 	}
 	

@@ -2,7 +2,6 @@ package frameset;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
-import java.util.Map;
 
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
@@ -10,13 +9,13 @@ import enums.ImageAlignment;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
 import gui.util.ImageUtils;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import objmoveutils.EliticMove;
 import objmoveutils.GotoMove;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.RectangleMove;
+import tools.GameMisc;
 import tools.Materials;
 
 public class Sprite {
@@ -391,12 +390,12 @@ public class Sprite {
 		outputSpritePos.setPosition(x, y);
 	}
 	 
-	public void draw(Map<SpriteLayerType, GraphicsContext> gc) {
+	public void draw() {
 		if (visibleSprite) {
 			updateOutputDrawCoords();
 			int[] in = getCurrentSpriteOriginCoords();
 			int sx = in[0], sy = in[1], tx = (int)getOutputDrawCoords().getX(), ty = (int)getOutputDrawCoords().getY();
-			ImageUtils.drawImage(gc.get(layerType), spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+			ImageUtils.drawImage(GameMisc.getGcMap().get(layerType), spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 				tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 		}
 	}

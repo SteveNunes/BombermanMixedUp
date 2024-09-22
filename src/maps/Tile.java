@@ -19,7 +19,6 @@ import util.MyConverters;
 
 public class Tile {
 
-	MapSet originMapSet;
 	int spriteX;
 	int spriteY;
 	public int outX;
@@ -32,17 +31,16 @@ public class Tile {
 	DrawImageEffects effects;
 	public static Map<Integer, Map<TileCoord, String>> tags = new HashMap<>();
 	
-	public Tile(MapSet originMapSet, int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp)
-		{ this(originMapSet, spriteX, spriteY, outX, outY, tileProp, ImageFlip.NONE, 0, 1, Color.WHITE, null); }
+	public Tile(int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp)
+		{ this(spriteX, spriteY, outX, outY, tileProp, ImageFlip.NONE, 0, 1, Color.WHITE, null); }
 
-	public Tile(MapSet originMapSet, int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp, ImageFlip flip, int rotate, double opacity)
-		{ this(originMapSet, spriteX, spriteY, outX, outY, tileProp, flip, rotate, opacity, Color.WHITE, null); }
+	public Tile(int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp, ImageFlip flip, int rotate, double opacity)
+		{ this(spriteX, spriteY, outX, outY, tileProp, flip, rotate, opacity, Color.WHITE, null); }
 
-	public Tile(MapSet originMapSet, int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp, ImageFlip flip, int rotate, double opacity, Color tint)
-		{ this(originMapSet, spriteX, spriteY, outX, outY, tileProp, flip, rotate, opacity, tint, null); }
+	public Tile(int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp, ImageFlip flip, int rotate, double opacity, Color tint)
+		{ this(spriteX, spriteY, outX, outY, tileProp, flip, rotate, opacity, tint, null); }
 	
-	public Tile(MapSet originMapSet, int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp, ImageFlip flip, int rotate, double opacity, Color tint, DrawImageEffects effects) {
-		this.originMapSet = originMapSet;
+	public Tile(int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp, ImageFlip flip, int rotate, double opacity, Color tint, DrawImageEffects effects) {
 		this.spriteX = spriteX;
 		this.spriteY = spriteY;
 		this.outX = outX;
@@ -55,13 +53,12 @@ public class Tile {
 		this.effects = effects;
 	}
 	
-	public Tile(MapSet originMapSet, String strFromIni) {
+	public Tile(String strFromIni) {
 		tileProp = new ArrayList<>();
 		String[] split = strFromIni.split(" ");
 		if (split.length < 14)
 			GameMisc.throwRuntimeException(strFromIni + " - Too few parameters");
 		int n = 0, r, g, b, a, layer;
-		this.originMapSet = originMapSet;
 		try {
 			layer = split.length <= n ? 0 : Integer.parseInt(split[n]);
 			// O segundo parametro eh ignorado pq so eh util no construtor da classe Layer
@@ -117,38 +114,38 @@ public class Tile {
 	public int getTileY()
 		{ return outY / 16; }
 
-	public static void addTileShadow(MapSet mapSet, Position shadowType, TileCoord coord)
-		{ addTileShadow(mapSet, coord, shadowType, true); }
+	public static void addTileShadow(Position shadowType, TileCoord coord)
+		{ addTileShadow(coord, shadowType, true); }
 	
-	public static void addTileShadow(MapSet mapSet, TileCoord coord, Position shadowType, boolean updateLayer) {
-		Tile tile = !mapSet.getLayer(26).haveTilesOnCoord(coord) ? null : mapSet.getLayer(26).getTopTileFromCoord(coord);
-		Position groundTile = mapSet.getGroundTile();
+	public static void addTileShadow(TileCoord coord, Position shadowType, boolean updateLayer) {
+		Tile tile = !MapSet.getLayer(26).haveTilesOnCoord(coord) ? null : MapSet.getLayer(26).getTopTileFromCoord(coord);
+		Position groundTile = MapSet.getGroundTile();
 		if (tile == null || (tile.spriteX == groundTile.getX() && tile.spriteY == groundTile.getY())) {
 			if (tile != null)
-				mapSet.getLayer(26).removeFirstTileFromCoord(coord);
-			tile = new Tile(mapSet, (int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition(Main.tileSize).getX(), (int)coord.getPosition(Main.tileSize).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
-			mapSet.getLayer(26).addTile(tile);
+				MapSet.getLayer(26).removeFirstTileFromCoord(coord);
+			tile = new Tile((int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition(Main.tileSize).getX(), (int)coord.getPosition(Main.tileSize).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
+			MapSet.getLayer(26).addTile(tile);
 			if (updateLayer)
-				mapSet.getLayer(26).buildLayer();
+				MapSet.getLayer(26).buildLayer();
 		}
 	}
 	
-	public static void removeTileShadow(MapSet mapSet, TileCoord coord)
-		{ removeTileShadow(mapSet, coord, true); }
+	public static void removeTileShadow(TileCoord coord)
+		{ removeTileShadow(coord, true); }
 	
-	public static void removeTileShadow(MapSet mapSet, TileCoord coord, boolean updateLayer) {
-		Tile tile = !mapSet.getLayer(26).haveTilesOnCoord(coord) ? null : mapSet.getLayer(26).getTopTileFromCoord(coord);
-		Position groundTile = mapSet.getGroundTile(),
-						 brickShadow = mapSet.getGroundWithBrickShadow(),
-						 wallShadow = mapSet.getGroundWithWallShadow();
+	public static void removeTileShadow(TileCoord coord, boolean updateLayer) {
+		Tile tile = !MapSet.getLayer(26).haveTilesOnCoord(coord) ? null : MapSet.getLayer(26).getTopTileFromCoord(coord);
+		Position groundTile = MapSet.getGroundTile(),
+						 brickShadow = MapSet.getGroundWithBrickShadow(),
+						 wallShadow = MapSet.getGroundWithWallShadow();
 		if (tile == null || (tile.spriteX == brickShadow.getX() && tile.spriteY == brickShadow.getY()) ||
 				(tile.spriteX == wallShadow.getX() && tile.spriteY == wallShadow.getY())) {
 					if (tile != null)
-						mapSet.getLayer(26).removeFirstTileFromCoord(coord);
-					tile = new Tile(mapSet, (int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition(Main.tileSize).getX(), (int)coord.getPosition(Main.tileSize).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
-					mapSet.getLayer(26).addTile(tile);
+						MapSet.getLayer(26).removeFirstTileFromCoord(coord);
+					tile = new Tile((int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition(Main.tileSize).getX(), (int)coord.getPosition(Main.tileSize).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
+					MapSet.getLayer(26).addTile(tile);
 					if (updateLayer)
-						mapSet.getLayer(26).buildLayer();
+						MapSet.getLayer(26).buildLayer();
 		}
 	}
 
