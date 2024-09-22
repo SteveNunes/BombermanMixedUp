@@ -25,6 +25,7 @@ public enum TileProp {
 	MOB_INITIAL_POSITION(15), // Define o tile onde os mobs vão iniciar nos mapas
 	BRICK_RANDOM_SPAWNER(16), // Tile onde pode ser gerado um tijolo aleatoriamente
 	FIXED_BRICK(17), // Tile onde deverá haver um tijolo obrigatoriamente
+	EXPLOSION(18), // Tile marcado como explosão (pode ser de bomba ou não)
 	HOLE(19), // Buraco (Só pode atravessar voando ou pulando, explosão passa por cima)
 	DEEP_HOLE(20), // Buraco profundo (Se a bomba cair nesse tile, causa o efeito da bomba caindo diminuindo)
 	WATER(21), // Água (Igual GROUND, mas gera efeito visual de água cobrindo as pernas)
@@ -82,7 +83,7 @@ public enum TileProp {
 	NO_TRIGGER_WHILE_HAVE_BRICK(76), // As Tags de tile só são disparadas se não houver tijolo no bloco atual
 	NO_TRIGGER_WHILE_HAVE_ITEM(77), // As Tags de tile só são disparadas se não houver item no bloco atual
 	NO_TRIGGER_WHILE_HAVE_BOMB(78); // As Tags de tile só são disparadas se não houver bomba no bloco atual
-	// NOTA: VAGOS: 18 49 50 51
+	// NOTA: VAGOS: 49 50 51
 	
 	@SuppressWarnings("serial")
 	private static Map<Elevation, List<TileProp>> cantCross = new HashMap<>() {{
@@ -126,6 +127,7 @@ public enum TileProp {
 		put(15, MOB_INITIAL_POSITION);
 		put(16, BRICK_RANDOM_SPAWNER);
 		put(17, FIXED_BRICK);
+		put(18, EXPLOSION);
 		put(19, HOLE);
 		put(20, DEEP_HOLE);
 		put(21, WATER);

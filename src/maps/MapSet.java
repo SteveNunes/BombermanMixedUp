@@ -13,6 +13,7 @@ import entities.TileCoord;
 import enums.Direction;
 import enums.Elevation;
 import enums.ItemType;
+import enums.PassThrough;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import javafx.scene.image.Image;
@@ -253,6 +254,18 @@ public class MapSet extends Entity{
 				return coord;
 		return null;
 	}
+	
+	public List<TileProp> getTilePropsFromCoord(TileCoord coord)
+		{ return getLayer(26).getFirstBottomTileFromCoord(coord).tileProp; }
+	
+	public boolean tileContainsProp(TileCoord coord, TileProp prop)
+		{ return getTilePropsFromCoord(coord).contains(prop); }
+	
+	public void addPropToTile(TileCoord coord, TileProp prop)
+		{ getLayer(26).getFirstBottomTileFromCoord(coord).tileProp.add(prop); }
+
+	public void removePropFromTile(TileCoord coord, TileProp prop)
+		{ getLayer(26).getFirstBottomTileFromCoord(coord).tileProp.remove(prop); }
 
 	public IniFile getMapIniFile()
 		{ return iniFileMap; }
@@ -334,15 +347,21 @@ public class MapSet extends Entity{
 	public String getIniMapName()
 		{ return iniMapName; }
 
-	public boolean tileIsFree(TileCoord coord) {
-		if (!getLayer(26).haveTilesOnCoord(coord))
+	public boolean tileIsFree(TileCoord coord)
+		{ return tileIsFree(coord, null); }
+	
+	public boolean tileIsFree(TileCoord coord, List<PassThrough> passThrough) {
+		if (!haveTilesOnCoord(coord))
 			return false;
-		Tile tile = getLayer(26).getTopTileFromCoord(coord);
-		for (TileProp prop : tile.tileProp)
+		for (TileProp prop : getTilePropsFromCoord(coord))
 			if (TileProp.getCantCrossList(Elevation.ON_GROUND).contains(prop) ||
-					Brick.haveBrickAt(coord) || Bomb.haveBombAt(coord))
+				 (Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
+				 (Bomb.haveBombAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BOMB))))
 						return false;
 		return true;
 	}
+
+	public boolean haveTilesOnCoord(TileCoord coord)
+		{ return getLayer(26).haveTilesOnCoord(coord); }
 	
 }

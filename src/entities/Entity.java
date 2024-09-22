@@ -277,6 +277,7 @@ public class Entity extends Position {
 		for (SpriteLayerType lt : SpriteLayerType.getList())
 			map.put(lt, gc);
 		run(map, isPaused);
+		
 	}
 
 	public void run(Map<SpriteLayerType, GraphicsContext> gc)

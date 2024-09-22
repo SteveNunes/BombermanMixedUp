@@ -10,8 +10,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import application.Main;
+import entities.Bomb;
 import entities.Entity;
 import entities.TileCoord;
+import enums.BombType;
 import enums.Icons;
 import enums.SpriteLayerType;
 import enums.TileProp;
@@ -165,7 +167,7 @@ public class MapEditor {
 	private int ctrlZPos;
 	private long resetBricks;
 	private boolean playing;
-
+	
 	public void init(Scene scene) {
 		sceneMain = scene;
 		canvasMouseDraw = new CanvasMouse();
@@ -316,7 +318,8 @@ public class MapEditor {
 						+ "     FPS: " + GameMisc.getFPSHandler().getFPS()
 						+ "     " + canvasMouseDraw.tileCoord + "     (" + (currentMapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BLOCKED") + ")"
 						+ "     Zoom: x" + zoomMain
-						+ "     Tileset Zoom: x" + zoomTileSet;
+						+ "     Tileset Zoom: x" + zoomTileSet
+						+ "     Sobrecarga: " + GameMisc.getFPSHandler().getFreeTaskTicks();
 				Main.stageMain.setTitle(title);
 				mainLoop();
 			});
@@ -590,7 +593,9 @@ public class MapEditor {
 		});
 		canvasMain.setOnMouseClicked(e -> {
 			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.tileSize * zoomMain), ((int)e.getY() - deslocY()) / (Main.tileSize * zoomMain));
-			if (isAltHold()) {
+			if (e.getButton() == MouseButton.PRIMARY) {
+				if (isAltHold())
+					Bomb.addBomb(new Bomb(currentMapSet, null, canvasMouseDraw.tileCoord, BombType.NORMAL, 5));
 			}
 			else if (e.getButton() == MouseButton.SECONDARY) {
 				if (defaultContextMenu != null)
@@ -636,6 +641,7 @@ public class MapEditor {
 			gcDraw.drawImage(getCurrentLayer().getLayerImage(), 0, 0);
 		if (checkBoxShowBricks.isSelected() && currentLayerIndex == 26) {
 			Brick.drawBricks(gcDraw);
+			Bomb.drawBombs(gcDraw);
 			if (checkBoxShowItens.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
@@ -864,7 +870,9 @@ public class MapEditor {
 			getTilesFromCurrentLayer().forEach(tile -> {
     		Color color;
     		if (!ok.containsKey(tile.getTileCoord())) {
-	    		if (tile.tileProp.contains(TileProp.PLAYER_INITIAL_POSITION))
+	    		if (tile.tileProp.contains(TileProp.EXPLOSION))
+	    			color = Color.INDIANRED;
+	    		else if (tile.tileProp.contains(TileProp.PLAYER_INITIAL_POSITION))
 	    			color = Color.DEEPPINK;
 	    		else if (tile.tileProp.contains(TileProp.MOB_INITIAL_POSITION))
 	    			color = Color.INDIANRED;

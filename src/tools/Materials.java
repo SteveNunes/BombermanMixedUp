@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import gui.util.ImageUtils;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
@@ -17,7 +20,7 @@ public abstract class Materials {
 	public static Image frames;
 	public static Image auras;
 	public static Image thunders;
-	public static Image setas;
+	public static Image explosions;
 	public static Image blankImage;
 	public static List<Image> characters;
 	public static List<Image> rides;
@@ -69,10 +72,30 @@ public abstract class Materials {
 		frames = loadImage("HUD", Color.valueOf("#03E313"));
 		auras = loadImage("Auras", Color.valueOf("#03E313"));
 		thunders = loadImage("Thunders", Color.valueOf("#03E313"));
-		setas = loadImage("Setas", Color.valueOf("#03E313"));
+		generateExplosionImage(); 
 		FindFile.findFile("./appdata/sprites/tileset", "Tile*.png").forEach(file ->
 			{ tileSets.put(file.getName().replace(".png", ""), loadImage("/tileset/" + file.getName().replace(".png", ""), Color.valueOf("#FF00FF"))); });
 		System.out.println("... Concluido em " + (System.currentTimeMillis() - ms) + "ms");
+	}
+
+	private static void generateExplosionImage() {
+		int sz = 320;
+		Canvas c = new Canvas(sz, sz);
+		GraphicsContext gc = c.getGraphicsContext2D();
+		gc.setImageSmoothing(false);
+		gc.clearRect(0, 0, sz, sz);
+		for (int d = 0; d < 2; d++)
+			for (int x = 0; x < 5; x++)
+				for (int y = 0; y < 15; y++) {
+					int sprX = y == 0 ? 48 : 32, sprY = 32 + 16 * x,
+							outX = d == 0 ? x * 16 : y * 16,
+							outY = d == 0 ? y * 16 : 240 + x * 16;
+					ImageUtils.drawImage(gc, mainSprites, sprX, sprY, 16, 16, outX, outY, 16, 16, d == 1 && y == 0 ? 270 : d * 90);
+				}
+		SnapshotParameters params = new SnapshotParameters();
+		params.setFill(Color.TRANSPARENT);
+		explosions = c.snapshot(params, null);
+		ImageUtils.saveImageToFile(explosions, "D:\\Explosoes.png");
 	}
 
 	public static Image loadImage(String imagePartialPath, Color removeColor) throws RuntimeException { // Informe apenas o nome do arquivo (com pasta ou nao) a partir da pasta sprites, sem o .png

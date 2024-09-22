@@ -1,10 +1,10 @@
 package application;
 	
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import enums.GameMode;
+import enums.TileProp;
 import gui.FrameSetEditor;
 import gui.MapEditor;
 import javafx.application.Application;
