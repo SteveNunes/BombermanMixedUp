@@ -117,8 +117,6 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new PlayWav(s));
 			else if (tag.equals("RepeatLastFrame"))
 				tags.addFrameSetTag(new RepeatLastFrame(s));
-			else if (tag.equals("SetEntityInvencibilityFrames"))
-				tags.addFrameSetTag(new SetEntityInvencibilityFrames(s));
 			else if (tag.equals("SetEntityNoMove"))
 				tags.addFrameSetTag(new SetEntityNoMove(s));
 			else if (tag.equals("SetEntityPos"))
@@ -249,6 +247,12 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new SetTicksPerFrame(s));
 			else if (tag.equals("SetFrameSet"))
 				tags.addFrameSetTag(new SetFrameSet(s));
+			else if (tag.equals("DoJump"))
+				tags.addFrameSetTag(new DoJump(s));
+			else if (tag.equals("RunEffectFromEntity"))
+				tags.addFrameSetTag(new RunEffectFromEntity(s));
+			else if (tag.equals("RunEffectFromSprite"))
+				tags.addFrameSetTag(new RunEffectFromSprite(s));
 		}
 	}
 

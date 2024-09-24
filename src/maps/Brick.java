@@ -19,7 +19,6 @@ public class Brick extends Entity {
 	
 	public Brick(Brick brick) {
 		super(brick);
-		setTileSize(Main.tileSize);
 		item = brick.item;
 	}
 
@@ -31,12 +30,11 @@ public class Brick extends Entity {
 	
 	public Brick(TileCoord coord, ItemType item) {
 		super();
-		setTileSize(Main.tileSize);
+		setPosition(coord.getPosition(Main.tileSize));
 		this.item = item;
 		Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet").forEach(frameSet ->
 			addNewFrameSetFromString(frameSet, MapSet.getTileSetIniFile().read("CONFIG", frameSet)));
 		setFrameSet("BrickStandFrameSet");
-		setPosition(coord.getPosition(Main.tileSize));
 	}
 	
 	public ItemType getItem()
@@ -85,7 +83,6 @@ public class Brick extends Entity {
 
 	public static void removeBrick(TileCoord coord, boolean updateLayer) {
 		if (haveBrickAt(coord)) {
-			Brick brick = bricks.get(coord);
 			TileCoord coord2 = coord.getNewInstance();
 			coord2.setY(coord.getY() + 1);
 			bricks.remove(coord);
@@ -94,14 +91,8 @@ public class Brick extends Entity {
 	}
 	
 	public static void clearBricks() {
-		if (!bricks.isEmpty()) {
-			Brick brick = null;
-			while (!bricks.isEmpty()) {
-				brick = bricks.values().iterator().next();
-				removeBrick(brick.getTileCoord(), false);
-			}
-			MapSet.getLayer(26).buildLayer();
-		}
+		List<Brick> list = new ArrayList<>(bricks.values());
+		list.forEach(brick -> removeBrick(brick.getTileCoord()));
 	}
 	
 	public static int totalBricks()
@@ -119,6 +110,8 @@ public class Brick extends Entity {
 			brick.run();
 			if (brick.isBreaked()) {
 				removeBricks.add(brick);
+				if (brick.getItem() != null)
+					Item.addItem(brick.getTileCoord(), brick.getItem());
 			}
 		}
 		removeBricks.forEach(brick -> removeBrick(brick));
@@ -130,4 +123,7 @@ public class Brick extends Entity {
 	public static boolean haveBrickAt(TileCoord coord)
 		{ return bricks.containsKey(coord); }
 
+	public static Brick getBrickAt(TileCoord tileCoord)
+		{ return haveBrickAt(tileCoord) ? bricks.get(tileCoord) : null; }
+	
 }

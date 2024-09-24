@@ -49,7 +49,7 @@ public class Layer {
 			}
 		Canvas canvas = new Canvas(width, height);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
-		canvas.getGraphicsContext2D().setImageSmoothing(false);
+		gc.setImageSmoothing(false);
 		tilesMap.values().forEach(tiles ->
 			tiles.forEach(tile ->
 				ImageUtils.drawImage(gc, MapSet.getTileSetImage(),

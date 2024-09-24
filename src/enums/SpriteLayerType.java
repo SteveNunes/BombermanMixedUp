@@ -1,6 +1,7 @@
 package enums;
 
 public enum SpriteLayerType {
+	TEMP,
   BACKGROUND,
   GROUND,
   CEIL,

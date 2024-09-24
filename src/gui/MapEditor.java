@@ -11,10 +11,13 @@ import java.util.function.Consumer;
 
 import application.Main;
 import entities.Bomb;
+import entities.Effect;
 import entities.Entity;
+import entities.Explosion;
 import entities.TileCoord;
 import enums.BombType;
 import enums.Icons;
+import enums.ItemType;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import gui.util.ControllerUtils;
@@ -41,6 +44,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import maps.Brick;
+import maps.Item;
 import maps.Layer;
 import maps.MapSet;
 import maps.Tile;
@@ -183,7 +187,7 @@ public class MapEditor {
 		setMainCanvasMouseEvents();
 		rebuildTileSetCanvas();
 		mainLoop();
-	}
+  }
 	
 	void setAllCanvas() {
 		GameMisc.generateDrawCanvasMap();
@@ -560,6 +564,8 @@ public class MapEditor {
 			canvasMouseDraw.x = (int)e.getX() + deslocX();
 			canvasMouseDraw.y = (int)e.getY() + deslocY();
 			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.tileSize * zoomMain), ((int)e.getY() - deslocY()) / (Main.tileSize * zoomMain));
+			if (Item.haveItemAt(canvasMouseDraw.tileCoord))
+				Item.getItemAt(canvasMouseDraw.tileCoord).pick();
 		});
 		canvasMain.setOnMousePressed(e -> {
 			canvasMouseDraw.startDragX = (int)e.getX();
@@ -628,20 +634,24 @@ public class MapEditor {
 			MapSet.run();
 		else if (MapSet.getLayersMap().containsKey(currentLayerIndex))
 			getDrawGc().drawImage(getCurrentLayer().getLayerImage(), 0, 0);
+		Explosion.drawExplosions();
 		if (checkBoxShowBricks.isSelected() && currentLayerIndex == 26) {
-			GameMisc.runAllStuffs();
+			Brick.drawBricks();
 			if (checkBoxShowItens.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
-						getDrawGc().drawImage(Materials.mainSprites, (brick.getItem().getValue() - 1) * 16, 16, 16, 16, brick.getTileX() * Main.tileSize, brick.getTileY() * Main.tileSize, Main.tileSize, Main.tileSize);
+						getDrawGc().drawImage(Materials.itens, (brick.getItem().getValue() - 1) * 18 + 1, 18 + 1, 16, 16, brick.getTileX() * Main.tileSize, brick.getTileY() * Main.tileSize, Main.tileSize, Main.tileSize);
 		}
+		Bomb.drawBombs();
+		Item.drawItems();
+		Effect.drawEffects();
 		fragileTiles.values().forEach(e -> e.run());
 		for (int y = 0; y < tileSelection.getHeight(); y++)
 			for (int x = 0; x < tileSelection.getWidth(); x++)
 				getDrawGc().drawImage(MapSet.getTileSetImage(), (int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, 16, 16, canvasMouseDraw.getCoordX() * 16 + x * 16, canvasMouseDraw.getCoordY() * 16 + y * 16, Main.tileSize, Main.tileSize);
     drawBlockTypeMark();
 	}
-	
+
 	int deslocX()
 		{ return canvasMouseDraw.movedX + canvasMouseDraw.dragX; }
 

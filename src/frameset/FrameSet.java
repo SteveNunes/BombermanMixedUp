@@ -8,6 +8,7 @@ import entities.Entity;
 import frameset_tags.FrameTag;
 import frameset_tags.Goto;
 import frameset_tags.RepeatLastFrame;
+import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import tools.FrameTagLoader;
 import tools.GameMisc;
@@ -24,9 +25,11 @@ public class FrameSet extends Position {
 	private int maxY;
 	private boolean changedIndex;
 	private boolean stop;
+	private JumpMove jumpMove;
 
 	public FrameSet(FrameSet frameSet, Entity entity) {
 		super(frameSet);
+		jumpMove = null;
 		sprites = new ArrayList<>();
 		frames = new ArrayList<>();
 		frameSet.sprites.forEach(sprite -> sprites.add(sprite = new Sprite(sprite, this)));
@@ -51,7 +54,14 @@ public class FrameSet extends Position {
 		currentFrameIndex = 0;
 		ticks = 0;
 		maxY = 0;
+		jumpMove = null;
 	}
+	
+	public JumpMove getJumpMove()
+		{ return jumpMove; }
+	
+	public void setJumpMove(double jumpStrenght, double strenghtMultipiler, int speedInFrames)
+		{ jumpMove = new JumpMove(getPosition(), new Position(), jumpStrenght, strenghtMultipiler, speedInFrames); }
 	
 	public FrameSet(Entity entity, int framesPerTick)
 		{ this(entity, framesPerTick, 0, 0); }
@@ -111,6 +121,11 @@ public class FrameSet extends Position {
 
 	public void run(boolean isPaused) {
 		if (!stop && getTotalFrames() > 0 && currentFrameIndex >= 0 && currentFrameIndex < getTotalFrames()) {
+			if (jumpMove != null) {
+				jumpMove.move();
+				if (jumpMove.jumpReachedFloorAgain())
+					jumpMove = null;
+			}
 			if (ticks == 0) {
 				if (isPaused)
 					ticks = 1;

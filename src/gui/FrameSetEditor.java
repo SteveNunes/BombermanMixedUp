@@ -58,9 +58,7 @@ import gui.util.Alerts;
 import gui.util.ControllerUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ContextMenu;
@@ -107,32 +105,27 @@ public class FrameSetEditor {
 	private ContextMenu spriteContextMenu;
 	private Stage stageHelpWindow;
 	private Font font;
-	private SnapshotParameters params;
 	public boolean isPaused;
 	private boolean isChangingSprite;
-	private int zoomScale;
 	private int mouseX;
 	private int mouseY;
 	private int dragX;
 	private int dragY;
 	private int backupIndex;
 	private int bgType;
-	private int zoom = 3;
+	private int zoom;
 	private int linkEntityToCursor;
 	private int centerX;
 	private int centerY;
 	
 	public void init(Scene scene) {
-		params = new SnapshotParameters();
-		params.setFill(Color.TRANSPARENT);
-		params.setViewport(new Rectangle2D(0, 0, canvasMain.getWidth(), canvasMain.getHeight()));
 		GameMisc.generateDrawCanvasMap();
 		sceneMain = scene;
 		font = new Font("Lucida Console", 15);
-		canvasMain.getGraphicsContext2D().setImageSmoothing(false);
-		canvasMain.setWidth(winW * zoom);
-		canvasMain.setHeight(winH * zoom);
+		canvasMain.setWidth(winW * 3);
+		canvasMain.setHeight(winH * 3);
 		gcMain = canvasMain.getGraphicsContext2D();
+		gcMain.setImageSmoothing(false);
 		MapSet.loadMap("SBM_1-1");
 		entities = new ArrayList<>();
 		holdedKeys = new ArrayList<>();
@@ -148,13 +141,13 @@ public class FrameSetEditor {
 		centerX = Main.tileSize * 10;
 		centerY = Main.tileSize * 7;
 		linkEntityToCursor = 0;
-		zoomScale = 1;
 		backupIndex = -1;
 		mouseX = 0;
 		mouseY = 0;
 		dragX = 0;
 		dragY = 0;
 		bgType = 2;
+		zoom = 3;
 		currentEntity = new Entity();
 		currentEntity.setPosition(centerX, centerY);
 
@@ -165,8 +158,6 @@ public class FrameSetEditor {
 
 		currentEntity.addNewFrameSetFromString("IntroFrames", IniFiles.monsters.read("1000", "IntroFrames"));
 		currentEntity.addNewFrameSetFromString("MovingFrames", IniFiles.monsters.read("1000", "MovingFrames"));
-
-		currentEntity.setFrameSet("MovingFrames.LEFT");
 		
 		setDefaultContextMenu();
 		setSpriteContextMenu();
@@ -605,8 +596,8 @@ public class FrameSetEditor {
 			}
 			
 			else if (e.getCode() == KeyCode.Z) {
-				if (isNoHolds() && (zoomScale *= 2) > 10)
-					zoomScale = 1;
+				if (isNoHolds() && (zoom += (zoom < 3 ? 1 : zoom)) > 24)
+					zoom = 1;
 				else if (isCtrlHold() && !isAltHold() && !isShiftHold())
 					ctrlZ();
 			}
@@ -976,78 +967,84 @@ public class FrameSetEditor {
 	}
 	
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
-		for (SpriteLayerType layerType : SpriteLayerType.getList())
-			gcMain.drawImage(GameMisc.getCanvasMap().get(layerType).snapshot(params, null), 0, 0, winW, winH, 0, 0, winW * zoom, winH * zoom);
-		if (currentEntity.getTotalFrameSets() > 0 && !currentEntity.getFrameSet(getCurrentFrameSetName()).isEmptyFrames() && getCurrentFrame() != null) {
-			focusedSprite = null;
-			Sprite focused = null;
-			int max = 0;
-			for (Sprite sprite : getCurrentFrameSet().getSprites()) {
-				int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
-						y = (int)sprite.getOutputDrawCoords().getY() * zoom;
-				if (sprite.getMaxOutputSpriteY() > max &&
-						mouseX * zoom >= x && mouseY * zoom >= y &&
-						mouseX * zoom <= x + sprite.getOutputWidth() * zoom &&
-						mouseY * zoom <= y + sprite.getOutputHeight() * zoom) {
-							focused = sprite;
-							max = sprite.getMaxOutputSpriteY();
+		gcMain.setFill(Color.BLACK);
+		gcMain.fillRect(0, 0, canvasMain.getWidth(), canvasMain.getHeight());
+		if (zoom <= 3)
+			GameMisc.drawAllCanvas(canvasMain, zoom,
+					(int)canvasMain.getWidth() / 2 - winW * zoom / 2,
+					(int)canvasMain.getHeight() / 2 - winH * zoom / 2);
+		if (zoom == 3) {
+			if (currentEntity.getTotalFrameSets() > 0 && !currentEntity.getFrameSet(getCurrentFrameSetName()).isEmptyFrames() && getCurrentFrame() != null) {
+				focusedSprite = null;
+				Sprite focused = null;
+				int max = 0;
+				for (Sprite sprite : getCurrentFrameSet().getSprites()) {
+					int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
+							y = (int)sprite.getOutputDrawCoords().getY() * zoom;
+					if (sprite.getMaxOutputSpriteY() > max &&
+							mouseX * zoom >= x && mouseY * zoom >= y &&
+							mouseX * zoom <= x + sprite.getOutputWidth() * zoom &&
+							mouseY * zoom <= y + sprite.getOutputHeight() * zoom) {
+								focused = sprite;
+								max = sprite.getMaxOutputSpriteY();
+					}
+				}
+				if (focused != null) {
+					int x = (int)focused.getOutputDrawCoords().getX() * zoom,
+							y = (int)focused.getOutputDrawCoords().getY() * zoom;
+					focusedSprite = focused;
+					gcMain.setFill(Color.LIGHTBLUE);
+					gcMain.setStroke(Color.BLACK);
+					gcMain.setFont(font);
+					gcMain.setLineWidth(3);
+					int n = 6;
+					String str = 
+							"Index: " + focused.getSpriteIndex() + 
+							"\nSprite Coords: " + (int)focused.getAbsoluteX() + "," + (int)focused.getAbsoluteY() + " " + 
+																		(int)focused.getOriginSpriteWidth() + "x" + (int)focused.getOriginSpriteHeight() +
+							"\nOutput Size: " + (int)focused.getOutputWidth() + "x" + (int)focused.getOutputHeight() +
+							"\nFlip: " + focused.getFlip().name() +
+							"\nRotate: " + focused.getRotation() +
+							"\nAlpha: " + focused.getAlpha() +
+							"\nAlignment: " + focused.getAlignment().name();
+					if (getCurrentFrameSet().getFrameSetTagsFrom(focused) != null &&
+							!getCurrentFrameSet().getFrameSetTagsFrom(focused).getFrameSetTags().isEmpty()) {
+						str += "\n\nFrameTags:";
+						n += 3;
+					}
+					for (FrameTag tag : getCurrentFrameSet().getFrameSetTagsFrom(focused).getFrameSetTags()) {
+						str += "\n" + tag.toString();
+						n += 2;
+					}
+					gcMain.strokeText(str, x, y - 60 - 7.5 * n);
+					gcMain.fillText(str, x, y - 60 - 7.5 * n);
 				}
 			}
-			if (focused != null) {
-				int x = (int)focused.getOutputDrawCoords().getX() * zoom,
-						y = (int)focused.getOutputDrawCoords().getY() * zoom;
-				focusedSprite = focused;
-				gcMain.setFill(Color.LIGHTBLUE);
-				gcMain.setStroke(Color.BLACK);
-				gcMain.setFont(font);
-				gcMain.setLineWidth(3);
-				int n = 6;
-				String str = 
-						"Index: " + focused.getSpriteIndex() + 
-						"\nSprite Coords: " + (int)focused.getAbsoluteX() + "," + (int)focused.getAbsoluteY() + " " + 
-																	(int)focused.getOriginSpriteWidth() + "x" + (int)focused.getOriginSpriteHeight() +
-						"\nOutput Size: " + (int)focused.getOutputWidth() + "x" + (int)focused.getOutputHeight() +
-						"\nFlip: " + focused.getFlip().name() +
-						"\nRotate: " + focused.getRotation() +
-						"\nAlpha: " + focused.getAlpha() +
-						"\nAlignment: " + focused.getAlignment().name();
-				if (getCurrentFrameSet().getFrameSetTagsFrom(focused) != null &&
-						!getCurrentFrameSet().getFrameSetTagsFrom(focused).getFrameSetTags().isEmpty()) {
-					str += "\n\nFrameTags:";
-					n += 3;
+			if (Misc.blink(50)) { 
+				if (focusedSprite != null) {
+					int x = (int)focusedSprite.getOutputDrawCoords().getX() * zoom,
+							y = (int)focusedSprite.getOutputDrawCoords().getY() * zoom;
+					gcMain.setStroke(Color.YELLOW);
+					gcMain.setLineWidth(2);
+					gcMain.strokeRect(x, y, focusedSprite.getOutputWidth() * zoom, focusedSprite.getOutputHeight() * zoom);
 				}
-				for (FrameTag tag : getCurrentFrameSet().getFrameSetTagsFrom(focused).getFrameSetTags()) {
-					str += "\n" + tag.toString();
-					n += 2;
+				for (Sprite sprite : selectedSprites) {
+					int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
+							y = (int)sprite.getOutputDrawCoords().getY() * zoom,
+							w = (int)(sprite.getOutputWidth() * zoom),
+							h = (int)(sprite.getOutputHeight() * zoom);
+					gcMain.setStroke(Color.GREEN);
+					gcMain.setLineWidth(2);
+					gcMain.strokeRect(x, y, w, h);
 				}
-				gcMain.strokeText(str, x, y - 60 - 7.5 * n);
-				gcMain.fillText(str, x, y - 60 - 7.5 * n);
 			}
 		}
-		if (Misc.blink(50)) { 
-			if (focusedSprite != null) {
-				int x = (int)focusedSprite.getOutputDrawCoords().getX() * zoom,
-						y = (int)focusedSprite.getOutputDrawCoords().getY() * zoom;
-				gcMain.setStroke(Color.YELLOW);
-				gcMain.setLineWidth(2);
-				gcMain.strokeRect(x, y, focusedSprite.getOutputWidth() * zoom, focusedSprite.getOutputHeight() * zoom);
-			}
-			for (Sprite sprite : selectedSprites) {
-				int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
-						y = (int)sprite.getOutputDrawCoords().getY() * zoom,
-						w = (int)(sprite.getOutputWidth() * zoom),
-						h = (int)(sprite.getOutputHeight() * zoom);
-				gcMain.setStroke(Color.GREEN);
-				gcMain.setLineWidth(2);
-				gcMain.strokeRect(x, y, w, h);
-			}
+		else if (zoom > 3) {
+			int w = (int)canvasMain.getWidth(), h = (int)canvasMain.getHeight(),
+					w2 = Main.winW * zoom, h2 = Main.winH * zoom;
+			GameMisc.drawAllCanvasToTempCanvas();
+	    gcMain.drawImage(GameMisc.getTempCanvasSnapshot(), 0, 0, Main.winW, Main.winH, (int)(w / 2 - w2 / 2), (int)(h / 2 - h2 / 2), w2, h2); 
 		}
-		if (zoomScale > 1)
-	    gcMain.drawImage(canvasMain.snapshot(null, null),
-	    		mouseX - winW / 2 / zoomScale,
-	    		mouseY - winH / 2 / zoomScale,
-	    		winW / zoomScale, winH / zoomScale,
-	    		0, 0, winW * zoom, winH * zoom);
  	}
 
 	boolean isHold(int shift, int ctrl, int alt) {

@@ -40,8 +40,7 @@ public class Entity extends Position {
 	private Entity linkedEntityBack;
 	private Position linkedEntityOffset;
 	private boolean noMove;
-	private boolean isDead;
-	private int invencibilityFrames;
+	private boolean isDisabled;
 	private float shadowOpacity;
 	
 	public Entity(Entity entity) {
@@ -60,8 +59,7 @@ public class Entity extends Position {
 		direction = entity.direction;
 		elevation = entity.elevation;
 		noMove = entity.noMove;
-		isDead = entity.isDead;
-		invencibilityFrames = entity.invencibilityFrames;
+		isDisabled = entity.isDisabled;
 		shadowOpacity = entity.shadowOpacity;
 		linkedEntityInfos = new LinkedList<>();
 		linkedEntityBack = null;
@@ -91,10 +89,9 @@ public class Entity extends Position {
 		this.direction = direction;
 		speed = new Position();
 		elevation = Elevation.ON_GROUND;
-		invencibilityFrames = 0;
 		shadowOpacity = 0;
 		noMove = false;
-		isDead = false;
+		isDisabled = false;
 	}
 	
 	public List<Curse> getCurses()
@@ -289,34 +286,36 @@ public class Entity extends Position {
 		{ run(false); }
 
 	public void run(boolean isPaused) {
-		if (frameSets.isEmpty())
-			GameMisc.throwRuntimeException("This entity have no FrameSets");
-		if (frameSets.containsKey(currentFrameSetName)) {
-			if (linkedEntityFront != null) {
-				if (linkedEntityInfos.isEmpty()) {
-					setPosition(linkedEntityFront.getX() + linkedEntityOffset.getX(),
-							linkedEntityFront.getY() + linkedEntityOffset.getY());
-					if (direction != linkedEntityFront.getDirection())
-						setDirection(linkedEntityFront.getDirection());
+		if (!isDisabled) {
+			if (frameSets.isEmpty())
+				GameMisc.throwRuntimeException("This entity have no FrameSets");
+			if (currentFrameSetName != null && frameSets.containsKey(currentFrameSetName)) {
+				if (linkedEntityFront != null) {
+					if (linkedEntityInfos.isEmpty()) {
+						setPosition(linkedEntityFront.getX() + linkedEntityOffset.getX(),
+								linkedEntityFront.getY() + linkedEntityOffset.getY());
+						if (direction != linkedEntityFront.getDirection())
+							setDirection(linkedEntityFront.getDirection());
+					}
+					else {
+						setPosition(linkedEntityInfos.get(0).x + linkedEntityOffset.getX(),
+												linkedEntityInfos.get(0).y + linkedEntityOffset.getY());
+						if (direction != linkedEntityInfos.get(0).direction)
+							setDirection(linkedEntityInfos.get(0).direction);
+						linkedEntityInfos.remove(0);
+						linkedEntityInfos.add(new LinkedEntityInfos(linkedEntityFront));
+					}
 				}
-				else {
-					setPosition(linkedEntityInfos.get(0).x + linkedEntityOffset.getX(),
-											linkedEntityInfos.get(0).y + linkedEntityOffset.getY());
-					if (direction != linkedEntityInfos.get(0).direction)
-						setDirection(linkedEntityInfos.get(0).direction);
-					linkedEntityInfos.remove(0);
-					linkedEntityInfos.add(new LinkedEntityInfos(linkedEntityFront));
+				if (haveShadow()) {
+					Map<SpriteLayerType, GraphicsContext> gcList = GameMisc.getGcMap();
+					gcList.get(SpriteLayerType.GROUND).save();
+					gcList.get(SpriteLayerType.GROUND).setFill(Color.BLACK);
+					gcList.get(SpriteLayerType.GROUND).setGlobalAlpha(shadowOpacity);
+					gcList.get(SpriteLayerType.GROUND).fillOval(getX() + Main.tileSize / 2 - getShadowWidth() / 2, getY() + Main.tileSize - getShadowHeight(), getShadowWidth(), getShadowHeight());
+					gcList.get(SpriteLayerType.GROUND).restore();
 				}
+				frameSets.get(currentFrameSetName).run(isPaused);
 			}
-			if (haveShadow()) {
-				Map<SpriteLayerType, GraphicsContext> gcList = GameMisc.getGcMap();
-				gcList.get(SpriteLayerType.GROUND).save();
-				gcList.get(SpriteLayerType.GROUND).setFill(Color.BLACK);
-				gcList.get(SpriteLayerType.GROUND).setGlobalAlpha(shadowOpacity);
-				gcList.get(SpriteLayerType.GROUND).fillOval(getX() + Main.tileSize / 2 - getShadowWidth() / 2, getY() + Main.tileSize - getShadowHeight(), getShadowWidth(), getShadowHeight());
-				gcList.get(SpriteLayerType.GROUND).restore();
-			}
-			frameSets.get(currentFrameSetName).run(isPaused);
 		}
 	}
 	
@@ -362,21 +361,15 @@ public class Entity extends Position {
 	public boolean getNoMove()
 		{ return noMove; }
 	
-	public void setDead(boolean state)
-		{ isDead = state; }
+	public void setDisabled()
+		{ isDisabled = true; }
 	
-	public boolean isDead()
-		{ return isDead; }
+	public void setEnabled()
+		{ isDisabled = false; }
 
-	public int getInvencibilityFrames()
-		{ return invencibilityFrames; }
+	public boolean isDisabled()
+		{ return isDisabled; }
 
-	public void setInvencibilityFrames(int invencibilityFrames)
-		{ this.invencibilityFrames = invencibilityFrames; }
-	
-	public boolean isInvencible()
-		{ return isDead || invencibilityFrames != 0; }
-	
 	public void setShadow(int offsetX, int offsetY, int width, int height, float opacity) {
 		if (shadow == null)
 			shadow = new Rectangle(offsetX, offsetY, width, height);

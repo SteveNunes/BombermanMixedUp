@@ -45,11 +45,11 @@ public class Main extends Application {
 			Scene scene = null;
 			if (mode == GameMode.GAME) {
 				canvasMain = new Canvas(winW * zoom, winH * zoom);
-				canvasMain.getGraphicsContext2D().setImageSmoothing(false);
 				gcMain = canvasMain.getGraphicsContext2D();
+				gcMain.setImageSmoothing(false);
 				canvasOverall = new Canvas(winW * zoom, winH * zoom);
-				canvasOverall.getGraphicsContext2D().setImageSmoothing(false);
 				gcOverall = canvasOverall.getGraphicsContext2D();
+				gcOverall.setImageSmoothing(false);
 				vBoxMain = new VBox();
 				vBoxMain.getChildren().add(canvasMain);
 				scene = new Scene(vBoxMain);

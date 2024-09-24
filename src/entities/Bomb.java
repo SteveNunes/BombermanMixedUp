@@ -14,7 +14,8 @@ import tools.Sound;
 
 public class Bomb extends Entity {
 
-	private static Map<TileCoord, Bomb> bombs = new HashMap<>();
+	private static Map<TileCoord, List<Bomb>> bombs = new HashMap<>();
+	private static List<Bomb> bombList = new ArrayList<>();
 	
 	private Entity owner;
 	BombType type;
@@ -23,7 +24,6 @@ public class Bomb extends Entity {
 	
 	public Bomb(Bomb bomb) {
 		super(bomb);
-		setTileSize(Main.tileSize);
 		owner = bomb.owner;
 		type = bomb.type;
 		timer = bomb.timer;
@@ -35,7 +35,6 @@ public class Bomb extends Entity {
 	
 	public Bomb(Entity owner, TileCoord coord, BombType type, int fireDistance) {
 		super();
-		setTileSize(Main.tileSize);
 		this.type = type;
 		this.fireDistance = fireDistance;
 		int y = 32 + 16 * type.getValue();
@@ -69,46 +68,52 @@ public class Bomb extends Entity {
 		{ addBomb(null, coord, type, fireDistance, checkTile); }
 
 	public static void addBomb(Entity owner, TileCoord coord, BombType type, int fireDistance, boolean checkTile) {
-		if (!checkTile || MapSet.tileIsFree(coord))
-			bombs.put(coord, new Bomb(owner, coord, type, fireDistance));
+		if (!bombs.containsKey(coord))
+			bombs.put(coord.getNewInstance(), new ArrayList<>());
+		if (!checkTile || MapSet.tileIsFree(coord)) {
+			Bomb bomb = new Bomb(owner, coord, type, fireDistance);
+			bombs.get(coord).add(bomb);
+			bombList.add(bomb);
+		}
 	}
 	
 	public static void addBomb(Bomb bomb)
 		{ addBomb(bomb, false); }
 	
-	public static void addBomb(Bomb bomb, boolean checkTile) {
-		if (!checkTile || MapSet.tileIsFree(bomb.getTileCoord()))
-			bombs.put(bomb.getTileCoord(), bomb);
-	}
+	public static void addBomb(Bomb bomb, boolean checkTile)
+		{ addBomb(bomb.owner, bomb.getTileCoord(), bomb.type, bomb.fireDistance, checkTile); }
 
-	public static void removeBomb(Bomb bomb)
-		{ bombs.remove(bomb.getTileCoord()); }
-	
-	public static void removeBomb(TileCoord coord) {
-		if (haveBombAt(coord))
-			bombs.remove(coord);
-	}
-	
-	public static void clearBombs() {
-		if (!bombs.isEmpty()) {
-			Bomb bomb = null;
-			while (!bombs.isEmpty()) {
-				bomb = bombs.values().iterator().next();
-				removeBomb(bomb.getTileCoord());
-			}
-			MapSet.getLayer(26).buildLayer();
+	public static void removeBomb(Bomb bomb) {
+		if (bombs.containsKey(bomb.getTileCoord())) {
+			bombList.remove(bomb);
+			if (bombList.isEmpty())
+				bombs.remove(bomb.getTileCoord());
+			else
+				bombs.get(bomb.getTileCoord()).remove(bomb);
 		}
 	}
 	
+	public static void removeBomb(TileCoord coord) {
+		if (bombs.containsKey(coord)) {
+			bombList.removeAll(bombs.get(coord));
+			bombs.remove(coord);
+		}
+	}
+	
+	public static void clearBombs() {
+		bombs.clear();
+		bombList.clear();
+	}
+	
 	public static int totalBombs()
-		{ return bombs.size(); }
+		{ return bombList.size(); }
 
 	public static List<Bomb> getBombs()
-		{ return new ArrayList<>(bombs.values()); }
+		{ return bombList; }
 	
 	public static void drawBombs() {
 		List<Bomb> removeBombs = new ArrayList<>();
-		for (Bomb bomb : bombs.values()) {
+		for (Bomb bomb : bombList) {
 			if ((bomb.timer == -1 || --bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoord(), TileProp.EXPLOSION))
 				bomb.timer = 0;
 			if (bomb.timer == 0) {
@@ -124,5 +129,8 @@ public class Bomb extends Entity {
 	
 	public static boolean haveBombAt(TileCoord coord)
 		{ return bombs.containsKey(coord); }
+
+	public static Bomb getBombAt(TileCoord tileCoord)
+		{ return haveBombAt(tileCoord) ? bombs.get(tileCoord).get(0) : null; }
 
 }

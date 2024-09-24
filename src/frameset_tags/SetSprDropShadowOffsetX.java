@@ -18,6 +18,7 @@ public class SetSprDropShadowOffsetX extends FrameTag {
 		{ return "{" + FrameTag.getClassName(this) + ";" + value + "}"; }
 
 	public SetSprDropShadowOffsetX(String tags) {
+		
 		String[] params = FrameTag.validateStringTags(this, tags, 1);
 		try
 			{ value = Double.parseDouble(params[0]); }
