@@ -177,6 +177,7 @@ public class MapEditor {
 		ctrlZPos = -1;
 		playing = false;
 		selection = null;
+		Tools.loadTools();
 		setAllCanvas();
 		defineControls();
 		setKeyboardEvents();
@@ -186,7 +187,7 @@ public class MapEditor {
   }
 	
 	void setAllCanvas() {
-		Tools.generateDrawCanvasMap();
+		Tools.loadTools();
 		canvasList = new Canvas[] {canvasBrickStand, canvasBrickBreaking, canvasBrickRegen, canvasWallSprite, canvasGroundSprite, canvasGroundWithWallShadow, canvasGroundWithBrickShadow, canvasFragileGround};
 		gcBrickStand = canvasBrickStand.getGraphicsContext2D();
 		gcBrickStand.setImageSmoothing(false);
@@ -289,6 +290,7 @@ public class MapEditor {
 
 	void mainLoop() {
 		try {
+			Tools.clearAllCanvas();
 			drawDrawCanvas();
 			drawMainCanvas();
 			Tools.getFPSHandler().fpsCounter();

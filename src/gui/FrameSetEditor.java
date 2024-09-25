@@ -75,8 +75,8 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import maps.MapSet;
+import screen_effects.SquaredBg;
 import tools.IniFiles;
-import tools.SquaredBg;
 import tools.Tools;
 import util.Misc;
 import util.MyFile;
@@ -118,7 +118,6 @@ public class FrameSetEditor {
 	private int centerY;
 	
 	public void init() {
-		Tools.generateDrawCanvasMap();
 		font = new Font("Lucida Console", 15);
 		canvasMain.setWidth(winW * 3);
 		canvasMain.setHeight(winH * 3);
@@ -156,12 +155,14 @@ public class FrameSetEditor {
 
 		currentEntity.addNewFrameSetFromString("IntroFrames", IniFiles.monsters.read("1000", "IntroFrames"));
 		currentEntity.addNewFrameSetFromString("MovingFrames", IniFiles.monsters.read("1000", "MovingFrames"));
+		currentEntity.setFrameSet("MovingFrames");
 		
 		setDefaultContextMenu();
 		setSpriteContextMenu();
 		setMouseEvents();
 		setKeyboardEvents(Main.sceneMain);
-		
+		Tools.loadTools();
+		Tools.setBackgroundEffect(new SquaredBg(3, 3, 50, 255));
 		
 		for (int n = 0; n < 0; n++) { // NOTA: TEMP para desenhar multiplos FrameSets na tela para testar capacidade
 			Entity entity = new Entity(currentEntity);
@@ -176,6 +177,7 @@ public class FrameSetEditor {
 	
 	void mainLoop() {
 		try {
+			Tools.clearAllCanvas();
 			drawDrawCanvas();
 			drawMainCanvas();
 			Tools.getFPSHandler().fpsCounter();
@@ -246,42 +248,44 @@ public class FrameSetEditor {
 			menu2.getItems().addAll(item21, item22, item23);
 			menu.getItems().addAll(menu1, menu2);
 			defaultContextMenu.getItems().add(menu);
-			MenuItem item = new MenuItem("Remover Frame atual");
-			item.setOnAction(e -> getCurrentFrameSet().removeFrame(getCurrentFrame()));
-			item.setDisable(getCurrentFrameSet().isEmptyFrames());
-			defaultContextMenu.getItems().add(item);
-			if (getCurrentFrame() != null) {
-				defaultContextMenu.getItems().add(new SeparatorMenuItem());
-				item = new MenuItem("Adicionar Sprite novo");
-				item.setOnAction(e -> {
-					defaultContextMenu.hide();
-					File file = MyFile.selectFile("Selecione o arquivo de imagem");
-					Image image = new Image("file:" + file.getAbsolutePath());
-					try {
-						String s = Alerts.textPrompt("Prompt", "Coordenada inicial", null, "Informe: X Y W H SpritesPerLine SpriteIndex");
-						String[] split = s.split(" ");
-						int sx = Integer.parseInt(split[0]), sy = Integer.parseInt(split[1]),
-								sw = Integer.parseInt(split[2]), sh = Integer.parseInt(split[3]),
-								perLine = Integer.parseInt(split[4]), index = Integer.parseInt(split[5]);
-						Rectangle rect = new Rectangle(winW / 2 - sw / 2, winH / 2 - sh / 2, sw, sh);
-						getCurrentFrameSet().addSpriteAtEnd(new Sprite(getCurrentFrameSet(), image, new Rectangle(sx, sy, sw, sh), rect, perLine, index));
-					}
-					catch (Exception ex) {
-						Alerts.error("Erro", "O valor informado não é válido");
-					}
-				});
+			if (getCurrentFrameSet() != null) {
+				MenuItem item = new MenuItem("Remover Frame atual");
+				item.setOnAction(e -> getCurrentFrameSet().removeFrame(getCurrentFrame()));
+				item.setDisable(getCurrentFrameSet().isEmptyFrames());
 				defaultContextMenu.getItems().add(item);
-				if (!getCurrentFrameSet().isEmptySprites()) {
-					item = new MenuItem("Adicionar Sprite clonado");
+				if (getCurrentFrame() != null) {
+					defaultContextMenu.getItems().add(new SeparatorMenuItem());
+					item = new MenuItem("Adicionar Sprite novo");
 					item.setOnAction(e -> {
-						spriteContextMenu.hide();
-						Sprite sprite = getCurrentFrameSet().getSprite(0);
-						Sprite sprite2 = new Sprite(sprite);
-						sprite2.setX((int)(sprite.getX() + sprite.getOutputWidth() / 3));
-						sprite2.setY((int)(sprite.getY() + sprite.getOutputHeight() / 3));
-						getCurrentFrameSet().addSpriteAtTop(sprite2);
+						defaultContextMenu.hide();
+						File file = MyFile.selectFile("Selecione o arquivo de imagem");
+						Image image = new Image("file:" + file.getAbsolutePath());
+						try {
+							String s = Alerts.textPrompt("Prompt", "Coordenada inicial", null, "Informe: X Y W H SpritesPerLine SpriteIndex");
+							String[] split = s.split(" ");
+							int sx = Integer.parseInt(split[0]), sy = Integer.parseInt(split[1]),
+									sw = Integer.parseInt(split[2]), sh = Integer.parseInt(split[3]),
+									perLine = Integer.parseInt(split[4]), index = Integer.parseInt(split[5]);
+							Rectangle rect = new Rectangle(winW / 2 - sw / 2, winH / 2 - sh / 2, sw, sh);
+							getCurrentFrameSet().addSpriteAtEnd(new Sprite(getCurrentFrameSet(), image, new Rectangle(sx, sy, sw, sh), rect, perLine, index));
+						}
+						catch (Exception ex) {
+							Alerts.error("Erro", "O valor informado não é válido");
+						}
 					});
 					defaultContextMenu.getItems().add(item);
+					if (!getCurrentFrameSet().isEmptySprites()) {
+						item = new MenuItem("Adicionar Sprite clonado");
+						item.setOnAction(e -> {
+							spriteContextMenu.hide();
+							Sprite sprite = getCurrentFrameSet().getSprite(0);
+							Sprite sprite2 = new Sprite(sprite);
+							sprite2.setX((int)(sprite.getX() + sprite.getOutputWidth() / 3));
+							sprite2.setY((int)(sprite.getY() + sprite.getOutputHeight() / 3));
+							getCurrentFrameSet().addSpriteAtTop(sprite2);
+						});
+						defaultContextMenu.getItems().add(item);
+					}
 				}
 			}
 		}
@@ -682,7 +686,9 @@ public class FrameSetEditor {
 				if (++bgType == 3)
 					bgType = 0;
 				if (bgType == 2)
-					SquaredBg.setSquaredBg(3, 3, 50, 255);
+					Tools.getBackgroundEffect().enable();
+				else
+					Tools.getBackgroundEffect().disable();
 			}
 			System.out.println("KeyCode: " + e.getCode());
 		});		
@@ -916,17 +922,11 @@ public class FrameSetEditor {
 	
 	void drawDrawCanvas() {
 		Map<SpriteLayerType, GraphicsContext> gcs = Tools.getGcMap();
-		for (SpriteLayerType layerType : SpriteLayerType.getList()) {
-			if (layerType == SpriteLayerType.BACKGROUND) {
-				gcs.get(layerType).setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
-				gcs.get(layerType).fillRect(0, 0, winW, winH);
-			}
-			else
-				gcs.get(layerType).clearRect(0, 0, winW, winH);
+		if (bgType == 0) {
+			gcs.get(SpriteLayerType.BACKGROUND).setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
+			gcs.get(SpriteLayerType.BACKGROUND).fillRect(0, 0, winW, winH);
 		}
-		if (bgType == 2)
-			SquaredBg.draw();
-		else if (bgType == 1)
+		if (bgType == 1)
 			MapSet.run();
 		if (linkEntityToCursor > 0) {
 			if (linkEntityToCursor == 2)

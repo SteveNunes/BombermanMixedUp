@@ -17,83 +17,28 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import maps.Brick;
 import maps.Item;
+import screen_effects.BackgroundEffect;
+import screen_effects.Fade;
+import screen_effects.TintScreen;
+import screen_effects.WaveScreen;
 
 public abstract class Tools {
 	
 	private final static int DRAW_W = 1024;
 	private final static int DRAW_H = 768;
 	
-	private static FPSHandler fpsHandler; 
+	private static FPSHandler fpsHandler;
+	private static Fade fade = null;
+	private static BackgroundEffect backgroundEffect = null;
+	private static WaveScreen waveScreen = null;
+	private static TintScreen tintScreen = null;
 	private static Map<SpriteLayerType, Canvas> canvasMap;
 	private static Map<SpriteLayerType, GraphicsContext> gcMap;
-	private static Double fadeValue = null;
-	private static Double fadeValueInc = null;
-	private static Color fadeColor;
-	private static Double tintStrenght = null;
-	private static Color tintColor;
-	static Integer waveSpeed = null;
-	static int waveSpeedTick = 0;
-	static int wavePosStart = 0;
-	static int[] wave = {1, 1, 0, 0, 0, -1, -1, -1, -1, -1, -2, -1, -1, -1, -1, -1, 0, 0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
 	
 	static {
 		fpsHandler = new FPSHandler(60);
 	}
 	
-	public static void setScreenWave(int speed, int[] wavePattern) {
-		waveSpeed = speed;
-		waveSpeedTick = 0;
-		wavePosStart = 0;
-	}
-	
-	public static void disableScreenWave()
-		{ waveSpeed = null; }
-
-	public static void setScreenTint(Color color, double strenght) {
-		if (color == null)
-			throw new RuntimeException("color is null");
-		if (strenght < 0 || strenght > 1)
-			throw new RuntimeException("startValue must be between 0.0 and 1.0");
-		tintColor = color;
-		tintStrenght = strenght;
-	}
-	
-	public static void disableScreenTint()
-		{ tintColor = null; }
-
-	public static void setScreenFadeIn(Color fromColor, double speed) {
-		if (fromColor == null)
-			throw new RuntimeException("fromColor is null");
-		if (speed < 0.001 || speed > 1)
-			throw new RuntimeException("speed must be between 0.001 and 1.0");
-		setScreenFade(fromColor, 1d, -speed);
-	}
-	
-	public static void setScreenFadeOut(Color toColor, double speed) {
-		if (toColor == null)
-			throw new RuntimeException("fromColor is null");
-		if (speed < 0.001 || speed > 1)
-			throw new RuntimeException("speed must be between 0.001 and 1.0");
-		setScreenFade(toColor, 0d, speed);
-	}
-	
-	public static void disableScreenFade()
-		{ fadeColor = null; }
-
-	private static void setScreenFade(Color color, Double startValue, Double incValue) {
-		if (color == null)
-			throw new RuntimeException("color is null");
-		if (startValue == null)
-			throw new RuntimeException("startValue is null");
-		if (startValue < 0 || startValue > 1)
-			throw new RuntimeException("startValue must be between 0.0 and 1.0");
-		if (incValue < -1 || incValue > 1)
-			throw new RuntimeException("incValue must be between -1.0 and 1.0");
-		fadeValue = startValue;
-		fadeValueInc = incValue;
-		fadeColor = color;
-	}
-
 	public static Map<SpriteLayerType, GraphicsContext> getGcMap()
 		{ return gcMap; }
 	
@@ -112,7 +57,7 @@ public abstract class Tools {
 	public static GraphicsContext getGc(SpriteLayerType layerType)
 		{ return gcMap.get(layerType); }
 	
-	public static void generateDrawCanvasMap() {
+	public static void loadTools() {
 		canvasMap = new HashMap<>();
 		gcMap = new HashMap<>();
 		for (SpriteLayerType t : SpriteLayerType.getList()) {
@@ -120,6 +65,7 @@ public abstract class Tools {
 																	t == SpriteLayerType.TEMP || t == SpriteLayerType.TINT ? 240 : DRAW_H));
 			gcMap.put(t, canvasMap.get(t).getGraphicsContext2D());
 			gcMap.get(t).setImageSmoothing(false);
+			gcMap.get(t).clearRect(0, 0, canvasMap.get(t).getWidth(), canvasMap.get(t).getHeight());
 		}
 	}
 	
@@ -144,59 +90,67 @@ public abstract class Tools {
 	public static void drawAllCanvas(Canvas canvas, Color clearColor, int offsetX, int offsetY)
 		{ drawAllCanvas(canvas, clearColor, 1, offsetX, offsetY); }
 
+	public static void clearAllCanvas() {
+		for (SpriteLayerType t : SpriteLayerType.getList())
+			gcMap.get(t).clearRect(0, 0, canvasMap.get(t).getWidth(), canvasMap.get(t).getHeight());
+	}
+	
 	public static void drawAllCanvas(Canvas canvas, Color clearColor, int zoom, int offsetX, int offsetY) {
+		if (clearColor == null)
+			clearColor = Color.BLACK;
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		GraphicsContext gcTint = getTintCanvas().getGraphicsContext2D();
 		GraphicsContext gcTemp = getTempCanvas().getGraphicsContext2D();
-		gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-		if (clearColor != null) {
-			gc.setFill(clearColor);
-			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-		}
-		gcTint.clearRect(0, 0, 320, 240);
-		if (tintColor != null) {
-			gcTint.setFill(tintColor);
-			gcTint.setGlobalAlpha(tintStrenght);
-			gcTint.fillRect(0, 0, 320, 240);
-		}
-		if (fadeColor != null) {
-			gcTint.setFill(fadeColor);
-			gcTint.setGlobalAlpha(fadeValue);
-			if ((fadeValue += fadeValueInc) > 1)
-				fadeValueInc = 1d;
-			else if (fadeValue < -1)
-				fadeValue = -1d;
-			gcTint.fillRect(0, 0, 320, 240);
-		}
-		gcTemp.clearRect(0, 0, 320, 240);
+		gc.setFill(clearColor);
+		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+		gcTint.clearRect(0, 0, getTintCanvas().getWidth(), getTintCanvas().getHeight());
+		if (tintScreen != null)
+			tintScreen.apply(getTintCanvas());
+		if (fade != null)
+			fade.apply(getTintCanvas());
+		gcTemp.clearRect(0, 0, getTempCanvas().getWidth(), getTempCanvas().getHeight());
 		for (SpriteLayerType layerType : SpriteLayerType.getList()) {
 			if (layerType != SpriteLayerType.TEMP) {
 				Canvas c = canvasMap.get(layerType);
 				SnapshotParameters params = new SnapshotParameters();
 				params.setFill(Color.TRANSPARENT);
 				params.setViewport(new Rectangle2D(0, 0, c.getWidth(), c.getHeight()));
+				if (backgroundEffect != null && layerType == SpriteLayerType.BACKGROUND)
+					backgroundEffect.apply(getTempCanvas());
 				gcTemp.drawImage(c.snapshot(params, null), 0, 0);
 			}
 		}
 		Image i = getTempCanvasSnapshot();
-		if (waveSpeed != null) {
-			int wavePos = wavePosStart;
-			for (int y = 0; y < 240; y++) {
-				gcTemp.drawImage(i, 0, y, 320, 1, wave[wavePos], y, 320, 1);
-				if (++wavePos == wave.length)
-					wavePos = 0;
-			}
-			if (waveSpeed == 1 || ++waveSpeedTick == waveSpeed) {
-				waveSpeedTick = 0;
-				if (++wavePosStart == wave.length)
-					wavePosStart = 0;
-			}
-			i = getTempCanvasSnapshot();
-		}
 		Canvas c = getTempCanvas();
+		if (waveScreen != null)
+			waveScreen.apply(i, c);
 		gc.drawImage(i, 0, 0, c.getWidth(), c.getHeight(), offsetX, offsetY, c.getWidth() * zoom, c.getHeight() * zoom);
 	}
 	
+	public static Fade getFade()
+		{ return fade; }
+	
+	public static WaveScreen getWaveScreen()
+		{ return waveScreen; }
+	
+	public static TintScreen getTintScreen()
+		{ return tintScreen; }
+	
+	public static BackgroundEffect getBackgroundEffect()
+		{ return backgroundEffect; }
+	
+	public static void setFade(Fade fade)
+		{ Tools.fade = fade; }
+	
+	public static void setWaveScreen(WaveScreen waveScreen)
+		{ Tools.waveScreen = waveScreen; }
+	
+	public static void setTintScreen(TintScreen tintScreen)
+		{ Tools.tintScreen = tintScreen; }
+	
+	public static void setBackgroundEffect(BackgroundEffect backgroundEffect)
+		{ Tools.backgroundEffect = backgroundEffect; }
+
 	public static FPSHandler getFPSHandler()
 		{ return fpsHandler; }
 
@@ -221,10 +175,10 @@ public abstract class Tools {
 		Item.drawItems();
 	}
 	
-	private static Canvas getTempCanvas()
+	public static Canvas getTempCanvas()
 		{ return getCanvasMap().get(SpriteLayerType.TEMP); }
 
-	private static Canvas getTintCanvas()
+	public static Canvas getTintCanvas()
 		{ return getCanvasMap().get(SpriteLayerType.TINT); }
 
 	public static Image getTempCanvasSnapshot() {
@@ -234,8 +188,10 @@ public abstract class Tools {
 		return getTempCanvas().snapshot(params, null);
 	}
 
-	public static void drawAllCanvasToTempCanvas()
-		{ Tools.drawAllCanvas(getTempCanvas()); }
+	public static void drawAllCanvasToTempCanvas() {
+		getTempCanvas().getGraphicsContext2D().clearRect(0, 0, getTempCanvas().getWidth(), getTempCanvas().getHeight());
+		Tools.drawAllCanvas(getTempCanvas());
+	}
 
 	public static DrawImageEffects loadEffectsFromString(String arrayToString) {
 		// NOTA: implementar

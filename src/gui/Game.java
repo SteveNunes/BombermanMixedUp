@@ -25,7 +25,7 @@ public class Game {
 	private Font font;
 	
 	public void init(Scene scene) {
-		Tools.generateDrawCanvasMap();
+		Tools.loadTools();
 		sceneMain = scene;
 		font = new Font("Lucida Console", 15);
 		canvasMain.setWidth(winW * 3);
@@ -39,6 +39,7 @@ public class Game {
 	
 	void mainLoop() {
 		try {
+			Tools.clearAllCanvas();
 			Tools.getFPSHandler().fpsCounter();
 			if (!Main.close )
 				Platform.runLater(() -> {
