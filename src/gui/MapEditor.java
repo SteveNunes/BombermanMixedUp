@@ -283,11 +283,7 @@ public class MapEditor {
 		canvasBrickStand.setOnMouseClicked(e -> Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickStandFrameSet")));
 		canvasBrickBreaking.setOnMouseClicked(e -> Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickBreakFrameSet")));
 		canvasBrickRegen.setOnMouseClicked(e -> {
-			Brick.getBricks().forEach(brick -> {
-				if (!brick.haveFrameSet("BrickRegenFrameSet2"))
-					brick.addNewFrameSetFromString("BrickRegenFrameSet2", MapSet.getTileSetIniFile().read("CONFIG", "BrickRegenFrameSet") + "|{SetFrameSet;BrickStandFrameSet}");
-				brick.setFrameSet("BrickRegenFrameSet2");
-			});
+			Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickRegenFrameSet"));
 		});
 	}
 
@@ -356,6 +352,7 @@ public class MapEditor {
 			throw new RuntimeException("Unable to load map because 'mapName' is null");
 		Tile.tags = new HashMap<>();
 		MapSet.loadMap(mapName);
+		MapSet.setBricksRegenTime(5);
 		listViewLayers.getItems().clear();
 		List<Integer> list = new ArrayList<Integer>(MapSet.getLayersMap().keySet());
 		list.sort((n1, n2) -> n2 - n1);

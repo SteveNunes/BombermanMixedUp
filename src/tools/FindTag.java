@@ -1,15 +1,11 @@
 package tools;
 
-import java.security.SecureRandom;
-import java.util.Random;
-
 import util.CollectionUtils;
 
 public class FindTag {
 
 	private String foundTag;
 	private String[] tagValues;
-	private static Random random = new Random(new SecureRandom().nextInt(Integer.MAX_VALUE));
 
 	public FindTag(String text, String tag) {
 		foundTag = null;

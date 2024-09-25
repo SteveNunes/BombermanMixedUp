@@ -16,6 +16,7 @@ public class Brick extends Entity {
 
 	private static Map<TileCoord, Brick> bricks = new HashMap<>();
 	private ItemType item;
+	private int regenTimeInFrames;
 	
 	public Brick(Brick brick) {
 		super(brick);
@@ -30,6 +31,8 @@ public class Brick extends Entity {
 	
 	public Brick(TileCoord coord, ItemType item) {
 		super();
+		regenTimeInFrames = 0;
+		setPassThroughBrick(true);
 		setPosition(coord.getPosition(Main.TILE_SIZE));
 		this.item = item;
 		Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet").forEach(frameSet ->
@@ -66,13 +69,23 @@ public class Brick extends Entity {
 
 	public static void addBrick(Brick brick, boolean updateLayer) {
 		TileCoord coord = brick.getTileCoord();
-		if (!haveBrickAt(coord)) {
-			TileCoord coord2 = coord.getNewInstance();
-			coord2.setY(coord.getY() + 1);
+		if (!haveBrickAt(coord, false)) {
 			brick.setPosition(coord.getPosition(Main.TILE_SIZE));
 			bricks.put(coord, brick);
-			Tile.addTileShadow(MapSet.getGroundWithBrickShadow(), coord2);
+			brick.setBrickShadow();
 		}
+	}
+	
+	private void setBrickShadow() {
+		TileCoord coord = getTileCoord().getNewInstance();
+		coord.setY(coord.getY() + 1);
+		Tile.addTileShadow(MapSet.getGroundWithBrickShadow(), coord);
+	}
+	
+	private void unsetBrickShadow() {
+		TileCoord coord = getTileCoord().getNewInstance();
+		coord.setY(coord.getY() + 1);
+		Tile.removeTileShadow(coord);
 	}
 
 	public static void removeBrick(Brick brick)
@@ -82,11 +95,9 @@ public class Brick extends Entity {
 		{ removeBrick(coord, true); }
 
 	public static void removeBrick(TileCoord coord, boolean updateLayer) {
-		if (haveBrickAt(coord)) {
-			TileCoord coord2 = coord.getNewInstance();
-			coord2.setY(coord.getY() + 1);
+		if (haveBrickAt(coord, false)) {
+			bricks.get(coord).unsetBrickShadow();
 			bricks.remove(coord);
-			Tile.removeTileShadow(coord2);
 		}
 	}
 	
@@ -104,26 +115,49 @@ public class Brick extends Entity {
 	public static void drawBricks() {
 		List<Brick> removeBricks = new ArrayList<>();
 		for (Brick brick : bricks.values()) {
-			if (brick.getCurrentFrameSetName().equals("BrickStandFrameSet") &&
+			if (!brick.getCurrentFrameSetName().equals("BrickBreakFrameSet") &&
 					MapSet.tileContainsProp(brick.getTileCoord(), TileProp.EXPLOSION))
-				brick.setFrameSet("BrickBreakFrameSet");
+						brick.breakIt();
+			else if (brick.getCurrentFrameSetName().equals("BrickRegenFrameSet") && !brick.getCurrentFrameSet().isRunning()) {
+				brick.setFrameSet("BrickStandFrameSet");
+				brick.setBrickShadow();
+			}
+			if (brick.regenTimeInFrames > 0 && !MapSet.tileIsOccuped(brick.getTileCoord(), brick.getPassThrough()) && --brick.regenTimeInFrames == 0)
+				brick.setFrameSet("BrickRegenFrameSet");
 			brick.run();
-			if (brick.isBreaked()) {
-				removeBricks.add(brick);
-				if (brick.getItem() != null)
+			if (brick.isBreaked() && brick.regenTimeInFrames == 0) {
+				brick.unsetBrickShadow();
+				if (MapSet.getBricksRegenTimeInFrames() == 0)
+					removeBricks.add(brick);
+				else
+					brick.regenTimeInFrames = MapSet.getBricksRegenTimeInFrames();
+				if (brick.getItem() != null) {
 					Item.addItem(brick.getTileCoord(), brick.getItem());
+					brick.setItem(null);
+				}
 			}
 		}
 		removeBricks.forEach(brick -> removeBrick(brick));
+	}
+	
+	public void breakIt() {
+		if (getCurrentFrameSetName().equals("BrickStandFrameSet"))
+			setFrameSet("BrickBreakFrameSet");
 	}
 
 	private boolean isBreaked()
 		{ return getCurrentFrameSetName().equals("BrickBreakFrameSet") && !getCurrentFrameSet().isRunning(); }
 
-	public static boolean haveBrickAt(TileCoord coord)
-		{ return bricks.containsKey(coord); }
+	public static boolean haveBrickAt(TileCoord coord, boolean ignoreDestroyedRegenBricks)
+		{ return bricks.containsKey(coord) && (ignoreDestroyedRegenBricks || !bricks.get(coord).getCurrentFrameSetName().equals("BrickRegenFrameSet")); }
 
+	public static boolean haveBrickAt(TileCoord coord)
+		{ return haveBrickAt(coord, false); }
+	
 	public static Brick getBrickAt(TileCoord tileCoord)
-		{ return haveBrickAt(tileCoord) ? bricks.get(tileCoord) : null; }
+		{ return haveBrickAt(tileCoord, false) ? bricks.get(tileCoord) : null; }
+
+	public void setRegenTime(int bricksRegenTimeInSecs)
+		{ regenTimeInFrames = bricksRegenTimeInSecs * 60; }
 	
 }

@@ -21,7 +21,6 @@ import javafx.scene.image.WritableImage;
 import objmoveutils.Position;
 import pathfinder.PathFinder;
 import pathfinder.PathFinderTileCoord;
-import tools.Tools;
 import tools.IniFiles;
 import tools.Materials;
 import util.IniFile;
@@ -46,12 +45,14 @@ public class MapSet {
 	private static Position groundWithBrickShadow;
 	private static Position groundWithWallShadow;
 	private static Position fragileGround;
+	private static int bricksRegenTimeInFrames;
 	
 	public static void loadMap(String iniMapName) {
 		long ct = System.currentTimeMillis();
 		System.out.println("Carregando mapa " + iniMapName + " ...");
 		Effect.clearPreloadedEffects();
 		MapSet.iniMapName = iniMapName;
+		bricksRegenTimeInFrames = -1;
 		layerImages = new HashMap<>();
 		layers = new HashMap<>();
 		initialPlayerCoords = new HashMap<>();
@@ -148,6 +149,14 @@ public class MapSet {
 		addItensToBricks();
 	}
 	
+	public static int getBricksRegenTimeInFrames()
+		{ return bricksRegenTimeInFrames; }
+
+	public static void setBricksRegenTime(int bricksRegenTimeInSecs) {
+		bricksRegenTimeInFrames = bricksRegenTimeInSecs * 60;
+		Brick.getBricks().forEach(brick -> brick.setRegenTime(bricksRegenTimeInSecs));
+	}
+
 	private static void addItensToBricks() {
 		if (IniFiles.stages.read(iniMapName, "Items") != null && !IniFiles.stages.read(iniMapName, "Items").equals("0")) {
 			String[] split = IniFiles.stages.read(iniMapName, "Items").split(" ");
@@ -354,7 +363,7 @@ public class MapSet {
 			return false;
 		for (TileProp prop : getTilePropsFromCoord(coord))
 			if (TileProp.getCantCrossList(Elevation.ON_GROUND).contains(prop) ||
-				 (Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
+				 (Brick.haveBrickAt(coord, true) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
 				 (Bomb.haveBombAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BOMB))))
 						return false;
 		return true;
@@ -365,6 +374,11 @@ public class MapSet {
 
 	public static void run() {
 		// NOTA: implementar (criar um Entity no mapa que fará o desenho do mapa usando os sprites das layers
+	}
+
+	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough) {
+		// NOTA: Implementar retornando se tem monstro ou player em cima
+		return !tileIsFree(coord, passThrough);
 	}
 	
 }

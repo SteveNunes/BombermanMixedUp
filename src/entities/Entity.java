@@ -105,6 +105,9 @@ public class Entity extends Position {
 	public void removeCurse(Curse curse)
 		{ curses.remove(curse); }
 	
+	public List<PassThrough> getPassThrough()
+		{ return passThrough; }
+
 	private void addPassThrough(PassThrough pass) {
 		if (!passThrough.contains(pass))
 			passThrough.add(pass);
@@ -432,7 +435,7 @@ public class Entity extends Position {
 		Tile tile = mapSet.getLayer(26).getTopTileFromCoord(coord);
 		for (TileProp prop : tile.tileProp) {
 			if (TileProp.getCantCrossList(elevation).contains(prop) ||
-					(Brick.haveBrickAt(coord) && !canPassThroughBrick()) || (Bomb.haveBombAt(coord) && !canPassThroughBomb()))
+					(Brick.haveBrickAt(coord, true) && !canPassThroughBrick()) || (Bomb.haveBombAt(coord) && !canPassThroughBomb()))
 						return false;
 		}
 		return true;
