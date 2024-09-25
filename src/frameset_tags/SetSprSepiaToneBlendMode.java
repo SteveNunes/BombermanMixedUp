@@ -2,7 +2,7 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
-import tools.GameMisc;
+import tools.Tools;
 
 public class SetSprSepiaToneBlendMode extends FrameTag {
 	
@@ -23,7 +23,7 @@ public class SetSprSepiaToneBlendMode extends FrameTag {
 		try
 			{ blendMode = BlendMode.valueOf(params[0]); }
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[0] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 
 public class SetSprIndex extends FrameTag {
 	
@@ -22,7 +22,7 @@ public class SetSprIndex extends FrameTag {
 		try
 			{ value = params[0].equals("-") ? null : Integer.parseInt(params[0]); }
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[0] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
 	@Override

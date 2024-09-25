@@ -1,7 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 
 public abstract class FrameTag {
 	
@@ -16,17 +16,17 @@ public abstract class FrameTag {
 		String thisClass = getClassName(clazz);
 		if (tags.length() < thisClass.length() + 2 ||
 				tags.charAt(0) != '{' || tags.charAt(tags.length() - 1) != '}')
-					GameMisc.throwRuntimeException(tags + " - Invalid tags");
+					throw new RuntimeException(tags + " - Invalid tags");
 		tags = tags.substring(1, tags.length() - 1);
 		String[] split = tags.split(";");
 		if (!split[0].equals(thisClass))
-			GameMisc.throwRuntimeException(tags + " - Invalid tags");
+			throw new RuntimeException(tags + " - Invalid tags");
 		String[] attribs = new String[split.length - 1];
 		if (totalParams != -1) {
 			if (attribs.length > totalParams)
-				GameMisc.throwRuntimeException(tags + " - Too much parameters");
+				throw new RuntimeException(tags + " - Too much parameters");
 			if (attribs.length < totalParams)
-				GameMisc.throwRuntimeException(tags + " - Too few parameters");
+				throw new RuntimeException(tags + " - Too few parameters");
 		}
 		for (int n = 1; n < split.length; n++)
 			attribs[n - 1] = split[n];

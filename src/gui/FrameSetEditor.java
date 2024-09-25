@@ -75,9 +75,9 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import maps.MapSet;
-import tools.GameMisc;
 import tools.IniFiles;
 import tools.SquaredBg;
+import tools.Tools;
 import util.Misc;
 import util.MyFile;
 import util.MyMath;
@@ -94,7 +94,6 @@ public class FrameSetEditor {
 	private List<Sprite> selectedSprites;
 	private List<Sprite> copiedSprites;
 	private List<Entity> entities;
-	private Scene sceneMain;
 	@FXML
 	private Canvas canvasMain;
 	private GraphicsContext gcMain;
@@ -118,9 +117,8 @@ public class FrameSetEditor {
 	private int centerX;
 	private int centerY;
 	
-	public void init(Scene scene) {
-		GameMisc.generateDrawCanvasMap();
-		sceneMain = scene;
+	public void init() {
+		Tools.generateDrawCanvasMap();
 		font = new Font("Lucida Console", 15);
 		canvasMain.setWidth(winW * 3);
 		canvasMain.setHeight(winH * 3);
@@ -138,8 +136,8 @@ public class FrameSetEditor {
 		copiedFrame = null;
 		isPaused = false;
 		isChangingSprite = false;
-		centerX = Main.tileSize * 10;
-		centerY = Main.tileSize * 7;
+		centerX = Main.TILE_SIZE * 10;
+		centerY = Main.TILE_SIZE * 7;
 		linkEntityToCursor = 0;
 		backupIndex = -1;
 		mouseX = 0;
@@ -162,7 +160,7 @@ public class FrameSetEditor {
 		setDefaultContextMenu();
 		setSpriteContextMenu();
 		setMouseEvents();
-		setKeyboardEvents(sceneMain);
+		setKeyboardEvents(Main.sceneMain);
 		
 		
 		for (int n = 0; n < 0; n++) { // NOTA: TEMP para desenhar multiplos FrameSets na tela para testar capacidade
@@ -177,24 +175,30 @@ public class FrameSetEditor {
 	}
 	
 	void mainLoop() {
-		drawDrawCanvas();
-		drawMainCanvas();
-		GameMisc.getFPSHandler().fpsCounter();
-		if (!Main.close )
-			Platform.runLater(() -> {
-				String title = "Sprite Editor     FPS: " + GameMisc.getFPSHandler().getFPS() + "     ";
-				if (getCurrentFrameSetName() != null) {
-					title += "Frame Set: " + getCurrentFrameSetName() + 
-							"     Frames: " + (getCurrentFrameSet().getCurrentFrameIndex() + 1) +
-							"/" + getCurrentFrameSet().getTotalFrames() +
-							"     Sprites: " + getCurrentFrameSet().getTotalSprites() +
-							(isPaused ? "     (Paused)" : "     (Playing)") +
-							"     Scroll mode: " + getScrollMode() +
-							"     Move mode: " + getMoveMode();
-				}
-				Main.stageMain.setTitle(title);
-				mainLoop();
-			});
+		try {
+			drawDrawCanvas();
+			drawMainCanvas();
+			Tools.getFPSHandler().fpsCounter();
+			if (!Main.close )
+				Platform.runLater(() -> {
+					String title = "Sprite Editor     FPS: " + Tools.getFPSHandler().getFPS() + "     ";
+					if (getCurrentFrameSetName() != null) {
+						title += "Frame Set: " + getCurrentFrameSetName() + 
+								"     Frames: " + (getCurrentFrameSet().getCurrentFrameIndex() + 1) +
+								"/" + getCurrentFrameSet().getTotalFrames() +
+								"     Sprites: " + getCurrentFrameSet().getTotalSprites() +
+								(isPaused ? "     (Paused)" : "     (Playing)") +
+								"     Scroll mode: " + getScrollMode() +
+								"     Move mode: " + getMoveMode();
+					}
+					Main.stageMain.setTitle(title);
+					mainLoop();
+				});
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			Main.close();
+		}
 	}
 	
 	void setDefaultContextMenu() {
@@ -911,7 +915,7 @@ public class FrameSetEditor {
 	}
 	
 	void drawDrawCanvas() {
-		Map<SpriteLayerType, GraphicsContext> gcs = GameMisc.getGcMap();
+		Map<SpriteLayerType, GraphicsContext> gcs = Tools.getGcMap();
 		for (SpriteLayerType layerType : SpriteLayerType.getList()) {
 			if (layerType == SpriteLayerType.BACKGROUND) {
 				gcs.get(layerType).setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
@@ -930,7 +934,7 @@ public class FrameSetEditor {
 			else {
 				boolean move = true;
 				if (currentEntity.isPerfectTileCentred()) {
-					int mx = mouseX / Main.tileSize, my = mouseY / Main.tileSize;
+					int mx = mouseX / Main.TILE_SIZE, my = mouseY / Main.TILE_SIZE;
 					if (mx > currentEntity.getTileX())
 						currentEntity.setDirection(Direction.RIGHT);
 					else if (mx < currentEntity.getTileX())
@@ -961,7 +965,7 @@ public class FrameSetEditor {
 		gcs.get(SpriteLayerType.CLOUD).setGlobalAlpha(1);
 		gcs.get(SpriteLayerType.CLOUD).setLineWidth(1);
 		gcs.get(SpriteLayerType.CLOUD).setStroke(Color.WHITE);
-		gcs.get(SpriteLayerType.CLOUD).strokeRect(centerX, centerY, Main.tileSize, Main.tileSize);
+		gcs.get(SpriteLayerType.CLOUD).strokeRect(centerX, centerY, Main.TILE_SIZE, Main.TILE_SIZE);
 		if (getCurrentFrame() == null)
 			currentEntity.restartCurrentFrameSet();
 	}
@@ -970,7 +974,7 @@ public class FrameSetEditor {
 		gcMain.setFill(Color.BLACK);
 		gcMain.fillRect(0, 0, canvasMain.getWidth(), canvasMain.getHeight());
 		if (zoom <= 3)
-			GameMisc.drawAllCanvas(canvasMain, zoom,
+			Tools.drawAllCanvas(canvasMain, zoom,
 					(int)canvasMain.getWidth() / 2 - winW * zoom / 2,
 					(int)canvasMain.getHeight() / 2 - winH * zoom / 2);
 		if (zoom == 3) {
@@ -1041,9 +1045,11 @@ public class FrameSetEditor {
 		}
 		else if (zoom > 3) {
 			int w = (int)canvasMain.getWidth(), h = (int)canvasMain.getHeight(),
-					w2 = Main.winW * zoom, h2 = Main.winH * zoom;
-			GameMisc.drawAllCanvasToTempCanvas();
-	    gcMain.drawImage(GameMisc.getTempCanvasSnapshot(), 0, 0, Main.winW, Main.winH, (int)(w / 2 - w2 / 2), (int)(h / 2 - h2 / 2), w2, h2); 
+					w2 = (int)Tools.getTempCanvasSnapshot().getWidth(),
+					h2 = (int)Tools.getTempCanvasSnapshot().getHeight(),
+					w3 = w2 * zoom, h3 = h2 * zoom;
+			Tools.drawAllCanvasToTempCanvas();
+	    gcMain.drawImage(Tools.getTempCanvasSnapshot(), 0, 0, w2, h2, (int)(w / 2 - w3 / 2), (int)(h / 2 - h3 / 2), w3, h3); 
 		}
  	}
 

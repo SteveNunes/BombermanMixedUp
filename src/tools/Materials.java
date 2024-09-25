@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import entities.Effect;
 import gui.util.ImageUtils;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
@@ -78,7 +77,6 @@ public abstract class Materials {
 		generateExplosionImage(); 
 		FindFile.findFile("./appdata/sprites/tileset", "Tile*.png").forEach(file ->
 			{ tileSets.put(file.getName().replace(".png", ""), loadImage("/tileset/" + file.getName().replace(".png", ""), Color.valueOf("#FF00FF"))); });
-		Effect.loadPreLoadedEffect();
 		System.out.println("... Concluido em " + (System.currentTimeMillis() - ms) + "ms");
 	}
 

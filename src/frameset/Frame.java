@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import frameset_tags.FrameTag;
-import tools.GameMisc;
+import tools.Tools;
 
 public class Frame {
 	
@@ -63,7 +63,7 @@ public class Frame {
 
 	public void addFrameTagToSprite(int spriteIndex, FrameTag tag) {
 		if (spriteIndex < 0 || spriteIndex >= mainFrameSet.getTotalSprites())
-			GameMisc.throwRuntimeException(spriteIndex  + " - Invalid Sprite Index (Min 0, Max " + (mainFrameSet.getTotalSprites() - 1) + ")");
+			throw new RuntimeException(spriteIndex  + " - Invalid Sprite Index (Min 0, Max " + (mainFrameSet.getTotalSprites() - 1) + ")");
 		while (getTotalTags() < mainFrameSet.getTotalSprites())
 			getFrameSetTagsList().add(new Tags(mainFrameSet.getSprites().get(spriteIndex)));
 		getFrameSetTagsList().get(spriteIndex).addFrameSetTag(tag);
@@ -71,7 +71,7 @@ public class Frame {
 	
 	public void addFrameTagToSprite(Sprite sprite, FrameTag tag) {
 		if (!mainFrameSet.getSprites().contains(sprite))
-			GameMisc.throwRuntimeException("You can't add a tag because the informed sprite was not found");
+			throw new RuntimeException("You can't add a tag because the informed sprite was not found");
 		addFrameTagToSprite(mainFrameSet.getSprites().indexOf(sprite), tag);
 	}	
 

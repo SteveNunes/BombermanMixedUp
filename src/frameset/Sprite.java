@@ -15,7 +15,7 @@ import objmoveutils.GotoMove;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.RectangleMove;
-import tools.GameMisc;
+import tools.Tools;
 import tools.Materials;
 
 public class Sprite {
@@ -355,34 +355,34 @@ public class Sprite {
 		}
 		switch (alignment) {
 			case TOP:
-				x += Main.tileSize / 2 - w / 2;
+				x += Main.TILE_SIZE / 2 - w / 2;
 				break;
 			case BOTTOM:
-				x += Main.tileSize / 2 - w / 2;
-				y += Main.tileSize - h;
+				x += Main.TILE_SIZE / 2 - w / 2;
+				y += Main.TILE_SIZE - h;
 				break;
 			case LEFT:
-				y += Main.tileSize / 2 - h / 2;
+				y += Main.TILE_SIZE / 2 - h / 2;
 				break;
 			case RIGHT:
-				x += Main.tileSize - w;
-				y += Main.tileSize / 2 - h / 2;
+				x += Main.TILE_SIZE - w;
+				y += Main.TILE_SIZE / 2 - h / 2;
 				break;
 			case LEFT_TOP:
 				break;
 			case LEFT_BOTTOM:
-				y += Main.tileSize - h;
+				y += Main.TILE_SIZE - h;
 				break;
 			case RIGHT_TOP:
-				x += Main.tileSize - w;
+				x += Main.TILE_SIZE - w;
 				break;
 			case RIGHT_BOTTOM:
-				x += Main.tileSize - w;
-				y += Main.tileSize - h;
+				x += Main.TILE_SIZE - w;
+				y += Main.TILE_SIZE - h;
 				break;
 			case CENTER:
-				x += Main.tileSize / 2 - w / 2;
-				y += Main.tileSize / 2 - h / 2;
+				x += Main.TILE_SIZE / 2 - w / 2;
+				y += Main.TILE_SIZE / 2 - h / 2;
 				break;
 			default:
 				break;
@@ -395,7 +395,7 @@ public class Sprite {
 			updateOutputDrawCoords();
 			int[] in = getCurrentSpriteOriginCoords();
 			int sx = in[0], sy = in[1], tx = (int)getOutputDrawCoords().getX(), ty = (int)getOutputDrawCoords().getY();
-			ImageUtils.drawImage(GameMisc.getGcMap().get(layerType), spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+			ImageUtils.drawImage(Tools.getGcMap().get(layerType), spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 				tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 		}
 	}

@@ -2,7 +2,7 @@ package frameset_tags;
 
 import application.Main;
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 import tools.Sound;
 
 public class PlayMp3 extends FrameTag {
@@ -24,9 +24,9 @@ public class PlayMp3 extends FrameTag {
 	public PlayMp3(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags);
 		if (params.length > 6)
-			GameMisc.throwRuntimeException(tags + " - Too much parameters");
+			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length < 1)
-			GameMisc.throwRuntimeException(tags + " - Too few parameters");
+			throw new RuntimeException(tags + " - Too few parameters");
 		int n = 0;
 		try {
 			partialSoundPath = params[n];
@@ -36,7 +36,7 @@ public class PlayMp3 extends FrameTag {
 			n++; stopCurrent = params.length <= n || params[n].equals("-") ? false : Boolean.parseBoolean(params[n]);
 		}
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[n] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[n] + " - Invalid parameter"); }
 	}
 
 	public String getPartialSoundPath()

@@ -2,7 +2,6 @@ package tools;
 
 import java.security.SecureRandom;
 
-import application.Main;
 import enums.SpriteLayerType;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.GraphicsContext;
@@ -45,7 +44,8 @@ public class SquaredBg {
 		{ setSquaredBg(rgb, squareSize, 5, colorMinVal, colorMaxVal); }
 	
 	public static void setSquaredBg(int[] rgb, int squareSize, int colorIncVal, int colorMinVal, int colorMaxVal) {
-		int w = (int)(Main.winW / squareSize) + 1, h = (int)(Main.winH / squareSize) + 1;
+		int w = (int)(Tools.getCanvasMap().get(SpriteLayerType.BACKGROUND).getWidth() / squareSize) + 1,
+				h = (int)(Tools.getCanvasMap().get(SpriteLayerType.BACKGROUND).getHeight() / squareSize) + 1;
 		squaresBg = new int[h][w];
 		for (int y = 0; y < h; y++)
 	    for (int x = 0; x < w; x++)
@@ -66,7 +66,7 @@ public class SquaredBg {
 	
 	public static void draw() {
 		if (squaresBg != null) {
-			GraphicsContext gc = GameMisc.getGcMap().get(SpriteLayerType.BACKGROUND);
+			GraphicsContext gc = Tools.getGcMap().get(SpriteLayerType.BACKGROUND);
     	gc.save();
 			for (int y = 0; y < squaresBg.length; y++)
 		    for (int x = 0; x < squaresBg[0].length; x++) {

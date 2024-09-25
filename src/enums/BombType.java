@@ -1,6 +1,6 @@
 package enums;
 
-import tools.GameMisc;
+import tools.Tools;
 import util.CollectionUtils;
 
 public enum BombType {
@@ -47,7 +47,7 @@ public enum BombType {
 	
 	public static BombType getItemById(int bombId) {
 		if (bombId < 0 || bombId >= list.length)
-			GameMisc.throwRuntimeException(bombId + " - Invalid bomb ID");
+			throw new RuntimeException(bombId + " - Invalid bomb ID");
 		return list[bombId];
 	}
 

@@ -3,7 +3,7 @@ package frameset_tags;
 import entities.Entity;
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 
 public class IncEntityX extends FrameTag {
 	
@@ -24,7 +24,7 @@ public class IncEntityX extends FrameTag {
 		try
 			{ increment = Integer.parseInt(params[0]); }
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[0] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
 	@Override

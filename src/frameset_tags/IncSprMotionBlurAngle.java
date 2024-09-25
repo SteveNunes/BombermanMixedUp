@@ -1,7 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 
 public class IncSprMotionBlurAngle extends FrameTag {
 	
@@ -22,7 +22,7 @@ public class IncSprMotionBlurAngle extends FrameTag {
 		try
 			{ increment = Double.parseDouble(params[0]); }
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[0] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
 	@Override

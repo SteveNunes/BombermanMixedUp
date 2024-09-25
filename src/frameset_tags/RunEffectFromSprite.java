@@ -4,7 +4,7 @@ import entities.Effect;
 import enums.StringFrameSet;
 import frameset.Sprite;
 import objmoveutils.Position;
-import tools.GameMisc;
+import tools.Tools;
 
 public class RunEffectFromSprite extends FrameTag {
 	
@@ -34,9 +34,9 @@ public class RunEffectFromSprite extends FrameTag {
 	public RunEffectFromSprite(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags);
 		if (params.length > 3)
-			GameMisc.throwRuntimeException(tags + " - Too much parameters");
+			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length == 2 || params.length < 1)
-			GameMisc.throwRuntimeException(tags + " - Too few parameters");
+			throw new RuntimeException(tags + " - Too few parameters");
 		int n = 0;
 		try {
 			effectFrameSet = StringFrameSet.valueOf(params[n++]);
@@ -44,7 +44,7 @@ public class RunEffectFromSprite extends FrameTag {
 			offsetY = params.length == 1 ? null : Integer.parseInt(params[n++]);
 		}
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[--n] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
 	@Override

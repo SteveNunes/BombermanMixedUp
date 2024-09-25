@@ -4,7 +4,7 @@ import java.awt.Rectangle;
 
 import frameset.Sprite;
 import javafx.scene.image.Image;
-import tools.GameMisc;
+import tools.Tools;
 import tools.Materials;
 
 public class SetSprSource extends FrameTag {
@@ -61,7 +61,7 @@ public class SetSprSource extends FrameTag {
 		String[] params = FrameTag.validateStringTags(this, tags);
 		Image	image = Materials.getImageFromSpriteName(params[0]);
 		if (image == null)
-			GameMisc.throwRuntimeException(params[1] + " - Invalid sprite source name");
+			throw new RuntimeException(params[1] + " - Invalid sprite source name");
 		spriteSource = image;
 		int n = 0, t = params.length;
 		try {
@@ -79,7 +79,7 @@ public class SetSprSource extends FrameTag {
 			outputSprSizePos = new Rectangle(tx, ty, tw, th);
 		}
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[n] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[n] + " - Invalid parameter"); }
 	}
 
 	@Override

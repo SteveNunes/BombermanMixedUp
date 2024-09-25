@@ -25,10 +25,10 @@ public class Item extends Entity{
 		{ this(new Position(), null); }
 
 	public Item(TileCoord coord)
-		{ this(coord.getPosition(Main.tileSize), null); }
+		{ this(coord.getPosition(Main.TILE_SIZE), null); }
 	
 	public Item(TileCoord coord, ItemType itemType)
-		{ this(coord.getPosition(Main.tileSize), itemType); }
+		{ this(coord.getPosition(Main.TILE_SIZE), itemType); }
 	
 	public Item(Item item)
 		{ this(item.getPosition(), item.itemType); }

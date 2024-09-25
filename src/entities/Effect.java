@@ -1,7 +1,6 @@
 package entities;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,18 +22,18 @@ public class Effect extends Entity {
 	private Effect(Position position, StringFrameSet frameSet) {
 		super();
 		this.frameSet = frameSet;
-		setTileSize(Main.tileSize);
+		setTileSize(Main.TILE_SIZE);
 		setPosition(position);
 		addNewFrameSetFromString(frameSet.name(), frameSet.getString());
 		setFrameSet(frameSet.name());
 	}
 	
-	public static void loadPreLoadedEffect() {
-		for (StringFrameSet frameSet : Arrays.asList(StringFrameSet.FIRE_SKULL_EXPLOSION))
-			preLoadedEffects.put(frameSet, new Effect(new Position(), frameSet));
-	}
+	public static void clearPreloadedEffects()
+		{ preLoadedEffects.clear(); }
 	
 	public static Effect runEffect(Position screenPosition, StringFrameSet effectFrameSet) {
+		if (!preLoadedEffects.containsKey(effectFrameSet))
+			preLoadedEffects.put(effectFrameSet, new Effect(new Position(), effectFrameSet));
 		Effect effect = new Effect(preLoadedEffects.get(effectFrameSet), screenPosition);
 		effects.put(effect.hashCode(), effect);
 		return effect;

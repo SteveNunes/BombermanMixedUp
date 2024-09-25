@@ -8,6 +8,7 @@ import java.util.Map;
 
 import application.Main;
 import entities.Bomb;
+import entities.Effect;
 import entities.TileCoord;
 import enums.Direction;
 import enums.Elevation;
@@ -20,7 +21,7 @@ import javafx.scene.image.WritableImage;
 import objmoveutils.Position;
 import pathfinder.PathFinder;
 import pathfinder.PathFinderTileCoord;
-import tools.GameMisc;
+import tools.Tools;
 import tools.IniFiles;
 import tools.Materials;
 import util.IniFile;
@@ -49,6 +50,7 @@ public class MapSet {
 	public static void loadMap(String iniMapName) {
 		long ct = System.currentTimeMillis();
 		System.out.println("Carregando mapa " + iniMapName + " ...");
+		Effect.clearPreloadedEffects();
 		MapSet.iniMapName = iniMapName;
 		layerImages = new HashMap<>();
 		layers = new HashMap<>();
@@ -57,7 +59,7 @@ public class MapSet {
 		mapName = IniFiles.stages.read(iniMapName, "File");
 		iniFileMap = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
 		if (iniFileMap == null)
-			GameMisc.throwRuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
+			throw new RuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
 		setTileSet(iniFileMap.read("SETUP", "Tiles"));
 		Map<Integer, List<String>> tileInfos = new HashMap<>();
 		copyImageLayer = iniFileMap.readAsInteger("SETUP", "ImageLayer", null);
@@ -98,7 +100,7 @@ public class MapSet {
 		MapSet.tileSetName = tileSetName; 
 		iniFileTileSet = IniFile.getNewIniFileInstance("appdata/tileset/" + tileSetName + ".tiles");
 		if (iniFileTileSet == null)
-			GameMisc.throwRuntimeException("Unable to load map \"" + mapName + "\" (Invalid TileSet (" + tileSetName + ".tiles))");
+			throw new RuntimeException("Unable to load map \"" + mapName + "\" (Invalid TileSet (" + tileSetName + ".tiles))");
 		tileSetImage = Materials.tileSets.get(tileSetName);
 	}
 
@@ -126,7 +128,7 @@ public class MapSet {
 							}));
 			}
 			catch (Exception e)
-				{ GameMisc.throwRuntimeException(IniFiles.stages.read(iniMapName, "Blocks") + " - Wrong data for this item"); }
+				{ throw new RuntimeException(IniFiles.stages.read(iniMapName, "Blocks") + " - Wrong data for this item"); }
 			done:
 			while (totalBricks > 0) {
 				for (Tile t : getLayer(26).getTileList())
@@ -160,7 +162,7 @@ public class MapSet {
 				}
 			}
 			catch (Exception e)
-				{ GameMisc.throwRuntimeException(IniFiles.stages.read(iniMapName, "Items") + " - Wrong data for this item"); }
+				{ throw new RuntimeException(IniFiles.stages.read(iniMapName, "Items") + " - Wrong data for this item"); }
 		}		
 	}
 	
@@ -175,7 +177,7 @@ public class MapSet {
 				totalWalls = (int)MyMath.getRandom(minWalls, maxWalls);
 			}
 			catch (Exception e)
-				{ GameMisc.throwRuntimeException(IniFiles.stages.read(iniMapName, "FixedBlocks") + " - Wrong data for this item"); }
+				{ throw new RuntimeException(IniFiles.stages.read(iniMapName, "FixedBlocks") + " - Wrong data for this item"); }
 			Map<Tile, List<TileProp>> recProp = new HashMap<>();
 			done:
 			while (totalWalls > 0) {
@@ -185,7 +187,7 @@ public class MapSet {
 				for (TileCoord coord : coords) {
 					Tile tile = getLayer(26).getTopTileFromCoord(coord);
 					if (tile.tileProp.contains(TileProp.GROUND) && (int)MyMath.getRandom(0, 9) == 0) {
-						Tile tile2 = new Tile((int)wallTile.getX(), (int)wallTile.getY(), coord.getX() * Main.tileSize, coord.getY() * Main.tileSize, new ArrayList<>(Arrays.asList(TileProp.WALL)));
+						Tile tile2 = new Tile((int)wallTile.getX(), (int)wallTile.getY(), coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE, new ArrayList<>(Arrays.asList(TileProp.WALL)));
 						Tile tile3 = getLayer(26).getFirstBottomTileFromCoord(coord);
 						List<TileProp> backupProps = tile3.tileProp;
 						tile3.tileProp = Arrays.asList(TileProp.WALL);
@@ -279,7 +281,7 @@ public class MapSet {
 			try
 				{ position.setPosition(Integer.parseInt(split2[0]), Integer.parseInt(split2[1])); }
 			catch (Exception e)
-				{ GameMisc.throwRuntimeException(iniFileTileSet.read("CONFIG", tileStr) + " - Invalid data on file \"" + iniFileTileSet.getFilePath().getFileName() + "\""); }
+				{ throw new RuntimeException(iniFileTileSet.read("CONFIG", tileStr) + " - Invalid data on file \"" + iniFileTileSet.getFilePath().getFileName() + "\""); }
 		}
 		return position;
 	}
@@ -322,7 +324,7 @@ public class MapSet {
 	
 	public static Layer getLayer(int layerIndex) {
 		if (!layers.containsKey(layerIndex))
-			GameMisc.throwRuntimeException(layerIndex + " - Invalid layer index");
+			throw new RuntimeException(layerIndex + " - Invalid layer index");
 		return layers.get(layerIndex);
 	}
 	

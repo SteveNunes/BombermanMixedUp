@@ -17,14 +17,12 @@ import entities.Explosion;
 import entities.TileCoord;
 import enums.BombType;
 import enums.Icons;
-import enums.ItemType;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import gui.util.ControllerUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
@@ -49,9 +47,9 @@ import maps.Layer;
 import maps.MapSet;
 import maps.Tile;
 import objmoveutils.Position;
-import tools.GameMisc;
 import tools.IniFiles;
 import tools.Materials;
+import tools.Tools;
 import util.FindFile;
 import util.Misc;
 
@@ -134,7 +132,6 @@ public class MapEditor {
 
 	private Rectangle selection;
 	private Rectangle tileSelection;
-	private Scene sceneMain;
 	private GraphicsContext gcMain;
 	private GraphicsContext gcTileSet;
 	private GraphicsContext gcBrickStand;
@@ -164,8 +161,7 @@ public class MapEditor {
 	private long resetBricks;
 	private boolean playing;
 	
-	public void init(Scene scene) {
-		sceneMain = scene;
+	public void init() {
 		canvasMouseDraw = new CanvasMouse();
 		canvasMouseTileSet = new CanvasMouse();
 		tileSelection = new Rectangle(0, 0, 1, 1);
@@ -190,7 +186,7 @@ public class MapEditor {
   }
 	
 	void setAllCanvas() {
-		GameMisc.generateDrawCanvasMap();
+		Tools.generateDrawCanvasMap();
 		canvasList = new Canvas[] {canvasBrickStand, canvasBrickBreaking, canvasBrickRegen, canvasWallSprite, canvasGroundSprite, canvasGroundWithWallShadow, canvasGroundWithBrickShadow, canvasFragileGround};
 		gcBrickStand = canvasBrickStand.getGraphicsContext2D();
 		gcBrickStand.setImageSmoothing(false);
@@ -296,20 +292,26 @@ public class MapEditor {
 	}
 
 	void mainLoop() {
-		drawDrawCanvas();
-		drawMainCanvas();
-		GameMisc.getFPSHandler().fpsCounter();
-		if (!Main.close )
-			Platform.runLater(() -> {
-				String title = "Map Editor"
-						+ "     FPS: " + GameMisc.getFPSHandler().getFPS()
-						+ "     " + canvasMouseDraw.tileCoord + "     (" + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BLOCKED") + ")"
-						+ "     Zoom: x" + zoomMain
-						+ "     Tileset Zoom: x" + zoomTileSet
-						+ "     Sobrecarga: " + GameMisc.getFPSHandler().getFreeTaskTicks();
-				Main.stageMain.setTitle(title);
-				mainLoop();
-			});
+		try {
+			drawDrawCanvas();
+			drawMainCanvas();
+			Tools.getFPSHandler().fpsCounter();
+			if (!Main.close )
+				Platform.runLater(() -> {
+					String title = "Map Editor"
+							+ "     FPS: " + Tools.getFPSHandler().getFPS()
+							+ "     " + canvasMouseDraw.tileCoord + "     (" + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BLOCKED") + ")"
+							+ "     Zoom: x" + zoomMain
+							+ "     Tileset Zoom: x" + zoomTileSet
+							+ "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
+					Main.stageMain.setTitle(title);
+					mainLoop();
+				});
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			Main.close();
+		}
 	}
 	
 	void saveCtrlZ() { System.out.println("saveCtrlZ " + System.currentTimeMillis());
@@ -351,7 +353,7 @@ public class MapEditor {
 
 	void loadMap(String mapName, boolean resetCurrentLayerIndex) {
 		if (mapName == null)
-			GameMisc.throwRuntimeException("Unable to load map because 'mapName' is null");
+			throw new RuntimeException("Unable to load map because 'mapName' is null");
 		Tile.tags = new HashMap<>();
 		MapSet.loadMap(mapName);
 		listViewLayers.getItems().clear();
@@ -385,16 +387,16 @@ public class MapEditor {
 	}
 	
 	Canvas getDrawCanvas()
-		{ return GameMisc.getCanvasMap().get(SpriteLayerType.GROUND); }
+		{ return Tools.getCanvasMap().get(SpriteLayerType.GROUND); }
 	
 	GraphicsContext getDrawGc()
-		{ return GameMisc.getGcMap().get(SpriteLayerType.GROUND); }
+		{ return Tools.getGcMap().get(SpriteLayerType.GROUND); }
 
 	Canvas getDrawCanvas(SpriteLayerType layerType)
-		{ return GameMisc.getCanvasMap().get(layerType); }
+		{ return Tools.getCanvasMap().get(layerType); }
 
 	GraphicsContext getDrawGc(SpriteLayerType layerType)
-		{ return GameMisc.getGcMap().get(layerType); }
+		{ return Tools.getGcMap().get(layerType); }
 
 	void setSampleTiles() {
 		tilePosition = new Position[] {MapSet.getWallTile(), MapSet.getGroundTile(), MapSet.getGroundWithWallShadow(), MapSet.getGroundWithBrickShadow(), MapSet.getFragileGround()};
@@ -417,13 +419,13 @@ public class MapEditor {
 				Entity fragileTile = new Entity(sampleFragileTile);
 				fragileTiles.put(tile.getTileCoord(), fragileTile);
 				fragileTile.setFrameSet("FragileGroundFrameSet");
-				fragileTile.setPosition(tile.getTileX() * Main.tileSize, tile.getTileY() * Main.tileSize);
+				fragileTile.setPosition(tile.getTileX() * Main.TILE_SIZE, tile.getTileY() * Main.TILE_SIZE);
 			}
 		});
 	}
 	
 	void setKeyboardEvents() {
-		sceneMain.setOnKeyPressed(e -> {
+		Main.sceneMain.setOnKeyPressed(e -> {
 			holdedKeys.add(e.getCode());
 			if (e.getCode() == KeyCode.PAGE_UP || e.getCode() == KeyCode.PAGE_DOWN) {
 				if (isNoHolds())
@@ -459,7 +461,7 @@ public class MapEditor {
 					ctrlY();
 			}
 		});
-		sceneMain.setOnKeyReleased(e -> {
+		Main.sceneMain.setOnKeyReleased(e -> {
 			holdedKeys.remove(e.getCode());
 		});
 	}
@@ -539,7 +541,7 @@ public class MapEditor {
 			canvasMouseDraw.x = (int)e.getX() + deslocX();
 			canvasMouseDraw.y = (int)e.getY() + deslocY();
 			TileCoord prevCoord = canvasMouseDraw.tileCoord.getNewInstance();
-			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.tileSize * zoomMain), ((int)e.getY() - deslocY()) / (Main.tileSize * zoomMain));
+			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 			if (!isAltHold()) {
 				if (e.getButton() == MouseButton.PRIMARY) {
 					if (selection == null && !prevCoord.equals(canvasMouseDraw.tileCoord))
@@ -563,7 +565,7 @@ public class MapEditor {
 		canvasMain.setOnMouseMoved(e -> {
 			canvasMouseDraw.x = (int)e.getX() + deslocX();
 			canvasMouseDraw.y = (int)e.getY() + deslocY();
-			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.tileSize * zoomMain), ((int)e.getY() - deslocY()) / (Main.tileSize * zoomMain));
+			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 			if (Item.haveItemAt(canvasMouseDraw.tileCoord))
 				Item.getItemAt(canvasMouseDraw.tileCoord).pick();
 		});
@@ -587,7 +589,7 @@ public class MapEditor {
 				saveCtrlZ();
 		});
 		canvasMain.setOnMouseClicked(e -> {
-			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.tileSize * zoomMain), ((int)e.getY() - deslocY()) / (Main.tileSize * zoomMain));
+			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 			if (e.getButton() == MouseButton.PRIMARY) {
 				if (isAltHold())
 					Bomb.addBomb(new Bomb(null, canvasMouseDraw.tileCoord, BombType.NORMAL, 5));
@@ -640,7 +642,7 @@ public class MapEditor {
 			if (checkBoxShowItens.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
-						getDrawGc().drawImage(Materials.itens, (brick.getItem().getValue() - 1) * 18 + 1, 18 + 1, 16, 16, brick.getTileX() * Main.tileSize, brick.getTileY() * Main.tileSize, Main.tileSize, Main.tileSize);
+						getDrawGc().drawImage(Materials.itens, (brick.getItem().getValue() - 1) * 18 + 1, 18 + 1, 16, 16, brick.getTileX() * Main.TILE_SIZE, brick.getTileY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
 		}
 		Bomb.drawBombs();
 		Item.drawItems();
@@ -648,7 +650,7 @@ public class MapEditor {
 		fragileTiles.values().forEach(e -> e.run());
 		for (int y = 0; y < tileSelection.getHeight(); y++)
 			for (int x = 0; x < tileSelection.getWidth(); x++)
-				getDrawGc().drawImage(MapSet.getTileSetImage(), (int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, 16, 16, canvasMouseDraw.getCoordX() * 16 + x * 16, canvasMouseDraw.getCoordY() * 16 + y * 16, Main.tileSize, Main.tileSize);
+				getDrawGc().drawImage(MapSet.getTileSetImage(), (int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, 16, 16, canvasMouseDraw.getCoordX() * 16 + x * 16, canvasMouseDraw.getCoordY() * 16 + y * 16, Main.TILE_SIZE, Main.TILE_SIZE);
     drawBlockTypeMark();
 	}
 
@@ -659,7 +661,7 @@ public class MapEditor {
 		{ return canvasMouseDraw.movedY + canvasMouseDraw.dragY; }
 
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
-    GameMisc.drawAllCanvas(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
+    Tools.drawAllCanvas(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
     drawGridAndAim();
     drawTileTagsOverCursor();
     drawTileSetCanvas();
@@ -668,10 +670,10 @@ public class MapEditor {
 				GraphicsContext gc = rect == selection ? gcMain : gcTileSet;
 		  	gc.setStroke(Misc.blink(50) ? Color.GREEN : Color.YELLOW);
 		  	int z = rect == selection ? zoomMain : zoomTileSet, 
-		  			x = (int)rect.getMinX() * Main.tileSize * z,
-		  			y = (int)rect.getMinY() * Main.tileSize * z,
-		  			w = (int)rect.getWidth() * Main.tileSize * z,
-		  			h = (int)rect.getHeight() * Main.tileSize * z;
+		  			x = (int)rect.getMinX() * Main.TILE_SIZE * z,
+		  			y = (int)rect.getMinY() * Main.TILE_SIZE * z,
+		  			w = (int)rect.getWidth() * Main.TILE_SIZE * z,
+		  			h = (int)rect.getHeight() * Main.TILE_SIZE * z;
 				gc.strokeRect(x + deslocX(), y + deslocY(), w, h);
 			}
     });
@@ -679,7 +681,7 @@ public class MapEditor {
 	    Tile tile = getCurrentLayer().getTopTileFromCoord(canvasMouseDraw.tileCoord);
 	    if (tile != null) {
 	    	int x = tile.outX * zoomMain + deslocX(),
-	    			y = tile.outY * zoomMain + (Main.tileSize * zoomMain) / 2 - 20 + deslocY();
+	    			y = tile.outY * zoomMain + (Main.TILE_SIZE * zoomMain) / 2 - 20 + deslocY();
 				gcMain.setFill(Color.LIGHTBLUE);
 				gcMain.setStroke(Color.BLACK);
 				gcMain.setFont(font);
@@ -759,14 +761,14 @@ public class MapEditor {
 				}
 				gcMain.setStroke(Color.GREENYELLOW);
 				gcMain.setLineWidth(2);
-				gcMain.strokeRect(canvasMouseDraw.getCoordX() * zoomMain * Main.tileSize + deslocX(), canvasMouseDraw.getCoordY() * zoomMain * Main.tileSize + deslocY(), 16 * zoomMain, 16 * zoomMain);
+				gcMain.strokeRect(canvasMouseDraw.getCoordX() * zoomMain * Main.TILE_SIZE + deslocX(), canvasMouseDraw.getCoordY() * zoomMain * Main.TILE_SIZE + deslocY(), 16 * zoomMain, 16 * zoomMain);
 			}
 			for (int y = 0; blink && y < 200; y++)
 				for (int x = 0; x < 200; x++)
 					if (Tile.getStringTag(currentLayerIndex, x, y) != null) {
 						gcMain.setStroke(Color.WHITESMOKE);
 						gcMain.setLineWidth(2);
-						gcMain.strokeRect(x * zoomMain * Main.tileSize + deslocX(), y * zoomMain * Main.tileSize + deslocY(), 16 * zoomMain, 16 * zoomMain);
+						gcMain.strokeRect(x * zoomMain * Main.TILE_SIZE + deslocX(), y * zoomMain * Main.TILE_SIZE + deslocY(), 16 * zoomMain, 16 * zoomMain);
 					}
 		}
 	}
@@ -951,9 +953,9 @@ public class MapEditor {
 	    		getDrawGc().setFill(color);
 	    		getDrawGc().setLineWidth(1);
 	    		getDrawGc().setGlobalAlpha(0.6);
-		    	getDrawGc().fillRect(tile.getTileX() * Main.tileSize,
-		    									tile.getTileY() * Main.tileSize,
-		    									Main.tileSize, Main.tileSize);
+		    	getDrawGc().fillRect(tile.getTileX() * Main.TILE_SIZE,
+		    									tile.getTileY() * Main.TILE_SIZE,
+		    									Main.TILE_SIZE, Main.TILE_SIZE);
 	    		getDrawGc().restore();
 	    		ok.put(tile.getTileCoord(), true);
     		}
@@ -972,18 +974,18 @@ public class MapEditor {
 		gcMain.setLineWidth(1);
     if (checkBoxShowGrid.isSelected()) {
     	gcMain.setStroke(Color.RED);
-    	for (int y = 0; y < canvasMain.getHeight(); y += Main.tileSize * zoomMain)
-    		gcMain.strokeRect(0, y, canvasMain.getWidth(), y + Main.tileSize * zoomMain - 1);
-    	for (int x = 0; x < canvasMain.getWidth(); x += Main.tileSize * zoomMain)
-    		gcMain.strokeRect(x, 0, x + Main.tileSize * zoomMain - 1, canvasMain.getHeight());
+    	for (int y = 0; y < canvasMain.getHeight(); y += Main.TILE_SIZE * zoomMain)
+    		gcMain.strokeRect(0, y, canvasMain.getWidth(), y + Main.TILE_SIZE * zoomMain - 1);
+    	for (int x = 0; x < canvasMain.getWidth(); x += Main.TILE_SIZE * zoomMain)
+    		gcMain.strokeRect(x, 0, x + Main.TILE_SIZE * zoomMain - 1, canvasMain.getHeight());
     }
     if (checkBoxShowAim.isSelected()) {
     	gcMain.setStroke(Color.YELLOW);
-    	int x = canvasMouseDraw.getCoordX() * Main.tileSize * zoomMain, y = canvasMouseDraw.getCoordY() * Main.tileSize * zoomMain;
-  		gcMain.strokeRect(x, 0, Main.tileSize * zoomMain - 1, canvasMain.getHeight());
-  		gcMain.strokeRect(0, y, canvasMain.getWidth(), Main.tileSize * zoomMain - 1);
+    	int x = canvasMouseDraw.getCoordX() * Main.TILE_SIZE * zoomMain, y = canvasMouseDraw.getCoordY() * Main.TILE_SIZE * zoomMain;
+  		gcMain.strokeRect(x, 0, Main.TILE_SIZE * zoomMain - 1, canvasMain.getHeight());
+  		gcMain.strokeRect(0, y, canvasMain.getWidth(), Main.TILE_SIZE * zoomMain - 1);
     	gcMain.setStroke(Color.LIGHTBLUE);
-  		gcMain.strokeRect(x, y, Main.tileSize * zoomMain - 1, Main.tileSize * zoomMain - 1);
+  		gcMain.strokeRect(x, y, Main.TILE_SIZE * zoomMain - 1, Main.TILE_SIZE * zoomMain - 1);
     }
 	}
 

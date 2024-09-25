@@ -14,7 +14,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
-import tools.GameMisc;
+import tools.Tools;
 
 public class Layer {
 	
@@ -32,7 +32,7 @@ public class Layer {
 			try
 				{ layerType = SpriteLayerType.valueOf(split[1]); }
 			catch (Exception e)
-				{ GameMisc.throwRuntimeException(split[1] + " - Invalid SpriteLayerType param"); }
+				{ throw new RuntimeException(split[1] + " - Invalid SpriteLayerType param"); }
 			Tile tile = new Tile(s);
 			addTile(tile);
 		}
@@ -42,9 +42,9 @@ public class Layer {
 		int w, h, width = 0, height = 0;
 		for (TileCoord coord : tilesMap.keySet())
 			for (Tile tile : tilesMap.get(coord)) {
-				if ((w = tile.getTileX() * Main.tileSize + 16) > width)
+				if ((w = tile.getTileX() * Main.TILE_SIZE + 16) > width)
 					width = w;
-				if ((h = tile.getTileY() * Main.tileSize + 16) > height)
+				if ((h = tile.getTileY() * Main.TILE_SIZE + 16) > height)
 					height = h;
 			}
 		Canvas canvas = new Canvas(width, height);
@@ -102,17 +102,17 @@ public class Layer {
 
 	public Tile getTileFromCoord(TileCoord coord, int tileIndex) {
 		if (tileIndex < 0)
-			GameMisc.throwRuntimeException("Index must be 0 or higher");
+			throw new RuntimeException("Index must be 0 or higher");
 		if (!tilesMap.containsKey(coord))
-			GameMisc.throwRuntimeException(coord + " - Invalid tile coordinate");
+			throw new RuntimeException(coord + " - Invalid tile coordinate");
 		if (tileIndex >= tilesMap.get(coord).size())
-			GameMisc.throwRuntimeException(tileIndex + " - Invalid index (Min 0, Max " + (tilesMap.get(coord).size() - 1) + ")");
+			throw new RuntimeException(tileIndex + " - Invalid index (Min 0, Max " + (tilesMap.get(coord).size() - 1) + ")");
 		return tilesMap.get(coord).get(tileIndex);
 	}
 	
 	public void removeFirstTileFromCoord(TileCoord coord) {
 		if (!tilesMap.containsKey(coord))
-			GameMisc.throwRuntimeException(coord + " - Invalid tile coordinate");
+			throw new RuntimeException(coord + " - Invalid tile coordinate");
 		int i = tilesMap.get(coord).size() - 1;
 		tileList.remove(tilesMap.get(coord).get(i));
 		if (tilesMap.get(coord).size() == 1)
@@ -123,7 +123,7 @@ public class Layer {
 	
 	public void removeAllTilesFromCoord(TileCoord coord) {
 		if (!tilesMap.containsKey(coord))
-			GameMisc.throwRuntimeException(coord + " - Invalid tile coordinate");
+			throw new RuntimeException(coord + " - Invalid tile coordinate");
 		tileList.removeAll(tilesMap.get(coord));
 		tilesMap.remove(coord);
 	}

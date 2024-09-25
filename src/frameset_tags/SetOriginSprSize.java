@@ -1,7 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 
 public class SetOriginSprSize extends FrameTag {
 	
@@ -31,7 +31,7 @@ public class SetOriginSprSize extends FrameTag {
 			height = Integer.parseInt(params[n++]);
 		}
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[--n] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
 	@Override

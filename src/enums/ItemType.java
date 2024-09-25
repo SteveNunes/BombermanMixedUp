@@ -1,6 +1,6 @@
 package enums;
 
-import tools.GameMisc;
+import tools.Tools;
 import util.CollectionUtils;
 import util.MyMath;
 
@@ -92,7 +92,7 @@ public enum ItemType {
 	
 	public static ItemType getItemById(int itemId) {
 		if (itemId < 1 || itemId >= list.length)
-			GameMisc.throwRuntimeException(itemId + " - Invalid item ID");
+			throw new RuntimeException(itemId + " - Invalid item ID");
 		return list[itemId];
 	}
 	

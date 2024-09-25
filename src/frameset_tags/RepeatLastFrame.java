@@ -3,7 +3,7 @@ package frameset_tags;
 import application.Main;
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 
 public class RepeatLastFrame extends FrameTag {
 	
@@ -12,7 +12,7 @@ public class RepeatLastFrame extends FrameTag {
 	
 	public RepeatLastFrame(int repeatCycles) {
 		if (repeatCycles < 0)
-			GameMisc.throwRuntimeException("repeat value must be equal or higher than zero");
+			throw new RuntimeException("repeat value must be equal or higher than zero");
 		this.repeatCycles = repeatCycles;
 		currentRepeatCycle = 0;
 	}
@@ -36,15 +36,15 @@ public class RepeatLastFrame extends FrameTag {
 	public RepeatLastFrame(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags);
 		if (params.length > 1)
-			GameMisc.throwRuntimeException(tags + " - Too much parameters");
+			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length < 1)
-			GameMisc.throwRuntimeException(tags + " - Too few parameters");
+			throw new RuntimeException(tags + " - Too few parameters");
 		try {
 			repeatCycles = params.length < 1 ? 0 : Integer.parseInt(params[0]);
 			currentRepeatCycle = 0;
 		}
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[0] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
 	@Override

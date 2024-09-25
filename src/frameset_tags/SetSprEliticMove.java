@@ -3,7 +3,7 @@ package frameset_tags;
 import enums.DirectionOrientation;
 import frameset.Sprite;
 import objmoveutils.EliticMove;
-import tools.GameMisc;
+import tools.Tools;
 
 public class SetSprEliticMove extends FrameTag {
 	
@@ -45,7 +45,7 @@ public class SetSprEliticMove extends FrameTag {
 			speed = Double.parseDouble(params[n++]);
 		}
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[--n] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
 	@Override

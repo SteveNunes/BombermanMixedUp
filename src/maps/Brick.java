@@ -30,7 +30,7 @@ public class Brick extends Entity {
 	
 	public Brick(TileCoord coord, ItemType item) {
 		super();
-		setPosition(coord.getPosition(Main.tileSize));
+		setPosition(coord.getPosition(Main.TILE_SIZE));
 		this.item = item;
 		Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet").forEach(frameSet ->
 			addNewFrameSetFromString(frameSet, MapSet.getTileSetIniFile().read("CONFIG", frameSet)));
@@ -69,7 +69,7 @@ public class Brick extends Entity {
 		if (!haveBrickAt(coord)) {
 			TileCoord coord2 = coord.getNewInstance();
 			coord2.setY(coord.getY() + 1);
-			brick.setPosition(coord.getPosition(Main.tileSize));
+			brick.setPosition(coord.getPosition(Main.TILE_SIZE));
 			bricks.put(coord, brick);
 			Tile.addTileShadow(MapSet.getGroundWithBrickShadow(), coord2);
 		}

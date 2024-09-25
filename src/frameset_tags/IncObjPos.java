@@ -2,7 +2,7 @@ package frameset_tags;
 
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 
 public class IncObjPos extends FrameTag {
 	
@@ -32,7 +32,7 @@ public class IncObjPos extends FrameTag {
 			incrementY = Double.parseDouble(params[n++]);
 		}
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[--n] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
 	@Override

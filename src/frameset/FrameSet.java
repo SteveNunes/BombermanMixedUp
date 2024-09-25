@@ -11,7 +11,7 @@ import frameset_tags.RepeatLastFrame;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import tools.FrameTagLoader;
-import tools.GameMisc;
+import tools.Tools;
 import tools.Materials;
 
 public class FrameSet extends Position {
@@ -169,22 +169,22 @@ public class FrameSet extends Position {
 
 	public Tags getFrameSetTagsFrom(int frameIndex, Sprite sprite) {
 		if (!getSprites().contains(sprite))
-			GameMisc.throwRuntimeException("Sprite not found on the sprite list");
+			throw new RuntimeException("Sprite not found on the sprite list");
 		return getFrameSetTagsFrom(frameIndex, getSprites().indexOf(sprite));
 	}
 
 	public Tags getFrameSetTagsFrom(Frame frame, int spriteIndex) {
 		if (!getFrames().contains(frame))
-			GameMisc.throwRuntimeException("Frame not found on the frame list");
+			throw new RuntimeException("Frame not found on the frame list");
 		int i = getFrames().indexOf(frame);
 		return getFrameSetTagsFrom(i, spriteIndex);
 	}
 
 	public Tags getFrameSetTagsFrom(Frame frame, Sprite sprite) {
 		if (!getSprites().contains(sprite))
-			GameMisc.throwRuntimeException("Sprite not found on the sprite list");
+			throw new RuntimeException("Sprite not found on the sprite list");
 		if (!getFrames().contains(frame))
-			GameMisc.throwRuntimeException("Frame not found on the frame list");
+			throw new RuntimeException("Frame not found on the frame list");
 		int spriteIndex = getSprites().indexOf(sprite);
 		int frameIndex = getFrames().indexOf(frame);
 		return getFrameSetTagsFrom(frameIndex, spriteIndex);
@@ -294,28 +294,28 @@ public class FrameSet extends Position {
 	}
 	
 	public void moveFrameToEnd(Frame currentFrame) {
-		GameMisc.moveItemTo(frames, currentFrame, getTotalFrames());
+		Tools.moveItemTo(frames, currentFrame, getTotalFrames());
 		refreshFramesTags();
 	}
 
 	public void moveFrameToStart(Frame currentFrame) { 
-		GameMisc.moveItemTo(frames, currentFrame, 0);
+		Tools.moveItemTo(frames, currentFrame, 0);
 		refreshFramesTags();
 	}
 
 	public void moveFrameToFront(Frame currentFrame) {
-		GameMisc.moveItemTo(frames, currentFrame, currentFrameIndex + 1);
+		Tools.moveItemTo(frames, currentFrame, currentFrameIndex + 1);
 		refreshFramesTags();
 	}
 
 	public void moveFrameToBack(Frame currentFrame) {
-		GameMisc.moveItemTo(frames, currentFrame, currentFrameIndex - 1);
+		Tools.moveItemTo(frames, currentFrame, currentFrameIndex - 1);
 		refreshFramesTags();
 	}
 
 	public void addSpriteAt(int index, Sprite sprite) {
 		if (index < 0 || (getTotalSprites() > 0 && index > getTotalSprites()))
-			GameMisc.throwRuntimeException(index + " - Invalid Index (Min: 0, Max: " + (getTotalSprites() - 1) + ")");
+			throw new RuntimeException(index + " - Invalid Index (Min: 0, Max: " + (getTotalSprites() - 1) + ")");
 		sprite.setMainFrameSet(this);
 		if (getTotalSprites() == 0 || index == getTotalSprites()) {
 			sprites.add(sprite);
@@ -341,7 +341,7 @@ public class FrameSet extends Position {
 
 	public void removeSprite(int index) {
 		if (index < 0 || index >= getTotalSprites())
-			GameMisc.throwRuntimeException(index + " - Invalid Index (Min: 0, Max: " + (getTotalSprites() - 1) + ")");
+			throw new RuntimeException(index + " - Invalid Index (Min: 0, Max: " + (getTotalSprites() - 1) + ")");
 		sprites.remove(index);
 		frames.forEach(frame -> frame.getFrameSetTagsList().remove(index));
 	}
@@ -353,8 +353,8 @@ public class FrameSet extends Position {
 	
 	private void moveSpriteTo(Sprite sprite, int index) {
 		int i = sprites.indexOf(sprite);
-		GameMisc.moveItemTo(sprites, sprite, index);
-		frames.forEach(frame -> GameMisc.moveItemTo(frame.getFrameSetTagsList(), frame.getFrameSetTagsList().get(i), index));
+		Tools.moveItemTo(sprites, sprite, index);
+		frames.forEach(frame -> Tools.moveItemTo(frame.getFrameSetTagsList(), frame.getFrameSetTagsList().get(i), index));
 	}
 	
 	public void moveSpriteToBack(Sprite sprite)
@@ -380,7 +380,7 @@ public class FrameSet extends Position {
 
 	public void loadFromString(String tags) {
 		if (tags == null)
-			GameMisc.throwRuntimeException("Unable to load FrameSet from String because its null");
+			throw new RuntimeException("Unable to load FrameSet from String because its null");
 		sprites.clear();
 		frames.clear();
 		currentFrameIndex = 0;

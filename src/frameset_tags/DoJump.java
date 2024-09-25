@@ -1,7 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 
 public class DoJump extends FrameTag {
 	
@@ -28,7 +28,7 @@ public class DoJump extends FrameTag {
 			speedInFrames = Integer.parseInt(params[n++]);
 		}
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[--n] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 	
 	@Override

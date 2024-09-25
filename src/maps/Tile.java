@@ -14,7 +14,7 @@ import enums.TileProp;
 import gui.util.ImageUtils;
 import javafx.scene.paint.Color;
 import objmoveutils.Position;
-import tools.GameMisc;
+import tools.Tools;
 import util.MyConverters;
 
 public class Tile {
@@ -57,13 +57,13 @@ public class Tile {
 		tileProp = new ArrayList<>();
 		String[] split = strFromIni.split(" ");
 		if (split.length < 14)
-			GameMisc.throwRuntimeException(strFromIni + " - Too few parameters");
+			throw new RuntimeException(strFromIni + " - Too few parameters");
 		int n = 0, r, g, b, a, layer;
 		try {
 			layer = split.length <= n ? 0 : Integer.parseInt(split[n]);
 			// O segundo parametro eh ignorado pq so eh util no construtor da classe Layer
-			n += 2; outX = split.length <= n ? 0 : Integer.parseInt(split[n]) * Main.tileSize;
-			n++; outY = split.length <= n ? 0 : Integer.parseInt(split[n]) * Main.tileSize;
+			n += 2; outX = split.length <= n ? 0 : Integer.parseInt(split[n]) * Main.TILE_SIZE;
+			n++; outY = split.length <= n ? 0 : Integer.parseInt(split[n]) * Main.TILE_SIZE;
 			n++; spriteX = split.length <= n ? 0 : Integer.parseInt(split[n]);
 			n++; spriteY = split.length <= n ? 0 : Integer.parseInt(split[n]);
 			n++; int f = split.length <= n ? 0 : Integer.parseInt(split[n]);
@@ -83,15 +83,15 @@ public class Tile {
 			n++; b = split.length <= n ? 255 : Integer.parseInt(split[n]);
 			n++; a = split.length <= n ? 255 : Integer.parseInt(split[n]);
 			tint = ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b, a));
-			n++; effects = split.length <= n ? null : GameMisc.loadEffectsFromString(MyConverters.arrayToString(split, n));
+			n++; effects = split.length <= n ? null : Tools.loadEffectsFromString(MyConverters.arrayToString(split, n));
 			if (Main.mapEditor != null && split.length >= 15) {
 				String str = MyConverters.arrayToString(split, 15);
 				if (!str.isEmpty())
-					addStringTag(layer, outX / Main.tileSize, outY / Main.tileSize, str);
+					addStringTag(layer, outX / Main.TILE_SIZE, outY / Main.TILE_SIZE, str);
 			}
 		}
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(split[n] + " - Invalid parameter"); }
+			{ throw new RuntimeException(split[n] + " - Invalid parameter"); }
 	}
 	
 	public static void addStringTag(int layer, int tileDX, int tileDY, String tag) {
@@ -123,7 +123,7 @@ public class Tile {
 		if (tile == null || (tile.spriteX == groundTile.getX() && tile.spriteY == groundTile.getY())) {
 			if (tile != null)
 				MapSet.getLayer(26).removeFirstTileFromCoord(coord);
-			tile = new Tile((int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition(Main.tileSize).getX(), (int)coord.getPosition(Main.tileSize).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
+			tile = new Tile((int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition(Main.TILE_SIZE).getX(), (int)coord.getPosition(Main.TILE_SIZE).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
 			MapSet.getLayer(26).addTile(tile);
 			if (updateLayer)
 				MapSet.getLayer(26).buildLayer();
@@ -142,7 +142,7 @@ public class Tile {
 				(tile.spriteX == wallShadow.getX() && tile.spriteY == wallShadow.getY())) {
 					if (tile != null)
 						MapSet.getLayer(26).removeFirstTileFromCoord(coord);
-					tile = new Tile((int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition(Main.tileSize).getX(), (int)coord.getPosition(Main.tileSize).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
+					tile = new Tile((int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition(Main.TILE_SIZE).getX(), (int)coord.getPosition(Main.TILE_SIZE).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
 					MapSet.getLayer(26).addTile(tile);
 					if (updateLayer)
 						MapSet.getLayer(26).buildLayer();

@@ -6,9 +6,9 @@ public enum SpriteLayerType {
   GROUND,
   CEIL,
   CLOUD,
-  POS_EFFECTS;
+  TINT;
 
-	private static SpriteLayerType[] list = {BACKGROUND, GROUND, CEIL, CLOUD, POS_EFFECTS};
+	private static SpriteLayerType[] list = {TEMP, BACKGROUND, GROUND, CEIL, CLOUD, TINT};
 	
 	public static SpriteLayerType[] getList()
 		{ return list; }

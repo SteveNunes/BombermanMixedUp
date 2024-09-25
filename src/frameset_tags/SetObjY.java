@@ -2,7 +2,7 @@ package frameset_tags;
 
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 
 public class SetObjY extends FrameTag {
 	
@@ -23,7 +23,7 @@ public class SetObjY extends FrameTag {
 		try
 			{ value = Integer.parseInt(params[0]); }
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[0] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
 	@Override

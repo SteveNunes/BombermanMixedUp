@@ -1,7 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 
 public class IncSprColorAdjustValues extends FrameTag {
 	
@@ -38,7 +38,7 @@ public class IncSprColorAdjustValues extends FrameTag {
 			incrementBrightness = Double.parseDouble(params[n++]);
 		}
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[--n] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
 	}
 
 	@Override

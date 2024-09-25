@@ -3,7 +3,7 @@ package frameset_tags;
 import application.Main;
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.GameMisc;
+import tools.Tools;
 
 public class Goto extends FrameTag {
 	
@@ -16,7 +16,7 @@ public class Goto extends FrameTag {
 		 * Index igual ou maior que 0 define o INDEX atual do FrameSet para o valor informado.
 		 */
 		if (repeatCycles < 0)
-			GameMisc.throwRuntimeException("repeat value must be equal or higher than zero");
+			throw new RuntimeException("repeat value must be equal or higher than zero");
 		this.index = index;
 		this.repeatCycles = repeatCycles;
 		currentRepeatCycle = 0;
@@ -47,9 +47,9 @@ public class Goto extends FrameTag {
 	public Goto(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags);
 		if (params.length > 2)
-			GameMisc.throwRuntimeException(tags + " - Too much parameters");
+			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length < 1)
-			GameMisc.throwRuntimeException(tags + " - Too few parameters");
+			throw new RuntimeException(tags + " - Too few parameters");
 		int n = 0;
 		try {
 			index = Integer.parseInt(params[n]);
@@ -57,7 +57,7 @@ public class Goto extends FrameTag {
 			currentRepeatCycle = 0;
 		}
 		catch (Exception e)
-			{ GameMisc.throwRuntimeException(params[n] + " - Invalid parameter"); }
+			{ throw new RuntimeException(params[n] + " - Invalid parameter"); }
 	}
 
 	@Override

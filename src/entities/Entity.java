@@ -22,7 +22,7 @@ import maps.Brick;
 import maps.MapSet;
 import maps.Tile;
 import objmoveutils.Position;
-import tools.GameMisc;
+import tools.Tools;
 
 public class Entity extends Position {
 	
@@ -45,7 +45,7 @@ public class Entity extends Position {
 	
 	public Entity(Entity entity) {
 		super(entity.getPosition());
-		setTileSize(Main.tileSize);
+		setTileSize(Main.TILE_SIZE);
 		shadow = entity.shadow == null ? null : new Rectangle(entity.shadow);
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
@@ -75,7 +75,7 @@ public class Entity extends Position {
 
 	public Entity(int x, int y, Direction direction) {
 		super(x, y);
-		setTileSize(Main.tileSize);
+		setTileSize(Main.TILE_SIZE);
 		currentFrameSetName = null;
 		passThrough = new ArrayList<>();
 		curses = new ArrayList<>();
@@ -255,14 +255,14 @@ public class Entity extends Position {
 	
 	public void setFrameSet(String frameSetName) {
 		if (!frameSets.containsKey(frameSetName))
-			GameMisc.throwRuntimeException(frameSetName + " - Invalid FrameSet name for this entity");
+			throw new RuntimeException(frameSetName + " - Invalid FrameSet name for this entity");
 		frameSets.put(frameSetName, new FrameSet(freshFrameSets.get(frameSetName), this));
 		currentFrameSetName = frameSetName;
 	}
 	
 	public void addFrameSet(String frameSetName, FrameSet frameSet) {
 		if (frameSets.containsKey(frameSetName))
-			GameMisc.throwRuntimeException(frameSetName + " - This entity already have a FrameSet with this name. Use 'replaceFrameSet()' instead.");
+			throw new RuntimeException(frameSetName + " - This entity already have a FrameSet with this name. Use 'replaceFrameSet()' instead.");
 		frameSets.put(frameSetName, frameSet);
 		freshFrameSets.put(frameSetName, new FrameSet(frameSet, this));
 	}
@@ -274,7 +274,7 @@ public class Entity extends Position {
 	
 	public void removeFrameSet(String frameSetName) {
 		if (!frameSets.containsKey(frameSetName))
-			GameMisc.throwRuntimeException(frameSetName + " - This entity don't have a FrameSet with this name.");
+			throw new RuntimeException(frameSetName + " - This entity don't have a FrameSet with this name.");
 		frameSets.remove(frameSetName);
 		freshFrameSets.remove(frameSetName);
 	}
@@ -288,7 +288,7 @@ public class Entity extends Position {
 	public void run(boolean isPaused) {
 		if (!isDisabled) {
 			if (frameSets.isEmpty())
-				GameMisc.throwRuntimeException("This entity have no FrameSets");
+				throw new RuntimeException("This entity have no FrameSets");
 			if (currentFrameSetName != null && frameSets.containsKey(currentFrameSetName)) {
 				if (linkedEntityFront != null) {
 					if (linkedEntityInfos.isEmpty()) {
@@ -307,11 +307,11 @@ public class Entity extends Position {
 					}
 				}
 				if (haveShadow()) {
-					Map<SpriteLayerType, GraphicsContext> gcList = GameMisc.getGcMap();
+					Map<SpriteLayerType, GraphicsContext> gcList = Tools.getGcMap();
 					gcList.get(SpriteLayerType.GROUND).save();
 					gcList.get(SpriteLayerType.GROUND).setFill(Color.BLACK);
 					gcList.get(SpriteLayerType.GROUND).setGlobalAlpha(shadowOpacity);
-					gcList.get(SpriteLayerType.GROUND).fillOval(getX() + Main.tileSize / 2 - getShadowWidth() / 2, getY() + Main.tileSize - getShadowHeight(), getShadowWidth(), getShadowHeight());
+					gcList.get(SpriteLayerType.GROUND).fillOval(getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight(), getShadowWidth(), getShadowHeight());
 					gcList.get(SpriteLayerType.GROUND).restore();
 				}
 				frameSets.get(currentFrameSetName).run(isPaused);

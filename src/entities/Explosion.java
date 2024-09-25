@@ -11,7 +11,7 @@ import enums.TileProp;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.GraphicsContext;
 import maps.MapSet;
-import tools.GameMisc;
+import tools.Tools;
 import tools.Materials;
 
 public class Explosion {
@@ -85,19 +85,19 @@ public class Explosion {
 				removeExplosions.add(ex);
 			}
 			else {
-				GraphicsContext gc = GameMisc.getGc();
-				int x = ex.centerCoord.getX() * Main.tileSize,
-						y = ex.centerCoord.getY() * Main.tileSize;
+				GraphicsContext gc = Tools.getGc();
+				int x = ex.centerCoord.getX() * Main.TILE_SIZE,
+						y = ex.centerCoord.getY() * Main.TILE_SIZE;
 				if (ex.directions.size() == 4)
-					ImageUtils.drawImage(gc, Materials.mainSprites, 16, 32 + z * 16, 16, 16, x, y, Main.tileSize, Main.tileSize); // Explosão central
+					ImageUtils.drawImage(gc, Materials.mainSprites, 16, 32 + z * 16, 16, 16, x, y, Main.TILE_SIZE, Main.TILE_SIZE); // Explosão central
 				if (ex.directions.contains(Direction.UP))
-					ImageUtils.drawImage(gc, Materials.explosions, z * 16, ex.fireDis[0] == ex.tileRange ? 0 : 16, 16, ex.fireDis[0] * 16, x, y - ex.fireDis[0] * Main.tileSize, Main.tileSize, ex.fireDis[0] * Main.tileSize);
+					ImageUtils.drawImage(gc, Materials.explosions, z * 16, ex.fireDis[0] == ex.tileRange ? 0 : 16, 16, ex.fireDis[0] * 16, x, y - ex.fireDis[0] * Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[0] * Main.TILE_SIZE);
 				if (ex.directions.contains(Direction.RIGHT))
-					ImageUtils.drawImage(gc, Materials.explosions, ex.fireDis[1] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[1] * 16, 16, x + Main.tileSize, y, ex.fireDis[1] * Main.tileSize, Main.tileSize, 180);
+					ImageUtils.drawImage(gc, Materials.explosions, ex.fireDis[1] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[1] * 16, 16, x + Main.TILE_SIZE, y, ex.fireDis[1] * Main.TILE_SIZE, Main.TILE_SIZE, 180);
 				if (ex.directions.contains(Direction.DOWN))
-					ImageUtils.drawImage(gc, Materials.explosions, z * 16, ex.fireDis[2] == ex.tileRange ? 0 : 16, 16, ex.fireDis[2] * 16, x, y + Main.tileSize, Main.tileSize, ex.fireDis[2] * Main.tileSize, 180);
+					ImageUtils.drawImage(gc, Materials.explosions, z * 16, ex.fireDis[2] == ex.tileRange ? 0 : 16, 16, ex.fireDis[2] * 16, x, y + Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[2] * Main.TILE_SIZE, 180);
 				if (ex.directions.contains(Direction.LEFT))
-					ImageUtils.drawImage(gc, Materials.explosions, ex.fireDis[3] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[3] * 16, 16, x - ex.fireDis[3] * Main.tileSize, y, ex.fireDis[3] * Main.tileSize, Main.tileSize);
+					ImageUtils.drawImage(gc, Materials.explosions, ex.fireDis[3] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[3] * 16, 16, x - ex.fireDis[3] * Main.TILE_SIZE, y, ex.fireDis[3] * Main.TILE_SIZE, Main.TILE_SIZE);
 			}
 		}
 		removeExplosions.forEach(ex -> explosions.remove(ex));
