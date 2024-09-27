@@ -135,7 +135,6 @@ public abstract class Tools {
 		LightSpot.clearTempLightSpots();
 		pixelizeCanvas(canvas, pixelSize);
 	}
-	public static int pixel = 1;
 	
 	public static Fade getFade()
 		{ return fade; }

@@ -534,12 +534,8 @@ public class MapEditor {
 	void setMainCanvasMouseEvents() {
 		canvasMain.setOnScroll(e -> {
 			int inc = (isShiftHold() ? e.getDeltaX() : e.getDeltaY()) < 0 ? -1 : 1;
-			//if (isNoHolds() && (zoomMain + inc <= 10 && zoomMain + inc >= 1))
-				//zoomMain += inc;
-			if (Tools.pixel + inc >= 1) {
-				System.out.println(Tools.pixel);
-				Tools.pixel += inc;
-			}
+			if (isNoHolds() && (zoomMain + inc <= 10 && zoomMain + inc >= 1))
+				zoomMain += inc;
 		});
 		canvasMain.setOnMouseDragged(e -> {
 			canvasMouseDraw.x = (int)e.getX() + deslocX();
