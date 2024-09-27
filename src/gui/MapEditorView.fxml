@@ -45,9 +45,9 @@
          </children>
       </VBox>
       <Separator orientation="VERTICAL" prefHeight="200.0" />
-      <VBox spacing="10.0">
+      <VBox spacing="10.0" HBox.hgrow="ALWAYS">
          <children>
-            <HBox alignment="CENTER_LEFT" spacing="30.0">
+            <HBox alignment="CENTER_LEFT" spacing="30.0" VBox.vgrow="ALWAYS">
                <children>
                   <VBox alignment="CENTER_LEFT">
                      <children>
@@ -70,7 +70,7 @@
                   </HBox>
                </children>
             </HBox>
-            <Canvas fx:id="canvasMain" height="672.0" width="816.0" />
+            <Canvas fx:id="canvasMain" height="600.0" width="800.0" VBox.vgrow="ALWAYS" />
          </children>
       </VBox>
       <Separator orientation="VERTICAL" prefHeight="200.0" />

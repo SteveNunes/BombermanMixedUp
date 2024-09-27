@@ -10,6 +10,7 @@ import entities.Bomb;
 import entities.Explosion;
 import enums.SpriteLayerType;
 import fades.Fade;
+import fades.PixelizingFade;
 import gameutil.FPSHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.SnapshotParameters;
@@ -67,6 +68,8 @@ public abstract class Tools {
 			gcMap.get(t).setImageSmoothing(false);
 			gcMap.get(t).clearRect(0, 0, canvasMap.get(t).getWidth(), canvasMap.get(t).getHeight());
 		}
+		setFade(new PixelizingFade(0.1));
+		getFade().fadeOut();
 	}
 	
 	public static void drawAllCanvas(Canvas canvas)
@@ -114,7 +117,6 @@ public abstract class Tools {
 				if (backgroundEffect != null && layerType == SpriteLayerType.BACKGROUND)
 					backgroundEffect.apply(getTempCanvas());
 				if (layerType == SpriteLayerType.TINT) {
-					pixelizeCanvas(pixelSize);
 					if (tintScreen != null)
 						tintScreen.apply(getTintCanvas());
 					if (fade != null)
@@ -131,7 +133,9 @@ public abstract class Tools {
 		gc.drawImage(i, 0, 0, c.getWidth(), c.getHeight(), offsetX, offsetY, c.getWidth() * zoom, c.getHeight() * zoom);
 		ColoredLightSpot.clearTempColoredLightSpots();
 		LightSpot.clearTempLightSpots();
+		pixelizeCanvas(canvas, pixelSize);
 	}
+	public static int pixel = 1;
 	
 	public static Fade getFade()
 		{ return fade; }
@@ -187,32 +191,47 @@ public abstract class Tools {
 	public static Canvas getTintCanvas()
 		{ return getCanvasMap().get(SpriteLayerType.TINT); }
 
-	public static Image getTempCanvasSnapshot() {
+	public static Image getTempCanvasSnapshot()
+		{ return getCanvasSnapshot(getTempCanvas()); }
+	
+	public static Image getTempCanvasSnapshot(int w, int h) 
+		{ return getCanvasSnapshot(getTempCanvas(), w, h); }
+	
+	public static Image getTempCanvasSnapshot(int x, int y, int w, int h) 
+		{ return getCanvasSnapshot(getTempCanvas(), x, y, w, h); }
+	
+	public static Image getCanvasSnapshot(Canvas canvas)
+		{ return getCanvasSnapshot(canvas, 0, 0, (int)canvas.getWidth(), (int)canvas.getHeight()); }
+	
+	public static Image getCanvasSnapshot(Canvas canvas, int w, int h)
+		{ return getCanvasSnapshot(canvas, 0, 0, w, h); }
+	
+	public static Image getCanvasSnapshot(Canvas canvas, int x, int y, int w, int h) {
 		SnapshotParameters params = new SnapshotParameters();
 		params.setFill(Color.TRANSPARENT);
-		params.setViewport(new Rectangle2D(0, 0, getTempCanvas().getWidth(), getTempCanvas().getHeight()));
-		return getTempCanvas().snapshot(params, null);
+		params.setViewport(new Rectangle2D(x, y, w, h));
+		return canvas.snapshot(params, null);
 	}
 
 	public static void drawAllCanvasToTempCanvas() {
 		getTempCanvas().getGraphicsContext2D().clearRect(0, 0, getTempCanvas().getWidth(), getTempCanvas().getHeight());
 		Tools.drawAllCanvas(getTempCanvas());
 	}
-
-	public static void pixelizeCanvas(int pixelSize) {
+	
+	public static void pixelizeCanvas(Canvas canvas, int pixelSize) {
 		if (pixelSize > 1) {
-			GraphicsContext gc = getTintCanvas().getGraphicsContext2D();
-			Image i = getTempCanvasSnapshot();
-			gc.setGlobalAlpha(1);
-			for (int y = 0; y + pixelSize < getTintCanvas().getHeight(); y += pixelSize)
-				for (int x = 0; x + pixelSize < getTintCanvas().getWidth(); x += pixelSize) {
-					Color c = i.getPixelReader().getColor(x + pixelSize / 2, y + pixelSize / 2);
-					gc.setFill(c);
-					gc.fillRect(x, y, pixelSize, pixelSize);
-				}
+			int w = (int)canvas.getWidth(), h = (int)canvas.getHeight(), w2 = w / pixelSize, h2 = h / pixelSize;
+			Canvas c = getTempCanvas();
+			GraphicsContext gc = canvas.getGraphicsContext2D();
+			GraphicsContext gc2 = c.getGraphicsContext2D();
+			gc2.drawImage(canvas.snapshot(null, null), 0, 0, w, h, 0, 0, w2, h2);
+			gc.drawImage(getCanvasSnapshot(c, w2, h2), 0, 0, w2, h2, 0, 0, w, h);
 		}
 	}
 	
+	public static int getOutputPixelSize()
+		{ return pixelSize; }
+
 	public static void setOutputPixelSize(int pixelSize)
 		{ Tools.pixelSize = pixelSize; }
 	

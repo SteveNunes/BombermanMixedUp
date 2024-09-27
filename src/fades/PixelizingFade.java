@@ -10,9 +10,8 @@ public class PixelizingFade implements Fade {
 	private Double speed;
 	private Double value;
 	private Color color;
-	private Double alpha;
-	private boolean done;
-	private int inc;
+	private Integer inc;
+	private int backupSize;
 	
 	public PixelizingFade()
 		{ this(Color.WHITE); }
@@ -30,61 +29,58 @@ public class PixelizingFade implements Fade {
 	}
 	
 	private void reset() {
+		backupSize = Tools.getOutputPixelSize();
 		value = null;
-		alpha = null;
-		done = false;
+		inc = null;
 	}
 
 	@Override
 	public void fadeIn() {
 		reset();
 		inc = -1;
-		alpha = 1d;
+		value = 100d;
 	}
 
 	@Override
 	public void fadeOut() {
 		reset();
 		inc = 1;
-		alpha = 0d;
+		value = 2d;
 	}
 
 	@Override
 	public boolean isFadeDone()
-		{ return done; }
+		{ return inc == null; }
 
 	@Override
-	public void stopFade()
-		{ done = true; }
+	public void stopFade() {
+		inc = null;
+		Tools.setOutputPixelSize(backupSize);
+	}
 
 	@Override
 	public void apply(Canvas canvas) {
-		GraphicsContext gc = canvas.getGraphicsContext2D();
-		gc.save();
-		if (alpha != null && value == null)
-			value = inc == -1 ? canvas.getWidth() / 7 : 1d;
-		Tools.pixelizeCanvas(value.intValue());
-		gc.setGlobalAlpha(alpha);
-		gc.setFill(color);
-		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-		if (!done) {
-			value += speed * inc;
-			double s = speed / 30;
-			if (alpha + s * inc > -1 && alpha + s * inc < 1)
-				alpha += s * inc;
-			else
-				alpha = inc == 1 ? 1d : 0d;
-			if (value >= canvas.getWidth() / 7 || value <= 1) {
-				value = inc == 1 ? canvas.getWidth() : 1d;
-				done = true;
+		if (value != null) {
+			GraphicsContext gc = canvas.getGraphicsContext2D();
+			gc.save();
+			Tools.setOutputPixelSize(value.intValue());
+			gc.setGlobalAlpha((double)value / 100);
+			gc.setFill(color);
+			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+			if (!isFadeDone()) {
+				if ((value += speed * inc) >= 100 || value <= 2) {
+					value = inc == 1 ? 100 : 1d;
+					gc.setGlobalAlpha(inc == 1 ? 1d : 0d);
+					inc = null;
+				}
 			}
+			gc.restore();
 		}
-		gc.restore();
 	}
 
 	public void setSpeed(double speed) {
-		if (speed < 0.01)
-			throw new RuntimeException("speed must be equal or higher than 0.01");
+		if (speed < 0.1)
+			throw new RuntimeException("speed must be equal or higher than 0.1");
 		this.speed = speed;
 	}
 	
