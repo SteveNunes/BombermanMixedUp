@@ -14,6 +14,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import tools.Materials;
 
 public class Layer {
 	
@@ -32,6 +33,10 @@ public class Layer {
 				{ layerType = SpriteLayerType.valueOf(split[1]); }
 			catch (Exception e)
 				{ throw new RuntimeException(split[1] + " - Invalid SpriteLayerType param"); }
+			try
+				{ layer = Integer.parseInt(split[0]); }
+			catch (Exception e)
+				{ throw new RuntimeException(split[0] + " - Invalid Layer param"); }
 			Tile tile = new Tile(s);
 			addTile(tile);
 		}
@@ -59,6 +64,7 @@ public class Layer {
 		SnapshotParameters params = new SnapshotParameters();
 		params.setFill(Color.TRANSPARENT);
 		layerImage = canvas.snapshot(params, null);
+		Materials.tempSprites.put("Layer" + layer, layerImage);
 	}
 	
 	public WritableImage getLayerImage()

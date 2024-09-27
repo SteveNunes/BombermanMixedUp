@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class IncSprAlpha extends FrameTag {
 	
-	private double increment;
+	public double increment;
 	
 	public IncSprAlpha(double increment)
 		{ this.increment = increment; }
-
-	public double getIncrement()
-		{ return increment; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class IncSprAlpha extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.incAlpha(getIncrement()); }
+		{ sprite.incAlpha(increment); }
 
 }
+
+
+

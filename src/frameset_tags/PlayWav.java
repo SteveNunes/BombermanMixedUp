@@ -2,17 +2,16 @@ package frameset_tags;
 
 import application.Main;
 import frameset.Sprite;
-import tools.Tools;
 import tools.Sound;
 
 public class PlayWav extends FrameTag {
 	
-	private String partialSoundPath;
-	private double rate;
-	private double pan;
-	private double balance;
-	private double volume;
-	private boolean stopCurrent;
+	public String partialSoundPath;
+	public double rate;
+	public double pan;
+	public double balance;
+	public double volume;
+	public boolean stopCurrent;
 	
 	public PlayWav(String partialSoundPath, double rate, double pan, double balance, double volume, boolean stopCurrent) {
 		this.partialSoundPath = partialSoundPath;
@@ -42,24 +41,6 @@ public class PlayWav extends FrameTag {
 			{ throw new RuntimeException(params[n] + " - Invalid parameter"); }
 	}
 
-	public String getPartialSoundPath()
-		{ return partialSoundPath; }
-	
-	public double getRate()
-		{ return rate; }
-
-	public double getPan()
-		{ return pan; }
-
-	public double getBalance()
-		{ return balance; }
-
-	public double getVolume()
-		{ return volume; }
-
-	public boolean getStopCurrent()
-		{ return stopCurrent; }
-
 	@Override
 	public String toString()
 		{ return "{" + FrameTag.getClassName(this) + ";" + partialSoundPath + ";" + rate + ";" + pan + ";" + balance + ";" + volume + ";" + stopCurrent + "}"; }
@@ -71,8 +52,26 @@ public class PlayWav extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		if (!Main.frameSetEditorIsPaused()) {
-			Sound.playWav(partialSoundPath, getRate(), getPan(), getBalance(), getVolume(), getStopCurrent());
+			Sound.playWav(partialSoundPath, rate, pan, balance, volume, stopCurrent);
 		}
 	}
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

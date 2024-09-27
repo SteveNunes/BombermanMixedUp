@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetSprMotionBlurRadius extends FrameTag {
 	
-	private double value;
+	public double value;
 	
 	public SetSprMotionBlurRadius(double value)
 		{ this.value = value; }
-
-	public double getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class SetSprMotionBlurRadius extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().getMotionBlur().setRadius(getValue()); }
+		{ sprite.getEffects().getMotionBlur().setRadius(value); }
 
 }
+
+
+

@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetOutputSprX extends FrameTag {
 	
-	private double value;
+	public double value;
 	
 	public SetOutputSprX(double value)
 		{ this.value = value; }
-
-	public double getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class SetOutputSprX extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.setX(getValue()); }
+		{ sprite.setX(value); }
 
 }
+
+
+

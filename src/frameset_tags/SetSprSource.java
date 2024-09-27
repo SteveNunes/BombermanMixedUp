@@ -4,16 +4,15 @@ import java.awt.Rectangle;
 
 import frameset.Sprite;
 import javafx.scene.image.Image;
-import tools.Tools;
 import tools.Materials;
 
 public class SetSprSource extends FrameTag {
 	
-	private Image spriteSource;
-	private Rectangle originSprSizePos;
-	private Rectangle outputSprSizePos;
-	private int spriteIndex;
-	private int spritesPerLine;
+	public Image spriteSource;
+	public Rectangle originSprSizePos;
+	public Rectangle outputSprSizePos;
+	public int spriteIndex;
+	public int spritesPerLine;
 	
 	public SetSprSource(Image spriteSource, Rectangle originSprSizePos, Rectangle outputSprSizePos, int spriteIndex, int spritesPerLine) {
 		this.spriteSource = spriteSource;
@@ -21,6 +20,7 @@ public class SetSprSource extends FrameTag {
 		this.outputSprSizePos = outputSprSizePos;
 		this.spritesPerLine = spritesPerLine;
 		this.spriteIndex = spriteIndex;
+		deleteMeAfterFirstRead = true;
 	}
 
 	public SetSprSource(Image spriteSource, Rectangle originSprSizePos, Rectangle outputSprSizePos)
@@ -31,22 +31,6 @@ public class SetSprSource extends FrameTag {
 
 	public SetSprSource(Image spriteSource, Rectangle originSprSizePos)
 		{ this(spriteSource, originSprSizePos, new Rectangle(0, 0, (int)originSprSizePos.getWidth(), (int)originSprSizePos.getHeight()), 0, 0);	}
-
-	public Image getSpriteSource()
-		{ return spriteSource; }
-
-	public Rectangle getOriginSprSizePos()
-		{ return originSprSizePos; }
-
-	public Rectangle getOutputSprSizePos()
-		{ return outputSprSizePos; }
-
-	public int getSpritesPerLine() {
-		return spritesPerLine;
-	}
-
-	public int getSpriteIndex()
-		{ return spriteIndex; }
 
 	@Override
 	public String toString() {
@@ -88,11 +72,11 @@ public class SetSprSource extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		sprite.setSpriteSource(getSpriteSource());
-		sprite.setOriginSpritePos(getOriginSprSizePos());
-		sprite.setOutputSpritePos(getOutputSprSizePos());
-		sprite.setSpriteIndex(getSpriteIndex());
-		sprite.setSpritesPerLine(getSpritesPerLine());
+		sprite.setSpriteSource(spriteSource);
+		sprite.setOriginSpritePos(originSprSizePos);
+		sprite.setOutputSpritePos(outputSprSizePos);
+		sprite.setSpriteIndex(spriteIndex);
+		sprite.setSpritesPerLine(spritesPerLine);
 	}
 
 }

@@ -122,7 +122,7 @@ public class Brick extends Entity {
 				brick.setFrameSet("BrickStandFrameSet");
 				brick.setBrickShadow();
 			}
-			if (brick.regenTimeInFrames > 0 && !MapSet.tileIsOccuped(brick.getTileCoord(), brick.getPassThrough()) && --brick.regenTimeInFrames == 0)
+			if (brick.regenTimeInFrames > 0 && (brick.regenTimeInFrames > 30 || !MapSet.tileIsOccuped(brick.getTileCoord(), brick.getPassThrough())) && --brick.regenTimeInFrames == 0)
 				brick.setFrameSet("BrickRegenFrameSet");
 			brick.run();
 			if (brick.isBreaked() && brick.regenTimeInFrames == 0) {

@@ -3,12 +3,11 @@ package frameset_tags;
 import application.Main;
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.Tools;
 
 public class RepeatLastFrame extends FrameTag {
 	
-	private int repeatCycles;
-	private int currentRepeatCycle;
+	public int repeatCycles;
+	public int currentRepeatCycle;
 	
 	public RepeatLastFrame(int repeatCycles) {
 		if (repeatCycles < 0)
@@ -16,9 +15,6 @@ public class RepeatLastFrame extends FrameTag {
 		this.repeatCycles = repeatCycles;
 		currentRepeatCycle = 0;
 	}
-	
-	public int getRepeatCycles()
-		{ return repeatCycles; }
 	
 	public void incCycles()
 		{ currentRepeatCycle++; }
@@ -72,3 +68,6 @@ public class RepeatLastFrame extends FrameTag {
 	}
 
 }
+
+
+

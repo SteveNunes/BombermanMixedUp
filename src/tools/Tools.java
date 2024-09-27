@@ -4,10 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import background_effects.BackgroundEffect;
 import drawimage_stuffs.DrawImageEffects;
 import entities.Bomb;
 import entities.Explosion;
 import enums.SpriteLayerType;
+import fades.Fade;
 import gameutil.FPSHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.SnapshotParameters;
@@ -15,12 +17,12 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import light_spot_effects.ColoredLightSpot;
+import light_spot_effects.LightSpot;
 import maps.Brick;
 import maps.Item;
-import screen_effects.BackgroundEffect;
-import screen_effects.Fade;
-import screen_effects.TintScreen;
-import screen_effects.WaveScreen;
+import screen_pos_effects.TintScreen;
+import screen_pos_effects.WaveScreen;
 
 public abstract class Tools {
 	
@@ -34,10 +36,7 @@ public abstract class Tools {
 	private static TintScreen tintScreen = null;
 	private static Map<SpriteLayerType, Canvas> canvasMap;
 	private static Map<SpriteLayerType, GraphicsContext> gcMap;
-	
-	static {
-		fpsHandler = new FPSHandler(60);
-	}
+	private static int pixelSize = 1;
 	
 	public static Map<SpriteLayerType, GraphicsContext> getGcMap()
 		{ return gcMap; }
@@ -58,6 +57,7 @@ public abstract class Tools {
 		{ return gcMap.get(layerType); }
 	
 	public static void loadTools() {
+		fpsHandler = new FPSHandler(60);
 		canvasMap = new HashMap<>();
 		gcMap = new HashMap<>();
 		for (SpriteLayerType t : SpriteLayerType.getList()) {
@@ -104,10 +104,6 @@ public abstract class Tools {
 		gc.setFill(clearColor);
 		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 		gcTint.clearRect(0, 0, getTintCanvas().getWidth(), getTintCanvas().getHeight());
-		if (tintScreen != null)
-			tintScreen.apply(getTintCanvas());
-		if (fade != null)
-			fade.apply(getTintCanvas());
 		gcTemp.clearRect(0, 0, getTempCanvas().getWidth(), getTempCanvas().getHeight());
 		for (SpriteLayerType layerType : SpriteLayerType.getList()) {
 			if (layerType != SpriteLayerType.TEMP) {
@@ -117,14 +113,24 @@ public abstract class Tools {
 				params.setViewport(new Rectangle2D(0, 0, c.getWidth(), c.getHeight()));
 				if (backgroundEffect != null && layerType == SpriteLayerType.BACKGROUND)
 					backgroundEffect.apply(getTempCanvas());
+				if (layerType == SpriteLayerType.TINT) {
+					pixelizeCanvas(pixelSize);
+					if (tintScreen != null)
+						tintScreen.apply(getTintCanvas());
+					if (fade != null)
+						fade.apply(getTintCanvas());
+				}
 				gcTemp.drawImage(c.snapshot(params, null), 0, 0);
 			}
 		}
-		Image i = getTempCanvasSnapshot();
+		LightSpot.setMultipleLightSpots(gcTemp);
+		LightSpot.setMultipleLightSpotsInDarkness(gcTemp);
+		ColoredLightSpot.setMultipleColoredLightSpots(gcTemp);
+		Image i = waveScreen != null ? waveScreen.apply(getTempCanvas()) : getTempCanvasSnapshot();
 		Canvas c = getTempCanvas();
-		if (waveScreen != null)
-			waveScreen.apply(i, c);
 		gc.drawImage(i, 0, 0, c.getWidth(), c.getHeight(), offsetX, offsetY, c.getWidth() * zoom, c.getHeight() * zoom);
+		ColoredLightSpot.clearTempColoredLightSpots();
+		LightSpot.clearTempLightSpots();
 	}
 	
 	public static Fade getFade()
@@ -193,6 +199,23 @@ public abstract class Tools {
 		Tools.drawAllCanvas(getTempCanvas());
 	}
 
+	public static void pixelizeCanvas(int pixelSize) {
+		if (pixelSize > 1) {
+			GraphicsContext gc = getTintCanvas().getGraphicsContext2D();
+			Image i = getTempCanvasSnapshot();
+			gc.setGlobalAlpha(1);
+			for (int y = 0; y + pixelSize < getTintCanvas().getHeight(); y += pixelSize)
+				for (int x = 0; x + pixelSize < getTintCanvas().getWidth(); x += pixelSize) {
+					Color c = i.getPixelReader().getColor(x + pixelSize / 2, y + pixelSize / 2);
+					gc.setFill(c);
+					gc.fillRect(x, y, pixelSize, pixelSize);
+				}
+		}
+	}
+	
+	public static void setOutputPixelSize(int pixelSize)
+		{ Tools.pixelSize = pixelSize; }
+	
 	public static DrawImageEffects loadEffectsFromString(String arrayToString) {
 		// NOTA: implementar
 		return null;

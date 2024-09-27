@@ -2,15 +2,14 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
-import tools.Tools;
 
 public class SetSprColorTintValues extends FrameTag {
 	
-	private double red;
-	private double green;
-	private double blue;
-	private double alpha;
-	private BlendMode blendMode;
+	public double red;
+	public double green;
+	public double blue;
+	public double alpha;
+	public BlendMode blendMode;
 	
 	public SetSprColorTintValues(double red, double green, double blue, double alpha, BlendMode blendMode) {
 		this.red = red;
@@ -28,21 +27,6 @@ public class SetSprColorTintValues extends FrameTag {
 	
 	public SetSprColorTintValues(double red, double green, double blue)
 		{ this(red, green, blue, 1, BlendMode.SRC_ATOP); }
-
-	public double getRed()
-		{ return red; }
-
-	public double getGreen()
-		{ return green; }
-		
-	public double getBlue()
-		{ return blue; }
-	
-	public double getAlpha()
-		{ return alpha; }
-	
-	public BlendMode getBlendMode()
-		{ return blendMode; }
 
 	@Override
 	public String toString()
@@ -68,6 +52,21 @@ public class SetSprColorTintValues extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().setColorTint(getRed(), getGreen(), getBlue(), getAlpha()); }
+		{ sprite.getEffects().setColorTint(red, green, blue, alpha); }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

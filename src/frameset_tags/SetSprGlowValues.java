@@ -2,12 +2,11 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
-import tools.Tools;
 
 public class SetSprGlowValues extends FrameTag {
 	
-	private int level;
-	private BlendMode blendMode;
+	public int level;
+	public BlendMode blendMode;
 	
 	public SetSprGlowValues(int level, BlendMode blendMode) {
 		this.level = level;
@@ -16,12 +15,6 @@ public class SetSprGlowValues extends FrameTag {
 
 	public SetSprGlowValues(int threshold)
 		{ this(threshold, BlendMode.SRC_ATOP); }
-
-	public int getLevel()
-		{ return level; }
-	
-	public BlendMode getBlendMode()
-		{ return blendMode; }
 
 	@Override
 	public String toString()
@@ -44,6 +37,12 @@ public class SetSprGlowValues extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().setGlow(getLevel(), getBlendMode()); }
+		{ sprite.getEffects().setGlow(level, blendMode); }
 
 }
+
+
+
+
+
+

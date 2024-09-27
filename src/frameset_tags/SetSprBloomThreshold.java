@@ -1,18 +1,14 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetSprBloomThreshold extends FrameTag {
 	
-	private double value;
+	public double value;
 	
 	public SetSprBloomThreshold(double value)
 		{ this.value = value; }
 
-	public double getValue()
-		{ return value; }	
-	
 	@Override
 	public String toString()
 		{ return "{" + FrameTag.getClassName(this) + ";" + value + "}"; }
@@ -31,6 +27,9 @@ public class SetSprBloomThreshold extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().getBloom().setThreshold(getValue()); }
+		{ sprite.getEffects().getBloom().setThreshold(value); }
 
 }
+
+
+

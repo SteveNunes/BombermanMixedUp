@@ -253,6 +253,22 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new RunEffectFromEntity(s));
 			else if (tag.equals("RunEffectFromSprite"))
 				tags.addFrameSetTag(new RunEffectFromSprite(s));
+			else if (tag.equals("AddTempColoredLightSpot"))
+				tags.addFrameSetTag(new AddTempColoredLightSpot(s));
+			else if (tag.equals("AddTempColoredLightSpotToSprite"))
+				tags.addFrameSetTag(new AddTempColoredLightSpotToSprite(s));
+			else if (tag.equals("AddColoredLightSpot"))
+				tags.addFrameSetTag(new AddColoredLightSpot(s));
+			else if (tag.equals("AddColoredLightSpotToSprite"))
+				tags.addFrameSetTag(new AddColoredLightSpotToSprite(s));
+			else if (tag.equals("AddTempLightSpot"))
+				tags.addFrameSetTag(new AddTempLightSpot(s));
+			else if (tag.equals("AddLightSpot"))
+				tags.addFrameSetTag(new AddLightSpot(s));
+			else if (tag.equals("AddLightSpotToSprite"))
+				tags.addFrameSetTag(new AddLightSpotToSprite(s));
+			else if (tag.equals("AddTempLightSpotToSprite"))
+				tags.addFrameSetTag(new AddTempLightSpotToSprite(s));
 		}
 	}
 

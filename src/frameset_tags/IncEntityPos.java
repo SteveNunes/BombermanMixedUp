@@ -3,23 +3,16 @@ package frameset_tags;
 import entities.Entity;
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.Tools;
 
 public class IncEntityPos extends FrameTag {
 	
-	private double incrementX;
-	private double incrementY;
+	public double incrementX;
+	public double incrementY;
 	
 	public IncEntityPos(double incrementX, double incrementY) {
 		this.incrementX = incrementX;
 		this.incrementY = incrementY;
 	}
-
-	public double getIncrementX()
-		{ return incrementX; }
-
-	public double getIncrementY()
-		{ return incrementY; }	
 
 	@Override
 	public String toString()
@@ -44,8 +37,8 @@ public class IncEntityPos extends FrameTag {
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getMainFrameSet();
 		Entity entity = frameSet.getEntity();
-		entity.incX(getIncrementX());
-		entity.incY(getIncrementY());
+		entity.incX(incrementX);
+		entity.incY(incrementY);
 	}
 
 }

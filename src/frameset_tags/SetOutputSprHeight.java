@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetOutputSprHeight extends FrameTag {
 	
-	private int value;
+	public int value;
 	
 	public SetOutputSprHeight(int value)
 		{ this.value = value; }
-
-	public int getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class SetOutputSprHeight extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.setOutputHeight(getValue()); }
+		{ sprite.setOutputHeight(value); }
 
 }
+
+
+

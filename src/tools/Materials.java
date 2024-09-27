@@ -17,7 +17,6 @@ import util.FindFile;
 public abstract class Materials {
 	
 	public static Image mainSprites;
-	public static Image itens;
 	public static Image frames;
 	public static Image auras;
 	public static Image thunders;
@@ -29,12 +28,14 @@ public abstract class Materials {
 	public static Map<Integer, Integer> bomberSpriteIndex;
 	public static Map<String, Image> loadedSprites;
 	public static Map<Image, String> loadedSprites2;
+	public static Map<String, Image> tempSprites;
 	
 	public static void loadFromFiles() {
 		System.out.println("Carregando materiais...");
 		long ms = System.currentTimeMillis();
 		loadedSprites = new HashMap<>();
 		loadedSprites2 = new HashMap<>();
+		tempSprites = new HashMap<>();
 		rides = new ArrayList<>();
 		tileSets = new HashMap<>();
 		bomberSpriteIndex = new HashMap<>();
@@ -70,7 +71,6 @@ public abstract class Materials {
 		}
 		
 		mainSprites = loadImage("MainSprites", Color.valueOf("#03E313"));
-		itens = loadImage("Itens", Color.valueOf("#03E313"));
 		frames = loadImage("HUD", Color.valueOf("#03E313"));
 		auras = loadImage("Auras", Color.valueOf("#03E313"));
 		thunders = loadImage("Thunders", Color.valueOf("#03E313"));
@@ -115,6 +115,8 @@ public abstract class Materials {
 	public static Image getImageFromSpriteName(String spriteName) {
 		if (loadedSprites.containsKey(spriteName))
 			return loadedSprites.get(spriteName);
+		if (tempSprites.containsKey(spriteName))
+			return tempSprites.get(spriteName);
 		return null;
 	}
 

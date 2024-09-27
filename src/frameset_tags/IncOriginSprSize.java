@@ -1,23 +1,16 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class IncOriginSprSize extends FrameTag {
 	
-	private int incrementWidth;
-	private int incrementHeight;
+	public int incrementWidth;
+	public int incrementHeight;
 	
 	public IncOriginSprSize(int incrementWidth, int incrementHeight) {
 		this.incrementWidth = incrementWidth;
 		this.incrementHeight = incrementHeight;
 	}
-
-	public int getIncrementWidth()
-		{ return incrementWidth; }
-
-	public int getIncrementHeight()
-		{ return incrementHeight; }
 
 	@Override
 	public String toString()
@@ -40,8 +33,14 @@ public class IncOriginSprSize extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		sprite.incOriginSpriteWidth(getIncrementWidth());
-		sprite.incOriginSpriteHeight(getIncrementHeight());
+		sprite.incOriginSpriteWidth(incrementWidth);
+		sprite.incOriginSpriteHeight(incrementHeight);
 	}
 
 }
+
+
+
+
+
+

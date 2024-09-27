@@ -2,17 +2,13 @@ package frameset_tags;
 
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetTicksPerFrame extends FrameTag {
 	
-	private int value;
+	public int value;
 	
 	public SetTicksPerFrame(int value)
 		{ this.value = value; }
-
-	public int getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -33,7 +29,10 @@ public class SetTicksPerFrame extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getMainFrameSet();
-		frameSet.setFramesPerTick(getValue());
+		frameSet.setFramesPerTick(value);
 	}
 
 }
+
+
+

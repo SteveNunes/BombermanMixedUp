@@ -1,9 +1,11 @@
-package screen_effects;
+package screen_pos_effects;
 
+import javafx.geometry.Rectangle2D;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import tools.Tools;
+import javafx.scene.paint.Color;
 
 public class WaveScreen {
 
@@ -12,6 +14,9 @@ public class WaveScreen {
 	private int posStart;
 	private int[] wave;
 	private boolean disabled;
+	
+	public WaveScreen()
+		{ this(1); }
 
 	public WaveScreen(int speed) {
 		setSpeed(speed);
@@ -37,12 +42,13 @@ public class WaveScreen {
 		wave = pattern;
 	}
 
-	public void apply(Image tempCanvasSnapshot, Canvas canvas) {
-		GraphicsContext gc = canvas.getGraphicsContext2D();
+	public Image apply(Canvas canvas) {
+		Image i = getCanvasScreenshot(canvas);
 		if (speed != null) {
+			GraphicsContext gc = canvas.getGraphicsContext2D();
 			int wavePos = posStart;
 			for (int y = 0; y < canvas.getHeight(); y++) {
-				gc.drawImage(tempCanvasSnapshot, 0, y, canvas.getWidth(), 1, wave[wavePos], y, canvas.getWidth(), 1);
+				gc.drawImage(i, 0, y, canvas.getWidth(), 1, wave[wavePos], y, canvas.getWidth(), 1);
 				if (++wavePos == wave.length)
 					wavePos = 0;
 			}
@@ -51,14 +57,22 @@ public class WaveScreen {
 				if (++posStart == wave.length)
 					posStart = 0;
 			}
-			tempCanvasSnapshot = Tools.getTempCanvasSnapshot();
+			return getCanvasScreenshot(canvas);
 		}
+		return i;
 	}
 
 	public void setSpeed(int speed) {
 		if (speed < 0)
 			throw new RuntimeException("speed must be higher than 0");
 		this.speed = speed;
+	}
+
+	private Image getCanvasScreenshot(Canvas canvas) {
+		SnapshotParameters params = new SnapshotParameters();
+		params.setFill(Color.TRANSPARENT);
+		params.setViewport(new Rectangle2D(0, 0, canvas.getWidth(), canvas.getHeight()));
+		return canvas.snapshot(params, null);
 	}
 	
 }

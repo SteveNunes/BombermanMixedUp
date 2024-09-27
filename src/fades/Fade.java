@@ -1,4 +1,4 @@
-package screen_effects;
+package fades;
 
 import javafx.scene.canvas.Canvas;
 

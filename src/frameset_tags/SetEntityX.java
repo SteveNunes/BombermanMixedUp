@@ -3,18 +3,14 @@ package frameset_tags;
 import entities.Entity;
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetEntityX extends FrameTag {
 	
-	private int value;
+	public int value;
 	
 	public SetEntityX(int value)
 		{ this.value = value; }
 
-	public int getValue()
-		{ return value; }
-	
 	@Override
 	public String toString()
 		{ return "{" + FrameTag.getClassName(this) + ";" + value + "}"; }
@@ -35,7 +31,10 @@ public class SetEntityX extends FrameTag {
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getMainFrameSet();
 		Entity entity = frameSet.getEntity();
-		entity.incX(getValue());
+		entity.incX(value);
 	}
 
 }
+
+
+

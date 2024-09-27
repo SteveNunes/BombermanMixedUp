@@ -2,12 +2,11 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
-import tools.Tools;
 
 public class SetSprGaussBlurValues extends FrameTag {
 	
-	private int radius;
-	private BlendMode blendMode;
+	public int radius;
+	public BlendMode blendMode;
 	
 	public SetSprGaussBlurValues(int radius, BlendMode blendMode) {
 		this.radius = radius;
@@ -16,12 +15,6 @@ public class SetSprGaussBlurValues extends FrameTag {
 
 	public SetSprGaussBlurValues(int radius)
 		{ this(radius, BlendMode.SRC_ATOP); }
-
-	public int getRadius()
-		{ return radius; }
-	
-	public BlendMode getBlendMode()
-		{ return blendMode; }
 
 	@Override
 	public String toString()
@@ -44,6 +37,12 @@ public class SetSprGaussBlurValues extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().setGaussianBlur(getRadius(), getBlendMode()); }
+		{ sprite.getEffects().setGaussianBlur(radius, blendMode); }
 
 }
+
+
+
+
+
+

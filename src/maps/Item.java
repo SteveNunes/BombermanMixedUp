@@ -12,14 +12,25 @@ import entities.TileCoord;
 import enums.ItemType;
 import enums.StringFrameSet;
 import enums.TileProp;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 import objmoveutils.Position;
+import tools.Materials;
+import tools.RGBColor;
 
 public class Item extends Entity{
 
 	private static Map<TileCoord, Item> items = new HashMap<>();
+	private static RGBColor itemEdigeColor;
+	
 	private ItemType itemType;
 	private TileCoord coord;
 	private int startInvFrames;
+	
+	static {
+		Materials.loadedSprites.put("ItemEdge", new WritableImage(18, 18));
+		itemEdigeColor = new RGBColor(20);
+	}
 	
 	public Item()
 		{ this(new Position(), null); }
@@ -43,12 +54,12 @@ public class Item extends Entity{
 		startInvFrames = 10;
 		int itemIndex = itemType.getValue() - 1;
 		String itemStandFrameSet =
-							"{SetSprSource;Itens;1026;18;18;18;0;0;0;0;18;18},{SetEntityShadow;0;0;18;4;0.5},{SetTicksPerFrame;1},{SetSprIndex;0},{IncOutputSprPos;-1;-12},{DoJump;1;1.1;50}"
-						+	",,{SetSprSource;Itens;0;18;18;18;0;0;0;0;18;18},{SetSprIndex;" + itemIndex + "},{IncOutputSprPos;-1;-12}"
+							"{SetSprSource;ItemEdge;0;0;18;18;0;0;0;0;18;18},{SetEntityShadow;0;0;18;4;0.5},{SetTicksPerFrame;1},{SetSprIndex;0},{IncOutputSprPos;-2;-13},{DoJump;1;1.1;50}"
+						+	",,{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{IncOutputSprPos;-1;-12}"
 						+ "|{SetSprIndex;1},{SetEntityShadow;0;0;16;3;0.35},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}"
 						+ "|{SetSprIndex;2},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}"
 						+ "|{SetSprIndex;0},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{Goto;-3;2}"
-						+ "|{},,{SetSprIndex;56}"
+						+ "|{},,{SetSprIndex;85}"
 						+ "|{SetSprIndex;1},{SetEntityShadow;0;0;14;2;0.2},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}"
 						+ "|{SetSprIndex;2},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}"
 						+ "|{SetSprIndex;0},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{Goto;-3;2}"
@@ -65,7 +76,7 @@ public class Item extends Entity{
 						+ "|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{SetEntityShadow;0;0;18;4;0.65}|{SetSprIndex;0}|{Goto;-4;1}"
 						+ "|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{SetEntityShadow;0;0;16;3;0.5}|{SetSprIndex;0}|{Goto;-4;1}|{Goto;0}";
 		String itemPickUpFrameSet =
-							"{SetSprSource;Itens;0;18;18;18;0;0;0;0;18;18},{SetSprIndex;" + itemIndex + "},{SetTicksPerFrame;3},{IncOutputSprY;-8}"
+							"{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{SetTicksPerFrame;3},{IncOutputSprY;-8}"
 						+ "|{SetSprIndex;-},{IncOutputSprY;-1}|{SetSprIndex;" + itemIndex + "},{IncOutputSprY;-1}|{Goto;-2;8}";
 		addNewFrameSetFromString("ItemStandFrameSet", itemStandFrameSet);
 		addNewFrameSetFromString("ItemPickedUpFrameSet", itemPickUpFrameSet);
@@ -111,6 +122,17 @@ public class Item extends Entity{
 	
 	public static void drawItems() {
 		List<Item> removeItems = new ArrayList<>();
+		WritableImage i = (WritableImage)Materials.loadedSprites.get("ItemEdge");
+		Color c = itemEdigeColor.getColor();
+		for (int y = 0; y < 18; y++) {
+			i.getPixelWriter().setColor(0, y, c);
+			i.getPixelWriter().setColor(17, y, c);
+		}
+		for (int x = 0; x < 18; x++) {
+			i.getPixelWriter().setColor(x, 0, c);
+			i.getPixelWriter().setColor(x, 17, c);
+		}
+			
 		for (Item item : items.values()) {
 			if (--item.startInvFrames <= 0 && item.getCurrentFrameSetName().equals("ItemStandFrameSet") &&
 					MapSet.tileContainsProp(item.getTileCoord(), TileProp.EXPLOSION)) {

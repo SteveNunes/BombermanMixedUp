@@ -1,4 +1,4 @@
-package screen_effects;
+package screen_pos_effects;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -9,6 +9,9 @@ public class TintScreen {
 	private Double strenght;
 	private Color color;
 	private boolean disabled;
+	
+	public TintScreen(Color color)
+		{ this(color, 0.5); }
 	
 	public TintScreen(Color color, double strenght) {
 		setColor(color);

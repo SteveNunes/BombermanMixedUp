@@ -3,12 +3,11 @@ package frameset_tags;
 import application.Main;
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.Tools;
 
 public class Goto extends FrameTag {
 	
-	private int index;
-	private int repeatCycles;
+	public int index;
+	public int repeatCycles;
 	public int currentRepeatCycle;
 	
 	public Goto(int index, int repeatCycles) {
@@ -25,15 +24,6 @@ public class Goto extends FrameTag {
 	public Goto(int index)
 		{ this(index, 0); }
 
-	public int getIndex()
-		{ return index; }	
-
-	public int getRepeatCycles()
-		{ return repeatCycles; }
-	
-	public void incCycles()
-		{ currentRepeatCycle++; }
-	
 	public void resetCycles()
 		{ currentRepeatCycle = 0; }
 
@@ -69,8 +59,8 @@ public class Goto extends FrameTag {
 		FrameSet frameSet = sprite.getMainFrameSet();
 		if (!Main.frameSetEditorIsPaused() && !frameSet.isStopped()) {
 			if (haveLeftCycles()) {
-				incCycles();
-				int index = getIndex() < 0 ? frameSet.getCurrentFrameIndex() + getIndex() : getIndex();
+				currentRepeatCycle++;
+				int index = this.index < 0 ? frameSet.getCurrentFrameIndex() + this.index : this.index;
 				if (index < 0)
 					index = 0;
 				else if (index >= frameSet.getTotalFrames())

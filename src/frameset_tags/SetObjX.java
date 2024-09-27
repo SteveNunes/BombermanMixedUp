@@ -2,18 +2,14 @@ package frameset_tags;
 
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetObjX extends FrameTag {
 	
-	private int value;
+	public int value;
 	
 	public SetObjX(int value)
 		{ this.value = value; }
 
-	public int getValue()
-		{ return value; }
-	
 	@Override
 	public String toString()
 		{ return "{" + FrameTag.getClassName(this) + ";" + value + "}"; }
@@ -33,7 +29,10 @@ public class SetObjX extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getMainFrameSet();
-		frameSet.setX(getValue());
+		frameSet.setX(value);
 	}
 
 }
+
+
+

@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetSprColorTintBlue extends FrameTag {
 	
-	private double value;
+	public double value;
 	
 	public SetSprColorTintBlue(double value)
 		{ this.value = value; }
-
-	public double getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class SetSprColorTintBlue extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().getColorTint().setBlue(getValue()); }
+		{ sprite.getEffects().getColorTint().setBlue(value); }
 
 }
+
+
+

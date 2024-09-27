@@ -2,17 +2,13 @@ package frameset_tags;
 
 import enums.ImageFlip;
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetSprFlip extends FrameTag {
 	
-	private ImageFlip flip;
+	public ImageFlip flip;
 	
 	public SetSprFlip(ImageFlip flip)
 		{ this.flip = flip; }
-
-	public ImageFlip getFlip()
-		{ return flip; }	
 
 	@Override
 	public String toString()
@@ -33,6 +29,9 @@ public class SetSprFlip extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.setFlip(getFlip()); }
+		{ sprite.setFlip(flip); }
 
 }
+
+
+

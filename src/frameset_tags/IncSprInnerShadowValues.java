@@ -1,23 +1,16 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class IncSprInnerShadowValues extends FrameTag {
 	
-	private double incrementOffsetX;
-	private double incrementOffsetY;
+	public double incrementOffsetX;
+	public double incrementOffsetY;
 	
 	public IncSprInnerShadowValues(double incrementOffsetX, double incrementOffsetY) {
 		this.incrementOffsetX = incrementOffsetX;
 		this.incrementOffsetY = incrementOffsetY;
 	}
-
-	public double getIncrementOffsetX()
-		{ return incrementOffsetX; }
-
-	public double getIncrementOffsetY()
-		{ return incrementOffsetY; }	
 
 	@Override
 	public String toString()
@@ -40,8 +33,14 @@ public class IncSprInnerShadowValues extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		sprite.getEffects().getInnerShadow().incOffsetX(getIncrementOffsetX());
-		sprite.getEffects().getInnerShadow().incOffsetY(getIncrementOffsetY());
+		sprite.getEffects().getInnerShadow().incOffsetX(incrementOffsetX);
+		sprite.getEffects().getInnerShadow().incOffsetY(incrementOffsetY);
 	}
 
 }
+
+
+
+
+
+

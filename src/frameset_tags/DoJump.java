@@ -1,13 +1,12 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class DoJump extends FrameTag {
 	
-	private double jumpStrenght;
-	private double strenghtMultipiler;
-	private int speedInFrames;
+	public double jumpStrenght;
+	public double strenghtMultipiler;
+	public int speedInFrames;
 	
 	public DoJump(double jumpStrenght, double strenghtMultipiler, int speedInFrames) {
 		this.jumpStrenght = jumpStrenght;

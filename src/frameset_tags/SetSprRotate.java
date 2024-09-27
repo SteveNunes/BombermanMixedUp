@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetSprRotate extends FrameTag {
 	
-	private int value;
+	public int value;
 	
 	public SetSprRotate(int value)
 		{ this.value = value; }
-
-	public int getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class SetSprRotate extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.setRotation(getValue()); }
+		{ sprite.setRotation(value); }
 
 }
+
+
+

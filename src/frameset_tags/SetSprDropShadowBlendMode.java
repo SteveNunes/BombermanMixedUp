@@ -2,18 +2,14 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
-import tools.Tools;
 
 public class SetSprDropShadowBlendMode extends FrameTag {
 	
-	private BlendMode blendMode;
+	public BlendMode blendMode;
 	
 	public SetSprDropShadowBlendMode(BlendMode blendMode)
 		{ this.blendMode = blendMode; }
 
-	public BlendMode getBlendMode()
-		{ return blendMode; }	
-	
 	@Override
 	public String toString()
 		{ return "{" + FrameTag.getClassName(this) + ";" + blendMode.name() + "}"; }
@@ -32,6 +28,9 @@ public class SetSprDropShadowBlendMode extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().getDropShadow().setBlendMode(getBlendMode()); }
+		{ sprite.getEffects().getDropShadow().setBlendMode(blendMode); }
 
 }
+
+
+

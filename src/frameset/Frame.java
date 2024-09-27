@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import frameset_tags.FrameTag;
-import tools.Tools;
 
 public class Frame {
 	
@@ -42,7 +41,12 @@ public class Frame {
 		for (Tags tags : frameSetTagsList) {
 			if (mainFrameSet.isStopped())
 				return;
-			tags.getFrameSetTags().forEach(tag -> tag.process(tags.getRootSprite()));
+			for (int n = 0; n < tags.getTotalTags(); n++) {
+				FrameTag tag = tags.getFrameSetTags().get(n);
+				if (tag.deleteMeAfterFirstRead)
+					tags.getFrameSetTags().remove(n--);
+				tag.process(tags.getRootSprite());
+			}
 		}
 	}
 	

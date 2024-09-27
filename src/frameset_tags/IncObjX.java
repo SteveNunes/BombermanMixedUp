@@ -2,17 +2,13 @@ package frameset_tags;
 
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.Tools;
 
 public class IncObjX extends FrameTag {
 	
-	private int increment;
+	public int increment;
 	
 	public IncObjX(int increment)
 		{ this.increment = increment; }
-
-	public int getIncrement()
-		{ return increment; }
 
 	@Override
 	public String toString()
@@ -33,7 +29,7 @@ public class IncObjX extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getMainFrameSet();
-		frameSet.incX(getIncrement());
+		frameSet.incX(increment);
 	}
 
 }

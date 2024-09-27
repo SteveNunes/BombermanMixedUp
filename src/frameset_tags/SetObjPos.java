@@ -2,23 +2,16 @@ package frameset_tags;
 
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetObjPos extends FrameTag {
 	
-	private int x;
-	private int y;
+	public int x;
+	public int y;
 	
 	public SetObjPos(int x, int y) {
 		this.x = x;
 		this.y = y;
 	}
-
-	public int getX()
-		{ return x; }
-
-	public int getY()
-		{ return y; }	
 
 	@Override
 	public String toString()
@@ -42,7 +35,13 @@ public class SetObjPos extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getMainFrameSet();
-		frameSet.setPosition(getX(), getY());
+		frameSet.setPosition(x, y);
 	}
 
 }
+
+
+
+
+
+

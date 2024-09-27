@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetOutputSprWidth extends FrameTag {
 	
-	private int value;
+	public int value;
 	
 	public SetOutputSprWidth(int value)
 		{ this.value = value; }
-
-	public int getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class SetOutputSprWidth extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.setOutputWidth(getValue()); }
+		{ sprite.setOutputWidth(value); }
 
 }
+
+
+

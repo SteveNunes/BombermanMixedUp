@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class IncSprMotionBlurAngle extends FrameTag {
 	
-	private double increment;
+	public double increment;
 	
 	public IncSprMotionBlurAngle(double increment)
 		{ this.increment = increment; }
-
-	public double getIncrement()
-		{ return increment; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class IncSprMotionBlurAngle extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().getMotionBlur().incAngle(getIncrement()); }
+		{ sprite.getEffects().getMotionBlur().incAngle(increment); }
 
 }
+
+
+

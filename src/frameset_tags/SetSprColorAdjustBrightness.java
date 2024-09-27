@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetSprColorAdjustBrightness extends FrameTag {
 	
-	private double value;
+	public double value;
 	
 	public SetSprColorAdjustBrightness(double value)
 		{ this.value = value; }
-
-	public double getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class SetSprColorAdjustBrightness extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().getColorAdjust().setBrightness(getValue()); }
+		{ sprite.getEffects().getColorAdjust().setBrightness(value); }
 
 }
+
+
+

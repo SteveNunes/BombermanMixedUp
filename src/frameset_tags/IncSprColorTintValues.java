@@ -1,14 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class IncSprColorTintValues extends FrameTag {
 	
-	private double incrementRed;
-	private double incrementGreen;
-	private double incrementBlue;
-	private double incrementAlpha;
+	public double incrementRed;
+	public double incrementGreen;
+	public double incrementBlue;
+	public double incrementAlpha;
 	
 	public IncSprColorTintValues(double incrementRed, double incrementGreen, double incrementBlue, double incrementAlpha) {
 		this.incrementRed = incrementRed;
@@ -19,18 +18,6 @@ public class IncSprColorTintValues extends FrameTag {
 
 	public IncSprColorTintValues(double incrementRed, double incrementGreen, double incrementBlue)
 		{ this(incrementRed, incrementGreen, incrementBlue, 1); }
-
-	public double getIncrementRed()
-		{ return incrementRed; }
-
-	public double getIncrementGreen()
-		{ return incrementGreen; }
-		
-	public double getIncrementBlue()
-		{ return incrementBlue; }
-	
-	public double getIncrementAlpha()
-		{ return incrementAlpha; }
 
 	@Override
 	public String toString()
@@ -55,10 +42,22 @@ public class IncSprColorTintValues extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		sprite.getEffects().getColorTint().incRed(getIncrementRed());
-		sprite.getEffects().getColorTint().incGreen(getIncrementGreen());
-		sprite.getEffects().getColorTint().incBlue(getIncrementBlue());
-		sprite.getEffects().getColorTint().incAlpha(getIncrementAlpha());
+		sprite.getEffects().getColorTint().incRed(incrementRed);
+		sprite.getEffects().getColorTint().incGreen(incrementGreen);
+		sprite.getEffects().getColorTint().incBlue(incrementBlue);
+		sprite.getEffects().getColorTint().incAlpha(incrementAlpha);
 	}
 
 }
+
+
+
+
+
+
+
+
+
+
+
+

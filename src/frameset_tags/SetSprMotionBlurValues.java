@@ -2,13 +2,12 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
-import tools.Tools;
 
 public class SetSprMotionBlurValues extends FrameTag {
 	
-	private double angle;
-	private double radius;
-	private BlendMode blendMode;
+	public double angle;
+	public double radius;
+	public BlendMode blendMode;
 	
 	public SetSprMotionBlurValues(double angle, double radius, BlendMode blendMode) {
 		this.angle = angle;
@@ -18,15 +17,6 @@ public class SetSprMotionBlurValues extends FrameTag {
 
 	public SetSprMotionBlurValues(double angle, double radius)
 		{ this(angle, radius, BlendMode.SRC_ATOP); }
-
-	public double getAngle()
-		{ return angle; }
-
-	public double getRadius()
-		{ return radius; }	
-	
-	public BlendMode getBlendMode()
-		{ return blendMode; }
 
 	@Override
 	public String toString()
@@ -50,6 +40,15 @@ public class SetSprMotionBlurValues extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().setMotionBlur(getAngle(), getRadius(), getBlendMode()); }
+		{ sprite.getEffects().setMotionBlur(angle, radius, blendMode); }
 
 }
+
+
+
+
+
+
+
+
+

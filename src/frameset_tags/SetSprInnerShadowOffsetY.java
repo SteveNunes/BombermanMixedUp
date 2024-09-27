@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetSprInnerShadowOffsetY extends FrameTag {
 	
-	private int value;
+	public int value;
 	
 	public SetSprInnerShadowOffsetY(int value)
 		{ this.value = value; }
-
-	public int getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class SetSprInnerShadowOffsetY extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().getInnerShadow().setOffsetY(getValue()); }
+		{ sprite.getEffects().getInnerShadow().setOffsetY(value); }
 
 }
+
+
+

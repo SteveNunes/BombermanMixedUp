@@ -2,16 +2,15 @@ package frameset_tags;
 
 import application.Main;
 import frameset.Sprite;
-import tools.Tools;
 import tools.Sound;
 
 public class PlayMp3 extends FrameTag {
 	
-	private String partialSoundPath;
-	private double rate;
-	private double balance;
-	private double volume;
-	private boolean stopCurrent;
+	public String partialSoundPath;
+	public double rate;
+	public double balance;
+	public double volume;
+	public boolean stopCurrent;
 	
 	public PlayMp3(String partialSoundPath, double rate, double balance, double volume, boolean stopCurrent) {
 		this.partialSoundPath = partialSoundPath;
@@ -39,21 +38,6 @@ public class PlayMp3 extends FrameTag {
 			{ throw new RuntimeException(params[n] + " - Invalid parameter"); }
 	}
 
-	public String getPartialSoundPath()
-		{ return partialSoundPath; }
-	
-	public double getRate()
-		{ return rate; }
-
-	public double getBalance()
-		{ return balance; }
-
-	public double getVolume()
-		{ return volume; }
-
-	public boolean getStopCurrent()
-		{ return stopCurrent; }
-
 	@Override
 	public String toString()
 		{ return "{" + FrameTag.getClassName(this) + ";" + partialSoundPath + ";" + rate + ";" + balance + ";" + volume + ";" + stopCurrent + "}"; }
@@ -65,8 +49,23 @@ public class PlayMp3 extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		if (!Main.frameSetEditorIsPaused()) {
-			Sound.playMp3(partialSoundPath, getRate(), getBalance(), getVolume(), getStopCurrent());
+			Sound.playMp3(partialSoundPath, rate, balance, volume, stopCurrent);
 		}
 	}
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

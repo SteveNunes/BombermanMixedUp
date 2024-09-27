@@ -3,14 +3,13 @@ package frameset_tags;
 import enums.DirectionOrientation;
 import frameset.Sprite;
 import objmoveutils.EliticMove;
-import tools.Tools;
 
 public class SetSprEliticMove extends FrameTag {
 	
-	private DirectionOrientation orientation;
-	private double radiusWidth;
-	private double radiusHeight;
-	private double speed;
+	public DirectionOrientation orientation;
+	public double radiusWidth;
+	public double radiusHeight;
+	public double speed;
 	
 	public SetSprEliticMove(DirectionOrientation orientation, double radiusWidth, double radiusHeight, double speed) {
 		this.orientation = orientation;
@@ -19,18 +18,6 @@ public class SetSprEliticMove extends FrameTag {
 		this.speed = speed;
 	}
 
-	public DirectionOrientation getOrientation()
-		{ return orientation; }
-
-	public double getRadiusWidth()
-		{ return radiusWidth; }
-
-	public double getRadiusHeight()
-		{ return radiusHeight; }
-
-	public double getSpeed()
-		{ return speed; }
-	
 	@Override
 	public String toString()
 		{ return "{" + FrameTag.getClassName(this) + ";" + orientation.name() + ";" + radiusWidth + ";" + radiusHeight + ";" + speed + "}"; }
@@ -59,3 +46,15 @@ public class SetSprEliticMove extends FrameTag {
 	}
 
 }
+
+
+
+
+
+
+
+
+
+
+
+

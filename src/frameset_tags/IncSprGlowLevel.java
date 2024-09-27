@@ -1,18 +1,14 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class IncSprGlowLevel extends FrameTag {
 	
-	private int increment;
+	public int increment;
 	
 	public IncSprGlowLevel(int increment)
 		{ this.increment = increment; }
 
-	public int getIncrement()
-		{ return increment; }
-	
 	@Override
 	public String toString()
 		{ return "{" + FrameTag.getClassName(this) + ";" + increment + "}"; }
@@ -31,6 +27,9 @@ public class IncSprGlowLevel extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().setGlow(sprite.getEffects().getGlow().getLevel() + getIncrement(), sprite.getEffects().getGlow().getBlendMode()); }
+		{ sprite.getEffects().setGlow(sprite.getEffects().getGlow().getLevel() + increment, sprite.getEffects().getGlow().getBlendMode()); }
 
 }
+
+
+

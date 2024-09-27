@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class IncOutputSprHeight extends FrameTag {
 	
-	private int increment;
+	public int increment;
 	
 	public IncOutputSprHeight(int increment)
 		{ this.increment = increment; }
-
-	public int getIncrement()
-		{ return increment; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class IncOutputSprHeight extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.incOutputHeight(getIncrement()); }
+		{ sprite.incOutputHeight(increment); }
 
 }
+
+
+

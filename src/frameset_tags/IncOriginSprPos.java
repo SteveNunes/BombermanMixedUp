@@ -1,23 +1,16 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class IncOriginSprPos extends FrameTag {
 	
-	private int incrementX;
-	private int incrementY;
+	public int incrementX;
+	public int incrementY;
 	
 	public IncOriginSprPos(int incrementX, int incrementY) {
 		this.incrementX = incrementX;
 		this.incrementY = incrementY;
 	}
-
-	public int getIncrementX()
-		{ return incrementX; }
-
-	public int getIncrementY()
-		{ return incrementY; }		
 
 	@Override
 	public String toString()
@@ -40,8 +33,14 @@ public class IncOriginSprPos extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		sprite.incOriginSpriteX(getIncrementX());
-		sprite.incOriginSpriteY(getIncrementY());
+		sprite.incOriginSpriteX(incrementX);
+		sprite.incOriginSpriteY(incrementY);
 	}
 
 }
+
+
+
+
+
+

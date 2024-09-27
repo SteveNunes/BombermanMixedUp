@@ -15,8 +15,8 @@ import objmoveutils.GotoMove;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.RectangleMove;
-import tools.Tools;
 import tools.Materials;
+import tools.Tools;
 
 public class Sprite {
 

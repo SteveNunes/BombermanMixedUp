@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetSprIndex extends FrameTag {
 	
-	private Integer value;
+	public Integer value;
 	
 	public SetSprIndex(Integer value)
 		{ this.value = value; }
-
-	public Integer getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -31,12 +27,15 @@ public class SetSprIndex extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		if (getValue() == null)
+		if (value == null)
 			sprite.setVisibleSprite(false);
 		else {
 			sprite.setVisibleSprite(true);
-			sprite.setSpriteIndex(getValue());
+			sprite.setSpriteIndex(value);
 		}
 	}
 
 }
+
+
+

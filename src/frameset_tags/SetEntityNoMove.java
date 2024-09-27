@@ -3,17 +3,13 @@ package frameset_tags;
 import entities.Entity;
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetEntityNoMove extends FrameTag {
 	
-	private boolean value;
+	public boolean value;
 	
 	public SetEntityNoMove(boolean value)
 		{ this.value = value; }
-
-	public boolean getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -35,7 +31,10 @@ public class SetEntityNoMove extends FrameTag {
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getMainFrameSet();
 		Entity entity = frameSet.getEntity();
-		entity.setNoMove(getValue());
+		entity.setNoMove(value);
 	}
 
 }
+
+
+

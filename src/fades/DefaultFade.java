@@ -1,4 +1,4 @@
-package screen_effects;
+package fades;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -6,14 +6,24 @@ import javafx.scene.paint.Color;
 
 public class DefaultFade implements Fade {
 
-	private Double value = null;
-	private Double speed = null;
-	private Double valueInc = null;
+	private Double value;
+	private Double speed;
+	private Double valueInc;
 	private Color color;
 	
+	public DefaultFade()
+		{ this(Color.BLACK); }
+
+	public DefaultFade(Color color)
+		{ this(color, 0.02); }
+	
+	public DefaultFade(double speed)
+		{ this(Color.BLACK, speed); }
+
 	public DefaultFade(Color color, double speed) {
 		setColor(color);
 		setSpeed(speed);
+		value = null;
 		valueInc = speed;
 	}
 
@@ -35,12 +45,12 @@ public class DefaultFade implements Fade {
 
 	@Override
 	public void stopFade()
-		{ color = null; }
+		{ value = null; }
 
 	@Override
 	public void apply(Canvas canvas) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
-		if (color != null) {
+		if (value != null) {
 			gc.setFill(color);
 			gc.setGlobalAlpha(value);
 			if (valueInc != 0 && (value += valueInc) > 1 || value < 0d) {

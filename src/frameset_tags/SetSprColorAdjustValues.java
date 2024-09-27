@@ -2,14 +2,13 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
-import tools.Tools;
 
 public class SetSprColorAdjustValues extends FrameTag {
 	
-	private double hue;
-	private double saturation;
-	private double brightness;
-	private BlendMode blendMode;
+	public double hue;
+	public double saturation;
+	public double brightness;
+	public BlendMode blendMode;
 	
 	public SetSprColorAdjustValues(double hue, double saturation, double brightness, BlendMode blendMode) {
 		this.hue = hue;
@@ -20,18 +19,6 @@ public class SetSprColorAdjustValues extends FrameTag {
 
 	public SetSprColorAdjustValues(double hue, double saturation, double brightness)
 		{ this(hue, saturation, brightness, BlendMode.SRC_ATOP); }
-
-	public double getHue()
-		{ return hue; }
-
-	public double getSaturation()
-		{ return saturation; }
-		
-	public double getBrightness()
-		{ return brightness; }
-	
-	public BlendMode getBlendMode()
-		{ return blendMode; }
 
 	@Override
 	public String toString()
@@ -56,6 +43,18 @@ public class SetSprColorAdjustValues extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().setColorAdjust(getHue(), getSaturation(), getBrightness(), getBlendMode()); }
+		{ sprite.getEffects().setColorAdjust(hue, saturation, brightness, blendMode); }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+

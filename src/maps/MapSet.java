@@ -51,6 +51,7 @@ public class MapSet {
 		long ct = System.currentTimeMillis();
 		System.out.println("Carregando mapa " + iniMapName + " ...");
 		Effect.clearPreloadedEffects();
+		Materials.tempSprites.clear();
 		MapSet.iniMapName = iniMapName;
 		bricksRegenTimeInFrames = -1;
 		layerImages = new HashMap<>();
@@ -378,7 +379,7 @@ public class MapSet {
 
 	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough) {
 		// NOTA: Implementar retornando se tem monstro ou player em cima
-		return !tileIsFree(coord, passThrough);
+		return !tileIsFree(coord, passThrough) || Item.haveItemAt(coord);
 	}
 	
 }

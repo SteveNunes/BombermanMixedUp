@@ -2,12 +2,11 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
-import tools.Tools;
 
 public class SetSprBloomValues extends FrameTag {
 	
-	private double threshold;
-	private BlendMode blendMode;
+	public double threshold;
+	public BlendMode blendMode;
 	
 	public SetSprBloomValues(double threshold, BlendMode blendMode) {
 		this.threshold = threshold;
@@ -17,12 +16,6 @@ public class SetSprBloomValues extends FrameTag {
 	public SetSprBloomValues(double threshold)
 		{ this(threshold, BlendMode.SRC_ATOP); }
 
-	public double getThreshold()
-		{ return threshold; }
-	
-	public BlendMode getBlendMode()
-		{ return blendMode; }
-	
 	@Override
 	public String toString()
 		{ return "{" + FrameTag.getClassName(this) + ";" + threshold + ";" + blendMode.name() + "}"; }
@@ -44,6 +37,12 @@ public class SetSprBloomValues extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().setBloom(getThreshold(), getBlendMode()); }
+		{ sprite.getEffects().setBloom(threshold, blendMode); }
 
 }
+
+
+
+
+
+

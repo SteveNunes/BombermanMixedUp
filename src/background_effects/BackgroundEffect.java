@@ -1,4 +1,4 @@
-package screen_effects;
+package background_effects;
 
 import javafx.scene.canvas.Canvas;
 

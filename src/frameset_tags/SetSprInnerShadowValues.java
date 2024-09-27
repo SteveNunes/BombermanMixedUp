@@ -2,13 +2,12 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
-import tools.Tools;
 
 public class SetSprInnerShadowValues extends FrameTag {
 	
-	private double offsetX;
-	private double offsetY;
-	private BlendMode blendMode;
+	public double offsetX;
+	public double offsetY;
+	public BlendMode blendMode;
 	
 	public SetSprInnerShadowValues(double offsetX, double offsetY, BlendMode blendMode) {
 		this.offsetX = offsetX;
@@ -18,15 +17,6 @@ public class SetSprInnerShadowValues extends FrameTag {
 
 	public SetSprInnerShadowValues(double offsetX, double offsetY)
 		{ this(offsetX, offsetY, BlendMode.SRC_ATOP); }
-
-	public double getOffsetX()
-		{ return offsetX; }
-
-	public double getOffsetY()
-		{ return offsetY; }	
-	
-	public BlendMode getBlendMode()
-		{ return blendMode; }
 
 	@Override
 	public String toString()
@@ -50,6 +40,15 @@ public class SetSprInnerShadowValues extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getEffects().setInnerShadow(getOffsetX(), getOffsetY(), getBlendMode()); }
+		{ sprite.getEffects().setInnerShadow(offsetX, offsetY, blendMode); }
 
 }
+
+
+
+
+
+
+
+
+

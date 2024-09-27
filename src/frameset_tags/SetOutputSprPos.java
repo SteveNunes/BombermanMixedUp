@@ -1,23 +1,16 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetOutputSprPos extends FrameTag {
 	
-	private double x;
-	private double y;
+	public double x;
+	public double y;
 	
 	public SetOutputSprPos(double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
-
-	public double getX()
-		{ return x; }
-
-	public double getY()
-		{ return y; }	
 
 	@Override
 	public String toString()
@@ -40,8 +33,14 @@ public class SetOutputSprPos extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		sprite.setX(getX());
-		sprite.setY(getY());
+		sprite.setX(x);
+		sprite.setY(y);
 	}
 
 }
+
+
+
+
+
+

@@ -1,9 +1,11 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public abstract class FrameTag {
+	
+	// Mudar esse valor para 'true' no construtor da classe que herda FrameTag, se for uma Tag que só precisa ser lida uma unica vez.
+	public boolean deleteMeAfterFirstRead = false;
 	
 	public abstract FrameTag getNewInstanceOfThis();
 

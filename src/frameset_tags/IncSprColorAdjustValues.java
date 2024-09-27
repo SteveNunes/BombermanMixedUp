@@ -1,13 +1,12 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class IncSprColorAdjustValues extends FrameTag {
 	
-	private double incrementHue;
-	private double incrementSaturation;
-	private double incrementBrightness;
+	public double incrementHue;
+	public double incrementSaturation;
+	public double incrementBrightness;
 	
 	public IncSprColorAdjustValues(double incrementHue, double incrementSaturation, double incrementBrightness) {
 		this.incrementHue = incrementHue;
@@ -15,15 +14,6 @@ public class IncSprColorAdjustValues extends FrameTag {
 		this.incrementBrightness = incrementBrightness;
 	}
 
-	public double getIncrementHue()
-		{ return incrementHue; }
-
-	public double getIncrementSaturation()
-		{ return incrementSaturation; }
-		
-	public double getIncrementBrightness()
-		{ return incrementBrightness; }
-	
 
 	@Override
 	public String toString()
@@ -47,9 +37,18 @@ public class IncSprColorAdjustValues extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		sprite.getEffects().getColorAdjust().incValues(getIncrementHue(),
-																									 getIncrementSaturation(),
-																									 getIncrementBrightness());
+		sprite.getEffects().getColorAdjust().incValues(incrementHue,
+																									 incrementSaturation,
+																									 incrementBrightness);
 	}
 
 }
+
+
+
+
+
+
+
+
+

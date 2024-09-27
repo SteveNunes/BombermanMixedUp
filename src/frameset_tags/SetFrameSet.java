@@ -6,13 +6,10 @@ import frameset.Sprite;
 
 public class SetFrameSet extends FrameTag {
 	
-	private String value;
+	public String value;
 	
 	public SetFrameSet()
 		{ value = ""; }
-
-	public String getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -38,3 +35,6 @@ public class SetFrameSet extends FrameTag {
 	}
 
 }
+
+
+

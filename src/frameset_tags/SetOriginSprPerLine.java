@@ -1,17 +1,13 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetOriginSprPerLine extends FrameTag {
 	
-	private int value;
+	public int value;
 	
 	public SetOriginSprPerLine(int value)
 		{ this.value = value; }
-
-	public int getValue()
-		{ return value; }
 
 	@Override
 	public String toString()
@@ -31,6 +27,9 @@ public class SetOriginSprPerLine extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.setSpritesPerLine(getValue()); }
+		{ sprite.setSpritesPerLine(value); }
 
 }
+
+
+

@@ -2,17 +2,13 @@ package frameset_tags;
 
 import enums.ImageAlignment;
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetSprAlign extends FrameTag {
 	
-	private ImageAlignment alignment;
+	public ImageAlignment alignment;
 	
 	public SetSprAlign(ImageAlignment alignment)
 		{ this.alignment = alignment; }
-
-	public ImageAlignment getAlignment()
-		{ return alignment; }	
 
 	@Override
 	public String toString()
@@ -32,6 +28,9 @@ public class SetSprAlign extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.setAlignment(getAlignment()); }
+		{ sprite.setAlignment(alignment); }
 
 }
+
+
+

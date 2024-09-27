@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import application.Main;
+import background_effects.SquaredBg;
 import entities.Entity;
 import enums.Direction;
 import enums.SpriteLayerType;
@@ -75,7 +76,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import maps.MapSet;
-import screen_effects.SquaredBg;
 import tools.IniFiles;
 import tools.Tools;
 import util.Misc;
@@ -375,8 +375,8 @@ public class FrameSetEditor {
 					FrameTag tag = list.get(n);
 					if (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
 						if (tag instanceof SetEntityPos) {
-							tag = new SetEntityPos(((SetEntityPos)tag).getX() + (keyCode == KeyCode.LEFT ? -incX : keyCode == KeyCode.RIGHT ? incX : 0),
-																	((SetEntityPos)tag).getY() + (keyCode == KeyCode.UP ? -incY : keyCode == KeyCode.DOWN ? incY : 0));
+							tag = new SetEntityPos(((SetEntityPos)tag).x + (keyCode == KeyCode.LEFT ? -incX : keyCode == KeyCode.RIGHT ? incX : 0),
+																	((SetEntityPos)tag).y + (keyCode == KeyCode.UP ? -incY : keyCode == KeyCode.DOWN ? incY : 0));
 							list.set(n, tag);
 							added = true;
 						}
@@ -404,8 +404,8 @@ public class FrameSetEditor {
 				FrameTag tag = list.get(n);
 				if (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
 					if (tag instanceof SetObjPos) {
-						tag = new SetObjPos(((SetObjPos)tag).getX() + (keyCode == KeyCode.LEFT ? -incX : keyCode == KeyCode.RIGHT ? incX : 0),
-																((SetObjPos)tag).getY() + (keyCode == KeyCode.UP ? -incY : keyCode == KeyCode.DOWN ? incY : 0));
+						tag = new SetObjPos(((SetObjPos)tag).x + (keyCode == KeyCode.LEFT ? -incX : keyCode == KeyCode.RIGHT ? incX : 0),
+																((SetObjPos)tag).y + (keyCode == KeyCode.UP ? -incY : keyCode == KeyCode.DOWN ? incY : 0));
 						list.set(n, tag);
 						added = true;
 					}
@@ -432,8 +432,8 @@ public class FrameSetEditor {
 					FrameTag tag = list.get(n);
 					if (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
 						if (tag instanceof SetOriginSprPos) {
-							tag = new SetOriginSprPos(((SetOriginSprPos)tag).getX() + (keyCode == KeyCode.LEFT ? -incX : keyCode == KeyCode.RIGHT ? incX : 0),
-																				((SetOriginSprPos)tag).getY() + (keyCode == KeyCode.UP ? -incY : keyCode == KeyCode.DOWN ? incY : 0));
+							tag = new SetOriginSprPos(((SetOriginSprPos)tag).x + (keyCode == KeyCode.LEFT ? -incX : keyCode == KeyCode.RIGHT ? incX : 0),
+																				((SetOriginSprPos)tag).y + (keyCode == KeyCode.UP ? -incY : keyCode == KeyCode.DOWN ? incY : 0));
 							list.set(n, tag);
 							isChangingSprite = true;
 							added = true;
@@ -470,8 +470,8 @@ public class FrameSetEditor {
 					FrameTag tag = list.get(n);
 					if (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
 						if (tag instanceof SetOriginSprSize) {
-							tag = new SetOriginSprSize(((SetOriginSprSize)tag).getWidth() + (keyCode == KeyCode.LEFT ? -incX : keyCode == KeyCode.RIGHT ? incX : 0),
-																				((SetOriginSprSize)tag).getHeight() + (keyCode == KeyCode.UP ? -incY : keyCode == KeyCode.DOWN ? incY : 0));
+							tag = new SetOriginSprSize(((SetOriginSprSize)tag).width + (keyCode == KeyCode.LEFT ? -incX : keyCode == KeyCode.RIGHT ? incX : 0),
+																				((SetOriginSprSize)tag).height + (keyCode == KeyCode.UP ? -incY : keyCode == KeyCode.DOWN ? incY : 0));
 							list.set(n, tag);
 							isChangingSprite = true;
 							added = true;
@@ -500,8 +500,8 @@ public class FrameSetEditor {
 					FrameTag tag = list.get(n);
 					if (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
 						if (tag instanceof SetOutputSprSize) {
-							tag = new SetOutputSprSize(((SetOutputSprSize)tag).getWidth() + (keyCode == KeyCode.LEFT ? -incX : keyCode == KeyCode.RIGHT ? incX : 0),
-																				((SetOutputSprSize)tag).getHeight() + (keyCode == KeyCode.UP ? -incY : keyCode == KeyCode.DOWN ? incY : 0));
+							tag = new SetOutputSprSize(((SetOutputSprSize)tag).width + (keyCode == KeyCode.LEFT ? -incX : keyCode == KeyCode.RIGHT ? incX : 0),
+																				((SetOutputSprSize)tag).height + (keyCode == KeyCode.UP ? -incY : keyCode == KeyCode.DOWN ? incY : 0));
 							list.set(n, tag);
 							isChangingSprite = true;
 							added = true;
@@ -826,17 +826,17 @@ public class FrameSetEditor {
 				for (int n = 0; n < list.size(); n++) {
 					FrameTag tag = list.get(n);
 					if (isNoHolds() && tag instanceof SetSprIndex) {
-						tag = new SetSprIndex(((SetSprIndex)tag).getValue() + inc);
+						tag = new SetSprIndex(((SetSprIndex)tag).value + inc);
 						list.set(n, tag);
 						return;
 					}
 					else if (isHold(0, 0, 1) && tag instanceof SetSprRotate) {
-						tag = new SetSprRotate(((SetSprRotate)tag).getValue() + 9 * inc);
+						tag = new SetSprRotate(((SetSprRotate)tag).value + 9 * inc);
 						list.set(n, tag);
 						return;
 					}
 					else if (isHold(0, 1, 0) && tag instanceof SetSprAlpha) {
-						tag = new SetSprAlpha(((SetSprAlpha)tag).getValue() + 0.05f * inc);
+						tag = new SetSprAlpha(((SetSprAlpha)tag).value + 0.05f * inc);
 						list.set(n, tag);
 						return;
 					}
@@ -851,12 +851,12 @@ public class FrameSetEditor {
 						return;
 					}
 					else if (isHold(0, 1, 1) && tag instanceof SetOriginSprSize) {
-						tag = new SetOriginSprSize(((SetOriginSprSize)tag).getWidth() + inc, ((SetOriginSprSize)tag).getHeight() + inc);
+						tag = new SetOriginSprSize(((SetOriginSprSize)tag).width + inc, ((SetOriginSprSize)tag).height + inc);
 						list.set(n, tag);
 						return;
 					}
 					else if (isHold(1, 0, 1) && tag instanceof SetOutputSprSize) {
-						tag = new SetOutputSprSize(((SetOutputSprSize)tag).getWidth() + inc, ((SetOutputSprSize)tag).getHeight() + inc);
+						tag = new SetOutputSprSize(((SetOutputSprSize)tag).width + inc, ((SetOutputSprSize)tag).height + inc);
 						list.set(n, tag);
 						return;
 					}

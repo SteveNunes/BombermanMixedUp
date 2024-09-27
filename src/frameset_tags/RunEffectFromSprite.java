@@ -4,28 +4,18 @@ import entities.Effect;
 import enums.StringFrameSet;
 import frameset.Sprite;
 import objmoveutils.Position;
-import tools.Tools;
 
 public class RunEffectFromSprite extends FrameTag {
 	
-	private StringFrameSet effectFrameSet;
-	private Integer offsetX;
-	private Integer offsetY;
+	public StringFrameSet effectFrameSet;
+	public Integer offsetX;
+	public Integer offsetY;
 	
 	public RunEffectFromSprite(Integer offsetX, Integer offsetY, StringFrameSet effectFrameSet) {
 		this.offsetX = offsetX;
 		this.offsetY = offsetY;
 		this.effectFrameSet = effectFrameSet;
 	}
-	
-	public Integer getOffsetX()
-		{ return offsetX; }	
-
-	public Integer getOffsetY()
-		{ return offsetY; }	
-
-	public StringFrameSet getEffectFrameSet()
-		{ return effectFrameSet; }
 	
 	@Override
 	public String toString()
@@ -59,3 +49,12 @@ public class RunEffectFromSprite extends FrameTag {
 	}
 
 }
+
+
+
+
+
+
+
+
+

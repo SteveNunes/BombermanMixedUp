@@ -3,23 +3,16 @@ package frameset_tags;
 import entities.Entity;
 import frameset.FrameSet;
 import frameset.Sprite;
-import tools.Tools;
 
 public class SetEntityPos extends FrameTag {
 	
-	private int x;
-	private int y;
+	public int x;
+	public int y;
 	
 	public SetEntityPos(int x, int y) {
 		this.x = x;
 		this.y = y;
 	}
-
-	public int getX()
-		{ return x; }
-
-	public int getY()
-		{ return y; }	
 
 	@Override
 	public String toString()
@@ -44,8 +37,14 @@ public class SetEntityPos extends FrameTag {
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getMainFrameSet();
 		Entity entity = frameSet.getEntity();
-		entity.setX(getX());
-		entity.setY(getY());
+		entity.setX(x);
+		entity.setY(y);
 	}
 
 }
+
+
+
+
+
+

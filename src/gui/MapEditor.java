@@ -533,7 +533,7 @@ public class MapEditor {
 	void setMainCanvasMouseEvents() {
 		canvasMain.setOnScroll(e -> {
 			int inc = (isShiftHold() ? e.getDeltaX() : e.getDeltaY()) < 0 ? -1 : 1;
-			if (zoomMain + inc <= 10 && zoomMain + inc >= 1)
+			if (isNoHolds() && (zoomMain + inc <= 10 && zoomMain + inc >= 1))
 				zoomMain += inc;
 		});
 		canvasMain.setOnMouseDragged(e -> {
@@ -641,7 +641,7 @@ public class MapEditor {
 			if (checkBoxShowItens.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
-						getDrawGc().drawImage(Materials.itens, (brick.getItem().getValue() - 1) * 18 + 1, 18 + 1, 16, 16, brick.getTileX() * Main.TILE_SIZE, brick.getTileY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
+						getDrawGc().drawImage(Materials.mainSprites, (brick.getItem().getValue() - 1) * 16, 16, 16, 16, brick.getTileX() * Main.TILE_SIZE, brick.getTileY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
 		}
 		Bomb.drawBombs();
 		Item.drawItems();
@@ -652,7 +652,7 @@ public class MapEditor {
 				getDrawGc().drawImage(MapSet.getTileSetImage(), (int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, 16, 16, canvasMouseDraw.getCoordX() * 16 + x * 16, canvasMouseDraw.getCoordY() * 16 + y * 16, Main.TILE_SIZE, Main.TILE_SIZE);
     drawBlockTypeMark();
 	}
-
+	
 	int deslocX()
 		{ return canvasMouseDraw.movedX + canvasMouseDraw.dragX; }
 

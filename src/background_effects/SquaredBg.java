@@ -1,4 +1,4 @@
-package screen_effects;
+package background_effects;
 
 import java.security.SecureRandom;
 
