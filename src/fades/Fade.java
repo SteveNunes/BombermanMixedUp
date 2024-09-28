@@ -1,6 +1,6 @@
 package fades;
 
-import enums.FadeType;
+import enums.FadeState;
 import javafx.scene.canvas.Canvas;
 
 public interface Fade {
@@ -13,7 +13,9 @@ public interface Fade {
 	
 	void stopFade();
 	
-	FadeType getFadeType();
+	FadeState getInitialFadeState();
+	
+	FadeState getCurrentFadeState();
 	
 	void apply(Canvas canvas);
 	

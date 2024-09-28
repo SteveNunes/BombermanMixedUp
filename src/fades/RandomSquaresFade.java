@@ -1,6 +1,6 @@
 package fades;
 
-import enums.FadeType;
+import enums.FadeState;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
@@ -10,7 +10,8 @@ import util.MyMath;
 public class RandomSquaresFade implements Fade {
 
 	private Runnable onFadeDoneEvent;
-	private FadeType fadeType;
+	private FadeState fadeState;
+	private FadeState fadeInitialState;
 	private Integer speed;
 	private int tick;
 	private Integer squareSize;
@@ -35,41 +36,38 @@ public class RandomSquaresFade implements Fade {
 	public RandomSquaresFade(Color color, Integer speed, Integer squareSize) {
 		setColor(color);
 		setSpeed(speed);
-		reset();
+		reset(FadeState.NONE);
 		this.squareSize = squareSize;
 	}
 	
-	private void reset() {
-		fadeType = FadeType.NONE;
+	private void reset(FadeState state) {
+		fadeState = state;
+		fadeInitialState = state;
 		squares = null;
 		total = 0;
 		tick = 0;
-		count = null;
+		count = fadeState == FadeState.FADE_IN ? 1 : -1;
 	}
 
 	@Override
 	public RandomSquaresFade fadeIn() {
-		reset();
-		fadeType = FadeType.FADE_IN;
-		count = 1;
+		reset(FadeState.FADE_IN);
 		return this;
 	}
 
 	@Override
 	public RandomSquaresFade fadeOut() {
-		reset();
-		fadeType = FadeType.FADE_OUT;
-		count = -1;
+		reset(FadeState.FADE_OUT);
 		return this;
 	}
 
 	@Override
 	public boolean isFadeDone()
-		{ return total != null && total == -1; }
+		{ return fadeState == FadeState.DONE; }
 
 	@Override
 	public void stopFade()
-		{ count = null; }
+		{ fadeState = FadeState.NONE; }
 	
 	@Override
 	public RandomSquaresFade setOnFadeDoneEvent(Runnable runnable) {
@@ -78,13 +76,17 @@ public class RandomSquaresFade implements Fade {
 	}
 
 	@Override
-	public FadeType getFadeType()
-		{ return fadeType; }
+	public FadeState getInitialFadeState()
+		{ return fadeInitialState; }
+
+	@Override
+	public FadeState getCurrentFadeState()
+		{ return fadeState; }
 
 	@Override
 	public void apply(Canvas canvas) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
-		if (count != null && tick == 0) {
+		if (fadeState != FadeState.DONE && tick == 0) {
 			if (squares == null) {
 				image = new WritableImage((int)canvas.getWidth(), (int)canvas.getHeight());
 				squares = new int[(int)canvas.getHeight() / squareSize][(int)canvas.getWidth() / squareSize];
@@ -108,14 +110,13 @@ public class RandomSquaresFade implements Fade {
 					for (int xx = 0; xx < squareSize; xx++)
 						image.getPixelWriter().setColor(x * squareSize + xx, y * squareSize + yy, count < 0 ? Color.TRANSPARENT : color);
 				if (Math.abs((count += count < 0 ? -1 : 1)) == total) {
-					count = null;
-					total = -1;
+					fadeState = FadeState.DONE;
 					if (onFadeDoneEvent != null)
 						onFadeDoneEvent.run();
 				}
 			}
 		}
-		if (count != null && ++tick == speed)
+		if (fadeState != FadeState.DONE && ++tick == speed)
 			tick = 0;
 		gc.drawImage(image, 0, 0);
 	}

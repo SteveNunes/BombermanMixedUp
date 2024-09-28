@@ -1,6 +1,6 @@
 package fades;
 
-import enums.FadeType;
+import enums.FadeState;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -9,7 +9,8 @@ import tools.Tools;
 public class PixelizingFade implements Fade {
 
 	private Runnable onFadeDoneEvent;
-	private FadeType fadeType;
+	private FadeState fadeState;
+	private FadeState fadeInitialState;
 	private Double speed;
 	private Double value;
 	private Color color;
@@ -28,41 +29,36 @@ public class PixelizingFade implements Fade {
 	public PixelizingFade(Color color, double speed) {
 		setColor(color);
 		setSpeed(speed);
-		reset();
+		reset(FadeState.NONE);
+		backupSize = Tools.getOutputPixelSize();
 	}
 	
-	private void reset() {
-		fadeType = FadeType.NONE;
-		backupSize = Tools.getOutputPixelSize();
-		value = null;
-		inc = null;
-	}
-
 	@Override
 	public PixelizingFade fadeIn() {
-		reset();
-		fadeType = FadeType.FADE_IN;
-		inc = -1;
-		value = 100d;
+		reset(FadeState.FADE_IN);
 		return this;
 	}
 
 	@Override
 	public PixelizingFade fadeOut() {
-		reset();
-		fadeType = FadeType.FADE_OUT;
-		inc = 1;
-		value = 2d;
+		reset(FadeState.FADE_OUT);
 		return this;
+	}
+	
+	private void reset(FadeState state) {
+		fadeState = state;
+		fadeInitialState = state;
+		value = state == FadeState.FADE_IN ? 100d : 2d;
+		inc = state == FadeState.FADE_IN ? -1 : 1;
 	}
 
 	@Override
 	public boolean isFadeDone()
-		{ return inc == null; }
+		{ return fadeState == FadeState.DONE; }
 
 	@Override
 	public void stopFade() {
-		inc = null;
+		fadeState = FadeState.NONE;
 		Tools.setOutputPixelSize(backupSize);
 	}
 
@@ -73,8 +69,12 @@ public class PixelizingFade implements Fade {
 	}
 
 	@Override
-	public FadeType getFadeType()
-		{ return fadeType; }
+	public FadeState getInitialFadeState()
+		{ return fadeInitialState; }
+
+	@Override
+	public FadeState getCurrentFadeState()
+		{ return fadeState; }
 
 	@Override
 	public void apply(Canvas canvas) {
@@ -88,8 +88,8 @@ public class PixelizingFade implements Fade {
 			if (!isFadeDone()) {
 				if ((value += speed * inc) >= 100 || value <= 2) {
 					value = inc == 1 ? 100 : 1d;
-					gc.setGlobalAlpha(inc == 1 ? 1d : 0d);
-					inc = null;
+					gc.setGlobalAlpha(fadeState == FadeState.FADE_IN ? 1d : 0d);
+					fadeState = FadeState.DONE;
 					if (onFadeDoneEvent != null)
 						onFadeDoneEvent.run();
 				}

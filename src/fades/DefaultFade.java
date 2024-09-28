@@ -1,6 +1,6 @@
 package fades;
 
-import enums.FadeType;
+import enums.FadeState;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -8,7 +8,8 @@ import javafx.scene.paint.Color;
 public class DefaultFade implements Fade {
 
 	private Runnable onFadeDoneEvent;
-	private FadeType fadeType;
+	private FadeState fadeState;
+	private FadeState fadeInitialState;
 	private Double value;
 	private Double speed;
 	private Double valueInc;
@@ -26,34 +27,35 @@ public class DefaultFade implements Fade {
 	public DefaultFade(Color color, double speed) {
 		setColor(color);
 		setSpeed(speed);
-		value = null;
-		valueInc = speed;
-		fadeType = FadeType.NONE;
+		reset(FadeState.NONE);
 	}
 
 	@Override
 	public DefaultFade fadeIn() {
-		fadeType = FadeType.FADE_IN;
-		valueInc = -speed;
-		value = 1d;
+		reset(FadeState.FADE_IN);
 		return this;
 	}
 
 	@Override
 	public DefaultFade fadeOut() {
-		fadeType = FadeType.FADE_OUT;
-		valueInc = speed;
-		value = 0d;
+		reset(FadeState.FADE_OUT);
 		return this;
+	}
+	
+	private void reset(FadeState state) {
+		fadeState = state;
+		fadeInitialState = state;
+		valueInc = state == FadeState.FADE_IN ? -speed : speed;
+		value = state == FadeState.FADE_IN ? 1d : 0d;
 	}
 
 	@Override
 	public boolean isFadeDone()
-		{ return valueInc == 0; }
+		{ return fadeState == FadeState.DONE; }
 
 	@Override
 	public void stopFade()
-		{ value = null; }
+		{ fadeState = FadeState.NONE; }
 
 	@Override
 	public DefaultFade setOnFadeDoneEvent(Runnable runnable) {
@@ -62,18 +64,22 @@ public class DefaultFade implements Fade {
 	}
 
 	@Override
-	public FadeType getFadeType()
-		{ return fadeType; }
+	public FadeState getInitialFadeState()
+		{ return fadeInitialState; }
+
+	@Override
+	public FadeState getCurrentFadeState()
+		{ return fadeState; }
 
 	@Override
 	public void apply(Canvas canvas) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
-		if (value != null) {
+		if (fadeState != FadeState.NONE) {
 			gc.setFill(color);
 			gc.setGlobalAlpha(value);
-			if (valueInc != 0 && (value += valueInc) > 1 || value < 0d) {
-				valueInc = 0d;
-				value = value > 1d ? 1d : 0d;
+			if (fadeState != FadeState.DONE && ((value += valueInc) > 1 || value < 0d)) {
+				fadeState = FadeState.DONE;
+				value = fadeState == FadeState.FADE_IN ? 0d : 1d;
 				if (onFadeDoneEvent != null)
 					onFadeDoneEvent.run();
 			}
