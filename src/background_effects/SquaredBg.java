@@ -5,7 +5,8 @@ import java.security.SecureRandom;
 import enums.SpriteLayerType;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 import tools.Tools;
 import util.MyMath;
 
@@ -18,6 +19,7 @@ public class SquaredBg implements BackgroundEffect {
 	private int colorMaxVal;
 	private int colorIncVal;
 	private boolean disabled;
+	private WritableImage image;
 	
 	public SquaredBg()
 		{ this(null, 2, 5, 50, 255); }
@@ -47,9 +49,10 @@ public class SquaredBg implements BackgroundEffect {
 		{ this(rgb, squareSize, 5, colorMinVal, colorMaxVal); }
 	
 	public SquaredBg(int[] rgb, int squareSize, int colorIncVal, int colorMinVal, int colorMaxVal) {
-		int w = (int)(Tools.getCanvasMap().get(SpriteLayerType.BACKGROUND).getWidth() / squareSize) + 1,
-				h = (int)(Tools.getCanvasMap().get(SpriteLayerType.BACKGROUND).getHeight() / squareSize) + 1;
+		int w = (int)Tools.getCanvasMap().get(SpriteLayerType.BACKGROUND).getWidth() / squareSize + 1, 
+				h = (int)Tools.getCanvasMap().get(SpriteLayerType.BACKGROUND).getHeight() / squareSize + 1;
 		squaresBg = new int[h][w];
+		image = new WritableImage(w, h);
 		for (int y = 0; y < h; y++)
 	    for (int x = 0; x < w; x++)
 	    	squaresBg[y][x] = (int)MyMath.getRandom(colorMinVal, colorMaxVal);
@@ -71,19 +74,17 @@ public class SquaredBg implements BackgroundEffect {
 	@Override
 	public void apply(Canvas canvas) {
 		if (!disabled) {
-			GraphicsContext gc = canvas.getGraphicsContext2D();
-    	gc.save();
 			for (int y = 0; y < squaresBg.length; y++)
 		    for (int x = 0; x < squaresBg[0].length; x++) {
 		    	if ((squaresBg[y][x] += colorIncVal) >= colorMaxVal)
 		    		squaresBg[y][x] = colorMinVal;
-		    	gc.setFill(ImageUtils.argbToColor(ImageUtils.getRgba(rgb[0] == 0 ? 0 : squaresBg[y][x], rgb[1] == 0 ? 0 : squaresBg[y][x], rgb[2] == 0 ? 0 : squaresBg[y][x])));
-		    	gc.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
+		    	Color c = ImageUtils.argbToColor(ImageUtils.getRgba(rgb[0] == 0 ? 0 : squaresBg[y][x], rgb[1] == 0 ? 0 : squaresBg[y][x], rgb[2] == 0 ? 0 : squaresBg[y][x]));
+    			image.getPixelWriter().setColor(x, y, c);
 		    }
-    	gc.restore();
+			canvas.getGraphicsContext2D().drawImage(image, 0, 0, image.getWidth(), image.getHeight(), 0, 0, image.getWidth() * squareSize, image.getHeight() * squareSize);
 		}
 	}
-
+	
 	@Override
 	public void disable()
 		{ disabled = true; }

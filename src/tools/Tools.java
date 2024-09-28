@@ -8,10 +8,11 @@ import background_effects.BackgroundEffect;
 import drawimage_stuffs.DrawImageEffects;
 import entities.Bomb;
 import entities.Explosion;
+import enums.Direction;
 import enums.FadeState;
 import enums.SpriteLayerType;
+import fades.CurtainFade;
 import fades.Fade;
-import fades.RandomSquaresFade;
 import gameutil.FPSHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.SnapshotParameters;
@@ -69,14 +70,15 @@ public abstract class Tools {
 			gcMap.get(t).setImageSmoothing(false);
 			gcMap.get(t).clearRect(0, 0, canvasMap.get(t).getWidth(), canvasMap.get(t).getHeight());
 		}
-		setFade(new RandomSquaresFade(20)
+		setFade(new CurtainFade(1)
+				.setClosingDirection(Direction.DOWN)
 				.setOnFadeDoneEvent(() -> {
 					if (getFade().getInitialFadeState() == FadeState.FADE_IN)
 						getFade().fadeOut();
 					else
 						getFade().fadeIn();
 				})
-				.fadeIn()
+				//.fadeIn()
 				);
 	}
 	

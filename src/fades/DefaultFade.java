@@ -91,7 +91,7 @@ public class DefaultFade implements Fade {
 		if (speed < 0.001 || speed > 1)
 			throw new RuntimeException("speed must be between 0.001 and 1.0");
 		this.speed = speed;
-		valueInc = speed;
+		reset(fadeInitialState);
 	}
 	
 	public void setColor(Color color) {

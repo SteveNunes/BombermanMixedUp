@@ -8,7 +8,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import objmoveutils.Position;
 
-public class ClosingFade implements Fade {
+public class ClosingCircleFade implements Fade {
 
 	private Runnable onFadeDoneEvent;
 	private FadeState fadeState;
@@ -21,28 +21,28 @@ public class ClosingFade implements Fade {
 	private Color color;
   private WritableImage mask;
 	
-	public ClosingFade(int centerX, int centerY)
+	public ClosingCircleFade(int centerX, int centerY)
 		{ this(Color.BLACK, centerX, centerY); }
 	
-	public ClosingFade(Color color, int centerX, int centerY)
+	public ClosingCircleFade(Color color, int centerX, int centerY)
 		{ this(color, centerX, centerY, 1); }
 	
-	public ClosingFade(int centerX, int centerY, double speed)
+	public ClosingCircleFade(int centerX, int centerY, double speed)
 		{ this(Color.BLACK, centerX, centerY, speed); }
 	
-	public ClosingFade(Color color, int centerX, int centerY, double speed)
+	public ClosingCircleFade(Color color, int centerX, int centerY, double speed)
 		{ this(color, new Position(centerX, centerY), speed); }
 
-	public ClosingFade(Position center)
+	public ClosingCircleFade(Position center)
 		{ this(Color.BLACK, center); }
 
-	public ClosingFade(Color color, Position center)
+	public ClosingCircleFade(Color color, Position center)
 		{ this(color, center, 1); }
 	
-	public ClosingFade(Position center, double speed)
+	public ClosingCircleFade(Position center, double speed)
 		{ this(Color.BLACK, center, speed); }
 
-	public ClosingFade(Color color, Position center, double speed) {
+	public ClosingCircleFade(Color color, Position center, double speed) {
 		setColor(color);
 		setSpeed(speed);
 		setPosition(center);
@@ -56,19 +56,19 @@ public class ClosingFade implements Fade {
 	public ClosingFadeShape getClosingFadeShape()
 		{ return closingFadeShape; }
 	
-	public ClosingFade setStyle(ClosingFadeShape closingFadeShape) {
+	public ClosingCircleFade setStyle(ClosingFadeShape closingFadeShape) {
 		this.closingFadeShape = closingFadeShape;
 		return this;
 	}
 
 	@Override
-	public ClosingFade fadeIn() {
+	public ClosingCircleFade fadeIn() {
 		reset(FadeState.FADE_IN);
 		return this;
 	}
 	
 	@Override
-	public ClosingFade fadeOut() {
+	public ClosingCircleFade fadeOut() {
 		reset(FadeState.FADE_OUT);
 		return this;
 	}
@@ -82,7 +82,7 @@ public class ClosingFade implements Fade {
 	}
 
 	@Override
-	public ClosingFade setOnFadeDoneEvent(Runnable runnable) {
+	public ClosingCircleFade setOnFadeDoneEvent(Runnable runnable) {
 		onFadeDoneEvent = runnable;
 		return this;
 	}
@@ -187,7 +187,7 @@ public class ClosingFade implements Fade {
 		if (speed < 0.1)
 			throw new RuntimeException("speed must be equal or higher than 0.1");
 		this.speed = speed;
-		valueInc = speed;
+		reset(fadeInitialState);
 	}
 	
 	public void setColor(Color color) {

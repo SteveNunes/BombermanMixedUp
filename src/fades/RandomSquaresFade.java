@@ -125,6 +125,7 @@ public class RandomSquaresFade implements Fade {
 		if (speed < 1)
 			throw new RuntimeException("speed must be equal or higher than 1");
 		this.speed = speed;
+		reset(fadeInitialState);
 	}
 	
 	public void setColor(Color color) {
