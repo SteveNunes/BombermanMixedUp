@@ -11,8 +11,8 @@ import enums.TileProp;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.GraphicsContext;
 import maps.MapSet;
-import tools.Tools;
 import tools.Materials;
+import tools.Tools;
 
 public class Explosion {
 

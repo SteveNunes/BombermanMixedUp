@@ -11,8 +11,8 @@ import frameset_tags.RepeatLastFrame;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import tools.FrameTagLoader;
-import tools.Tools;
 import tools.Materials;
+import tools.Tools;
 
 public class FrameSet extends Position {
 	

@@ -1,7 +1,6 @@
 package enums;
 
 import util.CollectionUtils;
-import util.MyMath;
 
 public enum Curse {
 	
