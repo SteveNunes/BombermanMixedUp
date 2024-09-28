@@ -1,5 +1,6 @@
 package fades;
 
+import enums.FadeType;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
@@ -8,6 +9,8 @@ import util.MyMath;
 
 public class RandomSquaresFade implements Fade {
 
+	private Runnable onFadeDoneEvent;
+	private FadeType fadeType;
 	private Integer speed;
 	private int tick;
 	private Integer squareSize;
@@ -32,11 +35,12 @@ public class RandomSquaresFade implements Fade {
 	public RandomSquaresFade(Color color, Integer speed, Integer squareSize) {
 		setColor(color);
 		setSpeed(speed);
+		reset();
 		this.squareSize = squareSize;
-		count = null;
 	}
 	
 	private void reset() {
+		fadeType = FadeType.NONE;
 		squares = null;
 		total = 0;
 		tick = 0;
@@ -44,15 +48,19 @@ public class RandomSquaresFade implements Fade {
 	}
 
 	@Override
-	public void fadeIn() {
+	public RandomSquaresFade fadeIn() {
 		reset();
+		fadeType = FadeType.FADE_IN;
 		count = 1;
+		return this;
 	}
 
 	@Override
-	public void fadeOut() {
+	public RandomSquaresFade fadeOut() {
 		reset();
+		fadeType = FadeType.FADE_OUT;
 		count = -1;
+		return this;
 	}
 
 	@Override
@@ -62,6 +70,16 @@ public class RandomSquaresFade implements Fade {
 	@Override
 	public void stopFade()
 		{ count = null; }
+	
+	@Override
+	public RandomSquaresFade setOnFadeDoneEvent(Runnable runnable) {
+		onFadeDoneEvent = runnable;
+		return this;
+	}
+
+	@Override
+	public FadeType getFadeType()
+		{ return fadeType; }
 
 	@Override
 	public void apply(Canvas canvas) {
@@ -92,6 +110,8 @@ public class RandomSquaresFade implements Fade {
 				if (Math.abs((count += count < 0 ? -1 : 1)) == total) {
 					count = null;
 					total = -1;
+					if (onFadeDoneEvent != null)
+						onFadeDoneEvent.run();
 				}
 			}
 		}

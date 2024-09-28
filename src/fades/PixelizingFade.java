@@ -1,5 +1,6 @@
 package fades;
 
+import enums.FadeType;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -7,6 +8,8 @@ import tools.Tools;
 
 public class PixelizingFade implements Fade {
 
+	private Runnable onFadeDoneEvent;
+	private FadeType fadeType;
 	private Double speed;
 	private Double value;
 	private Color color;
@@ -29,23 +32,28 @@ public class PixelizingFade implements Fade {
 	}
 	
 	private void reset() {
+		fadeType = FadeType.NONE;
 		backupSize = Tools.getOutputPixelSize();
 		value = null;
 		inc = null;
 	}
 
 	@Override
-	public void fadeIn() {
+	public PixelizingFade fadeIn() {
 		reset();
+		fadeType = FadeType.FADE_IN;
 		inc = -1;
 		value = 100d;
+		return this;
 	}
 
 	@Override
-	public void fadeOut() {
+	public PixelizingFade fadeOut() {
 		reset();
+		fadeType = FadeType.FADE_OUT;
 		inc = 1;
 		value = 2d;
+		return this;
 	}
 
 	@Override
@@ -57,6 +65,16 @@ public class PixelizingFade implements Fade {
 		inc = null;
 		Tools.setOutputPixelSize(backupSize);
 	}
+
+	@Override
+	public PixelizingFade setOnFadeDoneEvent(Runnable runnable) {
+		onFadeDoneEvent = runnable;
+		return this;
+	}
+
+	@Override
+	public FadeType getFadeType()
+		{ return fadeType; }
 
 	@Override
 	public void apply(Canvas canvas) {
@@ -72,6 +90,8 @@ public class PixelizingFade implements Fade {
 					value = inc == 1 ? 100 : 1d;
 					gc.setGlobalAlpha(inc == 1 ? 1d : 0d);
 					inc = null;
+					if (onFadeDoneEvent != null)
+						onFadeDoneEvent.run();
 				}
 			}
 			gc.restore();

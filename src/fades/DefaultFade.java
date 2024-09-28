@@ -1,11 +1,14 @@
 package fades;
 
+import enums.FadeType;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public class DefaultFade implements Fade {
 
+	private Runnable onFadeDoneEvent;
+	private FadeType fadeType;
 	private Double value;
 	private Double speed;
 	private Double valueInc;
@@ -25,18 +28,23 @@ public class DefaultFade implements Fade {
 		setSpeed(speed);
 		value = null;
 		valueInc = speed;
+		fadeType = FadeType.NONE;
 	}
 
 	@Override
-	public void fadeIn() {
+	public DefaultFade fadeIn() {
+		fadeType = FadeType.FADE_IN;
 		valueInc = -speed;
 		value = 1d;
+		return this;
 	}
 
 	@Override
-	public void fadeOut() {
+	public DefaultFade fadeOut() {
+		fadeType = FadeType.FADE_OUT;
 		valueInc = speed;
 		value = 0d;
+		return this;
 	}
 
 	@Override
@@ -48,6 +56,16 @@ public class DefaultFade implements Fade {
 		{ value = null; }
 
 	@Override
+	public DefaultFade setOnFadeDoneEvent(Runnable runnable) {
+		onFadeDoneEvent = runnable;
+		return this;
+	}
+
+	@Override
+	public FadeType getFadeType()
+		{ return fadeType; }
+
+	@Override
 	public void apply(Canvas canvas) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		if (value != null) {
@@ -56,6 +74,8 @@ public class DefaultFade implements Fade {
 			if (valueInc != 0 && (value += valueInc) > 1 || value < 0d) {
 				valueInc = 0d;
 				value = value > 1d ? 1d : 0d;
+				if (onFadeDoneEvent != null)
+					onFadeDoneEvent.run();
 			}
 			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 		}

@@ -10,7 +10,6 @@ import entities.Bomb;
 import entities.Explosion;
 import enums.SpriteLayerType;
 import fades.Fade;
-import fades.PixelizingFade;
 import gameutil.FPSHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.SnapshotParameters;
@@ -68,8 +67,6 @@ public abstract class Tools {
 			gcMap.get(t).setImageSmoothing(false);
 			gcMap.get(t).clearRect(0, 0, canvasMap.get(t).getWidth(), canvasMap.get(t).getHeight());
 		}
-		setFade(new PixelizingFade(0.1));
-		getFade().fadeOut();
 	}
 	
 	public static void drawAllCanvas(Canvas canvas)

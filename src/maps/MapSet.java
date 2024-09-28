@@ -46,6 +46,7 @@ public class MapSet {
 	private static Position groundWithWallShadow;
 	private static Position fragileGround;
 	private static int bricksRegenTimeInFrames;
+	private static Position mapMove;
 	
 	public static void loadMap(String iniMapName) {
 		long ct = System.currentTimeMillis();
@@ -58,6 +59,7 @@ public class MapSet {
 		layers = new HashMap<>();
 		initialPlayerCoords = new HashMap<>();
 		initialMonsterCoords = new HashMap<>();
+		mapMove = new Position();
 		mapName = IniFiles.stages.read(iniMapName, "File");
 		iniFileMap = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
 		if (iniFileMap == null)
