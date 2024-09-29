@@ -54,8 +54,8 @@ public class Item extends Entity{
 		startInvFrames = 10;
 		int itemIndex = itemType.getValue() - 1;
 		String itemStandFrameSet =
-							"{SetSprSource;ItemEdge;0;0;18;18;0;0;0;0;18;18},{SetEntityShadow;0;0;18;4;0.5},{SetTicksPerFrame;1},{SetSprIndex;0},{IncOutputSprPos;-2;-13},{DoJump;1;1.1;50}"
-						+	",,{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{IncOutputSprPos;-1;-12}"
+							"{SetSprSource;ItemEdge;0;0;18;18;0;0;0;0;18;18},{SetEntityShadow;0;0;18;4;0.5},{SetTicksPerFrame;1},{SetSprIndex;0},{SetOutputSprPos;-2;-13},{DoJump;1;1.1;50}"
+						+	",,{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{SetOutputSprPos;-1;-12}"
 						+ "|{SetSprIndex;1},{SetEntityShadow;0;0;16;3;0.35},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}"
 						+ "|{SetSprIndex;2},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}"
 						+ "|{SetSprIndex;0},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{Goto;-3;2}"

@@ -9,6 +9,7 @@ import enums.ImageAlignment;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
 import gui.util.ImageUtils;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import objmoveutils.EliticMove;
 import objmoveutils.GotoMove;
@@ -389,13 +390,16 @@ public class Sprite {
 		}
 		outputSpritePos.setPosition(x, y);
 	}
-	 
-	public void draw() {
+	
+	public void draw()
+		{ draw(null); }
+	
+	public void draw(GraphicsContext gc) {
 		if (visibleSprite) {
 			updateOutputDrawCoords();
 			int[] in = getCurrentSpriteOriginCoords();
 			int sx = in[0], sy = in[1], tx = (int)getOutputDrawCoords().getX(), ty = (int)getOutputDrawCoords().getY();
-			ImageUtils.drawImage(Tools.getGcMap().get(layerType), spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+			ImageUtils.drawImage(gc != null ? gc : Tools.getGcMap().get(layerType), spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 				tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 		}
 	}

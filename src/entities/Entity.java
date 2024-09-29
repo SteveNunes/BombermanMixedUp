@@ -286,9 +286,15 @@ public class Entity extends Position {
 		{ return frameSets.containsKey(frameSetName); }
 
 	public void run()
-		{ run(false); }
+		{ run(null, false); }
 
-	public void run(boolean isPaused) {
+	public void run(boolean isPaused)
+		{ run(null, isPaused); }
+
+	public void run(GraphicsContext gc)
+		{ run(gc, false); }
+
+	public void run(GraphicsContext gc, boolean isPaused) {
 		if (!isDisabled) {
 			if (frameSets.isEmpty())
 				throw new RuntimeException("This entity have no FrameSets");
@@ -317,7 +323,7 @@ public class Entity extends Position {
 					gcList.get(SpriteLayerType.GROUND).fillOval(getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight(), getShadowWidth(), getShadowHeight());
 					gcList.get(SpriteLayerType.GROUND).restore();
 				}
-				frameSets.get(currentFrameSetName).run(isPaused);
+				frameSets.get(currentFrameSetName).run(gc, isPaused);
 			}
 		}
 	}
@@ -432,7 +438,7 @@ public class Entity extends Position {
 		Elevation elevation = getElevation();
 		if (elevation != Elevation.HIGH_FLYING)
 			return true;
-		Tile tile = mapSet.getLayer(26).getTopTileFromCoord(coord);
+		Tile tile = MapSet.getLayer(26).getTopTileFromCoord(coord);
 		for (TileProp prop : tile.tileProp) {
 			if (TileProp.getCantCrossList(elevation).contains(prop) ||
 					(Brick.haveBrickAt(coord, true) && !canPassThroughBrick()) || (Bomb.haveBombAt(coord) && !canPassThroughBomb()))

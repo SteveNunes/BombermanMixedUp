@@ -707,7 +707,7 @@ public class MapEditor {
 		gc.setFill(Color.BLACK);
 		gc.fillRect(0, 0, 48, 48);
 		if (entity != null) {
-			entity.run(false);
+			entity.run(gc, false);
 			gc.drawImage(canvas.snapshot(null, null), 0, 0, 16, 16, 0, 0, 48, 48);
 			if (System.currentTimeMillis() > resetBricks && entity.getCurrentFrameSet() != null && entity.getCurrentFrameSet().getCurrentFrameIndex() == entity.getCurrentFrameSet().getTotalFrames())
 				entity.getCurrentFrameSet().setCurrentFrameIndex(0);
