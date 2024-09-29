@@ -85,7 +85,7 @@ import util.MyMath;
 
 public class FrameSetEditor {
 	
-	private final int winW = 312;
+	private final int winW = 320;
 	private final int winH = 240;
 	private List<Map<String, FrameSet>> backupFrameSetsMap;
 	private List<KeyCode> holdedKeys;
@@ -106,8 +106,10 @@ public class FrameSetEditor {
 	private Font font;
 	public boolean isPaused;
 	private boolean isChangingSprite;
-	private int mouseX;
-	private int mouseY;
+	private int zoomedMouseX;
+	private int zoomedMouseY;
+	private int originalMouseX;
+	private int originalMouseY;
 	private int dragX;
 	private int dragY;
 	private int backupIndex;
@@ -139,8 +141,8 @@ public class FrameSetEditor {
 		centerY = Main.TILE_SIZE * 7;
 		linkEntityToCursor = 0;
 		backupIndex = -1;
-		mouseX = 0;
-		mouseY = 0;
+		zoomedMouseX = 0;
+		zoomedMouseY = 0;
 		dragX = 0;
 		dragY = 0;
 		bgType = 2;
@@ -902,16 +904,20 @@ public class FrameSetEditor {
 			selectedSprites.forEach(sprite -> deltaSprites.add(new Sprite(sprite)));
 		});
 		canvasMain.setOnMouseMoved(e -> {
-			mouseX = (int)e.getX() / zoom;
-			mouseY = (int)e.getY() / zoom;
+			originalMouseX = (int)e.getX();
+			originalMouseY = (int)e.getY();
+			zoomedMouseX = (int)e.getX() / zoom;
+			zoomedMouseY = (int)e.getY() / zoom;
 		});
 		canvasMain.setOnMouseDragged(e -> {
-			int oldX = mouseX, oldY = mouseY;
-			mouseX = (int)e.getX() / zoom;
-			mouseY = (int)e.getY() / zoom;
+			int oldX = zoomedMouseX, oldY = zoomedMouseY;
+			originalMouseX = (int)e.getX();
+			originalMouseY = (int)e.getY();
+			zoomedMouseX = (int)e.getX() / zoom;
+			zoomedMouseY = (int)e.getY() / zoom;
 			if (e.getButton() == MouseButton.PRIMARY) {
-				updateFrameSetTags(oldX < mouseX ? KeyCode.RIGHT : KeyCode.LEFT, Math.abs(mouseX - dragX), 0);
-				updateFrameSetTags(oldY < mouseY ? KeyCode.DOWN : KeyCode.UP, Math.abs(mouseY - dragY), 0);
+				updateFrameSetTags(oldX < zoomedMouseX ? KeyCode.RIGHT : KeyCode.LEFT, Math.abs(zoomedMouseX - dragX), 0);
+				updateFrameSetTags(oldY < zoomedMouseY ? KeyCode.DOWN : KeyCode.UP, Math.abs(zoomedMouseY - dragY), 0);
 			}
 		});
 		canvasMain.setOnMouseReleased(e -> {
@@ -930,11 +936,11 @@ public class FrameSetEditor {
 			MapSet.run();
 		if (linkEntityToCursor > 0) {
 			if (linkEntityToCursor == 2)
-				currentEntity.setPosition(mouseX, mouseY);
+				currentEntity.setPosition(zoomedMouseX, zoomedMouseY);
 			else {
 				boolean move = true;
 				if (currentEntity.isPerfectTileCentred()) {
-					int mx = mouseX / Main.TILE_SIZE, my = mouseY / Main.TILE_SIZE;
+					int mx = zoomedMouseX / Main.TILE_SIZE, my = zoomedMouseY / Main.TILE_SIZE;
 					if (mx > currentEntity.getTileX())
 						currentEntity.setDirection(Direction.RIGHT);
 					else if (mx < currentEntity.getTileX())
@@ -986,9 +992,9 @@ public class FrameSetEditor {
 					int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
 							y = (int)sprite.getOutputDrawCoords().getY() * zoom;
 					if (sprite.getMaxOutputSpriteY() > max &&
-							mouseX * zoom >= x && mouseY * zoom >= y &&
-							mouseX * zoom <= x + sprite.getOutputWidth() * zoom &&
-							mouseY * zoom <= y + sprite.getOutputHeight() * zoom) {
+							zoomedMouseX * zoom >= x && zoomedMouseY * zoom >= y &&
+							zoomedMouseX * zoom <= x + sprite.getOutputWidth() * zoom &&
+							zoomedMouseY * zoom <= y + sprite.getOutputHeight() * zoom) {
 								focused = sprite;
 								max = sprite.getMaxOutputSpriteY();
 					}
@@ -1044,12 +1050,11 @@ public class FrameSetEditor {
 			}
 		}
 		else if (zoom > 3) {
-			int w = (int)canvasMain.getWidth(), h = (int)canvasMain.getHeight(),
-					w2 = (int)Tools.getTempCanvasSnapshot().getWidth(),
-					h2 = (int)Tools.getTempCanvasSnapshot().getHeight(),
-					w3 = w2 * zoom, h3 = h2 * zoom;
 			Tools.drawAllCanvasToTempCanvas();
-	    gcMain.drawImage(Tools.getTempCanvasSnapshot(), 0, 0, w2, h2, (int)(w / 2 - w3 / 2), (int)(h / 2 - h3 / 2), w3, h3); 
+			Image i = Tools.getTempCanvasSnapshot();
+			int w = (int)canvasMain.getWidth(), h = (int)canvasMain.getHeight(),
+					w2 = (int)i.getWidth(), h2 = (int)i.getHeight(), z = w / w2, zoom2 = zoom - 2;
+	    gcMain.drawImage(i, originalMouseX / z - w2 / 2 / zoom2, originalMouseY / z - h2 / 2 / zoom2, w2 / zoom2, h2 / zoom2, 0, 0, w, h); 
 		}
  	}
 
