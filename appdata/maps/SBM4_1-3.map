@@ -257,7 +257,7 @@
 255=26 GROUND 10 3 128 0 0 0 16!1 1 255 255 255 255 -
 
 [SETUP]
-Rolling=64 16 4 600
+Rolling=600
 ScreenLimit=0 1 17 14
 Tiles=Tile03
 NeedForExit=KillAllMobs

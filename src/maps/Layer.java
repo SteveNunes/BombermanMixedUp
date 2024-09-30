@@ -1,6 +1,7 @@
 package maps;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Map;
 import application.Main;
 import entities.TileCoord;
 import enums.SpriteLayerType;
+import enums.TileProp;
 import gui.util.ImageUtils;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
@@ -92,6 +94,8 @@ public class Layer {
 	public void addTile(Tile tile) {
 		if (!tilesMap.containsKey(tile.getTileCoord()))
 			tilesMap.put(tile.getTileCoord(), new ArrayList<>());
+		else
+			tile.tileProp = new ArrayList<>(Arrays.asList(TileProp.NOTHING));
 		tilesMap.get(tile.getTileCoord()).add(tile);
 		tileList.add(tile);
 	}

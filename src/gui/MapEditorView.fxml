@@ -198,6 +198,17 @@
                         </VBox>
                      </children>
                   </HBox>
+                  <HBox prefWidth="100.0">
+                     <children>
+                        <VBox alignment="CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
+                           <children>
+                              <Canvas fx:id="canvasRollingTile" height="48.0" width="48.0" />
+                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Bloco rolante" />
+                              <Button fx:id="buttonSetFrameSetRollingTile" maxWidth="100.0" mnemonicParsing="false" text="Set Sprite" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </HBox>
                </children>
             </HBox>
          </children>

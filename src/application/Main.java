@@ -16,7 +16,7 @@ import util.IniFile;
 public class Main extends Application {
 	
 	public final static int TILE_SIZE = 16;
-	public final static GameMode GAME_MODE = GameMode.FRAMESET_EDITOR;
+	public final static GameMode GAME_MODE = GameMode.MAP_EDITOR;
 
 	public static FrameSetEditor frameSetEditor = null;
 	public static MapEditor mapEditor = null;

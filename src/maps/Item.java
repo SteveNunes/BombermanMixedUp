@@ -10,7 +10,6 @@ import entities.Effect;
 import entities.Entity;
 import entities.TileCoord;
 import enums.ItemType;
-import enums.StringFrameSet;
 import enums.TileProp;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
@@ -137,7 +136,7 @@ public class Item extends Entity{
 			if (--item.startInvFrames <= 0 && item.getCurrentFrameSetName().equals("ItemStandFrameSet") &&
 					MapSet.tileContainsProp(item.getTileCoord(), TileProp.EXPLOSION)) {
 				removeItems.add(item);
-				Effect.runEffect(item.getPosition(), StringFrameSet.FIRE_SKULL_EXPLOSION);
+				Effect.runEffect(item.getPosition(), "FIRE_SKULL_EXPLOSION");
 			}
 			else if (!item.getCurrentFrameSetName().equals("ItemStandFrameSet") && !item.getCurrentFrameSet().isRunning())
 				removeItems.add(item);

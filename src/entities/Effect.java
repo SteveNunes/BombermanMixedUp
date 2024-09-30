@@ -6,35 +6,34 @@ import java.util.List;
 import java.util.Map;
 
 import application.Main;
-import enums.StringFrameSet;
 import objmoveutils.Position;
+import tools.IniFiles;
 
 public class Effect extends Entity {
 
 	private static Map<Integer, Effect> effects = new HashMap<>();
-	private static Map<StringFrameSet, Effect> preLoadedEffects = new HashMap<>();
+	private static Map<String, Effect> preLoadedEffects = new HashMap<>();
 	
-	private StringFrameSet frameSet;
-	
-	private Effect(Effect effect, Position position)
-		{ this(position, effect.frameSet); }
+	private Effect(Effect effect, Position position) {
+		this(position, effect.getFrameSetsNames().iterator().next());
+		setPosition(position);
+	}
 
-	private Effect(Position position, StringFrameSet frameSet) {
+	private Effect(Position position, String frameSetName) {
 		super();
-		this.frameSet = frameSet;
 		setTileSize(Main.TILE_SIZE);
 		setPosition(position);
-		addNewFrameSetFromString(frameSet.name(), frameSet.getString());
-		setFrameSet(frameSet.name());
+		addNewFrameSetFromString(frameSetName, IniFiles.effects.read(frameSetName, "FrameSet"));
+		setFrameSet(frameSetName);
 	}
 	
 	public static void clearPreloadedEffects()
 		{ preLoadedEffects.clear(); }
 	
-	public static Effect runEffect(Position screenPosition, StringFrameSet effectFrameSet) {
-		if (!preLoadedEffects.containsKey(effectFrameSet))
-			preLoadedEffects.put(effectFrameSet, new Effect(new Position(), effectFrameSet));
-		Effect effect = new Effect(preLoadedEffects.get(effectFrameSet), screenPosition);
+	public static Effect runEffect(Position screenPosition, String frameSetName) {
+		if (!preLoadedEffects.containsKey(frameSetName))
+			preLoadedEffects.put(frameSetName, new Effect(new Position(), frameSetName));
+		Effect effect = new Effect(preLoadedEffects.get(frameSetName), screenPosition);
 		effects.put(effect.hashCode(), effect);
 		return effect;
 	}

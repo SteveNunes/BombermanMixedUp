@@ -5,8 +5,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import application.Main;
@@ -88,6 +90,8 @@ public class MapEditor {
   @FXML
   private Button buttonSetFrameSetFragileGround;
   @FXML
+  private Button buttonSetFrameSetRollingTile;
+  @FXML
   private Button buttonTileSetZoom1;
   @FXML
   private Button buttonTileSetZoom2;
@@ -107,6 +111,8 @@ public class MapEditor {
   private Canvas canvasGroundWithBrickShadow;
   @FXML
   private Canvas canvasFragileGround;
+  @FXML
+  private Canvas canvasRollingTile;
   @FXML
   private Canvas canvasMain;
   @FXML
@@ -134,14 +140,6 @@ public class MapEditor {
 	private Rectangle tileSelection;
 	private GraphicsContext gcMain;
 	private GraphicsContext gcTileSet;
-	private GraphicsContext gcBrickStand;
-	private GraphicsContext gcBrickBreaking;
-	private GraphicsContext gcBrickRegen;
-	private GraphicsContext gcWallSprite;
-	private GraphicsContext gcGroundSprite;
-	private GraphicsContext gcGroundWithBrickShadow;
-	private GraphicsContext gcGroundWithWallShadow;
-	private GraphicsContext gcFragileGround;
 	private Brick[] bricks;
 	private Position[] tilePosition;
 	private Canvas[] canvasList;
@@ -189,23 +187,9 @@ public class MapEditor {
   }
 	
 	void setAllCanvas() {
-		canvasList = new Canvas[] {canvasBrickStand, canvasBrickBreaking, canvasBrickRegen, canvasWallSprite, canvasGroundSprite, canvasGroundWithWallShadow, canvasGroundWithBrickShadow, canvasFragileGround};
-		gcBrickStand = canvasBrickStand.getGraphicsContext2D();
-		gcBrickStand.setImageSmoothing(false);
-		gcBrickBreaking = canvasBrickBreaking.getGraphicsContext2D();
-		gcBrickBreaking.setImageSmoothing(false);
-		gcBrickRegen = canvasBrickRegen.getGraphicsContext2D();
-		gcBrickRegen.setImageSmoothing(false);
-		gcWallSprite = canvasWallSprite.getGraphicsContext2D();
-		gcWallSprite.setImageSmoothing(false);
-		gcGroundSprite = canvasGroundSprite.getGraphicsContext2D();
-		gcGroundSprite.setImageSmoothing(false);
-		gcGroundWithBrickShadow = canvasGroundWithBrickShadow.getGraphicsContext2D();
-		gcGroundWithBrickShadow.setImageSmoothing(false);
-		gcGroundWithWallShadow = canvasGroundWithWallShadow.getGraphicsContext2D();
-		gcGroundWithWallShadow.setImageSmoothing(false);
-		gcFragileGround = canvasFragileGround.getGraphicsContext2D();
-		gcFragileGround.setImageSmoothing(false);
+		canvasList = new Canvas[] {canvasBrickStand, canvasBrickBreaking, canvasBrickRegen, canvasWallSprite, canvasGroundSprite, canvasGroundWithWallShadow, canvasGroundWithBrickShadow, canvasFragileGround, canvasRollingTile};
+		for (Canvas canvas : canvasList)
+			canvas.getGraphicsContext2D().setImageSmoothing(false);
 		gcMain = canvasMain.getGraphicsContext2D();
 	  gcMain.setImageSmoothing(false);
 	}
@@ -404,6 +388,7 @@ public class MapEditor {
 		bricks[0].setFrameSet("BrickStandFrameSet");
 		bricks[1].setFrameSet("BrickBreakFrameSet");
 		bricks[2].setFrameSet("BrickRegenFrameSet");
+		bricks[3].setFrameSet("BrickRollingFrameSet");
 		fragileTiles.clear();
 		sampleFragileTile = null;
 		if (MapSet.getFragileGround() != null) {
@@ -727,7 +712,9 @@ public class MapEditor {
 			drawBrickSample(canvasList[n], bricks[n]);
 		for (int n = 3; n < 7; n++)
 			drawBrickSample(canvasList[n], tilePosition[n - 3]);
-		drawBrickSample(canvasList[7], sampleFragileTile);
+		drawBrickSample(canvasFragileGround, sampleFragileTile);
+		drawBrickSample(canvasRollingTile, sampleFragileTile);
+		drawBrickSample(canvasList[8], bricks[3]);
 		if (System.currentTimeMillis() >= resetBricks)
 			resetBricks += 1500;
 		gcTileSet.setFill(Color.BLACK);
@@ -862,11 +849,11 @@ public class MapEditor {
 	}
 	
 	void drawBlockTypeMark() {
-		Map<TileCoord, Boolean> ok = new HashMap<>();
+		Set<TileCoord> ok = new HashSet<>();
 		if (checkBoxShowBlockType.isSelected()) {
 			getTilesFromCurrentLayer().forEach(tile -> {
     		Color color;
-    		if (!ok.containsKey(tile.getTileCoord())) {
+    		if (!ok.contains(tile.getTileCoord())) {
 	    		if (tile.tileProp.contains(TileProp.EXPLOSION))
 	    			color = Color.INDIANRED;
 	    		else if (tile.tileProp.contains(TileProp.PLAYER_INITIAL_POSITION))
@@ -957,7 +944,7 @@ public class MapEditor {
 		    									tile.getTileY() * Main.TILE_SIZE,
 		    									Main.TILE_SIZE, Main.TILE_SIZE);
 	    		getDrawGc().restore();
-	    		ok.put(tile.getTileCoord(), true);
+	    		ok.add(tile.getTileCoord());
     		}
     	});
 		}

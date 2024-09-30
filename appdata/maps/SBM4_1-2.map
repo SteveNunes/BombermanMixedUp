@@ -345,7 +345,7 @@
 343=76 CLOUD 2 1 32 208 1 0 1 1 255 255 255 255 -
 
 [SETUP]
-Rolling=64 16 4 600
+Rolling=600
 ImageLayer=27
 ScreenLimit=0 1 17 14
 Tiles=Tile03

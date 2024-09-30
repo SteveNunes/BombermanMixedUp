@@ -1,25 +1,24 @@
 package frameset_tags;
 
 import entities.Effect;
-import enums.StringFrameSet;
 import frameset.Sprite;
 import objmoveutils.Position;
 
 public class RunEffectFromEntity extends FrameTag {
 	
-	public StringFrameSet effectFrameSet;
+	public String frameSetName;
 	public Integer offsetX;
 	public Integer offsetY;
 	
-	public RunEffectFromEntity(Integer offsetX, Integer offsetY, StringFrameSet effectFrameSet) {
+	public RunEffectFromEntity(Integer offsetX, Integer offsetY, String franeSetName) {
 		this.offsetX = offsetX;
 		this.offsetY = offsetY;
-		this.effectFrameSet = effectFrameSet;
+		this.frameSetName = franeSetName;
 	}
 	
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + offsetX + ";" + offsetY + ";" + effectFrameSet.name() + "}"; }
+		{ return "{" + FrameTag.getClassName(this) + ";" + offsetX + ";" + offsetY + ";" + frameSetName + "}"; }
 
 	public RunEffectFromEntity(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags);
@@ -29,7 +28,7 @@ public class RunEffectFromEntity extends FrameTag {
 			throw new RuntimeException(tags + " - Too few parameters");
 		int n = 0;
 		try {
-			effectFrameSet = StringFrameSet.valueOf(params[n++]);
+			frameSetName = params[n++];
 			offsetX = params.length == 1 ? null : Integer.parseInt(params[n++]);
 			offsetY = params.length == 1 ? null : Integer.parseInt(params[n++]);
 		}
@@ -39,13 +38,13 @@ public class RunEffectFromEntity extends FrameTag {
 
 	@Override
 	public RunEffectFromEntity getNewInstanceOfThis()
-		{ return new RunEffectFromEntity(offsetX, offsetY, effectFrameSet); }
+		{ return new RunEffectFromEntity(offsetX, offsetY, frameSetName); }
 
 	@Override
 	public void process(Sprite sprite) {
 		int x = (int)sprite.getMainFrameSet().getEntity().getX() + (offsetX == null ? 0 : offsetX),
 				y = (int)sprite.getMainFrameSet().getEntity().getY() + (offsetY == null ? 0 : offsetY);
-		Effect.runEffect(new Position(x, y), effectFrameSet);
+		Effect.runEffect(new Position(x, y), frameSetName);
 	}
 
 }

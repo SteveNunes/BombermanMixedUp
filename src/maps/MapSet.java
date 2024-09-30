@@ -334,8 +334,11 @@ public class MapSet {
 	public static Map<Integer, Layer> getLayersMap()
 		{ return layers; }
 	
+	public static boolean isValidLayer(int layer)
+		{ return layers.containsKey(layer); } 
+	
 	public static Layer getLayer(int layerIndex) {
-		if (!layers.containsKey(layerIndex))
+		if (!isValidLayer(layerIndex))
 			throw new RuntimeException(layerIndex + " - Invalid layer index");
 		return layers.get(layerIndex);
 	}

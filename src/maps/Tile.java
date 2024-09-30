@@ -70,13 +70,16 @@ public class Tile {
 			flip = Arrays.asList(ImageFlip.NONE, ImageFlip.HORIZONTAL, ImageFlip.VERTICAL, ImageFlip.BOTH).get(f);
 			n++; rotate = split.length <= n ? 0 : Integer.parseInt(split[n]) * 90;
 			n++; String[] split2 = split[n].split("!");
-			for (String s : split2) {
-				int v = Integer.parseInt(s);
-				if (TileProp.getPropFromValue(v) != null) {
-					TileProp prop = TileProp.getPropFromValue(v);
-					tileProp.add(prop);
+			if (!MapSet.isValidLayer(layer) || MapSet.getLayer(layer).haveTilesOnCoord(getTileCoord()))
+				for (String s : split2) {
+					int v = Integer.parseInt(s);
+					if (TileProp.getPropFromValue(v) != null) {
+						TileProp prop = TileProp.getPropFromValue(v);
+						tileProp.add(prop);
+					}
 				}
-			}			
+			else
+				tileProp.add(TileProp.NOTHING);
 			n++; opacity = split.length <= n ? 1 : Double.parseDouble(split[n]);
 			n++; r = split.length <= n ? 255 : Integer.parseInt(split[n]);
 			n++; g = split.length <= n ? 255 : Integer.parseInt(split[n]);
