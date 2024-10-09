@@ -288,6 +288,5 @@ ExitFrameSet=ChangeBlockType!-!12!4!3 RunEffect!-1!11!3 CopyTileImage!0!1!3!2!1!
 Tiles=Tile39
 NeedForExit=Switch KillAllMobs
 
-[LAYERFRAMESET]
-1@LayerFrameSet@0=1 1
-2@LayerFrameSet@0=1 1,rep26,-1 1,rep26
+[FRAMESETS]
+DefaultFrameSet={SetSprSource;Layer26;0;0;-;-;0;0;0;0;-;-},{SetTicksPerFrame;26},{SetSprIndex;0},,{SetSprSource;Layer51;0;0;-;-;0;0;0;0;-;-},{SetSprIndex;-}|{SetSprIndex;0},,{SetSprIndex;0}|{Goto;0}

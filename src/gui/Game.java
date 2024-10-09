@@ -39,7 +39,6 @@ public class Game {
 	
 	void mainLoop() {
 		try {
-			Tools.clearAllCanvas();
 			Tools.getFPSHandler().fpsCounter();
 			if (!Main.close )
 				Platform.runLater(() -> {

@@ -104,7 +104,7 @@ public class ClosingCircleFade implements Fade {
 		{ return fadeState; }
 	
 	private double getMaxRadius(Canvas canvas) {
-    int w = (int)canvas.getWidth(), h = (int)canvas.getHeight(),
+    int w = (int)canvas.getWidth() / 3, h = (int)canvas.getHeight() / 3,
     		cx = (int)center.getX(), cy = (int)center.getY();
   	double rMax = 1, vInc = speed;
   	if (closingFadeShape == ClosingFadeShape.CIRCLE) {
@@ -136,42 +136,33 @@ public class ClosingCircleFade implements Fade {
 	public void apply(Canvas canvas) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		if (fadeState != FadeState.NONE) {
-      int w = (int)canvas.getWidth(), h = (int)canvas.getHeight(),
+      int w = (int)canvas.getWidth() / 3, h = (int)canvas.getHeight() / 3,
       		cx = (int)center.getX(), cy = (int)center.getY();
       if (mask == null) {
-      	if (closingFadeShape == ClosingFadeShape.CIRCLE)
-      		mask = new WritableImage(w, h);
-      	else
-      		mask = new WritableImage(1, 1);
+     		mask = new WritableImage(w, h);
 				radius = fadeState == FadeState.FADE_IN ? 0 : getMaxRadius(canvas);
       }
-			gc.setGlobalAlpha(1);
       boolean done = true;
-    	if (closingFadeShape == ClosingFadeShape.CIRCLE) {
-        gc.clearRect(0, 0, w, h);
-				for (int y = 0; y < h; y++)
-					for (int x = 0; x < w; x++) {
-						double dx = x - cx, dy = y - cy, distance = Math.sqrt(dx * dx + dy * dy);
-						boolean b = (fadeState == FadeState.DONE && fadeInitialState == FadeState.FADE_IN) || (fadeState != FadeState.DONE && radius > 0 && distance <= radius);
-						if ((fadeState == FadeState.FADE_IN && !b) || (fadeState == FadeState.FADE_OUT && (radius > 0 || b)))
-							done = false;
-						mask.getPixelWriter().setColor(x, y, b ? Color.TRANSPARENT : color);
-					}
-	      gc.drawImage(mask, 0, 0);			
-    	}
-    	else {
-    		gc.setFill(Color.BLACK);
-        gc.fillRect(0, 0, w, h);
-        gc.clearRect(cx - radius / 2, cy - radius / 2, radius, radius);
-        if ((fadeState == FadeState.FADE_IN || radius > 0) && (cx - radius / 2 > 0 || cx + radius < w || cy - radius / 2 > 0 || cy + radius < h))
-        	done = false;
-    	}
+			for (int y = 0; y < h; y++)
+				for (int x = 0; x < w; x++) {
+					double dx = x - cx, dy = y - cy, distance = Math.sqrt(dx * dx + dy * dy);
+					
+					boolean b = (fadeState == FadeState.DONE && fadeInitialState == FadeState.FADE_IN) ||
+											(fadeState != FadeState.DONE &&
+											((closingFadeShape == ClosingFadeShape.CIRCLE && radius > 0 && distance <= radius) ||
+											(closingFadeShape == ClosingFadeShape.SQUARE && radius > 0 && x >= cx - radius / 2 && x <= cx + radius / 2 && y >= cy - radius / 2 && y <= cy + radius / 2)));
+					if ((fadeState == FadeState.FADE_IN && !b) || (fadeState == FadeState.FADE_OUT && (radius > 0 || b)))
+						done = false;
+					mask.getPixelWriter().setColor(x, y, b ? Color.TRANSPARENT : color);
+				}
+      gc.drawImage(mask, 0, 0, w, h, 0, 0, w * 3, h * 3);			
 			if (fadeState != FadeState.DONE) {
 				radius += valueInc;
 				if (fadeState == FadeState.FADE_IN)
 					valueInc *= 1.01;
-				else
+				else 
 					valueInc /= 1.01;
+					
 				if (done) {
 					radius = fadeState == FadeState.FADE_IN ? radius : 0d;
 					valueInc = 0d;

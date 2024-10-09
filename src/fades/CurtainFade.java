@@ -42,7 +42,7 @@ public class CurtainFade implements Fade {
 		setColor(color);
 		setSpeed(speed);
 		reset(FadeState.NONE);
-		closingDirection = Direction.DOWN;
+		this.closingDirection = Direction.DOWN;
 	}
 	
 	public Direction getClosingDirection()
@@ -101,7 +101,7 @@ public class CurtainFade implements Fade {
 			double w = canvas.getWidth(), h = canvas.getHeight();
 			if (value == null)
 				value = valueInc > 0 ? 0 : closingDirection.isHorizontal() ? w : h;
-			gc.clearRect(0, 0, w, h);
+			gc.save();
 			gc.setFill(color);
 			value += valueInc;
 			if (closingDirection.isHorizontal()) {
@@ -114,6 +114,7 @@ public class CurtainFade implements Fade {
 				if (value < valueInc || value >= h - valueInc)
 					fadeDone();
 			}
+			gc.restore();
 		}
 	}
 	

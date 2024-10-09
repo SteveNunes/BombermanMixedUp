@@ -92,7 +92,7 @@ public class ClockFade implements Fade {
 		if (fadeState != FadeState.NONE) {
 			double w = canvas.getWidth(), h = canvas.getHeight();
 			int radius = (int)h;
-			gc.clearRect(0, 0, w, h);
+			gc.save();
 			gc.setFill(color);
 			gc.fillArc(w / 2 - radius, h / 2 - radius, radius * 2, radius * 2, 90, arc, ArcType.ROUND);
 			if (fadeState != FadeState.DONE && ((arc += inc) > 360 || arc < 0)) {
@@ -101,6 +101,7 @@ public class ClockFade implements Fade {
 				if (onFadeDoneEvent != null)
 					onFadeDoneEvent.run();
 			}
+			gc.restore();
 		}
 	}
 	

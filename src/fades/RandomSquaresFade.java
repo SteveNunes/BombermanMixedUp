@@ -86,14 +86,16 @@ public class RandomSquaresFade implements Fade {
 	@Override
 	public void apply(Canvas canvas) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
+		int w = (int)canvas.getWidth() / 3, h = (int)canvas.getHeight() / 3;
 		if (fadeState != FadeState.DONE && tick == 0) {
 			if (squares == null) {
-				image = new WritableImage((int)canvas.getWidth(), (int)canvas.getHeight());
-				squares = new int[(int)canvas.getHeight() / squareSize][(int)canvas.getWidth() / squareSize];
+				image = new WritableImage(w, h);
+				squares = new int[h / squareSize + 1][w / squareSize + 1];
 				total = squares[0].length * squares.length + 1;
-				for (int y = 0; count < 0 && y < image.getHeight(); y++)
-					for (int x = 0; x < image.getWidth(); x++)
-						image.getPixelWriter().setColor(x, y, color);
+				for (int y = 0; count < 0 && y < h; y++)
+					for (int x = 0; x < w; x++)
+						if (x < w && y < h)
+							image.getPixelWriter().setColor(x, y, color);
 			}
 			if (count < total) {
 				int x = (int)MyMath.getRandom(0, squares[0].length - 1),
@@ -108,7 +110,8 @@ public class RandomSquaresFade implements Fade {
 				squares[y][x] = 1;
 				for (int yy = 0; yy < squareSize; yy++)
 					for (int xx = 0; xx < squareSize; xx++)
-						image.getPixelWriter().setColor(x * squareSize + xx, y * squareSize + yy, count < 0 ? Color.TRANSPARENT : color);
+						if (x * squareSize + xx < w && y * squareSize + yy < h)
+							image.getPixelWriter().setColor(x * squareSize + xx, y * squareSize + yy, count < 0 ? Color.TRANSPARENT : color);
 				if (Math.abs((count += count < 0 ? -1 : 1)) == total) {
 					fadeState = FadeState.DONE;
 					if (onFadeDoneEvent != null)
@@ -118,7 +121,7 @@ public class RandomSquaresFade implements Fade {
 		}
 		if (fadeState != FadeState.DONE && ++tick == speed)
 			tick = 0;
-		gc.drawImage(image, 0, 0);
+		gc.drawImage(image, 0, 0, w, h, 0, 0, w * 3, h * 3);
 	}
 
 	public void setSpeed(Integer speed) {

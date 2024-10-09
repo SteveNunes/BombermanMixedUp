@@ -11,19 +11,20 @@ import entities.TileCoord;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import gui.util.ImageUtils;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import javafx.scene.paint.Color;
 import tools.Materials;
+import tools.Tools;
 
 public class Layer {
 	
 	private Map<TileCoord, List<Tile>> tilesMap;
 	private List<Tile> tileList;
-	private WritableImage layerImage;
 	private int layer;
+	private int width;
+	private int height;
 	private SpriteLayerType layerType;
 	
 	public Layer(List<String> tileInfos) {
@@ -53,9 +54,12 @@ public class Layer {
 				if ((h = tile.getTileY() * Main.TILE_SIZE + 16) > height)
 					height = h;
 			}
-		Canvas canvas = new Canvas(width, height);
+		this.width = width;
+		this.height = height;
+		Canvas canvas = new Canvas(1000, 1000);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		gc.setImageSmoothing(false);
+		gc.clearRect(0, 0, 1000, 1000);
 		tilesMap.values().forEach(tiles ->
 			tiles.forEach(tile ->
 				ImageUtils.drawImage(gc, MapSet.getTileSetImage(),
@@ -63,17 +67,16 @@ public class Layer {
 														 tile.outX, tile.outY, 16, 16,
 														 tile.flip, tile.rotate,
 														 tile.opacity, tile.effects)));
-		SnapshotParameters params = new SnapshotParameters();
-		params.setFill(Color.TRANSPARENT);
-		layerImage = canvas.snapshot(params, null);
-		Materials.tempSprites.put("Layer" + layer, layerImage);
+		if (!Materials.tempSprites.containsKey("Layer" + layer))
+			Materials.tempSprites.put("Layer" + layer, new WritableImage(1000, 1000));
+		Tools.getCanvasSnapshot(canvas, Materials.tempSprites.get("Layer" + layer));
 	}
 	
-	public WritableImage getLayerImage()
-		{ return layerImage; }
+	public Image getLayerImage()
+		{ return Materials.tempSprites.get("Layer" + layer); }
 	
 	public void setLayerImage(WritableImage image)
-		{ layerImage = image; }
+		{ Materials.tempSprites.put("Layer" + layer, image); }
 	
 	public Map<TileCoord, List<Tile>> getTilesMap()
 		{ return tilesMap; }
@@ -103,11 +106,21 @@ public class Layer {
 	public boolean haveTilesOnCoord(TileCoord coord)
 		{ return tilesMap.containsKey(coord); } 
 	
-	public Tile getTopTileFromCoord(TileCoord coord)
-		{ return getTileFromCoord(coord, 0); }
+	public Tile getTopTileFromCoord(TileCoord coord) {
+		if (!tilesMap.containsKey(coord))
+			throw new RuntimeException(coord + " - Invalid tile coordinate");
+		if (tilesMap.get(coord).isEmpty())
+			throw new RuntimeException(coord + " - Tile is empty at this coordinate");
+		return getTileFromCoord(coord, 0);
+	}
 	
-	public Tile getFirstBottomTileFromCoord(TileCoord coord)
-		{ return getTileFromCoord(coord, tilesMap.get(coord).size() - 1); }
+	public Tile getFirstBottomTileFromCoord(TileCoord coord) {
+		if (!tilesMap.containsKey(coord))
+			throw new RuntimeException(coord + " - Invalid tile coordinate");
+		if (tilesMap.get(coord).isEmpty())
+			throw new RuntimeException(coord + " - Tile is empty at this coordinate");
+		return getTileFromCoord(coord, tilesMap.get(coord).size() - 1);
+	}
 
 	public Tile getTileFromCoord(TileCoord coord, int tileIndex) {
 		if (tileIndex < 0)
@@ -141,10 +154,10 @@ public class Layer {
 		{ return layer; }
 
 	public int getWidth()
-		{ return (int)layerImage.getWidth(); }
+		{ return width; }
 
 	public int getHeight()
-		{ return (int)layerImage.getHeight(); }
+		{ return height	; }
 	
 	public SpriteLayerType getSpriteLayerType()
 		{ return layerType; }

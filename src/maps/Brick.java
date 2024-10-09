@@ -117,15 +117,16 @@ public class Brick extends Entity {
 	public static void drawBricks() {
 		List<Brick> removeBricks = new ArrayList<>();
 		for (Brick brick : bricks.values()) {
-			if (!brick.getCurrentFrameSetName().equals("BrickBreakFrameSet") &&
-					MapSet.tileContainsProp(brick.getTileCoord(), TileProp.EXPLOSION))
-						brick.breakIt();
-			else if (brick.getCurrentFrameSetName().equals("BrickRegenFrameSet") && !brick.getCurrentFrameSet().isRunning()) {
+			String cFSet = brick.getCurrentFrameSetName();
+			if (!cFSet.equals("BrickBreakFrameSet") && MapSet.tileContainsProp(brick.getTileCoord(), TileProp.EXPLOSION))
+				brick.breakIt();
+			else if (cFSet.equals("BrickRegenFrameSet") && !brick.getCurrentFrameSet().isRunning()) {
 				brick.setFrameSet("BrickStandFrameSet");
 				brick.setBrickShadow();
 			}
-			if (brick.regenTimeInFrames > 0 && (brick.regenTimeInFrames > 30 || !MapSet.tileIsOccuped(brick.getTileCoord(), brick.getPassThrough())) && --brick.regenTimeInFrames == 0)
-				brick.setFrameSet("BrickRegenFrameSet");
+			if (cFSet.equals("BrickBreakFrameSet") && brick.regenTimeInFrames > 0 &&
+					(brick.regenTimeInFrames > 30 || !MapSet.tileIsOccuped(brick.getTileCoord(), brick.getPassThrough())) && --brick.regenTimeInFrames == 0)
+						brick.setFrameSet("BrickRegenFrameSet");
 			brick.run();
 			if (brick.isBreaked() && brick.regenTimeInFrames == 0) {
 				brick.unsetBrickShadow();

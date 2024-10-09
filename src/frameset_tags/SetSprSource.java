@@ -8,14 +8,14 @@ import tools.Materials;
 
 public class SetSprSource extends FrameTag {
 	
-	public Image spriteSource;
+	public String spriteSourceName;
 	public Rectangle originSprSizePos;
 	public Rectangle outputSprSizePos;
 	public int spriteIndex;
 	public int spritesPerLine;
 	
-	public SetSprSource(Image spriteSource, Rectangle originSprSizePos, Rectangle outputSprSizePos, int spriteIndex, int spritesPerLine) {
-		this.spriteSource = spriteSource;
+	public SetSprSource(String spriteSourceName, Rectangle originSprSizePos, Rectangle outputSprSizePos, int spriteIndex, int spritesPerLine) {
+		this.spriteSourceName = spriteSourceName;
 		this.originSprSizePos = originSprSizePos;
 		this.outputSprSizePos = outputSprSizePos;
 		this.spritesPerLine = spritesPerLine;
@@ -23,14 +23,14 @@ public class SetSprSource extends FrameTag {
 		deleteMeAfterFirstRead = true;
 	}
 
-	public SetSprSource(Image spriteSource, Rectangle originSprSizePos, Rectangle outputSprSizePos)
-		{ this(spriteSource, originSprSizePos, outputSprSizePos, 0, 0);	}
+	public SetSprSource(String spriteSourceName, Rectangle originSprSizePos, Rectangle outputSprSizePos)
+		{ this(spriteSourceName, originSprSizePos, outputSprSizePos, 0, 0);	}
 	
-	public SetSprSource(Image spriteSource, Rectangle originSprSizePos, int spriteIndex, int spritesPerLine)
-		{ this(spriteSource, originSprSizePos, new Rectangle(0, 0, (int)originSprSizePos.getWidth(), (int)originSprSizePos.getHeight()), spriteIndex, spritesPerLine);	}
+	public SetSprSource(String spriteSourceName, Rectangle originSprSizePos, int spriteIndex, int spritesPerLine)
+		{ this(spriteSourceName, originSprSizePos, new Rectangle(0, 0, (int)originSprSizePos.getWidth(), (int)originSprSizePos.getHeight()), spriteIndex, spritesPerLine);	}
 
-	public SetSprSource(Image spriteSource, Rectangle originSprSizePos)
-		{ this(spriteSource, originSprSizePos, new Rectangle(0, 0, (int)originSprSizePos.getWidth(), (int)originSprSizePos.getHeight()), 0, 0);	}
+	public SetSprSource(String spriteSourceName, Rectangle originSprSizePos)
+		{ this(spriteSourceName, originSprSizePos, new Rectangle(0, 0, (int)originSprSizePos.getWidth(), (int)originSprSizePos.getHeight()), 0, 0);	}
 
 	@Override
 	public String toString() {
@@ -38,25 +38,24 @@ public class SetSprSource extends FrameTag {
 				sw = (int)originSprSizePos.getWidth(), sh = (int)originSprSizePos.getHeight(),
 				tx = (int)outputSprSizePos.getX(), ty = (int)outputSprSizePos.getY(),
 				tw = (int)outputSprSizePos.getWidth(), th = (int)outputSprSizePos.getHeight();
-		return "{" + FrameTag.getClassName(this) + ";" + Materials.getSpriteNameFromImage(spriteSource) + ";" + + sx + ";" + sy + ";" + sw + ";" + sh + ";" + spriteIndex + ";" + spritesPerLine + ";" + tx + ";" + ty + ";" + tw + ";" + th + "}";
+		return "{" + FrameTag.getClassName(this) + ";" +spriteSourceName + ";" + + sx + ";" + sy + ";" + sw + ";" + sh + ";" + spriteIndex + ";" + spritesPerLine + ";" + tx + ";" + ty + ";" + tw + ";" + th + "}";
 	}
 
 	public SetSprSource(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags);
-		Image	image = Materials.getImageFromSpriteName(params[0]);
+		Image image = Materials.getImageFromSpriteName(spriteSourceName = params[0]);
 		if (image == null)
-			throw new RuntimeException(params[1] + " - Invalid sprite source name");
-		spriteSource = image;
+			throw new RuntimeException(params[0] + " - Invalid sprite source name");
 		int n = 0, t = params.length;
 		try {
 			int sx = Integer.parseInt(params[n = 1]),
 					sy = Integer.parseInt(params[n = 2]),
-					sw = Integer.parseInt(params[n = 3]),
-					sh = Integer.parseInt(params[n = 4]),
+					sw = params[n = 3].equals("-") ? (int)image.getWidth() : Integer.parseInt(params[n]),
+					sh = params[n = 4].equals("-") ? (int)image.getWidth() : Integer.parseInt(params[n]),
 					tx = t < 8 ? 0 : Integer.parseInt(params[n = 7]),
 					ty = t < 9 ? 0 : Integer.parseInt(params[n = 8]),
-					tw = t < 10 ? sw : Integer.parseInt(params[n = 9]),
-					th = t < 11 ? sh : Integer.parseInt(params[n = 10]);
+					tw = t < 10 || params[n = 9].equals("-") ? sw : Integer.parseInt(params[n]),
+					th = t < 11 || params[n = 10].equals("-") ? sh : Integer.parseInt(params[n]);
 			spriteIndex = t < 6 ? 0 : Integer.parseInt(params[n = 5]);
 			spritesPerLine = t < 7 ? 0 : Integer.parseInt(params[n = 6]);
 			originSprSizePos = new Rectangle(sx, sy, sw, sh);
@@ -68,11 +67,11 @@ public class SetSprSource extends FrameTag {
 
 	@Override
 	public SetSprSource getNewInstanceOfThis()
-		{ return new SetSprSource(spriteSource, originSprSizePos, outputSprSizePos, spriteIndex, spritesPerLine); }
+		{ return new SetSprSource(spriteSourceName, originSprSizePos, outputSprSizePos, spriteIndex, spritesPerLine); }
 	
 	@Override
 	public void process(Sprite sprite) {
-		sprite.setSpriteSource(spriteSource);
+		sprite.setSpriteSource(Materials.getImageFromSpriteName(spriteSourceName));
 		sprite.setOriginSpritePos(originSprSizePos);
 		sprite.setOutputSpritePos(outputSprSizePos);
 		sprite.setSpriteIndex(spriteIndex);

@@ -13,7 +13,6 @@ import enums.Curse;
 import enums.Direction;
 import enums.Elevation;
 import enums.PassThrough;
-import enums.SpriteLayerType;
 import enums.TileProp;
 import frameset.FrameSet;
 import javafx.scene.canvas.GraphicsContext;
@@ -316,12 +315,11 @@ public class Entity extends Position {
 					}
 				}
 				if (haveShadow()) {
-					Map<SpriteLayerType, GraphicsContext> gcList = Tools.getGcMap();
-					gcList.get(SpriteLayerType.GROUND).save();
-					gcList.get(SpriteLayerType.GROUND).setFill(Color.BLACK);
-					gcList.get(SpriteLayerType.GROUND).setGlobalAlpha(shadowOpacity);
-					gcList.get(SpriteLayerType.GROUND).fillOval(getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight(), getShadowWidth(), getShadowHeight());
-					gcList.get(SpriteLayerType.GROUND).restore();
+					Tools.getTempGc().save();
+					Tools.getTempGc().setFill(Color.BLACK);
+					Tools.getTempGc().setGlobalAlpha(shadowOpacity);
+					Tools.getTempGc().fillOval(getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight(), getShadowWidth(), getShadowHeight());
+					Tools.getTempGc().restore();
 				}
 				frameSets.get(currentFrameSetName).run(gc, isPaused);
 			}

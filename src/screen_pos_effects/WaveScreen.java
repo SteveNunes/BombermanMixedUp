@@ -1,11 +1,9 @@
 package screen_pos_effects;
 
-import javafx.geometry.Rectangle2D;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
+import tools.Tools;
 
 public class WaveScreen {
 
@@ -43,7 +41,7 @@ public class WaveScreen {
 	}
 
 	public Image apply(Canvas canvas) {
-		Image i = getCanvasScreenshot(canvas);
+		Image i = Tools.getCanvasSnapshot(canvas);
 		if (speed != null) {
 			GraphicsContext gc = canvas.getGraphicsContext2D();
 			int wavePos = posStart;
@@ -57,7 +55,7 @@ public class WaveScreen {
 				if (++posStart == wave.length)
 					posStart = 0;
 			}
-			return getCanvasScreenshot(canvas);
+			return Tools.getCanvasSnapshot(canvas);
 		}
 		return i;
 	}
@@ -68,11 +66,4 @@ public class WaveScreen {
 		this.speed = speed;
 	}
 
-	private Image getCanvasScreenshot(Canvas canvas) {
-		SnapshotParameters params = new SnapshotParameters();
-		params.setFill(Color.TRANSPARENT);
-		params.setViewport(new Rectangle2D(0, 0, canvas.getWidth(), canvas.getHeight()));
-		return canvas.snapshot(params, null);
-	}
-	
 }

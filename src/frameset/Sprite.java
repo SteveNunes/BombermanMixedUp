@@ -399,8 +399,12 @@ public class Sprite {
 			updateOutputDrawCoords();
 			int[] in = getCurrentSpriteOriginCoords();
 			int sx = in[0], sy = in[1], tx = (int)getOutputDrawCoords().getX(), ty = (int)getOutputDrawCoords().getY();
-			ImageUtils.drawImage(gc != null ? gc : Tools.getGcMap().get(layerType), spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
-				tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
+			if (gc != null)
+				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+														 tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
+			else
+				Tools.addDrawImageQueue(layerType, spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+																tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 		}
 	}
 

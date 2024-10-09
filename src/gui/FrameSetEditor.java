@@ -3,6 +3,7 @@ package gui;
 import java.awt.Rectangle;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -179,7 +180,6 @@ public class FrameSetEditor {
 	
 	void mainLoop() {
 		try {
-			Tools.clearAllCanvas();
 			drawDrawCanvas();
 			drawMainCanvas();
 			Tools.getFPSHandler().fpsCounter();
@@ -927,7 +927,7 @@ public class FrameSetEditor {
 	}
 	
 	void drawDrawCanvas() {
-		Map<SpriteLayerType, GraphicsContext> gcs = Tools.getGcMap();
+		Map<SpriteLayerType, GraphicsContext> gcs = new HashMap<>();// = Tools.getGcMap();
 		if (bgType == 0) {
 			gcs.get(SpriteLayerType.BACKGROUND).setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
 			gcs.get(SpriteLayerType.BACKGROUND).fillRect(0, 0, winW, winH);
@@ -980,7 +980,7 @@ public class FrameSetEditor {
 		gcMain.setFill(Color.BLACK);
 		gcMain.fillRect(0, 0, canvasMain.getWidth(), canvasMain.getHeight());
 		if (zoom <= 3)
-			Tools.drawAllCanvas(canvasMain, zoom,
+			Tools.applyAllDraws(canvasMain, zoom,
 					(int)canvasMain.getWidth() / 2 - winW * zoom / 2,
 					(int)canvasMain.getHeight() / 2 - winH * zoom / 2);
 		if (zoom == 3) {
@@ -1050,7 +1050,7 @@ public class FrameSetEditor {
 			}
 		}
 		else if (zoom > 3) {
-			Tools.drawAllCanvasToTempCanvas();
+			Tools.applyAllDrawsToTempCanvas();
 			Image i = Tools.getTempCanvasSnapshot();
 			int w = (int)canvasMain.getWidth(), h = (int)canvasMain.getHeight(),
 					w2 = (int)i.getWidth(), h2 = (int)i.getHeight(), z = w / w2, zoom2 = zoom - 2;

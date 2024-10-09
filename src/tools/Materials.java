@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import gui.util.ImageUtils;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -28,7 +27,7 @@ public abstract class Materials {
 	public static Map<Integer, Integer> bomberSpriteIndex;
 	public static Map<String, Image> loadedSprites;
 	public static Map<Image, String> loadedSprites2;
-	public static Map<String, Image> tempSprites;
+	public static Map<String, WritableImage> tempSprites;
 	
 	public static void loadFromFiles() {
 		System.out.println("Carregando materiais...");
@@ -94,10 +93,7 @@ public abstract class Materials {
 							outY = d == 0 ? y * 16 : 240 + x * 16;
 					ImageUtils.drawImage(gc, mainSprites, sprX, sprY, 16, 16, outX, outY, 16, 16, d == 1 && y == 0 ? 270 : d * 90);
 				}
-		SnapshotParameters params = new SnapshotParameters();
-		params.setFill(Color.TRANSPARENT);
-		explosions = c.snapshot(params, null);
-		ImageUtils.saveImageToFile(explosions, "D:\\Explosoes.png");
+		explosions = Tools.getCanvasSnapshot(c);
 	}
 
 	public static Image loadImage(String imagePartialPath, Color removeColor) throws RuntimeException { // Informe apenas o nome do arquivo (com pasta ou nao) a partir da pasta sprites, sem o .png

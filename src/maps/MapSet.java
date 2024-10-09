@@ -9,15 +9,14 @@ import java.util.Map;
 import application.Main;
 import entities.Bomb;
 import entities.Effect;
+import entities.Entity;
 import entities.TileCoord;
 import enums.Direction;
 import enums.Elevation;
 import enums.ItemType;
 import enums.PassThrough;
-import enums.SpriteLayerType;
 import enums.TileProp;
 import javafx.scene.image.Image;
-import javafx.scene.image.WritableImage;
 import objmoveutils.Position;
 import pathfinder.PathFinder;
 import pathfinder.PathFinderTileCoord;
@@ -29,10 +28,10 @@ import util.MyMath;
 
 public class MapSet {
 	
-	public static Map<SpriteLayerType, Map<Integer, WritableImage>> layerImages = null;
 	private static Map<Integer, Layer> layers;
 	private static Map<TileCoord, Integer> initialPlayerCoords;
 	private static Map<TileCoord, Integer> initialMonsterCoords;
+	private static Entity mapFrameSets;
 	private static IniFile iniFileMap;
 	private static IniFile iniFileTileSet;
 	private static Image tileSetImage;
@@ -45,8 +44,8 @@ public class MapSet {
 	private static Position groundWithBrickShadow;
 	private static Position groundWithWallShadow;
 	private static Position fragileGround;
-	private static int bricksRegenTimeInFrames;
 	private static Position mapMove;
+	private static int bricksRegenTimeInFrames;
 	
 	public static void loadMap(String iniMapName) {
 		long ct = System.currentTimeMillis();
@@ -55,7 +54,6 @@ public class MapSet {
 		Materials.tempSprites.clear();
 		MapSet.iniMapName = iniMapName;
 		bricksRegenTimeInFrames = -1;
-		layerImages = new HashMap<>();
 		layers = new HashMap<>();
 		initialPlayerCoords = new HashMap<>();
 		initialMonsterCoords = new HashMap<>();
@@ -77,10 +75,6 @@ public class MapSet {
 		tileInfos.keySet().forEach(i -> {
 			Layer layer = new Layer(tileInfos.get(i));
 			layers.put(i, layer);
-			if (!layerImages.containsKey(layer.getSpriteLayerType()))
-				layerImages.put(layer.getSpriteLayerType(), new HashMap<>());
-			if (!layerImages.get(layer.getSpriteLayerType()).containsKey(i))
-				layerImages.get(layer.getSpriteLayerType()).put(i, layer.getLayerImage());
 			layer.getTileList().forEach(tile -> {
 				if (tile.tileProp.contains(TileProp.PLAYER_INITIAL_POSITION))
 					initialPlayerCoords.put(tile.getTileCoord(), initialPlayerCoords.size());
@@ -93,10 +87,14 @@ public class MapSet {
 		groundWithWallShadow = Misc.notNull(getTilePositionFromIni(iniFileMap, "GroundWithWallShadow"), new Position(groundTile));
 		wallTile = getTilePositionFromIni(iniFileMap, "WallTile");
 		fragileGround = getTilePositionFromIni(iniFileMap, "FragileGround");
-		//setFrameSet("DefaultFrameSet"); // NOTA: REABILITAR LINHA DEPOIS DE IMPLEMENTAR FRAMESET DE MAPA
 		setRandomWalls();
 		rebuildAllLayers();
 		setBricks();
+		mapFrameSets = new Entity();
+		for (String item : iniFileMap.getItemList("FRAMESETS"))
+			mapFrameSets.addNewFrameSetFromString(item, iniFileMap.read("FRAMESETS", item));
+		if (mapFrameSets.haveFrameSet("DefaultFrameSet"))
+			mapFrameSets.setFrameSet("DefaultFrameSet");
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
 	}
 	
@@ -314,7 +312,7 @@ public class MapSet {
 		{ return fragileGround; }
 	
 	public static void rebuildAllLayers()
-		{ layers.values().forEach(layer -> layer.buildLayer()); }
+		{ layers.keySet().forEach(layer -> layers.get(layer).buildLayer()); }
 	
 	public static void setGroundTile(Position groundTile)
 		{ MapSet.groundTile = new Position(groundTile); }
@@ -379,7 +377,7 @@ public class MapSet {
 		{ return getLayer(26).haveTilesOnCoord(coord); }
 
 	public static void run() {
-		// NOTA: implementar (criar um Entity no mapa que fará o desenho do mapa usando os sprites das layers
+		mapFrameSets.run();
 	}
 
 	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough) {

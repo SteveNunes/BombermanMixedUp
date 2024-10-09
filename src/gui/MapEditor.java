@@ -158,6 +158,7 @@ public class MapEditor {
 	private int ctrlZPos;
 	private long resetBricks;
 	private boolean playing;
+	private String defaultMap = "SBM2_1-1";
 	
 	public void init() {
 		canvasMouseDraw = new CanvasMouse();
@@ -262,7 +263,6 @@ public class MapEditor {
 		ControllerUtils.setNodeFont(buttonPlay, "Lucida Console", 14);
 		buttonPlay.setText("►");
 		buttonPlay.setOnAction(e -> {
-			reloadCurrentMap();
 			playing = !playing;
 			buttonPlay.setText(playing ? "■" : "►");
 		});
@@ -275,7 +275,6 @@ public class MapEditor {
 
 	void mainLoop() {
 		try {
-			Tools.clearAllCanvas();
 			drawDrawCanvas();
 			drawMainCanvas();
 			Tools.getFPSHandler().fpsCounter();
@@ -286,7 +285,10 @@ public class MapEditor {
 							+ "     " + canvasMouseDraw.tileCoord + "     (" + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BLOCKED") + ")"
 							+ "     Zoom: x" + zoomMain
 							+ "     Tileset Zoom: x" + zoomTileSet
-							+ "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
+							+ "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks()
+							+ "     A: " + (MapSet.getLayer(26).getTilesFromCoord(canvasMouseDraw.tileCoord) == null ? 0 : MapSet.getLayer(26).getTilesFromCoord(canvasMouseDraw.tileCoord).size())
+							
+							;
 					Main.stageMain.setTitle(title);
 					mainLoop();
 				});
@@ -297,12 +299,17 @@ public class MapEditor {
 		}
 	}
 	
-	void saveCtrlZ() { System.out.println("saveCtrlZ " + System.currentTimeMillis());
+	void saveCtrlZ() {
+		if (Misc.alwaysTrue())
+			return;
+		System.out.println("saveCtrlZ " + System.currentTimeMillis());
 		backupTiles.add(new HashMap<>(getTileMapFromCurrentLayer()));
 		ctrlZPos = backupTiles.size() - 1;
 	}
 	
 	void ctrlZ() {
+		if (Misc.alwaysTrue())
+			return;
 		if (!backupTiles.isEmpty()) {
 			if (--ctrlZPos == -1)
 				ctrlZPos = backupTiles.size() - 1;
@@ -313,6 +320,8 @@ public class MapEditor {
 	}
 	
 	void ctrlY() {
+		if (Misc.alwaysTrue())
+			return;
 		if (!backupTiles.isEmpty()) {
 			if (++ctrlZPos == backupTiles.size())
 				ctrlZPos = 0;
@@ -337,6 +346,10 @@ public class MapEditor {
 	void loadMap(String mapName, boolean resetCurrentLayerIndex) {
 		if (mapName == null)
 			throw new RuntimeException("Unable to load map because 'mapName' is null");
+		if (defaultMap != null) {
+			mapName = defaultMap;
+			defaultMap = null;
+		}
 		Tile.tags = new HashMap<>();
 		MapSet.loadMap(mapName);
 		MapSet.setBricksRegenTime(5);
@@ -369,18 +382,12 @@ public class MapEditor {
 		setSampleTiles();
 		saveCtrlZ();
 	}
-	
+
 	Canvas getDrawCanvas()
-		{ return Tools.getCanvasMap().get(SpriteLayerType.GROUND); }
+		{ return Tools.getTempCanvas(); }
 	
 	GraphicsContext getDrawGc()
-		{ return Tools.getGcMap().get(SpriteLayerType.GROUND); }
-
-	Canvas getDrawCanvas(SpriteLayerType layerType)
-		{ return Tools.getCanvasMap().get(layerType); }
-
-	GraphicsContext getDrawGc(SpriteLayerType layerType)
-		{ return Tools.getGcMap().get(layerType); }
+		{ return Tools.getTempGc(); }
 
 	void setSampleTiles() {
 		tilePosition = new Position[] {MapSet.getWallTile(), MapSet.getGroundTile(), MapSet.getGroundWithWallShadow(), MapSet.getGroundWithBrickShadow(), MapSet.getFragileGround()};
@@ -576,7 +583,7 @@ public class MapEditor {
 		canvasMain.setOnMouseClicked(e -> {
 			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 			if (e.getButton() == MouseButton.PRIMARY) {
-				if (isAltHold())
+				if (isAltHold() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord))
 					Bomb.addBomb(new Bomb(null, canvasMouseDraw.tileCoord, BombType.NORMAL, 5));
 			}
 			else if (e.getButton() == MouseButton.SECONDARY) {
@@ -616,18 +623,18 @@ public class MapEditor {
 		getDrawGc().setFill(Color.DIMGRAY);
 		getDrawGc().fillRect(0, 0, getDrawCanvas().getWidth(), getDrawCanvas().getHeight());
 		getDrawGc().setFill(Color.BLACK);
-		getDrawGc().fillRect(0, 0, getCurrentLayer().getLayerImage().getWidth(), getCurrentLayer().getLayerImage().getHeight());
+		getDrawGc().fillRect(0, 0, getCurrentLayer().getWidth(), getCurrentLayer().getHeight());
 		if (playing)
 			MapSet.run();
 		else if (MapSet.getLayersMap().containsKey(currentLayerIndex))
-			getDrawGc().drawImage(getCurrentLayer().getLayerImage(), 0, 0);
+			Tools.addDrawImageQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
 		Explosion.drawExplosions();
 		if (checkBoxShowBricks.isSelected() && currentLayerIndex == 26) {
 			Brick.drawBricks();
 			if (checkBoxShowItens.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
-						getDrawGc().drawImage(Materials.mainSprites, (brick.getItem().getValue() - 1) * 16, 16, 16, 16, brick.getTileX() * Main.TILE_SIZE, brick.getTileY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
+						Tools.addDrawImageQueue(SpriteLayerType.GROUND, Materials.mainSprites, (brick.getItem().getValue() - 1) * 16, 16, 16, 16, brick.getTileX() * Main.TILE_SIZE, brick.getTileY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
 		}
 		Bomb.drawBombs();
 		Item.drawItems();
@@ -635,7 +642,7 @@ public class MapEditor {
 		fragileTiles.values().forEach(e -> e.run());
 		for (int y = 0; y < tileSelection.getHeight(); y++)
 			for (int x = 0; x < tileSelection.getWidth(); x++)
-				getDrawGc().drawImage(MapSet.getTileSetImage(), (int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, 16, 16, canvasMouseDraw.getCoordX() * 16 + x * 16, canvasMouseDraw.getCoordY() * 16 + y * 16, Main.TILE_SIZE, Main.TILE_SIZE);
+				Tools.addDrawImageQueue(SpriteLayerType.GROUND, MapSet.getTileSetImage(), (int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, 16, 16, canvasMouseDraw.getCoordX() * 16 + x * 16, canvasMouseDraw.getCoordY() * 16 + y * 16, Main.TILE_SIZE, Main.TILE_SIZE);
     drawBlockTypeMark();
 	}
 	
@@ -646,7 +653,7 @@ public class MapEditor {
 		{ return canvasMouseDraw.movedY + canvasMouseDraw.dragY; }
 
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
-    Tools.drawAllCanvas(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
+    Tools.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
     drawGridAndAim();
     drawTileTagsOverCursor();
     drawTileSetCanvas();

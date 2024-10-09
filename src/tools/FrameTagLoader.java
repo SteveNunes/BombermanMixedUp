@@ -11,10 +11,28 @@ public abstract class FrameTagLoader {
 			if (s.length() < 3)
 				continue;
 			String tag = s.substring(1).substring(0, s.indexOf(';') - 1);
-			if (tag.equals("DecSprAlign"))
+			if (tag.equals("AddColoredLightSpot"))
+				tags.addFrameSetTag(new AddColoredLightSpot(s));
+			else if (tag.equals("AddColoredLightSpotToSprite"))
+				tags.addFrameSetTag(new AddColoredLightSpotToSprite(s));
+			else if (tag.equals("AddLightSpot"))
+				tags.addFrameSetTag(new AddLightSpot(s));
+			else if (tag.equals("AddLightSpotToSprite"))
+				tags.addFrameSetTag(new AddLightSpotToSprite(s));
+			else if (tag.equals("AddTempColoredLightSpot"))
+				tags.addFrameSetTag(new AddTempColoredLightSpot(s));
+			else if (tag.equals("AddTempColoredLightSpotToSprite"))
+				tags.addFrameSetTag(new AddTempColoredLightSpotToSprite(s));
+			else if (tag.equals("AddTempLightSpot"))
+				tags.addFrameSetTag(new AddTempLightSpot(s));
+			else if (tag.equals("AddTempLightSpotToSprite"))
+				tags.addFrameSetTag(new AddTempLightSpotToSprite(s));
+			else if (tag.equals("DecSprAlign"))
 				tags.addFrameSetTag(new DecSprAlign(s));
 			else if (tag.equals("DecSprFlip"))
 				tags.addFrameSetTag(new DecSprFlip(s));
+			else if (tag.equals("DoJump"))
+				tags.addFrameSetTag(new DoJump(s));
 			else if (tag.equals("Goto"))
 				tags.addFrameSetTag(new Goto(s));
 			else if (tag.equals("IncEntityPos"))
@@ -117,6 +135,14 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new PlayWav(s));
 			else if (tag.equals("RepeatLastFrame"))
 				tags.addFrameSetTag(new RepeatLastFrame(s));
+			else if (tag.equals("RunEffectAt"))
+				tags.addFrameSetTag(new RunEffectAt(s));
+			else if (tag.equals("RunEffectAtEntity"))
+				tags.addFrameSetTag(new RunEffectAtEntity(s));
+			else if (tag.equals("RunEffectAtSprite"))
+				tags.addFrameSetTag(new RunEffectAtSprite(s));
+			else if (tag.equals("RunEffectAtTile"))
+				tags.addFrameSetTag(new RunEffectAtTile(s));
 			else if (tag.equals("SetEntityNoMove"))
 				tags.addFrameSetTag(new SetEntityNoMove(s));
 			else if (tag.equals("SetEntityPos"))
@@ -127,6 +153,8 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new SetEntityX(s));
 			else if (tag.equals("SetEntityY"))
 				tags.addFrameSetTag(new SetEntityY(s));
+			else if (tag.equals("SetFrameSet"))
+				tags.addFrameSetTag(new SetFrameSet(s));
 			else if (tag.equals("SetObjPos"))
 				tags.addFrameSetTag(new SetObjPos(s));
 			else if (tag.equals("SetObjX"))
@@ -245,30 +273,6 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new SetSprSource(s));
 			else if (tag.equals("SetTicksPerFrame"))
 				tags.addFrameSetTag(new SetTicksPerFrame(s));
-			else if (tag.equals("SetFrameSet"))
-				tags.addFrameSetTag(new SetFrameSet(s));
-			else if (tag.equals("DoJump"))
-				tags.addFrameSetTag(new DoJump(s));
-			else if (tag.equals("RunEffectFromEntity"))
-				tags.addFrameSetTag(new RunEffectFromEntity(s));
-			else if (tag.equals("RunEffectFromSprite"))
-				tags.addFrameSetTag(new RunEffectFromSprite(s));
-			else if (tag.equals("AddTempColoredLightSpot"))
-				tags.addFrameSetTag(new AddTempColoredLightSpot(s));
-			else if (tag.equals("AddTempColoredLightSpotToSprite"))
-				tags.addFrameSetTag(new AddTempColoredLightSpotToSprite(s));
-			else if (tag.equals("AddColoredLightSpot"))
-				tags.addFrameSetTag(new AddColoredLightSpot(s));
-			else if (tag.equals("AddColoredLightSpotToSprite"))
-				tags.addFrameSetTag(new AddColoredLightSpotToSprite(s));
-			else if (tag.equals("AddTempLightSpot"))
-				tags.addFrameSetTag(new AddTempLightSpot(s));
-			else if (tag.equals("AddLightSpot"))
-				tags.addFrameSetTag(new AddLightSpot(s));
-			else if (tag.equals("AddLightSpotToSprite"))
-				tags.addFrameSetTag(new AddLightSpotToSprite(s));
-			else if (tag.equals("AddTempLightSpotToSprite"))
-				tags.addFrameSetTag(new AddTempLightSpotToSprite(s));
 		}
 	}
 

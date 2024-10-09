@@ -2,7 +2,6 @@ package background_effects;
 
 import java.security.SecureRandom;
 
-import enums.SpriteLayerType;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.image.WritableImage;
@@ -49,8 +48,8 @@ public class SquaredBg implements BackgroundEffect {
 		{ this(rgb, squareSize, 5, colorMinVal, colorMaxVal); }
 	
 	public SquaredBg(int[] rgb, int squareSize, int colorIncVal, int colorMinVal, int colorMaxVal) {
-		int w = (int)Tools.getCanvasMap().get(SpriteLayerType.BACKGROUND).getWidth() / squareSize + 1, 
-				h = (int)Tools.getCanvasMap().get(SpriteLayerType.BACKGROUND).getHeight() / squareSize + 1;
+		int w = (int)Tools.getTempCanvas().getWidth() / squareSize + 1, 
+				h = (int)Tools.getTempCanvas().getHeight() / squareSize + 1;
 		squaresBg = new int[h][w];
 		image = new WritableImage(w, h);
 		for (int y = 0; y < h; y++)

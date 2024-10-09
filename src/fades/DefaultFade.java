@@ -75,6 +75,7 @@ public class DefaultFade implements Fade {
 	public void apply(Canvas canvas) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		if (fadeState != FadeState.NONE) {
+			gc.save();
 			gc.setFill(color);
 			gc.setGlobalAlpha(value);
 			if (fadeState != FadeState.DONE && ((value += valueInc) > 1 || value < 0d)) {
@@ -84,6 +85,7 @@ public class DefaultFade implements Fade {
 					onFadeDoneEvent.run();
 			}
 			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+			gc.restore();
 		}
 	}
 
