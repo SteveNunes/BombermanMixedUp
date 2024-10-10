@@ -10,7 +10,16 @@ public abstract class FrameTagLoader {
 		for (String s : frameTags) {
 			if (s.length() < 3)
 				continue;
-			String tag = s.substring(1).substring(0, s.indexOf(';') - 1);
+			String tag;
+			int x;
+			if (s.charAt(0) != '{')
+				throw new RuntimeException(s + " - Invalid Tag format");
+			if ((x = s.indexOf(';')) > 0)
+				tag = s.substring(1).substring(0, x - 1);
+			else if ((x = s.indexOf('}')) > 0)
+				tag = s.substring(1).substring(0, x - 1);
+			else
+				throw new RuntimeException(s + " - Invalid Tag format");
 			if (tag.equals("AddColoredLightSpot"))
 				tags.addFrameSetTag(new AddColoredLightSpot(s));
 			else if (tag.equals("AddColoredLightSpotToSprite"))
@@ -273,6 +282,8 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new SetSprSource(s));
 			else if (tag.equals("SetTicksPerFrame"))
 				tags.addFrameSetTag(new SetTicksPerFrame(s));
+			else if (tag.equals("SetSprWaving"))
+				tags.addFrameSetTag(new SetSprWaving(s));
 		}
 	}
 

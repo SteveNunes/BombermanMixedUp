@@ -49,6 +49,8 @@ public class MapSet {
 	
 	public static void loadMap(String iniMapName) {
 		long ct = System.currentTimeMillis();
+		if (!IniFiles.stages.isSection(iniMapName))
+			throw new RuntimeException("Unable to load map \"" + iniMapName + "\" (Map not found on Stages.cfg)");
 		System.out.println("Carregando mapa " + iniMapName + " ...");
 		Effect.clearPreloadedEffects();
 		Materials.tempSprites.clear();
@@ -376,9 +378,8 @@ public class MapSet {
 	public static boolean haveTilesOnCoord(TileCoord coord)
 		{ return getLayer(26).haveTilesOnCoord(coord); }
 
-	public static void run() {
-		mapFrameSets.run();
-	}
+	public static void run()
+		{ mapFrameSets.run(); }
 
 	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough) {
 		// NOTA: Implementar retornando se tem monstro ou player em cima

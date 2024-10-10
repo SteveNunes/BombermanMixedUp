@@ -12,7 +12,6 @@ import javafx.scene.canvas.GraphicsContext;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import tools.FrameTagLoader;
-import tools.Materials;
 import tools.Tools;
 
 public class FrameSet extends Position {
@@ -406,7 +405,7 @@ public class FrameSet extends Position {
 			String[] sprites = s1.split("\\,,"); // Divisor de sprites e suas FrameTags
 			if (first) {
 				for (int n = 0; n < sprites.length; n++)
-					addSpriteAtEnd(new Sprite(this, Materials.mainSprites, new Rectangle()));
+					addSpriteAtEnd(new Sprite(this, "mainSprites", new Rectangle()));
 				first = false;
 			}
 			int n = 0;

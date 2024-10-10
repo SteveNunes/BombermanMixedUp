@@ -26,14 +26,14 @@ import light_spot_effects.LightSpot;
 import maps.Brick;
 import maps.Item;
 import screen_pos_effects.TintScreen;
-import screen_pos_effects.WaveScreen;
+import screen_pos_effects.WavingImage;
 
 public abstract class Tools {
 	
 	private static FPSHandler fpsHandler;
 	private static Fade fade = null;
 	private static BackgroundEffect backgroundEffect = null;
-	private static WaveScreen waveScreen = null;
+	private static WavingImage wavingImage = null;
 	private static TintScreen tintScreen = null;
 	private static Map<SpriteLayerType, List<DrawParams>> drawParamsList;
 	private static Canvas canvasTemp;
@@ -93,7 +93,7 @@ public abstract class Tools {
 		LightSpot.setMultipleLightSpots(gcTemp);
 		LightSpot.setMultipleLightSpotsInDarkness(gcTemp);
 		ColoredLightSpot.setMultipleColoredLightSpots(gcTemp);
-		Image i = waveScreen != null ? waveScreen.apply(getTempCanvas()) : getTempCanvasSnapshot();
+		WritableImage i = wavingImage != null ? wavingImage.apply(getTempCanvasSnapshot()) : getTempCanvasSnapshot();
 		Canvas c = getTempCanvas();
 		gc.drawImage(i, 0, 0, c.getWidth(), c.getHeight(), offsetX, offsetY, c.getWidth() * zoom, c.getHeight() * zoom);
 		ColoredLightSpot.clearTempColoredLightSpots();
@@ -110,8 +110,8 @@ public abstract class Tools {
 	public static Fade getFade()
 		{ return fade; }
 	
-	public static WaveScreen getWaveScreen()
-		{ return waveScreen; }
+	public static WavingImage getWavingImage()
+		{ return wavingImage; }
 	
 	public static TintScreen getTintScreen()
 		{ return tintScreen; }
@@ -122,8 +122,8 @@ public abstract class Tools {
 	public static void setFade(Fade fade)
 		{ Tools.fade = fade; }
 	
-	public static void setWaveScreen(WaveScreen waveScreen)
-		{ Tools.waveScreen = waveScreen; }
+	public static void setWavingImage(WavingImage wavingImage)
+		{ Tools.wavingImage = wavingImage; }
 	
 	public static void setTintScreen(TintScreen tintScreen)
 		{ Tools.tintScreen = tintScreen; }
@@ -155,40 +155,40 @@ public abstract class Tools {
 		Item.drawItems();
 	}
 	
-	public static Image getTempCanvasSnapshot(WritableImage outputImage)
+	public static WritableImage getTempCanvasSnapshot(WritableImage outputImage)
 		{ return getCanvasSnapshot(getTempCanvas(), outputImage); }
 	
-	public static Image getTempCanvasSnapshot(int w, int h, WritableImage outputImage) 
+	public static WritableImage getTempCanvasSnapshot(int w, int h, WritableImage outputImage) 
 		{ return getCanvasSnapshot(getTempCanvas(), w, h, outputImage); }
 	
-	public static Image getTempCanvasSnapshot(int x, int y, int w, int h, WritableImage outputImage) 
+	public static WritableImage getTempCanvasSnapshot(int x, int y, int w, int h, WritableImage outputImage) 
 		{ return getCanvasSnapshot(getTempCanvas(), x, y, w, h, outputImage); }
 	
-	public static Image getCanvasSnapshot(Canvas canvas, WritableImage outputImage)
+	public static WritableImage getCanvasSnapshot(Canvas canvas, WritableImage outputImage)
 		{ return getCanvasSnapshot(canvas, 0, 0, (int)canvas.getWidth(), (int)canvas.getHeight(), outputImage); }
 	
-	public static Image getCanvasSnapshot(Canvas canvas, int w, int h, WritableImage outputImage)
+	public static WritableImage getCanvasSnapshot(Canvas canvas, int w, int h, WritableImage outputImage)
 		{ return getCanvasSnapshot(canvas, 0, 0, w, h, outputImage); }
 	
-	public static Image getTempCanvasSnapshot()
+	public static WritableImage getTempCanvasSnapshot()
 		{ return getCanvasSnapshot(getTempCanvas()); }
 	
-	public static Image getTempCanvasSnapshot(int w, int h) 
+	public static WritableImage getTempCanvasSnapshot(int w, int h) 
 		{ return getCanvasSnapshot(getTempCanvas(), w, h); }
 	
-	public static Image getTempCanvasSnapshot(int x, int y, int w, int h) 
+	public static WritableImage getTempCanvasSnapshot(int x, int y, int w, int h) 
 		{ return getCanvasSnapshot(getTempCanvas(), x, y, w, h); }
 	
-	public static Image getCanvasSnapshot(Canvas canvas)
+	public static WritableImage getCanvasSnapshot(Canvas canvas)
 		{ return getCanvasSnapshot(canvas, 0, 0, (int)canvas.getWidth(), (int)canvas.getHeight()); }
 	
-	public static Image getCanvasSnapshot(Canvas canvas, int w, int h)
+	public static WritableImage getCanvasSnapshot(Canvas canvas, int w, int h)
 		{ return getCanvasSnapshot(canvas, 0, 0, w, h); }
 	
-	public static Image getCanvasSnapshot(Canvas canvas, int x, int y, int w, int h)
+	public static WritableImage getCanvasSnapshot(Canvas canvas, int x, int y, int w, int h)
 		{ return getCanvasSnapshot(canvas, 0, 0, w, h, null); }
 
-	public static Image getCanvasSnapshot(Canvas canvas, int x, int y, int w, int h, WritableImage outputImage) {
+	public static WritableImage getCanvasSnapshot(Canvas canvas, int x, int y, int w, int h, WritableImage outputImage) {
 		SnapshotParameters params = new SnapshotParameters();
 		params.setFill(Color.TRANSPARENT);
 		params.setViewport(new Rectangle2D(x, y, w, h));

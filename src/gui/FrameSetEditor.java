@@ -1,7 +1,6 @@
 package gui;
 	
 import java.awt.Rectangle;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +79,6 @@ import maps.MapSet;
 import tools.IniFiles;
 import tools.Tools;
 import util.Misc;
-import util.MyFile;
 import util.MyMath;
 
 
@@ -260,8 +258,7 @@ public class FrameSetEditor {
 					item = new MenuItem("Adicionar Sprite novo");
 					item.setOnAction(e -> {
 						defaultContextMenu.hide();
-						File file = MyFile.selectFile("Selecione o arquivo de imagem");
-						Image image = new Image("file:" + file.getAbsolutePath());
+						String spriteSourceName = Alerts.textPrompt("Prompt", "Image source name", null, "Digite o nome do Sprite");
 						try {
 							String s = Alerts.textPrompt("Prompt", "Coordenada inicial", null, "Informe: X Y W H SpritesPerLine SpriteIndex");
 							String[] split = s.split(" ");
@@ -269,7 +266,7 @@ public class FrameSetEditor {
 									sw = Integer.parseInt(split[2]), sh = Integer.parseInt(split[3]),
 									perLine = Integer.parseInt(split[4]), index = Integer.parseInt(split[5]);
 							Rectangle rect = new Rectangle(winW / 2 - sw / 2, winH / 2 - sh / 2, sw, sh);
-							getCurrentFrameSet().addSpriteAtEnd(new Sprite(getCurrentFrameSet(), image, new Rectangle(sx, sy, sw, sh), rect, perLine, index));
+							getCurrentFrameSet().addSpriteAtEnd(new Sprite(getCurrentFrameSet(), spriteSourceName, new Rectangle(sx, sy, sw, sh), rect, perLine, index));
 						}
 						catch (Exception ex) {
 							Alerts.error("Erro", "O valor informado não é válido");

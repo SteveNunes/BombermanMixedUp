@@ -158,7 +158,7 @@ public class MapEditor {
 	private int ctrlZPos;
 	private long resetBricks;
 	private boolean playing;
-	private String defaultMap = "SBM2_1-1";
+	private String defaultMap = "Boss-Map_SBM2-1";
 	
 	public void init() {
 		canvasMouseDraw = new CanvasMouse();

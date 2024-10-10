@@ -13,7 +13,6 @@ import enums.TileProp;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import tools.Materials;
 import tools.Tools;
@@ -72,7 +71,7 @@ public class Layer {
 		Tools.getCanvasSnapshot(canvas, Materials.tempSprites.get("Layer" + layer));
 	}
 	
-	public Image getLayerImage()
+	public WritableImage getLayerImage()
 		{ return Materials.tempSprites.get("Layer" + layer); }
 	
 	public void setLayerImage(WritableImage image)

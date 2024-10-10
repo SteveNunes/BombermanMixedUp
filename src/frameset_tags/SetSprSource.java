@@ -71,7 +71,7 @@ public class SetSprSource extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		sprite.setSpriteSource(Materials.getImageFromSpriteName(spriteSourceName));
+		sprite.setSpriteSourceName(spriteSourceName);
 		sprite.setOriginSpritePos(originSprSizePos);
 		sprite.setOutputSpritePos(outputSprSizePos);
 		sprite.setSpriteIndex(spriteIndex);

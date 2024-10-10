@@ -11,18 +11,20 @@ import enums.SpriteLayerType;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import objmoveutils.EliticMove;
 import objmoveutils.GotoMove;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.RectangleMove;
+import screen_pos_effects.WavingImage;
 import tools.Materials;
 import tools.Tools;
 
 public class Sprite {
 
 	private FrameSet mainFrameSet;
-	private Image spriteSource;
+	private String spriteSourceName;
 	private Rectangle originSpriteSizePos;
 	private Rectangle outputSpriteSizePos;
 	private DrawImageEffects spriteEffects;
@@ -39,6 +41,7 @@ public class Sprite {
 	private int rotation;
 	private boolean visibleSprite;
 	private SpriteLayerType layerType;
+	private WavingImage wavingImage;
 	
 	public Sprite(Sprite sprite)
 		{ this(sprite, sprite.getMainFrameSet()); }
@@ -50,7 +53,7 @@ public class Sprite {
 		outputSpriteSizePos = new Rectangle(sprite.outputSpriteSizePos);
 		spriteEffects = new DrawImageEffects(sprite.spriteEffects);
 		outputSpritePos = new Position();
-		spriteSource = sprite.spriteSource;
+		spriteSourceName = sprite.spriteSourceName;
 		alpha = sprite.alpha;
 		flip = sprite.flip;
 		rotation = sprite.rotation;
@@ -63,16 +66,18 @@ public class Sprite {
 		gotoMove = sprite.gotoMove == null ? null : new GotoMove(sprite.gotoMove);
 		layerType = sprite.layerType;
 		visibleSprite = sprite.visibleSprite;
+		wavingImage = sprite.wavingImage == null ? null : new WavingImage(sprite.wavingImage);
 	}
 	
-	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spriteIndex, int spritesPerLine) {
+	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spriteIndex, int spritesPerLine) {
 		super();
-		this.spriteSource = spriteSource;
+		this.spriteSourceName = spriteSourceName;
 		this.spriteIndex = spriteIndex;
 		this.spritesPerLine = spritesPerLine;
 		this.mainFrameSet = mainFrameSet;
 		this.originSpriteSizePos = new Rectangle(originSpriteSizePos);
 		this.outputSpriteSizePos = new Rectangle(outputSpriteSizePos);
+		wavingImage = null;
 		outputSpritePos = new Position();
 		spriteEffects = new DrawImageEffects();
 		flip =ImageFlip.NONE;
@@ -87,27 +92,51 @@ public class Sprite {
 		layerType = SpriteLayerType.GROUND;
 	}
 
-	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, int spriteIndex, int spritesPerLine)
-		{ this(mainFrameSet, spriteSource, originSpriteSizePos, new Rectangle(0, 0, (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()), spriteIndex, spritesPerLine); }
+	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, int spriteIndex, int spritesPerLine)
+		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, new Rectangle(0, 0, (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()), spriteIndex, spritesPerLine); }
 	
-	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spritesPerLine)
-		{ this(mainFrameSet, spriteSource, originSpriteSizePos, outputSpriteSizePos, spritesPerLine, 0); }
+	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spritesPerLine)
+		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, outputSpriteSizePos, spritesPerLine, 0); }
 
-	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos)
-		{ this(mainFrameSet, spriteSource, originSpriteSizePos, outputSpriteSizePos, 0, 0); }
+	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos)
+		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, outputSpriteSizePos, 0, 0); }
 
-	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos, int spritesPerLine)
-		{ this(mainFrameSet, spriteSource, originSpriteSizePos, new Rectangle(0, 0, (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()), spritesPerLine, 0); }
+	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, int spritesPerLine)
+		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, new Rectangle(0, 0, (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()), spritesPerLine, 0); }
 	
-	public Sprite(FrameSet mainFrameSet, Image spriteSource, Rectangle originSpriteSizePos)
-		{ this(mainFrameSet, spriteSource, originSpriteSizePos, new Rectangle(0, 0, (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()), 0, 0); }
+	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos)
+		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, new Rectangle(0, 0, (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()), 0, 0); }
 
-	public void setSpriteSource(Image image)
-		{ spriteSource = image; }
-
-	public Image getSpriteSource()
-		{ return spriteSource; }
+	public WavingImage getWavingImage()
+		{ return wavingImage; }
 	
+	public void setWavingImage()
+		{ setWavingImage(1, null); }
+	
+	public void setWavingImage(int speed)
+		{ setWavingImage(speed, null); }
+	
+	public void setWavingImage(int[] wavingPattern)
+		{ setWavingImage(1, wavingPattern); }
+	
+	public void setWavingImage(int speed, int[] wavingPattern)
+		{	wavingImage = new WavingImage(speed, wavingPattern); }
+
+	public void setSpriteSourceName(String spriteSourceName)
+		{ this.spriteSourceName = spriteSourceName; }
+
+	public Image getSpriteSource() {
+		if (wavingImage != null) {
+			wavingImage.setBounds((int)originSpriteSizePos.getX(), (int)originSpriteSizePos.getY(), (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight());
+			System.out.println(originSpriteSizePos);
+			return wavingImage.apply((WritableImage)Materials.getImageFromSpriteName(spriteSourceName));
+		}
+		return Materials.getImageFromSpriteName(spriteSourceName);
+	}
+	
+	public String getSpriteSourceName()
+		{ return spriteSourceName; }
+
 	public ImageAlignment getAlignment()
 		{ return alignment; }
 	
@@ -400,10 +429,10 @@ public class Sprite {
 			int[] in = getCurrentSpriteOriginCoords();
 			int sx = in[0], sy = in[1], tx = (int)getOutputDrawCoords().getX(), ty = (int)getOutputDrawCoords().getY();
 			if (gc != null)
-				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 														 tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 			else
-				Tools.addDrawImageQueue(layerType, spriteIndex == null ? Materials.blankImage : spriteSource, sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+				Tools.addDrawImageQueue(layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 																tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 		}
 	}
