@@ -19,6 +19,7 @@ import entities.Explosion;
 import entities.TileCoord;
 import enums.BombType;
 import enums.Icons;
+import enums.ImageFlip;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import gui.util.ControllerUtils;
@@ -30,17 +31,18 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -59,7 +61,7 @@ import util.Misc;
 public class MapEditor {
 
 	@FXML
-	private VBox vBoxTileSet;
+	private HBox hBoxTileSet;
 	@FXML
 	private Button buttonPlay;
   @FXML
@@ -136,14 +138,28 @@ public class MapEditor {
   private ComboBox<String> comboBoxMapFrameSets;
   @FXML
   private ComboBox<String> comboBoxMapList;
+  @FXML
+  private ComboBox<TileProp> comboBoxTileType;
+  @FXML
+  private ComboBox<Integer> comboBoxTileRotate;
+  @FXML
+  private ComboBox<ImageFlip> comboBoxTileFlip;
+  @FXML
+  private Slider sliderTileOpacity;
+  @FXML
+  private ColorPicker colorPickerTileTint;
+  @FXML
+  private CheckBox checkBoxTintSprite;
 
 	private Rectangle selection;
 	private Rectangle tileSelection;
 	private GraphicsContext gcMain;
 	private GraphicsContext gcTileSet;
+	private GraphicsContext gcTileSel;
 	private Brick[] bricks;
 	private Position[] tilePosition;
 	private Canvas[] canvasList;
+	private Canvas canvasTileSel;
 	private List<KeyCode> holdedKeys;
 	private Map<TileCoord, Entity> fragileTiles;
 	private Entity sampleFragileTile;
@@ -177,9 +193,12 @@ public class MapEditor {
 		ctrlZPos = -1;
 		playing = false;
 		selection = null;
+		canvasTileSel = null;
+		gcTileSel = null;
 		canvasMain.setWidth(320 * zoomMain - 16 * zoomMain * 3);
 		canvasMain.setHeight(240 * zoomMain - 16 * zoomMain);
 		Tools.loadTools();
+		redefineTileSelectionCanvas();
 		setAllCanvas();
 		defineControls();
 		setKeyboardEvents();
@@ -258,11 +277,20 @@ public class MapEditor {
 			MapSet.rebuildAllLayers();
 			setSampleTiles();
 		});
+		for (TileProp type : TileProp.getList())
+			comboBoxTileType.getItems().add(type);
+		comboBoxTileType.getSelectionModel().select(0);
 		comboBoxMapList.getItems().addAll(IniFiles.stages.getSectionList());
 		comboBoxMapList.valueProperty().addListener((obs, oldV, newV) -> {
 			loadMap(newV);
 		});
 		comboBoxMapList.getSelectionModel().select(0);
+		for (ImageFlip flip : ImageFlip.values())
+			comboBoxTileFlip.getItems().add(flip);
+		comboBoxTileFlip.getSelectionModel().select(0);
+		for (int n = 0; n < 360; n += 90)
+			comboBoxTileRotate.getItems().add(n);
+		comboBoxTileRotate.getSelectionModel().select(0);
 		ControllerUtils.setNodeFont(buttonPlay, "Lucida Console", 14);
 		buttonPlay.setText("►");
 		buttonPlay.setOnAction(e -> {
@@ -276,6 +304,9 @@ public class MapEditor {
 		canvasBrickRegen.setOnMouseClicked(e -> {
 			Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickRegenFrameSet"));
 		});
+		colorPickerTileTint.setDisable(true);
+		checkBoxTintSprite.selectedProperty().addListener((o, pastState, nowState) ->
+			colorPickerTileTint.setDisable(!nowState));
 	}
 
 	void mainLoop() {
@@ -358,6 +389,22 @@ public class MapEditor {
 		Tile.tags = new HashMap<>();
 		MapSet.loadMap(mapName);
 		MapSet.setBricksRegenTime(5);
+		setLayersListView();
+		canvasTileSet.setWidth(MapSet.getTileSetImage().getWidth());
+		canvasTileSet.setHeight(MapSet.getTileSetImage().getHeight());
+		resetBricks = System.currentTimeMillis() + 1500;
+		canvasMouseDraw.movedX = 0;
+		canvasMouseDraw.movedY = 0;
+		selection = null;
+		currentLayerIndex = resetCurrentLayerIndex ? 26 : currentLayerIndex;
+		ctrlZPos = -1;
+		backupTiles.clear();
+		comboBoxTileSets.getSelectionModel().select(MapSet.getTileSetName());
+		setSampleTiles();
+		saveCtrlZ();
+	}
+
+	private void setLayersListView() {
 		listViewLayers.getItems().clear();
 		List<Integer> list = new ArrayList<Integer>(MapSet.getLayersMap().keySet());
 		list.sort((n1, n2) -> n2 - n1);
@@ -378,18 +425,6 @@ public class MapEditor {
 			listViewLayers.getItems().add(hBox);
 		});
 		listViewLayers.getSelectionModel().select(Integer.valueOf(currentLayerIndex));
-		canvasTileSet.setWidth(MapSet.getTileSetImage().getWidth());
-		canvasTileSet.setHeight(MapSet.getTileSetImage().getHeight());
-		resetBricks = System.currentTimeMillis() + 1500;
-		canvasMouseDraw.movedX = 0;
-		canvasMouseDraw.movedY = 0;
-		selection = null;
-		currentLayerIndex = resetCurrentLayerIndex ? 26 : currentLayerIndex;
-		ctrlZPos = -1;
-		backupTiles.clear();
-		comboBoxTileSets.getSelectionModel().select(MapSet.getTileSetName());
-		setSampleTiles();
-		saveCtrlZ();
 	}
 
 	Canvas getDrawCanvas()
@@ -489,7 +524,7 @@ public class MapEditor {
 	}
 	
 	void rebuildTileSetCanvas() {
-		vBoxTileSet.getChildren().remove(1);
+		hBoxTileSet.getChildren().clear();
 		Image i = MapSet.getTileSetImage();
 		canvasTileSet = new Canvas(i.getWidth() * zoomTileSet, i.getHeight() * zoomTileSet);
 		gcTileSet = canvasTileSet.getGraphicsContext2D();
@@ -499,7 +534,7 @@ public class MapEditor {
 		scrollPane.setMinSize(w, h);
 		scrollPane.setPrefSize(w, h);
 		scrollPane.setMaxSize(w, h);
-		vBoxTileSet.getChildren().add(scrollPane);
+		hBoxTileSet.getChildren().add(scrollPane);
 		setTileSetCanvasMouseEvents();
 	}
 
@@ -511,6 +546,7 @@ public class MapEditor {
 																					 canvasMouseTileSet.startDragDY < canvasMouseTileSet.getCoordY() ? canvasMouseTileSet.startDragDY : canvasMouseTileSet.getCoordY(),
 																					(canvasMouseTileSet.startDragDX > canvasMouseTileSet.getCoordX() ? canvasMouseTileSet.startDragDX : canvasMouseTileSet.getCoordX()) + 1,
 																					(canvasMouseTileSet.startDragDY > canvasMouseTileSet.getCoordY() ? canvasMouseTileSet.startDragDY : canvasMouseTileSet.getCoordY()) + 1);
+				redefineTileSelectionCanvas();
 			}
 		});
 
@@ -529,9 +565,19 @@ public class MapEditor {
 					 canvasMouseTileSet.startDragDY < canvasMouseTileSet.getCoordY() ? canvasMouseTileSet.startDragDY : canvasMouseTileSet.getCoordY(),
 					(canvasMouseTileSet.startDragDX > canvasMouseTileSet.getCoordX() ? canvasMouseTileSet.startDragDX : canvasMouseTileSet.getCoordX()) + 1,
 					(canvasMouseTileSet.startDragDY > canvasMouseTileSet.getCoordY() ? canvasMouseTileSet.startDragDY : canvasMouseTileSet.getCoordY()) + 1);
+			redefineTileSelectionCanvas();
 		});
 	}
 	
+	private void redefineTileSelectionCanvas() {
+		int w = (int)tileSelection.getWidth() * 16, h = (int)tileSelection.getHeight() * 16;
+		if (canvasTileSel == null || (int)canvasTileSel.getWidth() != w || (int)canvasTileSel.getHeight() != h) {
+			canvasTileSel = new Canvas(w, h);
+			gcTileSel = canvasTileSel.getGraphicsContext2D();
+			gcTileSel.setImageSmoothing(false);
+		}
+	}
+
 	void setMainCanvasMouseEvents() {
 		canvasMain.setOnScroll(e -> {
 			int inc = (isShiftHold() ? e.getDeltaX() : e.getDeltaY()) < 0 ? -1 : 1;
@@ -607,10 +653,21 @@ public class MapEditor {
 	void addSelectedTileOnCurrentCursorPosition() {
 		for (int y = 0; y < tileSelection.getHeight(); y++)
 			for (int x = 0; x < tileSelection.getWidth(); x++) {
-				Tile tile = new Tile((int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, canvasMouseDraw.getCoordX() * 16 + x * 16, canvasMouseDraw.getCoordY() * 16 + y * 16, new ArrayList<>());
+				Tile tile = new Tile((int)tileSelection.getMinX() * 16 + x * 16,
+						(int)tileSelection.getMinY() * 16 + y * 16,
+						canvasMouseDraw.getCoordX() * 16 + x * 16,
+						canvasMouseDraw.getCoordY() * 16 + y * 16,
+						new ArrayList<>(Arrays.asList(comboBoxTileType.getSelectionModel().getSelectedItem())),
+						comboBoxTileFlip.getSelectionModel().getSelectedItem(),
+						comboBoxTileRotate.getSelectionModel().getSelectedItem(),
+						sliderTileOpacity.getValue(),
+						!checkBoxTintSprite.isSelected() ? Color.TRANSPARENT : colorPickerTileTint.getValue());
 				getCurrentLayer().addTile(tile);
 			}
+		int w = getCurrentLayer().getWidth(), h = getCurrentLayer().getHeight();
 		rebuildCurrentLayer(false);
+		if (w != getCurrentLayer().getWidth() || h != getCurrentLayer().getHeight())
+			setLayersListView();
 	}
 
 	Layer getCurrentLayer()
@@ -652,9 +709,16 @@ public class MapEditor {
 		Item.drawItems();
 		Effect.drawEffects();
 		fragileTiles.values().forEach(e -> e.run());
+		gcTileSel.clearRect(0, 0, canvasTileSel.getWidth(), canvasTileSel.getHeight());
 		for (int y = 0; y < tileSelection.getHeight(); y++)
 			for (int x = 0; x < tileSelection.getWidth(); x++)
-				Tools.addDrawImageQueue(SpriteLayerType.GROUND, MapSet.getTileSetImage(), (int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, 16, 16, canvasMouseDraw.getCoordX() * 16 + x * 16, canvasMouseDraw.getCoordY() * 16 + y * 16, Main.TILE_SIZE, Main.TILE_SIZE);
+				ImageUtils.drawImage(gcTileSel, MapSet.getTileSetImage(), (int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, 16, 16, x * 16, y * 16, Main.TILE_SIZE, Main.TILE_SIZE);
+		if (checkBoxTintSprite.isSelected()) {
+			Color color = colorPickerTileTint.getValue();
+			gcTileSel.setFill(color);
+			gcTileSel.fillRect(0, 0, (int)tileSelection.getWidth() * Main.TILE_SIZE, (int)tileSelection.getHeight() * Main.TILE_SIZE);
+		}
+		Tools.addDrawImageQueue(SpriteLayerType.GROUND, Tools.getCanvasSnapshot(canvasTileSel), canvasMouseDraw.getCoordX() * Main.TILE_SIZE, canvasMouseDraw.getCoordY() * Main.TILE_SIZE, comboBoxTileFlip.getSelectionModel().getSelectedItem(), comboBoxTileRotate.getSelectionModel().getSelectedItem(), sliderTileOpacity.getValue(), null);
 	}
 	
 	int deslocX()
@@ -878,7 +942,7 @@ public class MapEditor {
 						props += "!";
 					props += prop.getValue();
 				}
-				int[] rgba = ImageUtils.getRgbaArray(ImageUtils.colorToArgb(tile.tint));
+				int[] rgba = tile.tint == null ? new int[] {0, 0, 0, 0} : ImageUtils.getRgbaArray(ImageUtils.colorToArgb(tile.tint));
 				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.outX / 16) + " " + (tile.outY / 16) + " " + tile.spriteX + " " + tile.spriteY + " " + tile.flip.getValue() + " " + tile.rotate / 90 + " " + props + " " + tile.opacity + " " + rgba[0] + " " + rgba[1] + " " + rgba[2] + " " + rgba[3] + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.oldTags == null ? "" : tile.oldTags);
 				MapSet.getMapIniFile().write("TILES", "" + n++, s);
 			}

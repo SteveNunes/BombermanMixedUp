@@ -1,6 +1,7 @@
 package enums;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -198,5 +199,8 @@ public enum TileProp {
 	
 	public static TileProp getPropFromValue(int value)
 		{ return propFromValueList.containsKey(value) ? propFromValueList.get(value) : null; }
+
+	public static Collection<TileProp> getList()
+		{ return propFromValueList.values(); }
 
 }

@@ -33,10 +33,10 @@ public class Tile {
 	public static Map<Integer, Map<TileCoord, String>> tags = new HashMap<>();
 	
 	public Tile(int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp)
-		{ this(spriteX, spriteY, outX, outY, tileProp, ImageFlip.NONE, 0, 1, Color.WHITE, null); }
+		{ this(spriteX, spriteY, outX, outY, tileProp, ImageFlip.NONE, 0, 1, Color.TRANSPARENT, null); }
 
 	public Tile(int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp, ImageFlip flip, int rotate, double opacity)
-		{ this(spriteX, spriteY, outX, outY, tileProp, flip, rotate, opacity, Color.WHITE, null); }
+		{ this(spriteX, spriteY, outX, outY, tileProp, flip, rotate, opacity, Color.TRANSPARENT, null); }
 
 	public Tile(int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp, ImageFlip flip, int rotate, double opacity, Color tint)
 		{ this(spriteX, spriteY, outX, outY, tileProp, flip, rotate, opacity, tint, null); }
@@ -57,7 +57,7 @@ public class Tile {
 	public Tile(String strFromIni) {
 		tileProp = new ArrayList<>();
 		String[] split = strFromIni.split(" ");
-		if (split.length < 14)
+		if (split.length < 11)
 			throw new RuntimeException(strFromIni + " - Too few parameters");
 		int n = 0, r, g, b, a, layer;
 		try {
@@ -83,14 +83,15 @@ public class Tile {
 			else
 				tileProp.add(TileProp.NOTHING);
 			n++; opacity = split.length <= n ? 1 : Double.parseDouble(split[n]);
-			n++; r = split.length <= n ? 255 : Integer.parseInt(split[n]);
-			n++; g = split.length <= n ? 255 : Integer.parseInt(split[n]);
-			n++; b = split.length <= n ? 255 : Integer.parseInt(split[n]);
-			n++; a = split.length <= n ? 255 : Integer.parseInt(split[n]);
-			tint = ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b, a));
+			n++; String[] rgba = split[n].split("!");
+			r = Integer.parseInt(rgba[0]);
+			g = Integer.parseInt(rgba[1]);
+			b = Integer.parseInt(rgba[2]);
+			a = Integer.parseInt(rgba[3]);
+			tint = r + g + b + a == 0 ? null : ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b, a));
 			n++; effects = split.length <= n ? null : Tools.loadEffectsFromString(MyConverters.arrayToString(split, n));
-			if (Main.mapEditor != null && split.length > 15) {
-				oldTags = MyConverters.arrayToString(split, 15);
+			if (Main.mapEditor != null && split.length > 12) {
+				oldTags = MyConverters.arrayToString(split, 12);
 				if (!oldTags.isEmpty())
 					addStringTag(layer, outX / Main.TILE_SIZE, outY / Main.TILE_SIZE, oldTags);
 			}
