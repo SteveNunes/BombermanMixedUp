@@ -15,17 +15,17 @@ import util.FindFile;
 
 public abstract class Materials {
 	
-	public static Image mainSprites;
-	public static Image frames;
-	public static Image auras;
-	public static Image thunders;
-	public static Image explosions;
-	public static Image blankImage;
+	public static WritableImage mainSprites;
+	public static WritableImage frames;
+	public static WritableImage auras;
+	public static WritableImage thunders;
+	public static WritableImage explosions;
+	public static WritableImage blankImage;
 	public static List<Image> characters;
 	public static List<Image> rides;
 	public static Map<String, Image> tileSets;
 	public static Map<Integer, Integer> bomberSpriteIndex;
-	public static Map<String, Image> loadedSprites;
+	public static Map<String, WritableImage> loadedSprites;
 	public static Map<Image, String> loadedSprites2;
 	public static Map<String, WritableImage> tempSprites;
 	
@@ -44,7 +44,7 @@ public abstract class Materials {
 
 		characters = new ArrayList<>();
 		for (int n = 0, index = 0; n <= 13; n++) {
-			WritableImage image = (WritableImage)loadImage("/characters/" + n, Color.valueOf("#03E313"));
+			WritableImage image = loadImage("/characters/" + n, Color.valueOf("#03E313"));
 			List<Integer> rgbList = new ArrayList<>();
 			List<Integer> originalRgb = null;
 			for  (int i = 0, rgba = 1, rgba2 = 2; rgba != rgba2 || rgba != 0; i++) {
@@ -96,19 +96,19 @@ public abstract class Materials {
 		explosions = Tools.getCanvasSnapshot(c);
 	}
 
-	public static Image loadImage(String imagePartialPath, Color removeColor) throws RuntimeException { // Informe apenas o nome do arquivo (com pasta ou nao) a partir da pasta sprites, sem o .png
+	public static WritableImage loadImage(String imagePartialPath, Color removeColor) throws RuntimeException { // Informe apenas o nome do arquivo (com pasta ou nao) a partir da pasta sprites, sem o .png
 		if (!loadedSprites.containsKey(imagePartialPath)) {
-			Image image;
+			WritableImage image;
 			if (removeColor != null)
-				loadedSprites.put(imagePartialPath, image = ImageUtils.removeBgColor(new Image("file:./appdata/sprites/" + imagePartialPath + ".png"), removeColor));
+				loadedSprites.put(imagePartialPath, image = (WritableImage)ImageUtils.removeBgColor(new Image("file:./appdata/sprites/" + imagePartialPath + ".png"), removeColor));
 			else
-				loadedSprites.put(imagePartialPath, image = new Image("file:./appdata/sprites/" + imagePartialPath + ".png"));
+				loadedSprites.put(imagePartialPath, image = (WritableImage)new Image("file:./appdata/sprites/" + imagePartialPath + ".png"));
 			loadedSprites2.put(image, imagePartialPath);
 		}
 		return loadedSprites.get(imagePartialPath);
 	}
 	
-	public static Image getImageFromSpriteName(String spriteName) {
+	public static WritableImage getImageFromSpriteName(String spriteName) {
 		if (loadedSprites.containsKey(spriteName))
 			return loadedSprites.get(spriteName);
 		if (tempSprites.containsKey(spriteName))

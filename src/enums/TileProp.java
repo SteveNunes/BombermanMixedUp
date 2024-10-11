@@ -193,8 +193,8 @@ public enum TileProp {
 	private TileProp(int value)
 		{ this.value = value; }
 	
-	public long getValue()
-		{ return (int)Math.pow(1, value); }
+	public int getValue()
+		{ return value; }
 	
 	public static TileProp getPropFromValue(int value)
 		{ return propFromValueList.containsKey(value) ? propFromValueList.get(value) : null; }

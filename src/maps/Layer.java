@@ -55,20 +55,18 @@ public class Layer {
 			}
 		this.width = width;
 		this.height = height;
-		Canvas canvas = new Canvas(1000, 1000);
+		Canvas canvas = new Canvas(width, height);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		gc.setImageSmoothing(false);
-		gc.clearRect(0, 0, 1000, 1000);
+		gc.clearRect(0, 0, width, height);
 		tilesMap.values().forEach(tiles ->
 			tiles.forEach(tile ->
-				ImageUtils.drawImage(gc, MapSet.getTileSetImage(),
-														 tile.spriteX, tile.spriteY, 16, 16,
-														 tile.outX, tile.outY, 16, 16,
-														 tile.flip, tile.rotate,
-														 tile.opacity, tile.effects)));
-		if (!Materials.tempSprites.containsKey("Layer" + layer))
-			Materials.tempSprites.put("Layer" + layer, new WritableImage(1000, 1000));
-		Tools.getCanvasSnapshot(canvas, Materials.tempSprites.get("Layer" + layer));
+				ImageUtils.drawImage(gc, MapSet.getTileSetImage(), tile.spriteX, tile.spriteY, 16, 16, tile.outX, tile.outY,
+														 16, 16, tile.flip, tile.rotate, tile.opacity, tile.effects)));
+		if (getLayerImage() == null || (int)getLayerImage().getWidth() != width || (int)getLayerImage().getHeight() != height)
+			setLayerImage(Tools.getCanvasSnapshot(canvas));
+		else
+			Tools.getCanvasSnapshot(canvas, getLayerImage());
 	}
 	
 	public WritableImage getLayerImage()

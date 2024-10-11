@@ -92,14 +92,18 @@ public class MapSet {
 		setRandomWalls();
 		rebuildAllLayers();
 		setBricks();
+		resetMapFrameSets();
+		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
+	}
+	
+	public static void resetMapFrameSets() {
 		mapFrameSets = new Entity();
 		for (String item : iniFileMap.getItemList("FRAMESETS"))
 			mapFrameSets.addNewFrameSetFromString(item, iniFileMap.read("FRAMESETS", item));
 		if (mapFrameSets.haveFrameSet("DefaultFrameSet"))
 			mapFrameSets.setFrameSet("DefaultFrameSet");
-		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
 	}
-	
+
 	public static void setTileSet(String tileSetName) {
 		MapSet.tileSetName = tileSetName; 
 		iniFileTileSet = IniFile.getNewIniFileInstance("appdata/tileset/" + tileSetName + ".tiles");

@@ -51,7 +51,7 @@ public class SetSprSource extends FrameTag {
 			int sx = Integer.parseInt(params[n = 1]),
 					sy = Integer.parseInt(params[n = 2]),
 					sw = params[n = 3].equals("-") ? (int)image.getWidth() : Integer.parseInt(params[n]),
-					sh = params[n = 4].equals("-") ? (int)image.getWidth() : Integer.parseInt(params[n]),
+					sh = params[n = 4].equals("-") ? (int)image.getHeight() : Integer.parseInt(params[n]),
 					tx = t < 8 ? 0 : Integer.parseInt(params[n = 7]),
 					ty = t < 9 ? 0 : Integer.parseInt(params[n = 8]),
 					tw = t < 10 || params[n = 9].equals("-") ? sw : Integer.parseInt(params[n]),

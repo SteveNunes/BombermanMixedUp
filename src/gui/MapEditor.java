@@ -22,6 +22,7 @@ import enums.Icons;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import gui.util.ControllerUtils;
+import gui.util.ImageUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -158,7 +159,7 @@ public class MapEditor {
 	private int ctrlZPos;
 	private long resetBricks;
 	private boolean playing;
-	private String defaultMap = "Boss-Map_SBM2-1";
+	private String defaultMap = "SBM2_1-1";
 	
 	public void init() {
 		canvasMouseDraw = new CanvasMouse();
@@ -204,6 +205,8 @@ public class MapEditor {
 		ControllerUtils.addIconToButton(buttonAddLayer, Icons.NEW_FILE.getValue(), 20, 20, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonTileSetZoom1, Icons.ZOOM_PLUS.getValue(), 20, 20, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonTileSetZoom2, Icons.ZOOM_MINUS.getValue(), 20, 20, Color.WHITE, 150);
+		buttonReloadFromDisk.setOnAction(e -> reloadCurrentMap());
+		buttonSaveToDisk.setOnAction(e -> saveCurrentMap());
 		checkBoxShowBricks.setSelected(true);
 		checkBoxShowItens.setSelected(true);
 		checkBoxShowBricks.setOnAction(e -> {
@@ -265,6 +268,8 @@ public class MapEditor {
 		buttonPlay.setOnAction(e -> {
 			playing = !playing;
 			buttonPlay.setText(playing ? "■" : "►");
+			if (playing)
+				MapSet.resetMapFrameSets();
 		});
 		canvasBrickStand.setOnMouseClicked(e -> Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickStandFrameSet")));
 		canvasBrickBreaking.setOnMouseClicked(e -> Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickBreakFrameSet")));
@@ -358,13 +363,17 @@ public class MapEditor {
 		list.sort((n1, n2) -> n2 - n1);
 		list.forEach(layer -> {
 			HBox hBox = new HBox(new Text("" + layer));
+			HBox hBox2 = new HBox(new Text(MapSet.getLayer(layer).getWidth() + " x " + MapSet.getLayer(layer).getHeight()));
 			ComboBox<SpriteLayerType> comboBox = new ComboBox<>();
 			ControllerUtils.setListToComboBox(comboBox, Arrays.asList(SpriteLayerType.getList()));
 			comboBox.getSelectionModel().select(MapSet.getLayer(layer).getSpriteLayerType());
 			comboBox.valueProperty().addListener((o, oldV, newV) -> MapSet.getLayer(layer).setSpriteLayerType(newV));
 			hBox.setSpacing(5);
 			hBox.setAlignment(Pos.CENTER_LEFT);
+			hBox2.setAlignment(Pos.CENTER);
+			hBox2.setPrefWidth(70);
 			hBox.getChildren().add(comboBox);
+			hBox.getChildren().add(hBox2);
 			hBox.setOnMouseClicked(event -> setLayer(layer));
 			listViewLayers.getItems().add(hBox);
 		});
@@ -621,13 +630,16 @@ public class MapEditor {
 
 	void drawDrawCanvas() {
 		getDrawGc().setFill(Color.DIMGRAY);
-		getDrawGc().fillRect(0, 0, getDrawCanvas().getWidth(), getDrawCanvas().getHeight());
+		getDrawGc().fillRect(0, 0, 1000, 1000);
 		getDrawGc().setFill(Color.BLACK);
-		getDrawGc().fillRect(0, 0, getCurrentLayer().getWidth(), getCurrentLayer().getHeight());
-		if (playing)
+		if (playing) {
+			getDrawGc().fillRect(0, 0, MapSet.getLayer(26).getWidth(), MapSet.getLayer(26).getHeight());
 			MapSet.run();
-		else if (MapSet.getLayersMap().containsKey(currentLayerIndex))
+		}
+		else if (MapSet.getLayersMap().containsKey(currentLayerIndex)) {
+			getDrawGc().fillRect(0, 0, getCurrentLayer().getWidth(), getCurrentLayer().getHeight());
 			Tools.addDrawImageQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
+		}
 		Explosion.drawExplosions();
 		if (checkBoxShowBricks.isSelected() && currentLayerIndex == 26) {
 			Brick.drawBricks();
@@ -643,7 +655,6 @@ public class MapEditor {
 		for (int y = 0; y < tileSelection.getHeight(); y++)
 			for (int x = 0; x < tileSelection.getWidth(); x++)
 				Tools.addDrawImageQueue(SpriteLayerType.GROUND, MapSet.getTileSetImage(), (int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, 16, 16, canvasMouseDraw.getCoordX() * 16 + x * 16, canvasMouseDraw.getCoordY() * 16 + y * 16, Main.TILE_SIZE, Main.TILE_SIZE);
-    drawBlockTypeMark();
 	}
 	
 	int deslocX()
@@ -654,6 +665,7 @@ public class MapEditor {
 
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
     Tools.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
+    drawBlockTypeMark();
     drawGridAndAim();
     drawTileTagsOverCursor();
     drawTileSetCanvas();
@@ -855,6 +867,24 @@ public class MapEditor {
 			saveCtrlZ();
 	}
 	
+	void saveCurrentMap() {
+		MapSet.getMapIniFile().clearSection("TILES");
+		int n = 0;
+		for (Layer layer : MapSet.getLayersMap().values())
+			for (Tile tile : layer.getTileList()) {
+				String props = "";
+				for (TileProp prop : tile.tileProp) {
+					if (!props.isEmpty())
+						props += "!";
+					props += prop.getValue();
+				}
+				int[] rgba = ImageUtils.getRgbaArray(ImageUtils.colorToArgb(tile.tint));
+				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.outX / 16) + " " + (tile.outY / 16) + " " + tile.spriteX + " " + tile.spriteY + " " + tile.flip.getValue() + " " + tile.rotate / 90 + " " + props + " " + tile.opacity + " " + rgba[0] + " " + rgba[1] + " " + rgba[2] + " " + rgba[3] + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.oldTags == null ? "" : tile.oldTags);
+				MapSet.getMapIniFile().write("TILES", "" + n++, s);
+			}
+		System.out.println(MapSet.getMapIniFile().fileName());
+	}
+	
 	void drawBlockTypeMark() {
 		Set<TileCoord> ok = new HashSet<>();
 		if (checkBoxShowBlockType.isSelected()) {
@@ -943,14 +973,14 @@ public class MapEditor {
 	    							 color = Color.RED;
 	    		else
 	    			color = Color.ORANGE;
-	    		getDrawGc().save();
-	    		getDrawGc().setFill(color);
-	    		getDrawGc().setLineWidth(1);
-	    		getDrawGc().setGlobalAlpha(0.6);
-		    	getDrawGc().fillRect(tile.getTileX() * Main.TILE_SIZE,
-		    									tile.getTileY() * Main.TILE_SIZE,
-		    									Main.TILE_SIZE, Main.TILE_SIZE);
-	    		getDrawGc().restore();
+	    		gcMain.save();
+	    		gcMain.setFill(color);
+	    		gcMain.setLineWidth(1);
+	    		gcMain.setGlobalAlpha(0.6);
+		    	gcMain.fillRect(tile.getTileX() * Main.TILE_SIZE * zoomMain,
+		    									tile.getTileY() * Main.TILE_SIZE * zoomMain,
+		    									Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+	    		gcMain.restore();
 	    		ok.add(tile.getTileCoord());
     		}
     	});

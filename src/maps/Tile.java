@@ -19,16 +19,17 @@ import util.MyConverters;
 
 public class Tile {
 
-	int spriteX;
-	int spriteY;
+	public int spriteX;
+	public int spriteY;
 	public int outX;
 	public int outY;
-	ImageFlip flip;
-	int rotate;
+	public ImageFlip flip;
+	public int rotate;
 	public List<TileProp> tileProp;
-	Color tint;
-	double opacity;
-	DrawImageEffects effects;
+	public Color tint;
+	public double opacity;
+	public DrawImageEffects effects;
+	public String oldTags;
 	public static Map<Integer, Map<TileCoord, String>> tags = new HashMap<>();
 	
 	public Tile(int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp)
@@ -60,6 +61,7 @@ public class Tile {
 			throw new RuntimeException(strFromIni + " - Too few parameters");
 		int n = 0, r, g, b, a, layer;
 		try {
+			oldTags = "";
 			layer = split.length <= n ? 0 : Integer.parseInt(split[n]);
 			// O segundo parametro eh ignorado pq so eh util no construtor da classe Layer
 			n += 2; outX = split.length <= n ? 0 : Integer.parseInt(split[n]) * Main.TILE_SIZE;
@@ -87,10 +89,10 @@ public class Tile {
 			n++; a = split.length <= n ? 255 : Integer.parseInt(split[n]);
 			tint = ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b, a));
 			n++; effects = split.length <= n ? null : Tools.loadEffectsFromString(MyConverters.arrayToString(split, n));
-			if (Main.mapEditor != null && split.length >= 15) {
-				String str = MyConverters.arrayToString(split, 15);
-				if (!str.isEmpty())
-					addStringTag(layer, outX / Main.TILE_SIZE, outY / Main.TILE_SIZE, str);
+			if (Main.mapEditor != null && split.length > 15) {
+				oldTags = MyConverters.arrayToString(split, 15);
+				if (!oldTags.isEmpty())
+					addStringTag(layer, outX / Main.TILE_SIZE, outY / Main.TILE_SIZE, oldTags);
 			}
 		}
 		catch (Exception e)

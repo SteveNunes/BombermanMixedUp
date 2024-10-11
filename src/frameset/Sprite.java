@@ -9,6 +9,7 @@ import enums.ImageAlignment;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
 import gui.util.ImageUtils;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
@@ -29,6 +30,7 @@ public class Sprite {
 	private Rectangle outputSpriteSizePos;
 	private DrawImageEffects spriteEffects;
 	private Position outputSpritePos;
+	private Position spriteScroll;
 	private EliticMove eliticMove;
 	private RectangleMove rectangleMove;
 	private JumpMove jumpMove;
@@ -67,6 +69,7 @@ public class Sprite {
 		layerType = sprite.layerType;
 		visibleSprite = sprite.visibleSprite;
 		wavingImage = sprite.wavingImage == null ? null : new WavingImage(sprite.wavingImage);
+		spriteScroll = sprite.spriteScroll == null ? null : new Position(sprite.spriteScroll);
 	}
 	
 	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spriteIndex, int spritesPerLine) {
@@ -77,6 +80,7 @@ public class Sprite {
 		this.mainFrameSet = mainFrameSet;
 		this.originSpriteSizePos = new Rectangle(originSpriteSizePos);
 		this.outputSpriteSizePos = new Rectangle(outputSpriteSizePos);
+		spriteScroll = null;
 		wavingImage = null;
 		outputSpritePos = new Position();
 		spriteEffects = new DrawImageEffects();
@@ -125,11 +129,11 @@ public class Sprite {
 	public void setSpriteSourceName(String spriteSourceName)
 		{ this.spriteSourceName = spriteSourceName; }
 
-	public Image getSpriteSource() {
+	public WritableImage getSpriteSource() {
 		if (wavingImage != null) {
 			wavingImage.setBounds((int)originSpriteSizePos.getX(), (int)originSpriteSizePos.getY(), (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight());
 			System.out.println(originSpriteSizePos);
-			return wavingImage.apply((WritableImage)Materials.getImageFromSpriteName(spriteSourceName));
+			return wavingImage.apply(Materials.getImageFromSpriteName(spriteSourceName));
 		}
 		return Materials.getImageFromSpriteName(spriteSourceName);
 	}
@@ -434,6 +438,47 @@ public class Sprite {
 			else
 				Tools.addDrawImageQueue(layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 																tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
+		}
+		scrollSprite();
+	}
+	
+	public void setSpriteScroll(double scrollX, double scrollY)
+		{ spriteScroll = new Position(scrollX, scrollY); }
+	
+	public void stopSpriteScroll()
+		{ spriteScroll = null; }
+
+	public void scrollSprite() {
+		if (spriteScroll != null) {
+			Image i = getSpriteSource();
+			int w = (int)i.getWidth(), h = (int)i.getHeight();
+			double incX = spriteScroll.getX(), incY = spriteScroll.getX();
+			Canvas canvas = new Canvas(w, h);
+			GraphicsContext gc = canvas.getGraphicsContext2D();
+			gc.setImageSmoothing(false);
+			if (incX != 0) {
+				if (incX > 0) {
+					gc.drawImage(i, 0, 0, w - incX, h, incX, 0, w - incX, h);
+					gc.drawImage(i, w - incX, 0, incX, h, 0, 0, incX, h);
+				}
+				else if (incX < 0) {
+					gc.drawImage(i, -incX, 0, w - -incX, h, 0, 0, w - -incX, h);
+					gc.drawImage(i, 0, 0, -incX, h, w - -incX, 0, -incX, h);
+				}
+				i = Tools.getCanvasSnapshot(canvas, getSpriteSource());
+			}
+			if (incY != 0) {
+				gc.clearRect(0, 0, w, h);
+				if (incY > 0) {
+					gc.drawImage(i, 0, 0, w, h - incY, 0, incY, w, h - incY);
+					gc.drawImage(i, 0, h - incY, w, incY, 0, 0, w, incY);
+				}
+				else if (incY < 0) {
+					gc.drawImage(i, 0, -incY, w, h - -incY, 0, 0, w, h - -incY);
+					gc.drawImage(i, 0, 0, w, -incY, 0, h - -incY, w, -incY);
+				}
+				Tools.getCanvasSnapshot(canvas, getSpriteSource());
+			}
 		}
 	}
 

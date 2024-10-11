@@ -75,14 +75,13 @@ public abstract class Tools {
 	
 	public static void applyAllDraws(Canvas canvas, Color clearColor, int offsetX, int offsetY)
 		{ applyAllDraws(canvas, clearColor, 1, offsetX, offsetY); }
-
+	
 	public static void applyAllDraws(Canvas canvas, Color clearColor, int zoom, int offsetX, int offsetY) {
 		if (clearColor == null)
 			clearColor = Color.BLACK;
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		gc.setFill(clearColor);
 		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-		gcTemp.clearRect(0, 0, getTempCanvas().getWidth(), getTempCanvas().getHeight());
 		for (SpriteLayerType layerType : SpriteLayerType.getList())
 			if (drawParamsList.containsKey(layerType))
 				for (DrawParams dp : drawParamsList.get(layerType)) {
@@ -217,7 +216,12 @@ public abstract class Tools {
 	
 	public static DrawImageEffects loadEffectsFromString(String arrayToString) {
 		// NOTA: implementar
-		return null;
+		return new DrawImageEffects();
+	}
+	
+	public static String SpriteEffectsToString(DrawImageEffects effects) {
+		// NOTA: implementar
+		return "-";
 	}
 
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Integer rotateAngle, DrawImageEffects effects)

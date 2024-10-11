@@ -284,6 +284,8 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new SetTicksPerFrame(s));
 			else if (tag.equals("SetSprWaving"))
 				tags.addFrameSetTag(new SetSprWaving(s));
+			else if (tag.equals("SetSprScrolling"))
+				tags.addFrameSetTag(new SetSprScrolling(s));
 		}
 	}
 

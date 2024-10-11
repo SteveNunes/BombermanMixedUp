@@ -121,7 +121,7 @@ public class Item extends Entity{
 	
 	public static void drawItems() {
 		List<Item> removeItems = new ArrayList<>();
-		WritableImage i = (WritableImage)Materials.loadedSprites.get("ItemEdge");
+		WritableImage i = Materials.loadedSprites.get("ItemEdge");
 		Color c = itemEdigeColor.getColor();
 		for (int y = 0; y < 18; y++) {
 			i.getPixelWriter().setColor(0, y, c);
