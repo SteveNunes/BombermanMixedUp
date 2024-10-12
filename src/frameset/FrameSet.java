@@ -412,6 +412,7 @@ public class FrameSet extends Position {
 			for (String s2 : sprites)
 				FrameTagLoader.loadToTags(s2, frame.getFrameSetTagsList().get(n++));
 		}
+		
 	}
 
 	public String getStringFromFrameSetTags() {

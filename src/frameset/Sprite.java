@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
+import entities.TileCoord;
 import enums.ImageAlignment;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
@@ -132,7 +133,6 @@ public class Sprite {
 	public WritableImage getSpriteSource() {
 		if (wavingImage != null) {
 			wavingImage.setBounds((int)originSpriteSizePos.getX(), (int)originSpriteSizePos.getY(), (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight());
-			System.out.println(originSpriteSizePos);
 			return wavingImage.apply(Materials.getImageFromSpriteName(spriteSourceName));
 		}
 		return Materials.getImageFromSpriteName(spriteSourceName);
@@ -481,5 +481,8 @@ public class Sprite {
 			}
 		}
 	}
+
+	public TileCoord getTileCoord()
+		{ return new TileCoord((int)getX() / Main.TILE_SIZE, (int)getY() / Main.TILE_SIZE); }
 
 }

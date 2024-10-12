@@ -1204,14 +1204,14 @@
 1202=27 GROUND 2 2 192 48 0 0 12 1.0 255 255 255 255 - 
 
 [WININFO]
-26=496 224 0 0 0 0 0 0 0 0 1 255 255 255 255 -
-27=496 224 0 0 0 0 0 0 0 0 1 255 255 255 255 -
-51=496 224 0 0 0 0 0 0 0 0 1 255 255 255 255 -
-52=496 224 0 0 0 0 0 0 0 0 1 255 255 255 255 -
-53=496 224 0 0 0 0 0 0 0 0 1 255 255 255 255 -
-54=496 224 0 0 0 0 0 0 0 0 1 255 255 255 255 -
-55=496 224 0 0 0 0 0 0 0 0 1 255 255 255 255 -
-56=496 224 0 0 0 0 0 0 0 0 1 255 255 255 255 -
+26=496 224 0 0 0 0 0 0 0 0 1!255!255!255 255 -
+27=496 224 0 0 0 0 0 0 0 0 1!255!255!255 255 -
+51=496 224 0 0 0 0 0 0 0 0 1!255!255!255 255 -
+52=496 224 0 0 0 0 0 0 0 0 1!255!255!255 255 -
+53=496 224 0 0 0 0 0 0 0 0 1!255!255!255 255 -
+54=496 224 0 0 0 0 0 0 0 0 1!255!255!255 255 -
+55=496 224 0 0 0 0 0 0 0 0 1!255!255!255 255 -
+56=496 224 0 0 0 0 0 0 0 0 1!255!255!255 255 -
 
 [SETUP]
 BlinkingDoorAnimationID=-2 -1 -1
@@ -1223,3 +1223,4 @@ NeedForExit=Switch KillAllMobs
 
 [FRAMESETS]
 DefaultFrameSet={SetSprSource;Layer26;0;0;-;-;0;0;0;0;-;-},{SetTicksPerFrame;8},{SetSprIndex;0},,{SetSprSource;Layer51;0;0;-;-;0;0;0;0;-;-},{SetSprIndex;0},,{SetSprSource;Layer52;0;0;-;-;0;0;0;0;-;-},{SetSprIndex;-},,{SetSprSource;Layer53;0;0;-;-;0;0;0;0;-;-},{SetSprIndex;-},,{SetSprSource;Layer54;0;0;-;-;0;0;0;0;-;-},{SetSprIndex;-},,{SetSprSource;Layer55;0;0;-;-;0;0;0;0;-;-},{SetSprIndex;-},,{SetSprSource;Layer56;0;0;-;-;0;0;0;0;-;-},{SetSprIndex;-}|{},,{SetSprIndex;0},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-}|{},,{SetSprIndex;-},,{SetSprIndex;0},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-}|{},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;0},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-}|{},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;0},,{SetSprIndex;-},,{SetSprIndex;-}|{},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;0},,{SetSprIndex;-}|{},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;-},,{SetSprIndex;0}|{Goto;1}
+StageClearFrameSet={SetSprSource;Tile39;0;0;-;-;0;0;0;0;-;-}

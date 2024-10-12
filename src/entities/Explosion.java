@@ -2,7 +2,9 @@ package entities;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import application.Main;
 import enums.Direction;
@@ -10,6 +12,7 @@ import enums.PassThrough;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import maps.MapSet;
+import maps.Tile;
 import tools.Materials;
 import tools.Tools;
 
@@ -112,16 +115,35 @@ public class Explosion {
 						coord.incByDirection(dir);
 					if (x > 0 || directions.size() == 4) {
 						if (MapSet.haveTilesOnCoord(coord)) {
-							if (remove)
+							if (remove) {
 								MapSet.removePropFromTile(coord, TileProp.EXPLOSION);
-							else
+								if (!MapSet.getTilePropsFromCoord(coord).contains(TileProp.EXPLOSION))
+									Explosion.triggeredTiles.remove(coord);
+							}
+							else {
 								MapSet.addPropToTile(coord, TileProp.EXPLOSION);
+								checkExplodedTile(coord);
+							}
 						}
 						if (x > 0 && !MapSet.tileIsFree(coord, passThroughAllBricks ? Arrays.asList(PassThrough.BRICK) : null))
 							break;
 					}
 				}
 			}
+		}
+	}
+
+	
+	public static Set<TileCoord> triggeredTiles = new HashSet<>();
+	
+	private void checkExplodedTile(TileCoord coord) {
+		if (!triggeredTiles.contains(coord)) {
+			Tile tile = MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord);
+			for (TileProp prop : tile.tileProp) {
+				if (prop == TileProp.TRIGGER_BY_EXPLOSION)
+					tile.tileTags.run();
+			}
+			triggeredTiles.add(coord);
 		}
 	}
 	

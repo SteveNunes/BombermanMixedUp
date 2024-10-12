@@ -16,6 +16,7 @@ import enums.Elevation;
 import enums.ItemType;
 import enums.PassThrough;
 import enums.TileProp;
+import frameset.Tags;
 import javafx.scene.image.Image;
 import objmoveutils.Position;
 import pathfinder.PathFinder;
@@ -26,16 +27,17 @@ import util.IniFile;
 import util.Misc;
 import util.MyMath;
 
-public class MapSet {
+public abstract class MapSet {
 	
 	private static Map<Integer, Layer> layers;
 	private static Map<TileCoord, Integer> initialPlayerCoords;
 	private static Map<TileCoord, Integer> initialMonsterCoords;
-	private static Entity mapFrameSets;
+	public static Entity mapFrameSets;
 	private static IniFile iniFileMap;
 	private static IniFile iniFileTileSet;
 	private static Image tileSetImage;
 	private static Integer copyImageLayer;
+	private static Integer currentLayerIndex;
 	private static String mapName;
 	private static String iniMapName;
 	private static String tileSetName;
@@ -46,6 +48,8 @@ public class MapSet {
 	private static Position fragileGround;
 	private static Position mapMove;
 	private static int bricksRegenTimeInFrames;
+	private static Map<String, Integer> switches;
+	private static Map<String, Tags> frameSetTags;
 	
 	public static void loadMap(String iniMapName) {
 		long ct = System.currentTimeMillis();
@@ -57,6 +61,8 @@ public class MapSet {
 		MapSet.iniMapName = iniMapName;
 		bricksRegenTimeInFrames = -1;
 		layers = new HashMap<>();
+		switches = new HashMap<>();
+		frameSetTags = new HashMap<>();
 		initialPlayerCoords = new HashMap<>();
 		initialMonsterCoords = new HashMap<>();
 		mapMove = new Position();
@@ -67,6 +73,8 @@ public class MapSet {
 		setTileSet(iniFileMap.read("SETUP", "Tiles"));
 		Map<Integer, List<String>> tileInfos = new HashMap<>();
 		copyImageLayer = iniFileMap.readAsInteger("SETUP", "ImageLayer", null);
+		iniFileMap.getItemList("FRAMETAGS").forEach(item ->
+			frameSetTags.put(item, Tags.loadTagsFromString(iniFileMap.read("FRAMETAGS", item))));
 		iniFileMap.getItemList("TILES").forEach(item -> {
 			String line = iniFileMap.read("TILES", item);
 			int layer = Integer.parseInt(line.split(" ")[0]);
@@ -89,6 +97,7 @@ public class MapSet {
 		groundWithWallShadow = Misc.notNull(getTilePositionFromIni(iniFileMap, "GroundWithWallShadow"), new Position(groundTile));
 		wallTile = getTilePositionFromIni(iniFileMap, "WallTile");
 		fragileGround = getTilePositionFromIni(iniFileMap, "FragileGround");
+		currentLayerIndex = 26;
 		setRandomWalls();
 		rebuildAllLayers();
 		setBricks();
@@ -96,11 +105,34 @@ public class MapSet {
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
 	}
 	
+	public static Layer getCurrentLayer()
+		{ return layers.get(currentLayerIndex); }
+	
+	public static int getCurrentLayerIndex()
+		{ return currentLayerIndex; }
+	
+	public static void setCurrentLayerIndex(int index)
+		{ currentLayerIndex = index; }
+	
+	public static int getSwitchValue(String switchName)
+		{ return !switches.containsKey(switchName) ? 0 : switches.get(switchName); }
+
+	public static void setSwitchValue(String switchName, int value) {
+		switches.put(switchName, value);
+		if (switchName.equals("StageClear") && getSwitchValue(switchName) == 0 && frameSetTags.containsKey("StageClearFrameTags"))
+			Tags.processTags(frameSetTags.get("StageClearFrameTags"));
+	}
+	
+	public static void incSwitchValue(String switchName, int incValue)
+		{ setSwitchValue(switchName, getSwitchValue(switchName) + incValue); }
+	
 	public static void resetMapFrameSets() {
 		mapFrameSets = new Entity();
 		for (String item : iniFileMap.getItemList("FRAMESETS"))
 			mapFrameSets.addNewFrameSetFromString(item, iniFileMap.read("FRAMESETS", item));
-		if (mapFrameSets.haveFrameSet("DefaultFrameSet"))
+		if (mapFrameSets.haveFrameSet("StageIntroFrameSet"))
+			mapFrameSets.setFrameSet("StageIntroFrameSet");
+		else if (mapFrameSets.haveFrameSet("DefaultFrameSet"))
 			mapFrameSets.setFrameSet("DefaultFrameSet");
 	}
 
@@ -271,7 +303,7 @@ public class MapSet {
 	}
 	
 	public static List<TileProp> getTilePropsFromCoord(TileCoord coord)
-		{ return getLayer(26).getFirstBottomTileFromCoord(coord).tileProp; }
+		{ return getCurrentLayer().getFirstBottomTileFromCoord(coord).tileProp; }
 	
 	public static boolean tileContainsProp(TileCoord coord, TileProp prop)
 		{ return getTilePropsFromCoord(coord).contains(prop); }
@@ -382,8 +414,13 @@ public class MapSet {
 	public static boolean haveTilesOnCoord(TileCoord coord)
 		{ return getLayer(26).haveTilesOnCoord(coord); }
 
-	public static void run()
-		{ mapFrameSets.run(); }
+	public static void run() {
+		mapFrameSets.run();
+		if (!mapFrameSets.getCurrentFrameSet().isRunning()) {
+			if (mapFrameSets.getCurrentFrameSetName().equals("StageIntroFrameSet"))
+				mapFrameSets.setFrameSet("DefaultFrameSet");
+		}
+	}
 
 	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough) {
 		// NOTA: Implementar retornando se tem monstro ou player em cima

@@ -286,6 +286,22 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new SetSprWaving(s));
 			else if (tag.equals("SetSprScrolling"))
 				tags.addFrameSetTag(new SetSprScrolling(s));
+			else if (tag.equals("SetSwitchValue"))
+				tags.addFrameSetTag(new SetSwitchValue(s));
+			else if (tag.equals("DecSwitchValue"))
+				tags.addFrameSetTag(new DecSwitchValue(s));
+			else if (tag.equals("IncSwitchValue"))
+				tags.addFrameSetTag(new IncSwitchValue(s));
+			else if (tag.equals("SetMapLayerIndex"))
+				tags.addFrameSetTag(new SetMapLayerIndex(s));
+			else if (tag.equals("SetMapFrameSet"))
+				tags.addFrameSetTag(new SetMapFrameSet(s));
+			else if (tag.equals("DisableTileTags"))
+				tags.addFrameSetTag(new DisableTileTags(s));
+			else if (tag.equals("EnableTileTags"))
+				tags.addFrameSetTag(new EnableTileTags(s));
+			else if (tag.equals("CopySprFromCopyLayer"))
+				tags.addFrameSetTag(new CopySprFromCopyLayer(s));
 		}
 	}
 

@@ -64,12 +64,24 @@
                         <CheckBox fx:id="checkBoxShowItens" mnemonicParsing="false" text="Exibir itens" />
                      </children>
                   </VBox>
-                  <HBox alignment="CENTER_LEFT" spacing="5.0">
+                  <VBox alignment="CENTER_LEFT" spacing="5.0">
                      <children>
-                        <Button fx:id="buttonPlay" mnemonicParsing="false" prefWidth="32.0" />
-                        <ComboBox fx:id="comboBoxMapFrameSets" prefWidth="150.0" />
+                        <HBox alignment="CENTER_LEFT" spacing="5.0">
+                           <children>
+                              <Button fx:id="buttonPlay" mnemonicParsing="false" prefWidth="32.0" />
+                              <ComboBox fx:id="comboBoxMapFrameSets" prefWidth="150.0" />
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER" spacing="5.0">
+                           <children>
+                              <Button fx:id="buttonAddFrameSet" mnemonicParsing="false" prefWidth="30.0" />
+                              <Button fx:id="buttonRenameFrameSet" mnemonicParsing="false" prefWidth="30.0" />
+                              <Button fx:id="buttonEditFrameSet" mnemonicParsing="false" prefWidth="30.0" />
+                              <Button fx:id="buttonRemoveFrameSet" mnemonicParsing="false" prefWidth="30.0" />
+                           </children>
+                        </HBox>
                      </children>
-                  </HBox>
+                  </VBox>
                   <VBox />
                </children>
             </HBox>

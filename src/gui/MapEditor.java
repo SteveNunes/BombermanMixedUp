@@ -39,6 +39,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
@@ -98,6 +99,14 @@ public class MapEditor {
   private Button buttonTileSetZoom1;
   @FXML
   private Button buttonTileSetZoom2;
+  @FXML
+  private Button buttonAddFrameSet;
+  @FXML
+  private Button buttonRenameFrameSet;
+  @FXML
+  private Button buttonEditFrameSet;
+  @FXML
+  private Button buttonRemoveFrameSet;
   @FXML
   private Canvas canvasBrickStand;
   @FXML
@@ -224,6 +233,22 @@ public class MapEditor {
 		ControllerUtils.addIconToButton(buttonAddLayer, Icons.NEW_FILE.getValue(), 20, 20, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonTileSetZoom1, Icons.ZOOM_PLUS.getValue(), 20, 20, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonTileSetZoom2, Icons.ZOOM_MINUS.getValue(), 20, 20, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonAddFrameSet, Icons.NEW_FILE.getValue(), 20, 20, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonRenameFrameSet, Icons.EDIT.getValue(), 20, 20, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonEditFrameSet, Icons.EDIT.getValue(), 20, 20, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonRemoveFrameSet, Icons.DELETE.getValue(), 20, 20, Color.WHITE, 150);
+		buttonAddMap.setTooltip(new Tooltip("Adicionar mapa"));
+		buttonRenameMap.setTooltip(new Tooltip("Renomear mapa"));
+		buttonRemoveMap.setTooltip(new Tooltip("Remover mapa"));
+		buttonReloadFromDisk.setTooltip(new Tooltip("Recarregar mapa do disco"));
+		buttonSaveToDisk.setTooltip(new Tooltip("Salvar para o disco"));
+		buttonAddLayer.setTooltip(new Tooltip("Adicionar camada"));
+		buttonTileSetZoom1.setTooltip(new Tooltip("Aumentar zoom do TileSet"));
+		buttonTileSetZoom2.setTooltip(new Tooltip("Diminuir zoom do TileSet"));
+		buttonAddFrameSet.setTooltip(new Tooltip("Adicionar FrameSet"));
+		buttonRenameFrameSet.setTooltip(new Tooltip("Renomear FrameSet"));
+		buttonEditFrameSet.setTooltip(new Tooltip("Editar FrameSet"));
+		buttonRemoveFrameSet.setTooltip(new Tooltip("Excluir FrameSet"));
 		buttonReloadFromDisk.setOnAction(e -> reloadCurrentMap());
 		buttonSaveToDisk.setOnAction(e -> saveCurrentMap());
 		checkBoxShowBricks.setSelected(true);
@@ -589,21 +614,19 @@ public class MapEditor {
 			canvasMouseDraw.y = (int)e.getY() + deslocY();
 			TileCoord prevCoord = canvasMouseDraw.tileCoord.getNewInstance();
 			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
-			if (!isAltHold()) {
-				if (e.getButton() == MouseButton.PRIMARY) {
-					if (selection == null && !prevCoord.equals(canvasMouseDraw.tileCoord))
-						addSelectedTileOnCurrentCursorPosition();
-					if (isShiftHold()) {
-						if (selection == null)
-							selection = new Rectangle();
-						selection.setFrameFromDiagonal(canvasMouseDraw.startDragDX < canvasMouseDraw.getCoordX() ? canvasMouseDraw.startDragDX : canvasMouseDraw.getCoordX(),
-																					 canvasMouseDraw.startDragDY < canvasMouseDraw.getCoordY() ? canvasMouseDraw.startDragDY : canvasMouseDraw.getCoordY(),
-																					 (canvasMouseDraw.startDragDX > canvasMouseDraw.getCoordX() ? canvasMouseDraw.startDragDX : canvasMouseDraw.getCoordX()) + 1,
-																					 (canvasMouseDraw.startDragDY > canvasMouseDraw.getCoordY() ? canvasMouseDraw.startDragDY : canvasMouseDraw.getCoordY()) + 1);
-					}
+			if (e.getButton() == MouseButton.PRIMARY) {
+				if (selection == null && !prevCoord.equals(canvasMouseDraw.tileCoord))
+					addSelectedTileOnCurrentCursorPosition();
+				if (isShiftHold()) {
+					if (selection == null)
+						selection = new Rectangle();
+					selection.setFrameFromDiagonal(canvasMouseDraw.startDragDX < canvasMouseDraw.getCoordX() ? canvasMouseDraw.startDragDX : canvasMouseDraw.getCoordX(),
+																				 canvasMouseDraw.startDragDY < canvasMouseDraw.getCoordY() ? canvasMouseDraw.startDragDY : canvasMouseDraw.getCoordY(),
+																				 (canvasMouseDraw.startDragDX > canvasMouseDraw.getCoordX() ? canvasMouseDraw.startDragDX : canvasMouseDraw.getCoordX()) + 1,
+																				 (canvasMouseDraw.startDragDY > canvasMouseDraw.getCoordY() ? canvasMouseDraw.startDragDY : canvasMouseDraw.getCoordY()) + 1);
 				}
 			}
-			else {
+			else if (e.getButton() == MouseButton.SECONDARY) {
 				canvasMouseDraw.dragX = ((int)e.getX() - canvasMouseDraw.startDragX);
 				canvasMouseDraw.dragY = ((int)e.getY() - canvasMouseDraw.startDragY);
 			}
@@ -943,7 +966,7 @@ public class MapEditor {
 					props += prop.getValue();
 				}
 				int[] rgba = tile.tint == null ? new int[] {0, 0, 0, 0} : ImageUtils.getRgbaArray(ImageUtils.colorToArgb(tile.tint));
-				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.outX / 16) + " " + (tile.outY / 16) + " " + tile.spriteX + " " + tile.spriteY + " " + tile.flip.getValue() + " " + tile.rotate / 90 + " " + props + " " + tile.opacity + " " + rgba[0] + " " + rgba[1] + " " + rgba[2] + " " + rgba[3] + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.oldTags == null ? "" : tile.oldTags);
+				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.outX / 16) + " " + (tile.outY / 16) + " " + tile.spriteX + " " + tile.spriteY + " " + tile.flip.getValue() + " " + tile.rotate / 90 + " " + props + " " + tile.opacity + " " + rgba[0] + "!" + rgba[1] + "!" + rgba[2] + "!" + rgba[3] + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.oldTags == null ? "" : tile.oldTags);
 				MapSet.getMapIniFile().write("TILES", "" + n++, s);
 			}
 		System.out.println(MapSet.getMapIniFile().fileName());

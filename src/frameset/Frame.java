@@ -38,16 +38,8 @@ public class Frame {
 		{ this.mainFrameSet = mainFrameSet; }
 	
 	public void run() {
-		for (Tags tags : frameSetTagsList) {
-			if (mainFrameSet.isStopped())
-				return;
-			for (int n = 0; n < tags.getTotalTags(); n++) {
-				FrameTag tag = tags.getFrameSetTags().get(n);
-				if (tag.deleteMeAfterFirstRead)
-					tags.getFrameSetTags().remove(n--);
-				tag.process(tags.getRootSprite());
-			}
-		}
+		for (Tags tags : frameSetTagsList)
+			tags.run();
 	}
 	
 	public FrameSet getMainFrameSet()
