@@ -2,7 +2,6 @@ package frameset_tags;
 
 import java.awt.Rectangle;
 
-import application.Main;
 import entities.TileCoord;
 import frameset.Sprite;
 import maps.MapSet;
@@ -10,48 +9,62 @@ import maps.Tile;
 
 public class CopySprFromCopyLayer extends FrameTag {
 	
+	public int targetLayer;
 	public Rectangle copyArea;
-	public TileCoord destination;
+	public TileCoord targetCoord;
+	int offsetX;
+	int offsetY;
 	
 	// Valores tem que ser no formato coordenada de tile tanto para area e tamanho de origem quanto para area de destino
-	public CopySprFromCopyLayer(int sx, int sy, int sw, int sh, int tx, int ty) {
+	public CopySprFromCopyLayer(int sx, int sy, int sw, int sh, int layer, int tx, int ty, int offsetX, int offsetY) {
+		targetLayer = layer;
 		copyArea = new Rectangle(sx, sy, sw, sh);
-		destination = new TileCoord(tx, ty);
+		targetCoord = new TileCoord(tx, ty);
+		this.offsetX = offsetX;
+		this.offsetY = offsetY;
 	}
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + (int)copyArea.getX() + ";" + (int)copyArea.getY() + ";" + (int)copyArea.getWidth() + ";" + (int)copyArea.getHeight() + ";" + destination.getX() + ";" + destination.getY() + "}"; }
+		{ return "{" + FrameTag.getClassName(this) + ";" + targetLayer + ";" + (int)copyArea.getX() + ";" + (int)copyArea.getY() + ";" + (int)copyArea.getWidth() + ";" + (int)copyArea.getHeight() + ";" + targetCoord.getX() + ";" + targetCoord.getY() + "}"; }
 
 	public CopySprFromCopyLayer(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags);
-		if (params.length > 6)
+		if (params.length > 7)
 			throw new RuntimeException(tags + " - Too much parameters");
-		if (params.length < 2)
+		if (params.length < 3)
 			throw new RuntimeException(tags + " - Too few parameters");
 		int n = 0;
 		try {
-			int sx = Integer.parseInt(params[n++]), sy = Integer.parseInt(params[n++]),
-					sw = params.length < 5 ? 1 : Integer.parseInt(params[n++]),
-					sh = params.length < 5 ? 1 : Integer.parseInt(params[n++]),
-					tx = params.length < 5 || params[n++].equals("-") ? -1 : Integer.parseInt(params[n]),
-					ty = params.length < 5 || params[n++].equals("-") ? -1 : Integer.parseInt(params[n]);
+			int layer = Integer.parseInt(params[n]); n++;
+			int sx = Integer.parseInt(params[n]); n++;
+			int	sy = Integer.parseInt(params[n]); n++;
+			int	sw = params.length < 4 ? 1 : Integer.parseInt(params[n]); n++;
+			int	sh = params.length < 4 ? 1 : Integer.parseInt(params[n]); n++;
+			int[] pos = params.length <= n ? null : FrameTag.getPosWithDeslocFromString(params[n]);
+			int tx = pos == null ? -1 : pos[0];
+			offsetX = pos == null ? 0 : pos[1];
+			n++;
+			pos = params.length <= n ? null : FrameTag.getPosWithDeslocFromString(params[n]);
+			int ty = pos == null ? -1 : pos[0];
+			offsetY = pos == null ? 0 : pos[1];
+			targetLayer = layer;
 			copyArea = new Rectangle(sx, sy, sw, sh);
-			destination = new TileCoord(tx, ty);
+			targetCoord = new TileCoord(tx, ty);
 		}
 		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+			{ e.printStackTrace(); throw new RuntimeException(params[n] + " - Invalid parameter"); }
 	}
 
 	@Override
 	public CopySprFromCopyLayer getNewInstanceOfThis()
-		{ return new CopySprFromCopyLayer((int)copyArea.getX(), (int)copyArea.getY(), (int)copyArea.getWidth(), (int)copyArea.getHeight(), destination.getX(), destination.getY()); }
+		{ return new CopySprFromCopyLayer((int)copyArea.getX(), (int)copyArea.getY(), (int)copyArea.getWidth(), (int)copyArea.getHeight(), targetLayer, targetCoord.getX(), targetCoord.getY(), offsetX, offsetY); }
 	
 	@Override
 	public void process(Sprite sprite) {
 		int sx = (int)copyArea.getX(), sy = (int)copyArea.getY(),
 				sw = (int)copyArea.getWidth(), sh = (int)copyArea.getHeight(),
-				tx = destination.getX(), ty = destination.getY();
+				tx = targetCoord.getX(), ty = targetCoord.getY();
 		if (tx == -1 && ty == -1) {
 			TileCoord coord = sprite.getTileCoord();
 			tx = coord.getX();
@@ -60,27 +73,12 @@ public class CopySprFromCopyLayer extends FrameTag {
 		for (int y = 0; y < sh; y++)
 			for (int x = 0; x < sw; x++) {
 				TileCoord sourceCoord = new TileCoord(sx + x, sy + y);
-				TileCoord targetCoord = new TileCoord(tx + x, ty + y);
-				MapSet.getLayer(26).removeAllTilesFromCoord(targetCoord);
-				for (Tile tile :MapSet.getLayer(27).getTilesFromCoord(sourceCoord)) {
-					Tile tile2 = new Tile(tile);
-					tile2.outX = targetCoord.getX() * Main.TILE_SIZE;
-					tile2.outY = targetCoord.getY() * Main.TILE_SIZE;
-					MapSet.getLayer(26).addTile(tile2);
-				}
+				TileCoord targetCoord = new TileCoord(tx + x + offsetX, ty + y + offsetY);
+				MapSet.getLayer(targetLayer).removeAllTilesFromCoord(targetCoord);
+				for (Tile tile : MapSet.getCopyLayer().getTilesFromCoord(sourceCoord))
+					MapSet.getLayer(targetLayer).addTile(new Tile(tile), targetCoord);
+				MapSet.getLayer(targetLayer).buildLayer();
 			}
 	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-

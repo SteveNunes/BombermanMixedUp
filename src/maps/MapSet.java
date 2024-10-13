@@ -23,6 +23,7 @@ import pathfinder.PathFinder;
 import pathfinder.PathFinderTileCoord;
 import tools.IniFiles;
 import tools.Materials;
+import tools.Sound;
 import util.IniFile;
 import util.Misc;
 import util.MyMath;
@@ -36,7 +37,7 @@ public abstract class MapSet {
 	private static IniFile iniFileMap;
 	private static IniFile iniFileTileSet;
 	private static Image tileSetImage;
-	private static Integer copyImageLayer;
+	private static Integer copyImageLayerIndex;
 	private static Integer currentLayerIndex;
 	private static String mapName;
 	private static String iniMapName;
@@ -50,6 +51,7 @@ public abstract class MapSet {
 	private static int bricksRegenTimeInFrames;
 	private static Map<String, Integer> switches;
 	private static Map<String, Tags> frameSetTags;
+	private static boolean stageIsCleared;
 	
 	public static void loadMap(String iniMapName) {
 		long ct = System.currentTimeMillis();
@@ -72,9 +74,9 @@ public abstract class MapSet {
 			throw new RuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
 		setTileSet(iniFileMap.read("SETUP", "Tiles"));
 		Map<Integer, List<String>> tileInfos = new HashMap<>();
-		copyImageLayer = iniFileMap.readAsInteger("SETUP", "ImageLayer", null);
-		iniFileMap.getItemList("FRAMETAGS").forEach(item ->
-			frameSetTags.put(item, Tags.loadTagsFromString(iniFileMap.read("FRAMETAGS", item))));
+		copyImageLayerIndex = iniFileMap.readAsInteger("SETUP", "ImageLayer", null);
+		iniFileMap.getItemList("TAGS").forEach(item ->
+			frameSetTags.put(item, Tags.loadTagsFromString(iniFileMap.read("TAGS", item))));
 		iniFileMap.getItemList("TILES").forEach(item -> {
 			String line = iniFileMap.read("TILES", item);
 			int layer = Integer.parseInt(line.split(" ")[0]);
@@ -105,6 +107,23 @@ public abstract class MapSet {
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
 	}
 	
+	public static void setStageStatusToCleared() {
+		if (!stageIsCleared) {
+			stageIsCleared = true;
+			if (frameSetTags.containsKey("StageClear"))
+				processStageTags("StageClear");
+			if (mapFrameSets.haveFrameSet("StageClear"))
+				mapFrameSets.setFrameSet("StageClear");
+			Sound.playWav("StageClear");
+		}
+	}
+	
+	public static void processStageTags(String stageTagsName) {
+		if (!frameSetTags.containsKey(stageTagsName))
+			throw new RuntimeException(stageTagsName + " - Invalid Stage Tags name");
+		Tags.processTags(frameSetTags.get(stageTagsName));
+	}
+
 	public static Layer getCurrentLayer()
 		{ return layers.get(currentLayerIndex); }
 	
@@ -119,21 +138,24 @@ public abstract class MapSet {
 
 	public static void setSwitchValue(String switchName, int value) {
 		switches.put(switchName, value);
-		if (switchName.equals("StageClear") && getSwitchValue(switchName) == 0 && frameSetTags.containsKey("StageClearFrameTags"))
-			Tags.processTags(frameSetTags.get("StageClearFrameTags"));
+		if (!stageIsCleared && switchName.equals("StageClear") && getSwitchValue(switchName) == 0)
+			setStageStatusToCleared();
 	}
 	
 	public static void incSwitchValue(String switchName, int incValue)
 		{ setSwitchValue(switchName, getSwitchValue(switchName) + incValue); }
 	
 	public static void resetMapFrameSets() {
+		stageIsCleared = false;
 		mapFrameSets = new Entity();
 		for (String item : iniFileMap.getItemList("FRAMESETS"))
 			mapFrameSets.addNewFrameSetFromString(item, iniFileMap.read("FRAMESETS", item));
-		if (mapFrameSets.haveFrameSet("StageIntroFrameSet"))
-			mapFrameSets.setFrameSet("StageIntroFrameSet");
-		else if (mapFrameSets.haveFrameSet("DefaultFrameSet"))
-			mapFrameSets.setFrameSet("DefaultFrameSet");
+		if (mapFrameSets.haveFrameSet("StageIntro"))
+			mapFrameSets.setFrameSet("StageIntro");
+		else if (mapFrameSets.haveFrameSet("Default"))
+			mapFrameSets.setFrameSet("Default");
+		if (frameSetTags.containsKey("StageIntro"))
+			processStageTags("StageIntro");
 	}
 
 	public static void setTileSet(String tileSetName) {
@@ -379,8 +401,11 @@ public abstract class MapSet {
 		return layers.get(layerIndex);
 	}
 	
-	public static Integer getCopyLayer()
-		{ return copyImageLayer; }
+	public static int getCopyImageLayerIndex()
+		{ return copyImageLayerIndex; }
+	
+	public static Layer getCopyLayer()
+		{ return getLayer(copyImageLayerIndex); }
 
 	public static Image getTileSetImage()
 		{ return tileSetImage; }
@@ -412,13 +437,13 @@ public abstract class MapSet {
 	}
 
 	public static boolean haveTilesOnCoord(TileCoord coord)
-		{ return getLayer(26).haveTilesOnCoord(coord); }
+		{ return getCurrentLayer().haveTilesOnCoord(coord); }
 
 	public static void run() {
 		mapFrameSets.run();
 		if (!mapFrameSets.getCurrentFrameSet().isRunning()) {
-			if (mapFrameSets.getCurrentFrameSetName().equals("StageIntroFrameSet"))
-				mapFrameSets.setFrameSet("DefaultFrameSet");
+			if (mapFrameSets.getCurrentFrameSetName().equals("StageIntro"))
+				mapFrameSets.setFrameSet("Default");
 		}
 	}
 

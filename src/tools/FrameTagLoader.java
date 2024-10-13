@@ -7,11 +7,12 @@ public abstract class FrameTagLoader {
 	
 	public static void loadToTags(String stringWithTags, Tags tags) {
 		String[] frameTags = stringWithTags.split("\\,"); // Divisor das FrameTags de cada Sprite
-		for (String s : frameTags) {
+		for (int n = 0; n < frameTags.length; n++) {
+			String s = frameTags[n];
 			if (s.length() < 3)
 				continue;
 			String tag;
-			int x;
+			int x, delay = 0;
 			if (s.charAt(0) != '{')
 				throw new RuntimeException(s + " - Invalid Tag format");
 			if ((x = s.indexOf(';')) > 0)
@@ -20,6 +21,20 @@ public abstract class FrameTagLoader {
 				tag = s.substring(1).substring(0, x - 1);
 			else
 				throw new RuntimeException(s + " - Invalid Tag format");
+			if (tag.equals("Delay")) {
+				try {
+					String delayStr = s.substring(s.indexOf(';') + 1);
+					tag = delayStr.substring(delayStr.indexOf(';') + 1);
+					tag = tag.substring(0, tag.indexOf(';'));
+					System.out.println(tag);
+					int d = Integer.parseInt(delayStr.substring(0, delayStr.indexOf(';')));
+					delay = d;
+					for (int z = 0; z < 2; z++)
+						s = (z == 1 ? "{" : "") + s.substring(s.indexOf(';') + 1);
+				}
+				catch (Exception e)
+					{ throw new RuntimeException(s + " - Invalid numeric value for Delay param"); }
+			}
 			if (tag.equals("AddColoredLightSpot"))
 				tags.addFrameSetTag(new AddColoredLightSpot(s));
 			else if (tag.equals("AddColoredLightSpotToSprite"))
@@ -302,6 +317,16 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(new EnableTileTags(s));
 			else if (tag.equals("CopySprFromCopyLayer"))
 				tags.addFrameSetTag(new CopySprFromCopyLayer(s));
+			else if (tag.equals("AddTileProp"))
+				tags.addFrameSetTag(new AddTileProp(s));
+			else if (tag.equals("RemoveTileProp"))
+				tags.addFrameSetTag(new RemoveTileProp(s));
+			else if (tag.equals("DelayTags"))
+				tags.addFrameSetTag(new DelayTags(s));
+			else if (tag.equals("RunStageTags"))
+				tags.addFrameSetTag(new RunStageTags(s));
+			if (delay > 0)
+				tags.get(tags.getTotalTags() - 1).setTriggerDelay(delay);
 		}
 	}
 

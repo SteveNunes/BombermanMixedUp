@@ -46,6 +46,9 @@ public class Tile {
 		flip = tile.flip;
 		rotate = tile.rotate;
 		tileProp = new ArrayList<>(tile.tileProp);
+		while (tileProp.contains(TileProp.EXPLOSION))
+			tileProp.remove(TileProp.EXPLOSION);
+		tileTags = tile.tileTags == null ? null : new Tags(tile.tileTags);
 		tint = tile.tint;
 		opacity = tile.opacity;
 		effects = new DrawImageEffects(tile.effects);
@@ -113,7 +116,7 @@ public class Tile {
 				oldTags = MyConverters.arrayToString(split, 12);
 				tileTags = Tags.loadTagsFromString(oldTags);
 				tileTags.setRootSprite(new Sprite(new FrameSet(new Entity()), "", new Rectangle(), new Rectangle(outX, outY, 0, 0)));
-				if (!oldTags.isEmpty())
+				if (tileTags.getFrameSetTags().isEmpty() && !oldTags.isEmpty())
 					addStringTag(layer, outX / Main.TILE_SIZE, outY / Main.TILE_SIZE, oldTags);
 			}
 		}
@@ -127,9 +130,14 @@ public class Tile {
 		tags.get(layer).put(new TileCoord(tileDX, tileDY), tag);
 	}
 	
-	public static String getStringTag(int layer, int tileDX, int tileDY) {
-		TileCoord coord = new TileCoord(tileDX, tileDY);
-		return tags.containsKey(layer) && tags.get(layer).containsKey(coord) ? tags.get(layer).get(coord) : null;
+	public static String getStringTag(int layer, TileCoord coord) {
+		if (MapSet.isValidLayer(layer) && MapSet.getCurrentLayer().haveTilesOnCoord(coord)) {
+			Tile tile = MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord);
+			if (tile.tileTags != null && tile.tileTags.getFrameSetTags().isEmpty())
+				return tile.tileTags.toString();
+			return tags.containsKey(layer) && tags.get(layer).containsKey(coord) ? tags.get(layer).get(coord) : null;
+		}
+		return null;
 	}
 	
 	public TileCoord getTileCoord()
@@ -174,6 +182,13 @@ public class Tile {
 					if (updateLayer)
 						MapSet.getLayer(26).buildLayer();
 		}
+	}
+
+	public void setCoord(TileCoord coord) {
+		outX = coord.getX() * Main.TILE_SIZE;
+		outY = coord.getY() * Main.TILE_SIZE;
+		if (tileTags != null)
+			tileTags.setRootSprite(new Sprite(new FrameSet(new Entity()), "", new Rectangle(), new Rectangle(outX, outY, 0, 0)));
 	}
 
 }

@@ -80,7 +80,7 @@
 78=26 GROUND 3 3 0 0 0 0 12 1.0 0!0!0!0 - 
 79=26 GROUND 11 1 160 0 0 0 12 1.0 0!0!0!0 - 
 80=26 GROUND 8 1 112 16 0 0 21 1.0 0!0!0!0 - 
-81=26 GROUND 4 11 16 112 0 0 12!63 1.0 0!0!0!0 - 
+81=26 GROUND 4 11 16 112 0 0 12!63!70 1.0 0!0!0!0 - {CopySprFromCopyLayer;26;2;3}
 82=26 GROUND 10 8 32 0 0 0 17!1 1.0 0!0!0!0 - 
 83=26 GROUND 7 8 32 0 0 0 17!1 1.0 0!0!0!0 - 
 84=26 GROUND 5 8 32 0 0 0 17!1 1.0 0!0!0!0 - 
@@ -196,7 +196,7 @@
 194=26 GROUND 16 6 16 64 0 0 12 1.0 0!0!0!0 - 
 195=26 GROUND 2 2 112 32 0 0 12 1.0 0!0!0!0 - 
 196=26 GROUND 11 12 32 0 0 0 1 1.0 0!0!0!0 - 
-197=26 GROUND 14 3 64 112 0 0 7!70!1 1.0 0!0!0!0 - {DecSwitchValue;StageClear},{DisableTileTags},{CopySprFromCopyLayer;3;2}
+197=26 GROUND 14 3 64 112 0 0 7!70!1 1.0 0!0!0!0 - {DecSwitchValue;StageClear},{CopySprFromCopyLayer;26;3;2}
 198=26 GROUND 9 3 0 0 0 0 12 1.0 0!0!0!0 - 
 199=26 GROUND 1 10 48 32 0 0 12 1.0 0!0!0!0 - 
 200=26 GROUND 1 7 16 32 0 0 12 1.0 0!0!0!0 - 
@@ -275,6 +275,10 @@
 273=27 GROUND 2 1 192 32 0 0 12 1.0 0!0!0!0 - 
 274=27 GROUND 2 2 192 48 0 0 12 1.0 0!0!0!0 - 
 275=27 GROUND 3 2 80 112 0 0 7 1.0 0!0!0!0 - 
+276=27 GROUND 0 3 0 112 0 0 12!63!70 1.0 0!0!0!0 - {CopySprFromCopyLayer;26;1;3}
+277=27 GROUND 1 3 16 112 0 0 12!63!70 1.0 0!0!0!0 - {CopySprFromCopyLayer;26;2;3}
+278=27 GROUND 2 3 32 112 0 0 12!63!70 1.0 0!0!0!0 - {CopySprFromCopyLayer;26;3;3}
+279=27 GROUND 3 3 48 112 0 0 12!63!70 1.0 0!0!0!0 - {CopySprFromCopyLayer;26;0;3}
 
 [SETUP]
 BlinkingDoorAnimationID=-2 -1 -1
@@ -284,8 +288,8 @@ Tiles=Tile39
 NeedForExit=Switch KillAllMobs
 
 [FRAMESETS]
-StageIntroFrameSet={SetSprSource;Layer26;0;0;-;-;0;0;0;0;-;-},{SetSwitchValue;StageClear;1}
-DefaultFrameSet={SetSprSource;Layer26;0;0;-;-;0;0;0;0;-;-},{SetTicksPerFrame;26},{SetSprIndex;0},,{SetSprSource;Layer51;0;0;-;-;0;0;0;0;-;-},{SetSprIndex;-}|{SetSprIndex;0},,{SetSprIndex;0}|{Goto;0}
+Default={SetSprSource;Layer26;0;0;-;-;0;0;0;0;-;-},{SetTicksPerFrame;26},{SetSprIndex;0},,{SetSprSource;Layer51;0;0;-;-;0;0;0;0;-;-},{SetSprIndex;-}|{SetSprIndex;0},,{SetSprIndex;0}|{Goto;0}
 
-[FRAMETAGS]
-StageClearFrameTags={PlayWav;StageClear}
+[TAGS]
+StageIntro={SetSwitchValue;StageClear;1},{RunStageTags;Teste}
+StageClear={PlayWav;StageClear}

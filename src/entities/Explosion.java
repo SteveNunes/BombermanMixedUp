@@ -11,6 +11,7 @@ import enums.Direction;
 import enums.PassThrough;
 import enums.SpriteLayerType;
 import enums.TileProp;
+import frameset_tags.FrameTag;
 import maps.MapSet;
 import maps.Tile;
 import tools.Materials;
@@ -139,10 +140,10 @@ public class Explosion {
 	private void checkExplodedTile(TileCoord coord) {
 		if (!triggeredTiles.contains(coord)) {
 			Tile tile = MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord);
-			for (TileProp prop : tile.tileProp) {
-				if (prop == TileProp.TRIGGER_BY_EXPLOSION)
-					tile.tileTags.run();
-			}
+			if (tile.tileTags != null)
+				for (TileProp prop : tile.tileProp)
+					if (prop == TileProp.TRIGGER_BY_EXPLOSION)
+						tile.tileTags.run();
 			triggeredTiles.add(coord);
 		}
 	}

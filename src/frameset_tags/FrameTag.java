@@ -6,10 +6,17 @@ public abstract class FrameTag {
 	
 	// Mudar esse valor para 'true' no construtor da classe que herda FrameTag, se for uma Tag que só precisa ser lida uma unica vez.
 	public boolean deleteMeAfterFirstRead = false;
+	public int triggerDelay = 0;
 	
 	public abstract FrameTag getNewInstanceOfThis();
 
 	public abstract void process(Sprite sprite);
+	
+	public int getTriggerDelay()
+		{ return triggerDelay; }
+	
+	public void setTriggerDelay(int delay)
+		{ triggerDelay = delay; }
 	
 	public static <T> String[] validateStringTags(T clazz, String tags)
 		{ return validateStringTags(clazz, tags, -1); }
@@ -37,5 +44,20 @@ public abstract class FrameTag {
 	
 	public static <T> String getClassName(T clazz)
 		{ return clazz.getClass().toString().replace("class frameset_tags.", ""); }
+	
+	public static int[] getPosWithDeslocFromString(String str) {
+		int val = 0, offset = 0;
+		if (str.length() > 2 && (str.subSequence(0, 2).equals("--") || str.subSequence(0, 2).equals("++"))) {
+			val = -1;
+			offset = Integer.parseInt(str.substring(1));
+		}
+		else {
+			try
+				{ val = str.equals("-") ? -1 : Integer.parseInt(str); }
+			catch (Exception e)
+				{ return null; }
+		}
+		return new int[] {val, offset};
+	}
 	
 }

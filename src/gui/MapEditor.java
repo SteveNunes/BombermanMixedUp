@@ -22,6 +22,7 @@ import enums.Icons;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
 import enums.TileProp;
+import frameset_tags.FrameTag;
 import gui.util.ControllerUtils;
 import gui.util.ImageUtils;
 import javafx.application.Platform;
@@ -38,6 +39,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -160,6 +162,7 @@ public class MapEditor {
   @FXML
   private CheckBox checkBoxTintSprite;
 
+	private ContextMenu contextMenu;
 	private Rectangle selection;
 	private Rectangle tileSelection;
 	private GraphicsContext gcMain;
@@ -170,13 +173,12 @@ public class MapEditor {
 	private Canvas[] canvasList;
 	private Canvas canvasTileSel;
 	private List<KeyCode> holdedKeys;
+	private List<TileProp> copyProps;
 	private Map<TileCoord, Entity> fragileTiles;
 	private Entity sampleFragileTile;
 	private Map<TileCoord, List<Tile>> copiedTiles;
 	private List<Map<TileCoord, List<Tile>>> backupTiles;
 	private Font font;
-	private ContextMenu defaultContextMenu;
-	private int currentLayerIndex;
 	private CanvasMouse canvasMouseDraw;
 	private CanvasMouse canvasMouseTileSet;
 	private int zoomMain;
@@ -198,9 +200,10 @@ public class MapEditor {
 		resetBricks = System.currentTimeMillis();
 		zoomMain = 3;
 		zoomTileSet = 1;
-		currentLayerIndex = 26;
+		MapSet.setCurrentLayerIndex(26);
 		ctrlZPos = -1;
 		playing = false;
+		copyProps = null;
 		selection = null;
 		canvasTileSel = null;
 		gcTileSel = null;
@@ -393,7 +396,7 @@ public class MapEditor {
 	}
 	
 	public int getCurrentLayerIndex()
-		{ return currentLayerIndex; }
+		{ return MapSet.getCurrentLayerIndex(); }
 	
 	void reloadCurrentMap()
 		{ loadMap(MapSet.getMapName()); }
@@ -402,7 +405,7 @@ public class MapEditor {
 		{ loadMap(mapName, true); }
 	
 	void setLayer(Integer newValue)
-		{ currentLayerIndex = newValue; }
+		{ MapSet.setCurrentLayerIndex(newValue); }
 
 	void loadMap(String mapName, boolean resetCurrentLayerIndex) {
 		if (mapName == null)
@@ -421,7 +424,7 @@ public class MapEditor {
 		canvasMouseDraw.movedX = 0;
 		canvasMouseDraw.movedY = 0;
 		selection = null;
-		currentLayerIndex = resetCurrentLayerIndex ? 26 : currentLayerIndex;
+		MapSet.setCurrentLayerIndex(resetCurrentLayerIndex ? 26 : MapSet.getCurrentLayerIndex());
 		ctrlZPos = -1;
 		backupTiles.clear();
 		comboBoxTileSets.getSelectionModel().select(MapSet.getTileSetName());
@@ -449,7 +452,7 @@ public class MapEditor {
 			hBox.setOnMouseClicked(event -> setLayer(layer));
 			listViewLayers.getItems().add(hBox);
 		});
-		listViewLayers.getSelectionModel().select(Integer.valueOf(currentLayerIndex));
+		listViewLayers.getSelectionModel().select(Integer.valueOf(MapSet.getCurrentLayerIndex()));
 	}
 
 	Canvas getDrawCanvas()
@@ -534,18 +537,18 @@ public class MapEditor {
 		{ incLayerIndex(1); }
 
 	void incLayerIndex(int inc) {
-		currentLayerIndex += inc;
-		while (!MapSet.getLayersMap().containsKey(currentLayerIndex)) {
+		MapSet.setCurrentLayerIndex(MapSet.getCurrentLayerIndex() + inc);
+		while (!MapSet.getLayersMap().containsKey(MapSet.getCurrentLayerIndex())) {
 			if (inc == -1)
-				currentLayerIndex--;
+				MapSet.setCurrentLayerIndex(MapSet.getCurrentLayerIndex() - 1);
 			else
-				currentLayerIndex++;
-			if (currentLayerIndex > 10000)
-				currentLayerIndex = -10000;
-			else if (currentLayerIndex < -10000)
-				currentLayerIndex = 10000;
+				MapSet.setCurrentLayerIndex(MapSet.getCurrentLayerIndex() + 1);
+			if (MapSet.getCurrentLayerIndex() > 10000)
+				MapSet.setCurrentLayerIndex(-10000);
+			else if (MapSet.getCurrentLayerIndex() < -10000)
+				MapSet.setCurrentLayerIndex(10000);
 		}
-		listViewLayers.getSelectionModel().select(Integer.valueOf(currentLayerIndex));
+		listViewLayers.getSelectionModel().select(Integer.valueOf(MapSet.getCurrentLayerIndex()));
 	}
 	
 	void rebuildTileSetCanvas() {
@@ -640,6 +643,8 @@ public class MapEditor {
 				Item.getItemAt(canvasMouseDraw.tileCoord).pick();
 		});
 		canvasMain.setOnMousePressed(e -> {
+			if (contextMenu != null)
+				contextMenu.hide();
 			canvasMouseDraw.startDragX = (int)e.getX();
 			canvasMouseDraw.startDragY = (int)e.getY();
 			canvasMouseDraw.startDragDX = canvasMouseDraw.getCoordX();
@@ -657,18 +662,18 @@ public class MapEditor {
 			canvasMouseDraw.dragY = 0;
 			if (e.getButton() == MouseButton.PRIMARY)
 				saveCtrlZ();
+			else if (e.isDragDetect() && e.getButton() == MouseButton.SECONDARY) {
+				if (contextMenu != null)
+					contextMenu.hide();
+				setContextMenu();
+				contextMenu.show(canvasMain, e.getScreenX(), e.getScreenY());
+			}
 		});
 		canvasMain.setOnMouseClicked(e -> {
 			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 			if (e.getButton() == MouseButton.PRIMARY) {
 				if (isAltHold() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord))
 					Bomb.addBomb(new Bomb(null, canvasMouseDraw.tileCoord, BombType.NORMAL, 5));
-			}
-			else if (e.getButton() == MouseButton.SECONDARY) {
-				if (defaultContextMenu != null)
-					defaultContextMenu.hide();
-				setContextMenu();
-				defaultContextMenu.show(canvasMain, e.getScreenX(), e.getScreenY());
 			}
 		});
 	}
@@ -694,7 +699,7 @@ public class MapEditor {
 	}
 
 	Layer getCurrentLayer()
-		{ return MapSet.getLayer(currentLayerIndex); }
+		{ return MapSet.getCurrentLayer(); }
 
 	Map<TileCoord, List<Tile>> getTileMapFromCurrentLayer()
 		{ return getCurrentLayer().getTilesMap(); }
@@ -708,6 +713,9 @@ public class MapEditor {
 	Tile getTopTileFromCoord(TileCoord coord)
 		{ return getCurrentLayer().getTopTileFromCoord(coord); }
 
+	Tile getFirstBottomTileFromCoord(TileCoord coord)
+		{ return getCurrentLayer().getFirstBottomTileFromCoord(coord); }
+
 	void drawDrawCanvas() {
 		getDrawGc().setFill(Color.DIMGRAY);
 		getDrawGc().fillRect(0, 0, 1000, 1000);
@@ -716,12 +724,12 @@ public class MapEditor {
 			getDrawGc().fillRect(0, 0, MapSet.getLayer(26).getWidth(), MapSet.getLayer(26).getHeight());
 			MapSet.run();
 		}
-		else if (MapSet.getLayersMap().containsKey(currentLayerIndex)) {
+		else if (MapSet.getLayersMap().containsKey(MapSet.getCurrentLayerIndex())) {
 			getDrawGc().fillRect(0, 0, getCurrentLayer().getWidth(), getCurrentLayer().getHeight());
 			Tools.addDrawImageQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
 		}
 		Explosion.drawExplosions();
-		if (checkBoxShowBricks.isSelected() && currentLayerIndex == 26) {
+		if (checkBoxShowBricks.isSelected() && MapSet.getCurrentLayerIndex() == 26) {
 			Brick.drawBricks();
 			if (checkBoxShowItens.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
@@ -769,19 +777,21 @@ public class MapEditor {
 			}
     });
 		if (checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
-	    Tile tile = getCurrentLayer().getTopTileFromCoord(canvasMouseDraw.tileCoord);
+	    Tile tile = getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
 	    if (tile != null) {
-	    	int x = tile.outX * zoomMain + deslocX(),
-	    			y = tile.outY * zoomMain + (Main.TILE_SIZE * zoomMain) / 2 - 20 + deslocY();
+	    	int x, y = tile.outY * zoomMain + (Main.TILE_SIZE * zoomMain) / 2 - 20 + deslocY();
 				gcMain.setFill(Color.LIGHTBLUE);
 				gcMain.setStroke(Color.BLACK);
 				gcMain.setFont(font);
 				gcMain.setLineWidth(3);
+				while (y + tile.tileProp.size() * 20 >= canvasMain.getHeight() - 10)
+					y -= 10;
 				for (TileProp prop : tile.tileProp) {
 					String s = prop.name();
 					Text text = new Text(s);
 					ControllerUtils.setNodeFont(text, "Lucida Console", 15);
-					while (x + (int)text.getBoundsInLocal().getWidth() + 20 >= canvasMain.getWidth())
+					x = tile.outX * zoomMain + deslocX();
+					while (x + (int)text.getBoundsInLocal().getWidth() + 60 >= canvasMain.getWidth())
 						x -= 20;
 					gcMain.strokeText(s, x, y += 20);
 					gcMain.fillText(s, x, y);
@@ -829,26 +839,32 @@ public class MapEditor {
 		gcTileSet.drawImage(i, 0, 0, i.getWidth(), i.getHeight(), 0, 0, i.getWidth() * zoomTileSet, i.getHeight() * zoomTileSet);
 	}
 
+	/*
+	 * ARRUMAR A PARADA QUE EXIBE OS FRAMETAGS DO TILE QUE O MOUSE
+	 * ESTA EM CIMA (NAO ESTA APARECENDO, Verificar Tile.getStringTag())
+	 */
+	
 	void drawTileTagsOverCursor() {
 		if (!checkBoxShowBlockType.isSelected()) {
 			boolean blink = System.currentTimeMillis() / 50 % 2 == 0;
-			if (Tile.getStringTag(currentLayerIndex, canvasMouseDraw.getCoordX(), canvasMouseDraw.getCoordY()) != null) {
+			String tileTags = Tile.getStringTag(MapSet.getCurrentLayerIndex(), canvasMouseDraw.tileCoord);
+			if (tileTags != null) {
 				gcMain.setFill(Color.LIGHTBLUE);
 				gcMain.setStroke(Color.BLACK);
 				gcMain.setFont(font);
 				gcMain.setLineWidth(3);
-				String str[] = Tile.getStringTag(currentLayerIndex, canvasMouseDraw.getCoordX(), canvasMouseDraw.getCoordY()).split(" ");
-				int x = canvasMouseDraw.x + 30 - deslocX(), y = canvasMouseDraw.y - 10 - deslocY(), yy = str.length * 20;
-				while (y + yy >= canvasMain.getWidth() - 30)
+				String str[] = tileTags.split(tileTags.charAt(0) == '{' ? "\\," : "\s");
+				int x, y = canvasMouseDraw.y + 20 - deslocY(), yy = str.length * 20;
+				while (y + yy >= canvasMain.getHeight() - 30)
 					y -= 20;
 				yy = 0;
 				for (String s : str) {
 					Text text = new Text(s);
 					ControllerUtils.setNodeFont(text, "Lucida Console", 15);
-					while (x + (int)text.getBoundsInLocal().getWidth() + 20 >= canvasMain.getWidth())
+					int w = (int)text.getBoundsInLocal().getWidth();
+					x = canvasMouseDraw.x - w / 2 - deslocX();
+					while (x + w >= canvasMain.getWidth() - 130)
 						x -= 10;
-				}
-				for (String s : str) {
 					gcMain.strokeText(s, x, y + (yy += 20));
 					gcMain.fillText(s, x, y + yy);
 				}
@@ -858,7 +874,7 @@ public class MapEditor {
 			}
 			for (int y = 0; blink && y < 200; y++)
 				for (int x = 0; x < 200; x++)
-					if (Tile.getStringTag(currentLayerIndex, x, y) != null) {
+					if (Tile.getStringTag(MapSet.getCurrentLayerIndex(), new TileCoord(x, y)) != null) {
 						gcMain.setStroke(Color.WHITESMOKE);
 						gcMain.setLineWidth(2);
 						gcMain.strokeRect(x * zoomMain * Main.TILE_SIZE + deslocX(), y * zoomMain * Main.TILE_SIZE + deslocY(), 16 * zoomMain, 16 * zoomMain);
@@ -867,13 +883,66 @@ public class MapEditor {
 	}
 	
 	void setContextMenu() {
-		defaultContextMenu = new ContextMenu();
+		contextMenu = new ContextMenu();
 		if (selection != null) {
 			Menu menuSelecao = new Menu("Seleção");
 			MenuItem menuItemRemoveTiles = new MenuItem("Remover tile(s) selecionado(s)");
 			menuItemRemoveTiles.setOnAction(e -> removeAllSelectedTiles());
 			menuSelecao.getItems().addAll(menuItemRemoveTiles);
-			defaultContextMenu.getItems().add(menuSelecao);
+			contextMenu.getItems().add(menuSelecao);
+		}
+		else {
+			Menu mainMenu = new Menu("TileProps");
+			contextMenu.getItems().add(mainMenu);
+			Menu menu = new Menu("Adicionar");
+			MenuItem menuItem;
+			mainMenu.getItems().add(menu);
+			for (TileProp prop : TileProp.getList()) {
+				menuItem = new MenuItem(prop.name());
+				menuItem.setOnAction(e -> {
+					Tile tile = getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
+					tile.tileProp.add(prop);
+				});
+				menu.getItems().addAll(menuItem);
+			}
+			menuItem = new MenuItem("Copiar");
+			mainMenu.getItems().add(menuItem);
+			menuItem.setOnAction(e -> {
+				Tile tile = getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
+				copyProps = new ArrayList<>(tile.tileProp);
+			});
+			menuItem = new MenuItem("Colar (Adicionar)");
+			mainMenu.getItems().add(menuItem);
+			menuItem.setDisable(copyProps == null);
+			menuItem.setOnAction(e -> {
+				Tile tile = getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
+				tile.tileProp.addAll(copyProps);
+			});
+			menuItem = new MenuItem("Colar (Substituir)");
+			mainMenu.getItems().add(menuItem);
+			menuItem.setDisable(copyProps == null);
+			menuItem.setOnAction(e -> {
+				Tile tile = getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
+				tile.tileProp = new ArrayList<>(copyProps);
+			});
+			menu = new Menu("Remover");
+			mainMenu.getItems().add(menu);
+			Tile tile = getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
+			menu.setDisable(tile.tileProp.isEmpty());
+			for (TileProp prop : tile.tileProp) {
+				menuItem = new MenuItem(prop.name());
+				menuItem.setOnAction(e -> {
+					Tile tile2 = getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
+					tile2.tileProp.remove(prop);
+					if (tile2.tileProp.isEmpty())
+						tile2.tileProp.add(TileProp.NOTHING);
+				});
+				menu.getItems().addAll(menuItem);
+			}
+			contextMenu.getItems().add(new SeparatorMenuItem());
+			menuItem = new MenuItem("Resetar deslocamento");
+			contextMenu.getItems().add(menuItem);
+			menuItem.setOnAction(e -> canvasMouseDraw.reset());
 		}
 	}
 	
@@ -966,7 +1035,7 @@ public class MapEditor {
 					props += prop.getValue();
 				}
 				int[] rgba = tile.tint == null ? new int[] {0, 0, 0, 0} : ImageUtils.getRgbaArray(ImageUtils.colorToArgb(tile.tint));
-				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.outX / 16) + " " + (tile.outY / 16) + " " + tile.spriteX + " " + tile.spriteY + " " + tile.flip.getValue() + " " + tile.rotate / 90 + " " + props + " " + tile.opacity + " " + rgba[0] + "!" + rgba[1] + "!" + rgba[2] + "!" + rgba[3] + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.oldTags == null ? "" : tile.oldTags);
+				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.outX / 16) + " " + (tile.outY / 16) + " " + tile.spriteX + " " + tile.spriteY + " " + tile.flip.getValue() + " " + tile.rotate / 90 + " " + props + " " + tile.opacity + " " + rgba[0] + "!" + rgba[1] + "!" + rgba[2] + "!" + rgba[3] + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.oldTags == null ? tile.tileTags.toString() : tile.oldTags);
 				MapSet.getMapIniFile().write("TILES", "" + n++, s);
 			}
 		System.out.println(MapSet.getMapIniFile().fileName());
@@ -1134,7 +1203,16 @@ class CanvasMouse {
 	int startDragDX;
 	int startDragDY;
 	
-	CanvasMouse() {
+	CanvasMouse()
+		{ reset(); }
+	
+	int getCoordX()
+		{ return tileCoord.getX(); }
+	
+	int getCoordY()
+		{ return tileCoord.getY(); }
+	
+	void reset() {
 		tileCoord = new TileCoord();
 		x = 0;
 		y = 0;
@@ -1147,11 +1225,5 @@ class CanvasMouse {
 		startDragDX = 0;
 		startDragDY = 0;
 	}
-	
-	int getCoordX()
-		{ return tileCoord.getX(); }
-	
-	int getCoordY()
-		{ return tileCoord.getY(); }
 
 }

@@ -98,13 +98,17 @@ public class Layer {
 			tiles.forEach(tile -> tileList.add(tile)));
 	}
 
-	public void addTile(Tile tile) {
-		if (!tilesMap.containsKey(tile.getTileCoord()))
-			tilesMap.put(tile.getTileCoord(), new ArrayList<>());
+	public void addTile(Tile tile)
+		{ addTile(tile, tile.getTileCoord()); }
+	
+	public void addTile(Tile tile, TileCoord coord) {
+		if (!tilesMap.containsKey(coord))
+			tilesMap.put(coord, new ArrayList<>());
 		else
 			tile.tileProp = new ArrayList<>(Arrays.asList(TileProp.NOTHING));
-		tilesMap.get(tile.getTileCoord()).add(tile);
+		tilesMap.get(coord).add(tile);
 		tileList.add(tile);
+		tile.setCoord(coord);
 	}
 	
 	public boolean haveTilesOnCoord(TileCoord coord)
@@ -115,7 +119,7 @@ public class Layer {
 			throw new RuntimeException(coord + " - Invalid tile coordinate");
 		if (tilesMap.get(coord).isEmpty())
 			throw new RuntimeException(coord + " - Tile is empty at this coordinate");
-		return getTileFromCoord(coord, 0);
+		return getTileFromCoord(coord, tilesMap.get(coord).size() - 1);
 	}
 	
 	public Tile getFirstBottomTileFromCoord(TileCoord coord) {
@@ -123,7 +127,7 @@ public class Layer {
 			throw new RuntimeException(coord + " - Invalid tile coordinate");
 		if (tilesMap.get(coord).isEmpty())
 			throw new RuntimeException(coord + " - Tile is empty at this coordinate");
-		return getTileFromCoord(coord, tilesMap.get(coord).size() - 1);
+		return getTileFromCoord(coord, 0);
 	}
 
 	public Tile getTileFromCoord(TileCoord coord, int tileIndex) {

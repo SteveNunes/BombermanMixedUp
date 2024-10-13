@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import frameset_tags.DelayTags;
 import frameset_tags.FrameTag;
 import tools.FrameTagLoader;
+import util.Timer;
 
 public class Tags {
 
@@ -76,11 +78,22 @@ public class Tags {
 	}
 	
 	public static void processTags(Tags tags) {
+		if (tags != null && tags.getTotalTags() > 0 && tags.getFrameSetTags().get(0) instanceof DelayTags) {
+			final Tags tags2 = new Tags(tags);
+			DelayTags delay = (DelayTags)tags2.getFrameSetTags().get(0);  
+			tags2.getFrameSetTags().remove(0);
+			if (tags.getTotalTags() > 0)
+				Timer.createTimer("delayedProcessTags " + tags2.hashCode(), delay.value, () -> processTags(tags2));
+			return;
+		}
 		for (int n = 0; n <tags.getTotalTags(); n++) {
 			FrameTag tag = tags.getFrameSetTags().get(n);
 			if (tag.deleteMeAfterFirstRead)
 				tags.getFrameSetTags().remove(n--);
-			tag.process(tags.rootSprite);
+			if (tag.getTriggerDelay() > 0)
+				Timer.createTimer("runTag " + tag.hashCode(), tag.getTriggerDelay(), () -> tag.process(tags.rootSprite));
+			else
+				tag.process(tags.rootSprite);
 		}
 	}
 	
@@ -93,6 +106,17 @@ public class Tags {
 				FrameTagLoader.loadToTags(s2, tags);
 		}
 		return tags;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (FrameTag tag : frameSetTags) {
+			if (!sb.isEmpty())
+				sb.append(",");
+			sb.append(tag.toString());
+		}
+		return sb.toString();
 	}
 
 }
