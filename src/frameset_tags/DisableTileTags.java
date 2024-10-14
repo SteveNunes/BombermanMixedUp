@@ -1,29 +1,53 @@
 package frameset_tags;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import frameset.Sprite;
+import frameset.Tags;
 import maps.MapSet;
 
 public class DisableTileTags extends FrameTag {
 	
-	public DisableTileTags()
-		{ super.deleteMeAfterFirstRead = true; }
+	public List<TileCoord2> targetCoords;
+	int targetLayer;
 	
+	public DisableTileTags(int layer, List<TileCoord2> targetCoords) {
+		this.targetCoords = new ArrayList<>(targetCoords);
+		targetLayer = layer;
+	}
+
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + "}"; }
+		{ return "{" + FrameTag.getClassName(this) + ";" + targetLayer + ";" + FrameTag.tileCoord2ListToString(targetCoords) + "}"; }
 
 	public DisableTileTags(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags);
-		if (params.length > 0)
-			throw new RuntimeException(tags + " - Too much parameters");
+		if (params.length < 2)
+			throw new RuntimeException(tags + " - Too few parameters");
+		if (params.length > 5)
+			throw new RuntimeException(tags + " - Too few parameters");
+		int n = 0;
+		try {
+			int layer = Integer.parseInt(params[n = 0]);
+			targetCoords = FrameTag.stringToTileCoord2List(++n >= params.length ? null : params[n]);
+			targetLayer = layer;
+		}
+		catch (Exception e)
+			{ e.printStackTrace(); throw new RuntimeException(params[n] + " - Invalid parameter"); }
 	}
 
 	@Override
 	public DisableTileTags getNewInstanceOfThis()
-		{ return new DisableTileTags(); }
+		{ return new DisableTileTags(targetLayer, targetCoords); }
 
 	@Override
-	public void process(Sprite sprite)
-		{ MapSet.getCurrentLayer().getFirstBottomTileFromCoord(sprite.getTileCoord()).tileTags.disableTags(); }
+	public void process(Sprite sprite) {
+		FrameTag.processTile(sprite, targetCoords, coord -> {
+			Tags tags = MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord).tileTags;
+			if (tags != null)
+				tags.disableTags();
+		});
+	}
 
 }

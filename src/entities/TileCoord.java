@@ -13,8 +13,8 @@ public class TileCoord {
 	public TileCoord()
 		{ this(0, 0); }
 	
-	public TileCoord(TileCoord tilePos)
-		{ this(tilePos.x, tilePos.y); }
+	public TileCoord(TileCoord tileCoord)
+		{ this(tileCoord.x, tileCoord.y); }
 	
 	public TileCoord(int x, int y) {
 		this.x = x;
