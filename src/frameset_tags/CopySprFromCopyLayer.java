@@ -66,6 +66,8 @@ public class CopySprFromCopyLayer extends FrameTag {
 				sw = (int)copyArea.getWidth(), sh = (int)copyArea.getHeight(),
 				tx = targetCoord.getX(), ty = targetCoord.getY();
 		if (tx == -1 && ty == -1) {
+			if (sprite == null)
+				throw new RuntimeException("sprite is null (This FrameTag becames from StageTag instead of a tile tag, so you must provide 'width;height;targetX;targetY' params)");
 			TileCoord coord = sprite.getTileCoord();
 			tx = coord.getX();
 			ty = coord.getY();

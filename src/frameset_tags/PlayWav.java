@@ -51,9 +51,8 @@ public class PlayWav extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		if (!Main.frameSetEditorIsPaused()) {
+		if (!Main.frameSetEditorIsPaused())
 			Sound.playWav(partialSoundPath, rate, pan, balance, volume, stopCurrent);
-		}
 	}
 
 }

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import entities.Effect;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -74,6 +75,7 @@ public abstract class Materials {
 		auras = loadImage("Auras", Color.valueOf("#03E313"));
 		thunders = loadImage("Thunders", Color.valueOf("#03E313"));
 		generateExplosionImage(); 
+		Effect.loadEffects();
 		FindFile.findFile("./appdata/sprites/tileset", "Tile*.png").forEach(file ->
 			{ tileSets.put(file.getName().replace(".png", ""), loadImage("/tileset/" + file.getName().replace(".png", ""), Color.valueOf("#FF00FF"))); });
 		System.out.println("... Concluido em " + (System.currentTimeMillis() - ms) + "ms");

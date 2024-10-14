@@ -7,7 +7,7 @@ import java.util.List;
 import frameset_tags.DelayTags;
 import frameset_tags.FrameTag;
 import tools.FrameTagLoader;
-import util.Timer;
+import util.TimerFX;
 
 public class Tags {
 
@@ -35,6 +35,10 @@ public class Tags {
 	public Tags(Sprite rootSprite)
 		{ this(rootSprite, null); }
 	
+	public Tags(FrameTag tag) {
+		// TODO Auto-generated constructor stub
+	}
+
 	public Sprite getRootSprite()
 		{ return rootSprite; }
 	
@@ -83,15 +87,19 @@ public class Tags {
 			DelayTags delay = (DelayTags)tags2.getFrameSetTags().get(0);  
 			tags2.getFrameSetTags().remove(0);
 			if (tags.getTotalTags() > 0)
-				Timer.createTimer("delayedProcessTags " + tags2.hashCode(), delay.value, () -> processTags(tags2));
+				TimerFX.createTimer("delayedProcessTags " + tags2.hashCode(), delay.value, () -> processTags(tags2));
 			return;
 		}
 		for (int n = 0; n <tags.getTotalTags(); n++) {
 			FrameTag tag = tags.getFrameSetTags().get(n);
 			if (tag.deleteMeAfterFirstRead)
 				tags.getFrameSetTags().remove(n--);
-			if (tag.getTriggerDelay() > 0)
-				Timer.createTimer("runTag " + tag.hashCode(), tag.getTriggerDelay(), () -> tag.process(tags.rootSprite));
+			if (tag.getTriggerDelay() > 0) {
+				final FrameTag tag2 = tag.getNewInstanceOfThis();
+				int delay = tag.getTriggerDelay();
+				tag2.setTriggerDelay(0);
+				TimerFX.createTimer("delayedRunTag " + tag2.hashCode(), delay, () -> tag2.process(tags.rootSprite));
+			}
 			else
 				tag.process(tags.rootSprite);
 		}

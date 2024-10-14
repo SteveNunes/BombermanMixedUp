@@ -346,13 +346,12 @@ public class MapEditor {
 				Platform.runLater(() -> {
 					String title = "Map Editor"
 							+ "     FPS: " + Tools.getFPSHandler().getFPS()
-							+ "     " + canvasMouseDraw.tileCoord + "     (" + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BLOCKED") + ")"
+							+ "     " + canvasMouseDraw.tileCoord
+							+ "     " + canvasMouseDraw.tileCoord.positionString(Main.TILE_SIZE)
+							+ "     (" + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BLOCKED") + ")"
 							+ "     Zoom: x" + zoomMain
 							+ "     Tileset Zoom: x" + zoomTileSet
-							+ "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks()
-							+ "     A: " + (MapSet.getLayer(26).getTilesFromCoord(canvasMouseDraw.tileCoord) == null ? 0 : MapSet.getLayer(26).getTilesFromCoord(canvasMouseDraw.tileCoord).size())
-							
-							;
+							+ "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
 					Main.stageMain.setTitle(title);
 					mainLoop();
 				});
@@ -1035,7 +1034,7 @@ public class MapEditor {
 					props += prop.getValue();
 				}
 				int[] rgba = tile.tint == null ? new int[] {0, 0, 0, 0} : ImageUtils.getRgbaArray(ImageUtils.colorToArgb(tile.tint));
-				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.outX / 16) + " " + (tile.outY / 16) + " " + tile.spriteX + " " + tile.spriteY + " " + tile.flip.getValue() + " " + tile.rotate / 90 + " " + props + " " + tile.opacity + " " + rgba[0] + "!" + rgba[1] + "!" + rgba[2] + "!" + rgba[3] + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.oldTags == null ? tile.tileTags.toString() : tile.oldTags);
+				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.outX / 16) + " " + (tile.outY / 16) + " " + tile.spriteX + " " + tile.spriteY + " " + tile.flip.getValue() + " " + tile.rotate / 90 + " " + props + " " + tile.opacity + " " + rgba[0] + "!" + rgba[1] + "!" + rgba[2] + "!" + rgba[3] + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.oldTags == null ? (tile.tileTags == null ? "" : tile.tileTags.toString()) : tile.oldTags);
 				MapSet.getMapIniFile().write("TILES", "" + n++, s);
 			}
 		System.out.println(MapSet.getMapIniFile().fileName());

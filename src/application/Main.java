@@ -11,6 +11,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import tools.Materials;
 import util.IniFile;
+import util.TimerFX;
 
 
 public class Main extends Application {
@@ -61,6 +62,7 @@ public class Main extends Application {
 	
 	public static void close() {
 		close = true;
+		TimerFX.stopAllTimers();
 		IniFile.closeAllOpenedIniFiles();
 		Platform.exit();
 	}

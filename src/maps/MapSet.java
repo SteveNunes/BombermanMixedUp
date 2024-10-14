@@ -58,7 +58,7 @@ public abstract class MapSet {
 		if (!IniFiles.stages.isSection(iniMapName))
 			throw new RuntimeException("Unable to load map \"" + iniMapName + "\" (Map not found on Stages.cfg)");
 		System.out.println("Carregando mapa " + iniMapName + " ...");
-		Effect.clearPreloadedEffects();
+		Effect.clearTempEffects();
 		Materials.tempSprites.clear();
 		MapSet.iniMapName = iniMapName;
 		bricksRegenTimeInFrames = -1;
@@ -104,6 +104,9 @@ public abstract class MapSet {
 		rebuildAllLayers();
 		setBricks();
 		resetMapFrameSets();
+		iniFileMap.getItemList("EFFECTS").forEach(item -> {
+			Effect.addNewTempEffect(item, iniFileMap.read("EFFECTS", item));
+		});
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
 	}
 	

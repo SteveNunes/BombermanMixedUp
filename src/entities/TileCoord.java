@@ -78,4 +78,7 @@ public class TileCoord {
 	public String toString()
 		{ return "TileCoord [" + x + "," + y + "]"; }
 
+	public String positionString(int tileSize)
+		{ return "Coord [" + (x * tileSize) + "," + (y * tileSize) + "]"; }
+
 }

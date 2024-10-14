@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import application.Main;
+import frameset.FrameSet;
 import objmoveutils.Position;
 import tools.IniFiles;
 
@@ -13,27 +13,38 @@ public class Effect extends Entity {
 
 	private static Map<Integer, Effect> effects = new HashMap<>();
 	private static Map<String, Effect> preLoadedEffects = new HashMap<>();
+	private static Map<String, Effect> tempEffects = new HashMap<>();
 	
-	private Effect(Effect effect, Position position) {
-		this(position, effect.getFrameSetsNames().iterator().next());
-		setPosition(position);
+	public Effect(Effect effect) {
+		super();
+		addFrameSet("FrameSet", new FrameSet(effect.getFrameSet("FrameSet"), this));
+		setFrameSet("FrameSet");
+	}
+	
+	public Effect(String effectName, String effectFrameSet) {
+		super();
+		addNewFrameSetFromString("FrameSet", effectFrameSet);
+		setFrameSet("FrameSet");
 	}
 
-	private Effect(Position position, String frameSetName) {
-		super();
-		setTileSize(Main.TILE_SIZE);
-		setPosition(position);
-		addNewFrameSetFromString(frameSetName, IniFiles.effects.read(frameSetName, "FrameSet"));
-		setFrameSet(frameSetName);
+	public static void loadEffects() {
+		for (String effectName : IniFiles.effects.getSectionList()) {
+			Effect effect = new Effect(effectName, IniFiles.effects.read(effectName, "FrameSet"));
+			preLoadedEffects.put(effectName, effect);
+		}
 	}
 	
-	public static void clearPreloadedEffects()
-		{ preLoadedEffects.clear(); }
+	public static void addNewTempEffect(String tempEffectName, String effectFrameSet) {
+		Effect effect = new Effect(tempEffectName, effectFrameSet);
+		tempEffects.put(tempEffectName, effect);
+	}
 	
-	public static Effect runEffect(Position screenPosition, String frameSetName) {
-		if (!preLoadedEffects.containsKey(frameSetName))
-			preLoadedEffects.put(frameSetName, new Effect(new Position(), frameSetName));
-		Effect effect = new Effect(preLoadedEffects.get(frameSetName), screenPosition);
+	public static void clearTempEffects()
+		{ tempEffects.clear(); }
+
+	public static Effect runEffect(Position screenPosition, String effectName) {
+		Effect effect = new Effect(preLoadedEffects.get(effectName));
+		effect.setPosition(screenPosition);
 		effects.put(effect.hashCode(), effect);
 		return effect;
 	}
