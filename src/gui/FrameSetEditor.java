@@ -304,18 +304,8 @@ public class FrameSetEditor {
 		if (currentEntity.getFrameSetsNames().contains(name))
 			Alerts.error("Erro", "Já existe um FrameSet com esse nome!");
 		else {
-			String t = Alerts.textPrompt("Prompt", "Definir ticks", null, "Quantos ticks por frame terá o FrameSet \"" + name + "\"?");
-			try {
-				int ticks = Integer.parseInt(t);
-				if (ticks < 1)
-					Alerts.error("Erro", "O valor informado é menor que 1");
-				else {
-					currentEntity.addFrameSet(name, frameSet == null ? new FrameSet(currentEntity, ticks) : getCurrentFrameSet());
-					Alerts.information("Info", "FrameSet criado com sucesso!");
-				}
-			}
-			catch (Exception ex)
-				{ Alerts.error("Erro", "O valor informado não é um número válido"); ex.printStackTrace(); }
+			currentEntity.addFrameSet(name, frameSet == null ? new FrameSet(currentEntity) : getCurrentFrameSet());
+			Alerts.information("Info", "FrameSet criado com sucesso!");
 		}
 	}
 

@@ -15,9 +15,11 @@ import enums.Direction;
 import enums.Elevation;
 import enums.ItemType;
 import enums.PassThrough;
+import enums.StageClearCriteria;
 import enums.TileProp;
-import frameset.Tags;
+import frameset.FrameSet;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import objmoveutils.Position;
 import pathfinder.PathFinder;
 import pathfinder.PathFinderTileCoord;
@@ -48,10 +50,12 @@ public abstract class MapSet {
 	private static Position groundWithWallShadow;
 	private static Position fragileGround;
 	private static Position mapMove;
+	public static Map<String, FrameSet> runningStageTags;
+	private static Map<String, FrameSet> preLoadedStageTags;
 	private static int bricksRegenTimeInFrames;
 	private static Map<String, Integer> switches;
-	private static Map<String, Tags> frameSetTags;
 	private static boolean stageIsCleared;
+	private static List<StageClearCriteria> stageClearCriterias;
 	
 	public static void loadMap(String iniMapName) {
 		long ct = System.currentTimeMillis();
@@ -64,9 +68,10 @@ public abstract class MapSet {
 		bricksRegenTimeInFrames = -1;
 		layers = new HashMap<>();
 		switches = new HashMap<>();
-		frameSetTags = new HashMap<>();
 		initialPlayerCoords = new HashMap<>();
 		initialMonsterCoords = new HashMap<>();
+		runningStageTags = new HashMap<>();
+		preLoadedStageTags = new HashMap<>();
 		mapMove = new Position();
 		mapName = IniFiles.stages.read(iniMapName, "File");
 		iniFileMap = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
@@ -74,9 +79,15 @@ public abstract class MapSet {
 			throw new RuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
 		setTileSet(iniFileMap.read("SETUP", "Tiles"));
 		Map<Integer, List<String>> tileInfos = new HashMap<>();
-		copyImageLayerIndex = iniFileMap.readAsInteger("SETUP", "ImageLayer", null);
-		iniFileMap.getItemList("TAGS").forEach(item ->
-			frameSetTags.put(item, Tags.loadTagsFromString(iniFileMap.read("TAGS", item))));
+		copyImageLayerIndex = iniFileMap.readAsInteger("SETUP", "CopyImageLayer", null);
+		String criterias = iniFileMap.read("SETUP", "PortalCriteria");
+		if (criterias != null) {
+			stageClearCriterias = new ArrayList<>();
+			for (String s : criterias.split(" "))
+				stageClearCriterias.add(StageClearCriteria.valueOf(s));
+		}
+		else
+			stageClearCriterias = null;
 		iniFileMap.getItemList("TILES").forEach(item -> {
 			String line = iniFileMap.read("TILES", item);
 			int layer = Integer.parseInt(line.split(" ")[0]);
@@ -104,29 +115,55 @@ public abstract class MapSet {
 		rebuildAllLayers();
 		setBricks();
 		resetMapFrameSets();
+		iniFileMap.getItemList("TAGS").forEach(item -> {
+			FrameSet frameSet = new FrameSet();
+			frameSet.loadFromString(iniFileMap.read("TAGS", item));
+			preLoadedStageTags.put(item, frameSet);
+		});
 		iniFileMap.getItemList("EFFECTS").forEach(item -> {
 			Effect.addNewTempEffect(item, iniFileMap.read("EFFECTS", item));
 		});
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
+		// NOTA: Remover o codigo abaixo quando tiver implementado corretamente os mobs
+		stageClearCriterias.remove(StageClearCriteria.KILLING_ALL_MOBS);
 	}
+	
+	/* tileCoord - Coordenada do tile que disparou a tag (se for disparado de algum tile) 
+	 * whoTriggered -  A entity que disparou o stageTag (O jogador/mob/bomba que pisou no tile, a bomba que gerou a explosão que acertou o tile)
+	 */
+	public static void runStageTag(String stageTagsName, TileCoord tileCoord, Entity whoTriggered) {
+		if (stageTagsName == null)
+			throw new RuntimeException("stageTagsName is null");
+		if (tileCoord == null)
+			throw new RuntimeException("tileCoord is null");
+		if (whoTriggered == null)
+			throw new RuntimeException("whoTriggered is null");
+		if (!preLoadedStageTags.containsKey(stageTagsName))
+			throw new RuntimeException(stageTagsName + " - Invalid stage tag name");
+		if (!runningStageTags.containsKey(stageTagsName))
+			runningStageTags.put(stageTagsName, new FrameSet(preLoadedStageTags.get(stageTagsName), tileCoord.getPosition(Main.TILE_SIZE), whoTriggered));
+	}
+
+	public static void runStageTag(String stageTagsName, TileCoord tileCoord)
+		{ runStageTag(stageTagsName, tileCoord, new Entity()); }
+	
+	public static void runStageTag(String stageTagsName, Entity whoTriggered)
+		{ runStageTag(stageTagsName, new TileCoord(), whoTriggered); }
+	
+	public static void runStageTag(String stageTagsName)
+		{ runStageTag(stageTagsName, new TileCoord(), new Entity()); }
 	
 	public static void setStageStatusToCleared() {
 		if (!stageIsCleared) {
 			stageIsCleared = true;
-			if (frameSetTags.containsKey("StageClear"))
-				processStageTags("StageClear");
+			if (preLoadedStageTags.containsKey("StageClear"))
+				runStageTag("StageClear");
 			if (mapFrameSets.haveFrameSet("StageClear"))
 				mapFrameSets.setFrameSet("StageClear");
 			Sound.playWav("StageClear");
 		}
 	}
 	
-	public static void processStageTags(String stageTagsName) {
-		if (!frameSetTags.containsKey(stageTagsName))
-			throw new RuntimeException(stageTagsName + " - Invalid Stage Tags name");
-		Tags.processTags(frameSetTags.get(stageTagsName));
-	}
-
 	public static Layer getCurrentLayer()
 		{ return layers.get(currentLayerIndex); }
 	
@@ -140,11 +177,29 @@ public abstract class MapSet {
 		{ return !switches.containsKey(switchName) ? 0 : switches.get(switchName); }
 
 	public static void setSwitchValue(String switchName, int value) {
+		int oldValue = !switches.containsKey(switchName) ? -1 : switches.get(switchName);
 		switches.put(switchName, value);
-		if (!stageIsCleared && switchName.equals("StageClear") && getSwitchValue(switchName) == 0)
-			setStageStatusToCleared();
+		if (!stageIsCleared && switchName.equals("StageClear")) {
+			if (oldValue > 0 && getSwitchValue(switchName) == 0)
+				removeStageClearCriteria(StageClearCriteria.ACTIVATING_SWITCHES);
+			else if (oldValue == 0 && getSwitchValue(switchName) > 0)
+				addStageClearCriteria(StageClearCriteria.ACTIVATING_SWITCHES);
+		}
 	}
 	
+	private static void addStageClearCriteria(StageClearCriteria criteria) {
+		if (stageClearCriterias != null)
+			stageClearCriterias.add(criteria);
+	}
+
+	private static void removeStageClearCriteria(StageClearCriteria criteria) {
+		if (stageClearCriterias != null) {
+			stageClearCriterias.remove(criteria);
+			if (stageClearCriterias.isEmpty())
+				setStageStatusToCleared();
+		}
+	}
+
 	public static void incSwitchValue(String switchName, int incValue)
 		{ setSwitchValue(switchName, getSwitchValue(switchName) + incValue); }
 	
@@ -157,8 +212,8 @@ public abstract class MapSet {
 			mapFrameSets.setFrameSet("StageIntro");
 		else if (mapFrameSets.haveFrameSet("Default"))
 			mapFrameSets.setFrameSet("Default");
-		if (frameSetTags.containsKey("StageIntro"))
-			processStageTags("StageIntro");
+		if (preLoadedStageTags.containsKey("StageIntro"))
+			runStageTag("StageIntro");
 	}
 
 	public static void setTileSet(String tileSetName) {
@@ -166,7 +221,10 @@ public abstract class MapSet {
 		iniFileTileSet = IniFile.getNewIniFileInstance("appdata/tileset/" + tileSetName + ".tiles");
 		if (iniFileTileSet == null)
 			throw new RuntimeException("Unable to load map \"" + mapName + "\" (Invalid TileSet (" + tileSetName + ".tiles))");
+		if (Materials.tempSprites.containsKey(tileSetName))
+			Materials.tempSprites.remove(tileSetName);
 		tileSetImage = Materials.tileSets.get(tileSetName);
+		Materials.tempSprites.put("TileSet", (WritableImage)tileSetImage);
 	}
 
 	public static void setBricks() {
@@ -448,6 +506,15 @@ public abstract class MapSet {
 			if (mapFrameSets.getCurrentFrameSetName().equals("StageIntro"))
 				mapFrameSets.setFrameSet("Default");
 		}
+		List<String> removeStageTag = new ArrayList<>();
+		List<String> stageTags = new ArrayList<>(runningStageTags.keySet());
+		for (String frameSetName : stageTags) {
+			FrameSet frameSet = runningStageTags.get(frameSetName);
+			frameSet.run();
+			if (!frameSet.isRunning())
+				removeStageTag.add(frameSetName);
+		}
+		removeStageTag.forEach(fs -> runningStageTags.remove(fs));
 	}
 
 	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough) {

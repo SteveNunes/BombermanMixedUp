@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import frameset.Sprite;
-import frameset.Tags;
 import maps.MapSet;
+import maps.Tile;
 
 public class EnableTileTags extends FrameTag {
 	
@@ -29,9 +29,8 @@ public class EnableTileTags extends FrameTag {
 			throw new RuntimeException(tags + " - Too few parameters");
 		int n = 0;
 		try {
-			int layer = Integer.parseInt(params[n = 0]);
-			targetCoords = FrameTag.stringToTileCoord2List(++n >= params.length ? null : params[n]);
-			targetLayer = layer;
+			targetLayer = Integer.parseInt(params[n = 0]);
+			targetCoords = FrameTag.stringToTileCoord2List((n = 1) >= params.length ? null : params[n]);
 		}
 		catch (Exception e)
 			{ e.printStackTrace(); throw new RuntimeException(params[n] + " - Invalid parameter"); }
@@ -44,9 +43,9 @@ public class EnableTileTags extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		FrameTag.processTile(sprite, targetCoords, coord -> {
-			Tags tags = MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord).tileTags;
-			if (tags != null)
-				tags.enableTags();
+			Tile tile = MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord);
+			if (tile != null)
+				tile.enableTags();
 		});
 	}
 

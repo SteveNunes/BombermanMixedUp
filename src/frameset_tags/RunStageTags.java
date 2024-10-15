@@ -24,6 +24,6 @@ public class RunStageTags extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite)
-		{ MapSet.processStageTags(stageTagsName); }
+		{ MapSet.runStageTag(stageTagsName); }
 
 }

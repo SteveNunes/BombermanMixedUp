@@ -18,8 +18,8 @@ public class CopySprFromCopyLayer extends FrameTag {
 	// Valores tem que ser no formato coordenada de tile tanto para area e tamanho de origem quanto para area de destino
 	public CopySprFromCopyLayer(int layer, Rectangle copyArea, List<TileCoord2> targetCoords) {
 		targetLayer = layer;
-		copyArea = new Rectangle(copyArea);
-		targetCoords = new ArrayList<>(targetCoords);
+		this.copyArea = new Rectangle(copyArea);
+		this.targetCoords = new ArrayList<>(targetCoords);
 	}
 
 	@Override
@@ -28,20 +28,17 @@ public class CopySprFromCopyLayer extends FrameTag {
 
 	public CopySprFromCopyLayer(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags);
-		if (params.length > 7)
+		if (params.length > 6)
 			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length < 3)
 			throw new RuntimeException(tags + " - Too few parameters");
 		int n = 0;
 		try {
-			int layer = Integer.parseInt(params[n]); n++;
-			int sx = Integer.parseInt(params[n]); n++;
-			int	sy = Integer.parseInt(params[n]); n++;
-			int	sw = params.length < 4 ? 1 : Integer.parseInt(params[n]); n++;
-			int	sh = params.length < 4 ? 1 : Integer.parseInt(params[n]); n++;
-			copyArea = new Rectangle(sx, sy, sw, sh);
-			targetCoords = FrameTag.stringToTileCoord2List(n >= params.length ? null : params[n]);
-			targetLayer = layer;
+			targetLayer = Integer.parseInt(params[n]);
+			copyArea = new Rectangle(Integer.parseInt(params[++n]), Integer.parseInt(params[++n]),
+					params.length < 4 ? 1 : Integer.parseInt(params[++n]),
+					params.length < 4 ? 1 : Integer.parseInt(params[++n]));
+			targetCoords = FrameTag.stringToTileCoord2List(++n >= params.length ? null : params[n]);
 		}
 		catch (Exception e)
 			{ e.printStackTrace(); throw new RuntimeException(params[n] + " - Invalid parameter"); }
@@ -53,12 +50,10 @@ public class CopySprFromCopyLayer extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		int sx = (int)copyArea.getX(), sy = (int)copyArea.getY(),
-				sw = (int)copyArea.getWidth(), sh = (int)copyArea.getHeight();
 		FrameTag.processTile(sprite, targetCoords, coord -> {
-			for (int y = 0; y < sh; y++)
-				for (int x = 0; x < sw; x++) {
-					TileCoord sourceCoord = new TileCoord(sx + x, sy + y);
+			for (int y = 0; y < (int)copyArea.getHeight(); y++)
+				for (int x = 0; x < (int)copyArea.getWidth(); x++) {
+					TileCoord sourceCoord = new TileCoord((int)copyArea.getX() + x, (int)copyArea.getY() + y);
 					TileCoord targetCoord = new TileCoord(coord.getX() + x, coord.getY() + y);
 					MapSet.getLayer(targetLayer).removeAllTilesFromCoord(targetCoord);
 					for (Tile tile : MapSet.getCopyLayer().getTilesFromCoord(sourceCoord))

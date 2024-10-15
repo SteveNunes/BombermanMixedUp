@@ -33,17 +33,17 @@
                </children>
             </HBox>
             <Separator prefWidth="200.0" />
-            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Camadas" />
-            <HBox spacing="5.0" VBox.vgrow="ALWAYS">
+            <VBox fx:id="vBoxLayerList" alignment="TOP_CENTER" spacing="5.0" VBox.vgrow="ALWAYS">
                <children>
-                  <ListView fx:id="listViewLayers" />
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Camadas" />
+                  <ListView fx:id="listViewLayers" VBox.vgrow="ALWAYS" />
+                  <HBox alignment="CENTER" spacing="5.0">
+                     <children>
+                        <Button fx:id="buttonAddLayer" mnemonicParsing="false" prefWidth="36.0" />
+                     </children>
+                  </HBox>
                </children>
-            </HBox>
-            <HBox alignment="CENTER" spacing="10.0">
-               <children>
-                  <Button fx:id="buttonAddLayer" mnemonicParsing="false" prefWidth="36.0" />
-               </children>
-            </HBox>
+            </VBox>
          </children>
       </VBox>
       <Separator orientation="VERTICAL" prefHeight="200.0" />
@@ -51,19 +51,23 @@
          <children>
             <HBox alignment="CENTER_LEFT" spacing="30.0" VBox.vgrow="ALWAYS">
                <children>
-                  <VBox alignment="CENTER_LEFT">
+                  <HBox fx:id="hBoxCheckBoxes" alignment="CENTER" spacing="10.0">
                      <children>
-                        <CheckBox fx:id="checkBoxShowGrid" mnemonicParsing="false" text="Exibir grade" />
-                        <CheckBox fx:id="checkBoxShowAim" mnemonicParsing="false" text="Exibir mira" />
+                        <VBox alignment="CENTER_LEFT" spacing="5.0">
+                           <children>
+                              <CheckBox fx:id="checkBoxShowGrid" mnemonicParsing="false" text="Exibir grade" />
+                              <CheckBox fx:id="checkBoxShowAim" mnemonicParsing="false" text="Exibir mira" />
+                           </children>
+                        </VBox>
+                        <CheckBox fx:id="checkBoxShowBlockType" mnemonicParsing="false" text="Exibir tipo de bloco" />
+                        <VBox alignment="CENTER_LEFT" spacing="5.0">
+                           <children>
+                              <CheckBox fx:id="checkBoxShowBricks" mnemonicParsing="false" text="Exibir tijolos" />
+                              <CheckBox fx:id="checkBoxShowItens" mnemonicParsing="false" text="Exibir itens" />
+                           </children>
+                        </VBox>
                      </children>
-                  </VBox>
-                  <CheckBox fx:id="checkBoxShowBlockType" mnemonicParsing="false" text="Exibir tipo de bloco" />
-                  <VBox alignment="CENTER_LEFT">
-                     <children>
-                        <CheckBox fx:id="checkBoxShowBricks" mnemonicParsing="false" text="Exibir tijolos" />
-                        <CheckBox fx:id="checkBoxShowItens" mnemonicParsing="false" text="Exibir itens" />
-                     </children>
-                  </VBox>
+                  </HBox>
                   <VBox alignment="CENTER_LEFT" spacing="5.0">
                      <children>
                         <HBox alignment="CENTER_LEFT" spacing="5.0">
@@ -72,7 +76,7 @@
                               <ComboBox fx:id="comboBoxMapFrameSets" prefWidth="150.0" />
                            </children>
                         </HBox>
-                        <HBox alignment="CENTER" spacing="5.0">
+                        <HBox fx:id="hBoxFrameSetButtons" alignment="CENTER" spacing="5.0">
                            <children>
                               <Button fx:id="buttonAddFrameSet" mnemonicParsing="false" prefWidth="30.0" />
                               <Button fx:id="buttonRenameFrameSet" mnemonicParsing="false" prefWidth="30.0" />
@@ -89,7 +93,7 @@
          </children>
       </VBox>
       <Separator orientation="VERTICAL" prefHeight="200.0" />
-      <VBox spacing="20.0">
+      <VBox fx:id="vBoxTileSet" spacing="20.0">
          <children>
             <VBox spacing="3.0">
                <children>
@@ -111,6 +115,7 @@
                               </HBox>
                            </children>
                         </HBox>
+                        <Text fx:id="textTileSetCoord" strokeType="OUTSIDE" strokeWidth="0.0" />
                         <HBox fx:id="hBoxTileSet">
                            <children>
                               <ScrollPane maxHeight="200.0" maxWidth="300.0" minHeight="200.0" minWidth="300.0" prefHeight="200.0" prefWidth="300.0">

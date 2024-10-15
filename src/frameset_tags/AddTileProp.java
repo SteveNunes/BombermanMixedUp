@@ -33,19 +33,18 @@ public class AddTileProp extends FrameTag {
 
 	public AddTileProp(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags);
-		if (params.length < 2)
+		if (params.length < 3)
 			throw new RuntimeException(tags + " - Too few parameters");
-		if (params.length > 5)
+		if (params.length > 4)
 			throw new RuntimeException(tags + " - Too few parameters");
 		int n = 0;
 		try {
 			tileProps = new ArrayList<>();
-			int layer = Integer.parseInt(params[n = 0]);
+			targetLayer = Integer.parseInt(params[n = 0]);
 			String[] split = params[n = 1].split("!");
 			for (String s : split)
 				tileProps.add(TileProp.valueOf(s));
-			targetCoords = FrameTag.stringToTileCoord2List(++n >= params.length ? null : params[n]);
-			targetLayer = layer;
+			targetCoords = FrameTag.stringToTileCoord2List((n = 2) >= params.length ? null : params[n]);
 		}
 		catch (Exception e)
 			{ e.printStackTrace(); throw new RuntimeException(params[n] + " - Invalid parameter"); }

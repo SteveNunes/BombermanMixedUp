@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
+import entities.Entity;
 import entities.TileCoord;
 import enums.ImageAlignment;
 import enums.ImageFlip;
@@ -327,6 +328,9 @@ public class Sprite {
 
 	public void incSpritesPerLine(int value)
 		{ spritesPerLine += value; }
+	
+	public Entity getOriginEntity()
+		{ return mainFrameSet.getEntity(); }
 
 	public FrameSet getMainFrameSet()
 		{ return mainFrameSet; }

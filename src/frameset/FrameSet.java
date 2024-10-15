@@ -27,8 +27,17 @@ public class FrameSet extends Position {
 	private boolean stop;
 	private JumpMove jumpMove;
 
-	public FrameSet(FrameSet frameSet, Entity entity) {
-		super(frameSet);
+	public FrameSet(FrameSet frameSet)
+		{ this(frameSet, new Entity()); }
+
+	public FrameSet(FrameSet frameSet, Entity entity)
+		{ this(frameSet, new Position(), entity); }
+	
+	public FrameSet(FrameSet frameSet, Position position)
+		{ this(frameSet, position, new Entity()); }
+	
+	public FrameSet(FrameSet frameSet, Position position, Entity entity) {
+		super(position);
 		jumpMove = null;
 		sprites = new ArrayList<>();
 		frames = new ArrayList<>();
@@ -42,11 +51,11 @@ public class FrameSet extends Position {
 		currentFrameIndex = 0;
 		ticks = 0;
 	}
-
-	public FrameSet(Entity entity, int framesPerTick, int x, int y) {
-		super(x, y);
+	
+	public FrameSet(Entity entity, Position position) {
+		super(position);
 		this.entity = entity;
-		this.framesPerTick = framesPerTick;
+		framesPerTick = 1;
 		frames = new ArrayList<>();
 		sprites = new ArrayList<>();
 		changedIndex = false;
@@ -57,21 +66,21 @@ public class FrameSet extends Position {
 		jumpMove = null;
 	}
 	
+	public FrameSet(Position position)
+		{ this(new Entity(), position); }
+	
+	public FrameSet(Entity entity)
+		{ this(entity, new Position()); }
+
+	public FrameSet()
+		{ this(new Entity(), new Position()); }
+
 	public JumpMove getJumpMove()
 		{ return jumpMove; }
 	
 	public void setJumpMove(double jumpStrenght, double strenghtMultipiler, int speedInFrames)
 		{ jumpMove = new JumpMove(getPosition(), new Position(), jumpStrenght, strenghtMultipiler, speedInFrames); }
-	
-	public FrameSet(Entity entity, int framesPerTick)
-		{ this(entity, framesPerTick, 0, 0); }
 
-	public FrameSet(Entity entity, int x, int y)
-		{ this(entity, 1, x, y); }
-
-	public FrameSet(Entity entity)
-		{ this(entity, 1, 0, 0); }
-	
 	public double getAbsoluteX() {
 		if (entity != null)
 			return entity.getX() + getX();

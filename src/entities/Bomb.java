@@ -118,7 +118,7 @@ public class Bomb extends Entity {
 				bomb.timer = 0;
 			if (bomb.timer == 0) {
 				Sound.playWav("Explosion" + (int)(bomb.fireDistance / 3));
-				Explosion.addExplosion(bomb.owner, bomb.getTileCoord(), bomb.fireDistance, bomb.type == BombType.SPIKED || bomb.type == BombType.SPIKED_REMOTE);
+				Explosion.addExplosion(bomb, bomb.getTileCoord(), bomb.fireDistance, bomb.type == BombType.SPIKED || bomb.type == BombType.SPIKED_REMOTE);
 				removeBombs.add(bomb);
 			}
 			else
