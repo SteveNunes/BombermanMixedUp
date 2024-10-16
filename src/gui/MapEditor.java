@@ -527,6 +527,28 @@ public class MapEditor {
 					comboBoxMapList.getSelectionModel().select(i);
 				}
 			}
+			else if (e.getCode() == KeyCode.C) {
+				if (selection == null) {
+					
+				}
+				else if (isCtrlHold()) {
+					if (isShiftHold())
+						copySelectedTiles();
+					else
+						copySelectedTiles(true);
+				}
+			}
+			else if (e.getCode() == KeyCode.V) {
+				if (selection == null) {
+					
+				}
+				else if (isCtrlHold()) {
+					if (isShiftHold())
+						pasteCopiedTiles(true);
+					else
+						pasteCopiedTiles();
+				}
+			}
 			else if (e.getCode() == KeyCode.DELETE) {
 				if (selection == null) {
 					if (isShiftHold())
@@ -1190,10 +1212,10 @@ public class MapEditor {
 	    							 color = Color.DARKORANGE;
 	    		else if (tile.tileProp.contains(TileProp.BRICK_RANDOM_SPAWNER))
 	    			color = Color.LIGHTGREEN;
-	    		else if (tile.tileProp.contains(TileProp.MAGNET_D) ||
-	    						 tile.tileProp.contains(TileProp.MAGNET_R) ||
-	    						 tile.tileProp.contains(TileProp.MAGNET_U) ||
-	    						 tile.tileProp.contains(TileProp.MAGNET_L))
+	    		else if (tile.tileProp.contains(TileProp.PUSH_BOMB_TO_DOWN) ||
+	    						 tile.tileProp.contains(TileProp.PUSH_BOMB_TO_LEFT) ||
+	    						 tile.tileProp.contains(TileProp.PUSH_BOMB_TO_RIGHT) ||
+	    						 tile.tileProp.contains(TileProp.PUSH_BOMB_TO_UP))
 	    							 color = Color.LIGHTSLATEGRAY;
 	    		else if (tile.tileProp.contains(TileProp.FIXED_BRICK))
 	    			color = Color.GREEN;

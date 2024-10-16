@@ -129,8 +129,10 @@ public abstract class MapSet {
 		});
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
 		// NOTA: Remover o codigo abaixo quando tiver implementado corretamente os mobs
-		leftStageClearCriterias.remove(StageClearCriteria.KILLING_ALL_MOBS);
-		stageClearCriterias.remove(StageClearCriteria.KILLING_ALL_MOBS);
+		if (stageClearCriterias != null) {
+			leftStageClearCriterias.remove(StageClearCriteria.KILLING_ALL_MOBS);
+			stageClearCriterias.remove(StageClearCriteria.KILLING_ALL_MOBS);
+		}
 	}
 	
 	/* tileCoord - Coordenada do tile que disparou a tag (se for disparado de algum tile) 
