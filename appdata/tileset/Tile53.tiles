@@ -1,11 +1,11 @@
 [CONFIG]
-WallTile=0 80
-GroundTile=0 64
-GroundWithBrickShadow=0 64
+WallTile=0 5
+GroundTile=0 4
+GroundWithBrickShadow=0 4
 BrickStandFrameSet={SetSprSource;/tileset/Tile53;16;64;16;16;0;0;0;0;16;16},{SetTicksPerFrame;4},{SetSprIndex;0}|{Goto;0}
 BrickBreakFrameSet={SetSprSource;/tileset/Tile53;32;64;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 BrickRegenFrameSet={SetSprSource;/tileset/Tile53;96;64;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}
-GroundWithWallShadow=0 64
+GroundWithWallShadow=0 4
 
 [Effect-1]
 ; Trem

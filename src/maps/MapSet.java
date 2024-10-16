@@ -56,6 +56,7 @@ public abstract class MapSet {
 	private static Map<String, Integer> switches;
 	private static boolean stageIsCleared;
 	private static List<StageClearCriteria> stageClearCriterias;
+	private static List<StageClearCriteria> leftStageClearCriterias;
 	
 	public static void loadMap(String iniMapName) {
 		long ct = System.currentTimeMillis();
@@ -83,11 +84,14 @@ public abstract class MapSet {
 		String criterias = iniFileMap.read("SETUP", "PortalCriteria");
 		if (criterias != null) {
 			stageClearCriterias = new ArrayList<>();
-			for (String s : criterias.split(" "))
+			leftStageClearCriterias = new ArrayList<>();
+			for (String s : criterias.split(" ")) {
 				stageClearCriterias.add(StageClearCriteria.valueOf(s));
+				leftStageClearCriterias.add(StageClearCriteria.valueOf(s));
+			}
 		}
 		else
-			stageClearCriterias = null;
+			leftStageClearCriterias = null;
 		iniFileMap.getItemList("TILES").forEach(item -> {
 			String line = iniFileMap.read("TILES", item);
 			int layer = Integer.parseInt(line.split(" ")[0]);
@@ -125,6 +129,7 @@ public abstract class MapSet {
 		});
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
 		// NOTA: Remover o codigo abaixo quando tiver implementado corretamente os mobs
+		leftStageClearCriterias.remove(StageClearCriteria.KILLING_ALL_MOBS);
 		stageClearCriterias.remove(StageClearCriteria.KILLING_ALL_MOBS);
 	}
 	
@@ -187,15 +192,21 @@ public abstract class MapSet {
 		}
 	}
 	
+	public static List<StageClearCriteria> getStageClearCriterias()
+		{ return stageClearCriterias; }
+
+	public static List<StageClearCriteria> getLeftStageClearCriterias()
+		{ return leftStageClearCriterias; }
+	
 	private static void addStageClearCriteria(StageClearCriteria criteria) {
-		if (stageClearCriterias != null)
-			stageClearCriterias.add(criteria);
+		if (leftStageClearCriterias != null)
+			leftStageClearCriterias.add(criteria);
 	}
 
 	private static void removeStageClearCriteria(StageClearCriteria criteria) {
-		if (stageClearCriterias != null) {
-			stageClearCriterias.remove(criteria);
-			if (stageClearCriterias.isEmpty())
+		if (leftStageClearCriterias != null) {
+			leftStageClearCriterias.remove(criteria);
+			if (leftStageClearCriterias.isEmpty())
 				setStageStatusToCleared();
 		}
 	}
@@ -316,10 +327,10 @@ public abstract class MapSet {
 				for (TileCoord coord : getLayer(26).getTilesMap().keySet())
 					coords.add(coord.getNewInstance());
 				for (TileCoord coord : coords) {
-					Tile tile = getLayer(26).getTopTileFromCoord(coord);
+					Tile tile = getTopTileFromCoord(coord);
 					if (tile.tileProp.contains(TileProp.GROUND) && (int)MyMath.getRandom(0, 9) == 0) {
 						Tile tile2 = new Tile((int)wallTile.getX(), (int)wallTile.getY(), coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE, new ArrayList<>(Arrays.asList(TileProp.WALL)));
-						Tile tile3 = getLayer(26).getFirstBottomTileFromCoord(coord);
+						Tile tile3 = getFirstBottomTileFromCoord(coord);
 						List<TileProp> backupProps = tile3.tileProp;
 						tile3.tileProp = Arrays.asList(TileProp.WALL);
 						if (testCoordForInsertFixedBlock(coord)) {
@@ -386,16 +397,16 @@ public abstract class MapSet {
 	}
 	
 	public static List<TileProp> getTilePropsFromCoord(TileCoord coord)
-		{ return getCurrentLayer().getFirstBottomTileFromCoord(coord).tileProp; }
+		{ return getFirstBottomTileFromCoord(coord).tileProp; }
 	
 	public static boolean tileContainsProp(TileCoord coord, TileProp prop)
 		{ return getTilePropsFromCoord(coord).contains(prop); }
 	
 	public static void addPropToTile(TileCoord coord, TileProp prop)
-		{ getLayer(26).getFirstBottomTileFromCoord(coord).tileProp.add(prop); }
+		{ getFirstBottomTileFromCoord(coord).tileProp.add(prop); }
 
 	public static void removePropFromTile(TileCoord coord, TileProp prop)
-		{ getLayer(26).getFirstBottomTileFromCoord(coord).tileProp.remove(prop); }
+		{ getFirstBottomTileFromCoord(coord).tileProp.remove(prop); }
 
 	public static IniFile getMapIniFile()
 		{ return iniFileMap; }
@@ -410,7 +421,7 @@ public abstract class MapSet {
 		String[] split2 = iniFileTileSet.read("CONFIG", tileStr).split(" ");
 		if (split2.length > 0) {
 			try
-				{ position.setPosition(Integer.parseInt(split2[0]), Integer.parseInt(split2[1])); }
+				{ position.setPosition(Integer.parseInt(split2[0]) * Main.TILE_SIZE, Integer.parseInt(split2[1]) * Main.TILE_SIZE); }
 			catch (Exception e)
 				{ throw new RuntimeException(iniFileTileSet.read("CONFIG", tileStr) + " - Invalid data on file \"" + iniFileTileSet.getFilePath().getFileName() + "\""); }
 		}
@@ -462,6 +473,9 @@ public abstract class MapSet {
 		return layers.get(layerIndex);
 	}
 	
+	public static void setCopyImageLayerIndex(int index)
+		{ copyImageLayerIndex = index; }
+	
 	public static int getCopyImageLayerIndex()
 		{ return copyImageLayerIndex; }
 	
@@ -482,6 +496,18 @@ public abstract class MapSet {
 
 	public static String getIniMapName()
 		{ return iniMapName; }
+
+	public static List<Tile> getTileListFromCurrentLayer()
+		{ return getCurrentLayer().getTileList(); }
+
+	public static Tile getFirstBottomTileFromCoord(TileCoord coord)
+		{ return getCurrentLayer().getFirstBottomTileFromCoord(coord); }
+	
+	public static Tile getTopTileFromCoord(TileCoord coord)
+		{ return getCurrentLayer().getTopTileFromCoord(coord); }
+	
+	public static List<Tile> getTileListFromCoord(TileCoord coord)
+		{ return getCurrentLayer().getTilesFromCoord(coord); }
 
 	public static boolean tileIsFree(TileCoord coord)
 		{ return tileIsFree(coord, null); }

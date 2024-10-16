@@ -436,7 +436,7 @@ public class Entity extends Position {
 		Elevation elevation = getElevation();
 		if (elevation != Elevation.HIGH_FLYING)
 			return true;
-		Tile tile = MapSet.getCurrentLayer().getTopTileFromCoord(coord);
+		Tile tile = MapSet.getTopTileFromCoord(coord);
 		for (TileProp prop : tile.tileProp) {
 			if (TileProp.getCantCrossList(elevation).contains(prop) ||
 					(Brick.haveBrickAt(coord, true) && !canPassThroughBrick()) || (Bomb.haveBombAt(coord) && !canPassThroughBomb()))

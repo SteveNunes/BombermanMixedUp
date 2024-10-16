@@ -1,11 +1,11 @@
 [CONFIG]
-WallTile=112 32
-GroundTile=112 48
-GroundWithBrickShadow=112 48
+WallTile=7 2
+GroundTile=7 3
+GroundWithBrickShadow=7 3
 BrickStandFrameSet={SetSprSource;/tileset/Tile47;0;160;16;16;0;0;0;0;16;16},{SetTicksPerFrame;4},{SetSprIndex;0}|{Goto;0}
 BrickBreakFrameSet={SetSprSource;/tileset/Tile47;16;160;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 BrickRegenFrameSet={SetSprSource;/tileset/Tile47;96;160;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}
-GroundWithWallShadow=112 48
+GroundWithWallShadow=7 3
 
 [Effect-1]
 FrameSet_Default=0/FrameSpd"0.13"/Layer"0",>3

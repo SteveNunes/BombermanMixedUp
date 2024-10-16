@@ -1,13 +1,13 @@
 [CONFIG]
 Convertido=1
-WallTile=112 80
-GroundTile=64 64
-GroundWithBrickShadow=64 64
+WallTile=7 5
+GroundTile=4 4
+GroundWithBrickShadow=4 4
 FragileGround=96 64
 BrickStandFrameSet={SetSprSource;/tileset/Tile50;96;80;16;16;0;0;0;0;16;16},{SetTicksPerFrame;4},{SetSprIndex;0}|{Goto;0}
 BrickBreakFrameSet={SetSprSource;/tileset/Tile50;240;16;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 BrickRegenFrameSet={SetSprSource;/tileset/Tile50;320;0;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}
-GroundWithWallShadow=64 64
+GroundWithWallShadow=4 4
 
 [Effect-1]
 Sprite=Tiles 128 64 48 32 0 0,0,0,0 0

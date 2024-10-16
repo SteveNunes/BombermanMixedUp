@@ -1,8 +1,8 @@
 [CONFIG]
-WallTile=16 16
-GroundTile=16 32
-GroundWithBrickShadow=16 32
+WallTile=1 1
+GroundTile=1 2
+GroundWithBrickShadow=1 2
 BrickStandFrameSet={SetSprSource;/tileset/Tile19;0;64;16;16;0;0;0;0;16;16},{SetTicksPerFrame;40},{SetSprIndex;0}|,{SetTicksPerFrame;4},{SetSprIndex;3}|{SetSprIndex;2}|,{SetTicksPerFrame;40},{SetSprIndex;1}|,{SetTicksPerFrame;6},{SetSprIndex;2}|{SetSprIndex;3}|,{SetTicksPerFrame;40},{SetSprIndex;0}|,{SetTicksPerFrame;4},{SetSprIndex;6}|{SetSprIndex;5}|,{SetTicksPerFrame;40},{SetSprIndex;4}|,{SetTicksPerFrame;6},{SetSprIndex;5}|{SetSprIndex;6}|{Goto;0}
 BrickBreakFrameSet={SetSprSource;/tileset/Tile19;64;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 BrickRegenFrameSet={SetSprSource;/tileset/Tile19;144;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}
-GroundWithWallShadow=16 32
+GroundWithWallShadow=1 2

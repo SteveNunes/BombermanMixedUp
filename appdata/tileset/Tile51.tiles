@@ -1,5 +1,5 @@
 [CONFIG]
-WallTile=0 16
+WallTile=0 1
 GroundTile=0 0
 GroundWithBrickShadow=0 0
 BrickStandFrameSet={SetSprSource;/tileset/Tile51;16;0;16;16;0;0;0;0;16;16},{SetTicksPerFrame;0},{SetSprIndex;0}|{Goto;0}

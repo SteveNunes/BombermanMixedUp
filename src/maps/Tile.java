@@ -26,7 +26,6 @@ public class Tile {
 	public ImageFlip flip;
 	public int rotate;
 	public List<TileProp> tileProp;
-	public Color tint;
 	public double opacity;
 	public DrawImageEffects effects;
 	private String tileTags;
@@ -48,7 +47,6 @@ public class Tile {
 		else
 			tileTagsFrameSet = null;
 		disabledTileTags = tile.disabledTileTags;
-		tint = tile.tint;
 		opacity = tile.opacity;
 		effects = new DrawImageEffects(tile.effects);
 	}
@@ -70,7 +68,6 @@ public class Tile {
 		this.flip = flip;
 		this.rotate = rotate;
 		this.tileProp = tileProp;
-		this.tint = tint;
 		this.opacity = opacity;
 		this.effects = effects;
 	}
@@ -79,20 +76,21 @@ public class Tile {
 		tileTagsFrameSet = null;
 		tileProp = new ArrayList<>();
 		String[] split = strFromIni.split(" ");
-		if (split.length < 11)
+		if (split.length < 8)
 			throw new RuntimeException(strFromIni + " - Too few parameters");
-		int n = 0, r, g, b, a, layer;
+		int n = 0;
 		try {
-			layer = split.length <= n ? 0 : Integer.parseInt(split[n]);
+			int layer = Integer.parseInt(split[n]);
 			// O segundo parametro eh ignorado pq so eh util no construtor da classe Layer
-			n += 2; outX = split.length <= n ? 0 : Integer.parseInt(split[n]) * Main.TILE_SIZE;
-			n++; outY = split.length <= n ? 0 : Integer.parseInt(split[n]) * Main.TILE_SIZE;
-			n++; spriteX = split.length <= n ? 0 : Integer.parseInt(split[n]);
-			n++; spriteY = split.length <= n ? 0 : Integer.parseInt(split[n]);
-			n++; int f = split.length <= n ? 0 : Integer.parseInt(split[n]);
-			flip = Arrays.asList(ImageFlip.NONE, ImageFlip.HORIZONTAL, ImageFlip.VERTICAL, ImageFlip.BOTH).get(f);
-			n++; rotate = split.length <= n ? 0 : Integer.parseInt(split[n]) * 90;
-			n++; String[] split2 = split[n].split("!");
+			String[] split2 = split[n += 2].split("!");
+			spriteX = Integer.parseInt(split2[0]) * Main.TILE_SIZE;
+			spriteY = Integer.parseInt(split2[1]) * Main.TILE_SIZE;
+			split2 = split[++n].split("!");
+			outX = Integer.parseInt(split2[0]) * Main.TILE_SIZE;
+			outY = Integer.parseInt(split2[1]) * Main.TILE_SIZE;
+			flip = ImageFlip.valueOf(split[++n]);
+			rotate = Integer.parseInt(split[++n]);
+			split2 = split[++n].split("!");
 			if (!MapSet.isValidLayer(layer) || MapSet.getLayer(layer).haveTilesOnCoord(getTileCoord()))
 				for (String s : split2) {
 					int v = Integer.parseInt(s);
@@ -103,16 +101,10 @@ public class Tile {
 				}
 			else
 				tileProp.add(TileProp.NOTHING);
-			n++; opacity = split.length <= n ? 1 : Double.parseDouble(split[n]);
-			n++; String[] rgba = split[n].split("!");
-			r = Integer.parseInt(rgba[0]);
-			g = Integer.parseInt(rgba[1]);
-			b = Integer.parseInt(rgba[2]);
-			a = Integer.parseInt(rgba[3]);
-			tint = r + g + b + a == 0 ? null : ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b, a));
-			n++; effects = split.length <= n ? null : Tools.loadEffectsFromString(MyConverters.arrayToString(split, n));
-			if (Main.mapEditor != null && split.length > 12)
-				setTileTagsFrameSetFromString(MyConverters.arrayToString(split, 12));
+			opacity = Double.parseDouble(split[++n]);
+			effects = Tools.loadEffectsFromString(MyConverters.arrayToString(split, ++n));
+			if (Main.mapEditor != null && split.length > 9)
+				setTileTagsFrameSetFromString(MyConverters.arrayToString(split, 9));
 		}
 		catch (Exception e)
 			{ e.printStackTrace(); throw new RuntimeException(split[n] + " - Invalid parameter"); }
@@ -160,15 +152,15 @@ public class Tile {
 		{ addTileShadow(coord, shadowType, true); }
 	
 	public static void addTileShadow(TileCoord coord, Position shadowType, boolean updateLayer) {
-		Tile tile = !MapSet.getLayer(26).haveTilesOnCoord(coord) ? null : MapSet.getLayer(26).getTopTileFromCoord(coord);
+		Tile tile = !MapSet.haveTilesOnCoord(coord) ? null : MapSet.getTopTileFromCoord(coord);
 		Position groundTile = MapSet.getGroundTile();
 		if (tile == null || (tile.spriteX == groundTile.getX() && tile.spriteY == groundTile.getY())) {
 			if (tile != null)
-				MapSet.getLayer(26).removeFirstTileFromCoord(coord);
+				MapSet.getCurrentLayer().removeFirstTileFromCoord(coord);
 			tile = new Tile((int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition(Main.TILE_SIZE).getX(), (int)coord.getPosition(Main.TILE_SIZE).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
-			MapSet.getLayer(26).addTile(tile);
+			MapSet.getCurrentLayer().addTile(tile);
 			if (updateLayer)
-				MapSet.getLayer(26).buildLayer();
+				MapSet.getCurrentLayer().buildLayer();
 		}
 	}
 	
@@ -176,18 +168,18 @@ public class Tile {
 		{ removeTileShadow(coord, true); }
 	
 	public static void removeTileShadow(TileCoord coord, boolean updateLayer) {
-		Tile tile = !MapSet.getLayer(26).haveTilesOnCoord(coord) ? null : MapSet.getLayer(26).getTopTileFromCoord(coord);
+		Tile tile = !MapSet.haveTilesOnCoord(coord) ? null : MapSet.getTopTileFromCoord(coord);
 		Position groundTile = MapSet.getGroundTile(),
 						 brickShadow = MapSet.getGroundWithBrickShadow(),
 						 wallShadow = MapSet.getGroundWithWallShadow();
 		if (tile == null || (tile.spriteX == brickShadow.getX() && tile.spriteY == brickShadow.getY()) ||
 				(tile.spriteX == wallShadow.getX() && tile.spriteY == wallShadow.getY())) {
 					if (tile != null)
-						MapSet.getLayer(26).removeFirstTileFromCoord(coord);
+						MapSet.getCurrentLayer().removeFirstTileFromCoord(coord);
 					tile = new Tile((int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition(Main.TILE_SIZE).getX(), (int)coord.getPosition(Main.TILE_SIZE).getY(), tile == null ? new ArrayList<>() : new ArrayList<>(tile.tileProp));
-					MapSet.getLayer(26).addTile(tile);
+					MapSet.getCurrentLayer().addTile(tile);
 					if (updateLayer)
-						MapSet.getLayer(26).buildLayer();
+						MapSet.getCurrentLayer().buildLayer();
 		}
 	}
 

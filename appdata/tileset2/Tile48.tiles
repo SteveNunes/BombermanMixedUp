@@ -1,12 +1,12 @@
 [CONFIG]
 Convertido=1
-WallTile=64 32
-GroundTile=0 48
-GroundWithBrickShadow=80 48
+WallTile=4 2
+GroundTile=0 3
+GroundWithBrickShadow=5 3
 BrickStandFrameSet={SetSprSource;/tileset/Tile48;240;0;16;16;0;0;0;0;16;16},{SetTicksPerFrame;20},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{Goto;0}
 BrickBreakFrameSet={SetSprSource;/tileset/Tile48;288;0;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 BrickRegenFrameSet={SetSprSource;/tileset/Tile48;336;0;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}
-GroundWithWallShadow=80 48
+GroundWithWallShadow=5 3
 
 [Effect-1]
 FrameSet_Default=0,>3,/if"y;>;-30;1",-

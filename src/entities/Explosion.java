@@ -120,7 +120,8 @@ public class Explosion {
 								checkExplodedTile(coord);
 							}
 						}
-						if (x > 0 && !MapSet.tileIsFree(coord, passThroughAllBricks ? Arrays.asList(PassThrough.BRICK) : null))
+						Tile tile = MapSet.getFirstBottomTileFromCoord(coord);
+						if (x > 0 && (tile.tileProp.contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord, passThroughAllBricks ? Arrays.asList(PassThrough.BRICK) : null)))
 							break;
 					}
 				}
@@ -130,7 +131,7 @@ public class Explosion {
 
 	
 	private void checkExplodedTile(TileCoord coord) {
-		Tile tile = MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord);
+		Tile tile = MapSet.getFirstBottomTileFromCoord(coord);
 		if (tile.getStringTags() != null)
 			for (TileProp prop : tile.tileProp)
 				if (prop == TileProp.TRIGGER_BY_EXPLOSION)

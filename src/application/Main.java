@@ -1,9 +1,12 @@
 package application;
 	
+import java.awt.Color;
+
 import enums.GameMode;
 import gui.FrameSetEditor;
 import gui.Game;
 import gui.MapEditor;
+import gui.util.ImageUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;

@@ -63,12 +63,6 @@ public class Layer {
 			tiles.forEach(tile -> {
 				ImageUtils.drawImage(gc, MapSet.getTileSetImage(), tile.spriteX, tile.spriteY, 16, 16, tile.outX, tile.outY,
 														 16, 16, tile.flip, tile.rotate, tile.opacity, tile.effects);
-				if (tile.tint != null) {
-					gc.save();
-					gc.setFill(tile.tint);
-					gc.fillRect(tile.outX, tile.outY, 16, 16);
-					gc.restore();
-				}
 		}));
 		if (getLayerImage() == null || (int)getLayerImage().getWidth() != width || (int)getLayerImage().getHeight() != height)
 			setLayerImage(Tools.getCanvasSnapshot(canvas));

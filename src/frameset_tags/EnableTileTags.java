@@ -43,7 +43,7 @@ public class EnableTileTags extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		FrameTag.processTile(sprite, targetCoords, coord -> {
-			Tile tile = MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord);
+			Tile tile = MapSet.getFirstBottomTileFromCoord(coord);
 			if (tile != null)
 				tile.enableTags();
 		});

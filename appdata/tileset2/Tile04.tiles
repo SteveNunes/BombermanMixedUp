@@ -1,11 +1,11 @@
 [CONFIG]
-WallTile=48 48
-GroundTile=112 48
-GroundWithBrickShadow=112 48
+WallTile=3 3
+GroundTile=7 3
+GroundWithBrickShadow=7 3
 BrickStandFrameSet={SetSprSource;/tileset/Tile04;0;16;16;16;0;0;0;0;16;16},{SetTicksPerFrame;10},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}
 BrickBreakFrameSet={SetSprSource;/tileset/Tile04;0;0;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 BrickRegenFrameSet={SetSprSource;/tileset/Tile04;80;0;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}
-GroundWithWallShadow=112 48
+GroundWithWallShadow=7 3
 
 [Effect-1]
 Sprite=Tiles 0 128 16 48 9 0,0,0,0 0

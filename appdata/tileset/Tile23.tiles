@@ -1,8 +1,8 @@
 [CONFIG]
-WallTile=48 0
-GroundTile=80 0
-GroundWithBrickShadow=48 16
+WallTile=3 0
+GroundTile=5 0
+GroundWithBrickShadow=3 1
 BrickStandFrameSet={SetSprSource;/tileset/Tile23;0;32;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{SetSprIndex;4}|{Goto;0}
 BrickBreakFrameSet={SetSprSource;/tileset/Tile23;0;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 BrickRegenFrameSet={SetSprSource;/tileset/Tile23;80;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}
-GroundWithWallShadow=32 16
+GroundWithWallShadow=2 1
