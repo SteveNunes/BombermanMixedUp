@@ -25,7 +25,6 @@ import enums.StageClearCriteria;
 import enums.TileProp;
 import gui.util.Alerts;
 import gui.util.ControllerUtils;
-import gui.util.ImageUtils;
 import gui.util.ListenerHandle;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -177,11 +176,10 @@ public class MapEditor {
 	private Rectangle tileSelection;
 	private GraphicsContext gcMain;
 	private GraphicsContext gcTileSet;
-	private GraphicsContext gcTileSel;
 	private Brick[] bricks;
 	private Position[] tilePosition;
 	private Canvas[] canvasList;
-	private Canvas canvasTileSel;
+	private Tile[][] tileSelectionArray;
 	private List<KeyCode> holdedKeys;
 	private List<TileProp> copyProps;
 	private Map<TileCoord, Entity> fragileTiles;
@@ -215,8 +213,6 @@ public class MapEditor {
 		playing = false;
 		copyProps = null;
 		selection = null;
-		canvasTileSel = null;
-		gcTileSel = null;
 		canvasMain.setWidth(320 * zoomMain - 16 * zoomMain * 3);
 		canvasMain.setHeight(240 * zoomMain - 16 * zoomMain);
 		listenerHandleComboBoxMapFrameSets = new ListenerHandle<>(comboBoxMapFrameSets.valueProperty(), (o, oldValue, newValue) ->
@@ -227,7 +223,7 @@ public class MapEditor {
 		setKeyboardEvents();
 		setMainCanvasMouseEvents();
 		rebuildTileSetCanvas();
-		redefineTileSelectionCanvas();
+		updateTileSelectionArray();
 		mainLoop();
   }
 	
@@ -439,7 +435,7 @@ public class MapEditor {
 		ctrlZPos = -1;
 		backupTiles.clear();
 		comboBoxTileSets.getSelectionModel().select(MapSet.getTileSetName());
-		textTileSetCoord.setText(canvasMouseTileSet.tileCoord + "     " + canvasMouseTileSet.tileCoord.getPosition(Main.TILE_SIZE));
+		updateTileSetText();
 		listenerHandleComboBoxMapFrameSets.detach();
 		comboBoxMapFrameSets.getItems().clear();
 		for (String frameSet : MapSet.mapFrameSets.getFrameSetsNames())
@@ -597,13 +593,11 @@ public class MapEditor {
 	void setTileSetCanvasMouseEvents() {
 		canvasTileSet.setOnMouseDragged(e -> {
 			canvasMouseTileSet.tileCoord.setCoord((int)e.getX() / (16 * zoomTileSet), (int)e.getY() / (16 * zoomTileSet));
-			if (e.getButton() == MouseButton.PRIMARY) {
+			if (e.getButton() == MouseButton.PRIMARY)
 				tileSelection.setFrameFromDiagonal(canvasMouseTileSet.startDragDX < canvasMouseTileSet.getCoordX() ? canvasMouseTileSet.startDragDX : canvasMouseTileSet.getCoordX(),
 																					 canvasMouseTileSet.startDragDY < canvasMouseTileSet.getCoordY() ? canvasMouseTileSet.startDragDY : canvasMouseTileSet.getCoordY(),
 																					(canvasMouseTileSet.startDragDX > canvasMouseTileSet.getCoordX() ? canvasMouseTileSet.startDragDX : canvasMouseTileSet.getCoordX()) + 1,
 																					(canvasMouseTileSet.startDragDY > canvasMouseTileSet.getCoordY() ? canvasMouseTileSet.startDragDY : canvasMouseTileSet.getCoordY()) + 1);
-				redefineTileSelectionCanvas();
-			}
 		});
 
 		canvasTileSet.setOnMouseMoved(e -> {
@@ -621,12 +615,11 @@ public class MapEditor {
 						 canvasMouseTileSet.startDragDY < canvasMouseTileSet.getCoordY() ? canvasMouseTileSet.startDragDY : canvasMouseTileSet.getCoordY(),
 						(canvasMouseTileSet.startDragDX > canvasMouseTileSet.getCoordX() ? canvasMouseTileSet.startDragDX : canvasMouseTileSet.getCoordX()) + 1,
 						(canvasMouseTileSet.startDragDY > canvasMouseTileSet.getCoordY() ? canvasMouseTileSet.startDragDY : canvasMouseTileSet.getCoordY()) + 1);
-				redefineTileSelectionCanvas();
 				if (contextMenuTileSet != null) {
 					contextMenuTileSet.hide();
 					return;
 				}
-				textTileSetCoord.setText(canvasMouseTileSet.tileCoord + "     " + canvasMouseTileSet.tileCoord.getPosition(Main.TILE_SIZE));
+				updateTileSetText();
 			}
 			else if (e.getButton() == MouseButton.SECONDARY) {
 				if (contextMenuTileSet != null)
@@ -637,25 +630,9 @@ public class MapEditor {
 		});
 	}
 	
-	private void redefineTileSelectionCanvas() {
-		if (comboBoxTileRotate.getSelectionModel().getSelectedItem() == null)
-			return;
-		int w, h, rotate = comboBoxTileRotate.getSelectionModel().getSelectedItem();
-		if (rotate == 90 || rotate == 270) {
-			h = (int)tileSelection.getWidth() * 16;
-			w = (int)tileSelection.getHeight() * 16;
-		}
-		else {
-			w = (int)tileSelection.getWidth() * 16;
-			h = (int)tileSelection.getHeight() * 16;
-		}
-		if (canvasTileSel == null || (int)canvasTileSel.getWidth() != w || (int)canvasTileSel.getHeight() != h) {
-			canvasTileSel = new Canvas(w, h);
-			gcTileSel = canvasTileSel.getGraphicsContext2D();
-			gcTileSel.setImageSmoothing(false);
-		}
-	}
-
+	private void updateTileSetText()
+		{ textTileSetCoord.setText("Tile: " + canvasMouseTileSet.tileCoord.getX() + "," + canvasMouseTileSet.tileCoord.getY() + " (" + (int)tileSelection.getWidth() + " x " + (int)tileSelection.getHeight() + ")     Position: " + canvasMouseTileSet.tileCoord.getX() * Main.TILE_SIZE + "," + canvasMouseTileSet.tileCoord.getY() * Main.TILE_SIZE + " (" + (int)tileSelection.getWidth() * Main.TILE_SIZE + " x " + (int)tileSelection.getHeight() * Main.TILE_SIZE + ")");	}
+	
 	void setMainCanvasMouseEvents() {
 		canvasMain.setOnScroll(e -> {
 			int inc = (isShiftHold() ? e.getDeltaX() : e.getDeltaY()) < 0 ? -1 : 1;
@@ -671,7 +648,7 @@ public class MapEditor {
 			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 			if (!playing && e.getButton() == MouseButton.PRIMARY) {
 				if (selection == null && !prevCoord.equals(canvasMouseDraw.tileCoord))
-					addSelectedTileOnCurrentCursorPosition();
+					updateTileSelectionArray();
 				if (isShiftHold()) {
 					if (selection == null)
 						selection = new Rectangle();
@@ -734,7 +711,13 @@ public class MapEditor {
 		});
 	}
 	
-	void addSelectedTileOnCurrentCursorPosition() { // @@@@@@
+	void addSelectedTileOnCurrentCursorPosition()
+		{ updateTileSelectionArray(true); }
+	
+	void updateTileSelectionArray()
+		{ updateTileSelectionArray(false); }
+
+	void updateTileSelectionArray(boolean fixTilesOnLayer) {
 		ImageFlip flip = comboBoxTileFlip.getSelectionModel().getSelectedItem();
 		int w, h, rotate = comboBoxTileRotate.getSelectionModel().getSelectedItem();
 		if (rotate == 90 || rotate == 270) {
@@ -746,6 +729,7 @@ public class MapEditor {
 			h = (int)tileSelection.getHeight();
 		}
 		Tile[][] tiles = new Tile[h > w ? h : w][h > w ? h : w];
+		tileSelectionArray = new Tile[tiles.length][tiles.length];
 		for (int y = 0; y < tileSelection.getHeight(); y++)
 			for (int x = 0; x < tileSelection.getWidth(); x++) {
 				Tile tile = new Tile((int)tileSelection.getMinX() * 16 + x * 16,
@@ -757,25 +741,26 @@ public class MapEditor {
 				tiles[y][x] = tile;
 			}
 		
-		/*
-		 * TERMINAR:
-		 * Fazer a aplicação de multiplos tiles levar em conta o flip
-		 * Ajeitar a imagem que segue o cursor que não esta mostrando exatamente onde os tiles vao ser inseridos
-		 */
 		for (int y = 0; y < tiles.length; y++)
 			for (int x = 0; x < tiles.length; x++) {
 				Tile tile;
+				int a, b;
 				if (rotate == 0)
-					tile = tiles[y][x]; 
+					{ a = y; b = x; }
 				else if (rotate == 90)
-					tile = tiles[h - x - 1][y]; 
+					{ a = h - x - 1; b = y; }
 				else if (rotate == 180)
-					tile = tiles[w - y - 1][w - x - 1]; 
+					{ a = w - y - 1; b = w - x - 1; }
 				else
-					tile = tiles[x][h - y - 1]; 
+					{ a = x; b = h - y - 1; }
+				tile = tiles[a][b]; 
+				tileSelectionArray[a][b] = tiles[a][b];
 				if (tile != null) {
-					tile.setCoord(new TileCoord(canvasMouseDraw.getCoordX() + x, canvasMouseDraw.getCoordY() + y));
-					getCurrentLayer().addTile(tile);
+					boolean vf = tile.flip == ImageFlip.VERTICAL || tile.flip == ImageFlip.BOTH,
+									hf = tile.flip == ImageFlip.HORIZONTAL || tile.flip == ImageFlip.BOTH;
+					tile.setCoord(new TileCoord(canvasMouseDraw.getCoordX() + (hf ? w - 1 - x : x), canvasMouseDraw.getCoordY() + (vf ? h - 1 - y : y)));
+					if (fixTilesOnLayer)
+						getCurrentLayer().addTile(tile);
 				}
 			}
 		w = getCurrentLayer().getWidth();
@@ -818,12 +803,19 @@ public class MapEditor {
 		Item.drawItems();
 		Effect.drawEffects();
 		fragileTiles.values().forEach(e -> e.run());
-		if (!playing && canvasTileSel != null) {
-			gcTileSel.clearRect(0, 0, canvasTileSel.getWidth(), canvasTileSel.getHeight());
-			for (int y = 0; y < tileSelection.getHeight(); y++)
-				for (int x = 0; x < tileSelection.getWidth(); x++)
-					ImageUtils.drawImage(gcTileSel, MapSet.getTileSetImage(), (int)tileSelection.getMinX() * 16 + x * 16, (int)tileSelection.getMinY() * 16 + y * 16, 16, 16, x * 16, y * 16, Main.TILE_SIZE, Main.TILE_SIZE);
-			Tools.addDrawImageQueue(SpriteLayerType.GROUND, Tools.getCanvasSnapshot(canvasTileSel), canvasMouseDraw.getCoordX() * Main.TILE_SIZE, canvasMouseDraw.getCoordY() * Main.TILE_SIZE, comboBoxTileFlip.getSelectionModel().getSelectedItem(), comboBoxTileRotate.getSelectionModel().getSelectedItem(), sliderTileOpacity.getValue(), null);
+		updateTileSelectionArray();
+		if (!playing) {
+			for (int y = 0; y < tileSelectionArray.length; y++)
+				for (int x = 0; x < tileSelectionArray[0].length; x++) {
+					Tile tile = tileSelectionArray[y][x];
+					if (tile != null)
+						Tools.addDrawImageQueue(SpriteLayerType.GROUND, MapSet.getTileSetImage(),
+								tile.spriteX, tile.spriteY,
+								Main.TILE_SIZE, Main.TILE_SIZE,
+								tile.outX, tile.outY,
+								Main.TILE_SIZE, Main.TILE_SIZE,
+								tile.flip, tile.rotate, tile.opacity, null);
+				}
 		}
 	}
 	
@@ -913,11 +905,6 @@ public class MapEditor {
 		gcTileSet.drawImage(i, 0, 0, i.getWidth(), i.getHeight(), 0, 0, i.getWidth() * zoomTileSet, i.getHeight() * zoomTileSet);
 	}
 
-	/*
-	 * ARRUMAR A PARADA QUE EXIBE OS FRAMETAGS DO TILE QUE O MOUSE
-	 * ESTA EM CIMA (NAO ESTA APARECENDO, Verificar Tile.getStringTag())
-	 */
-	
 	void drawTileTagsOverCursor() {
 		if (!checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
 			String tileTags = MapSet.getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord).getStringTags();

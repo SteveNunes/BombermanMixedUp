@@ -48,7 +48,7 @@ public class Tile {
 			tileTagsFrameSet = null;
 		disabledTileTags = tile.disabledTileTags;
 		opacity = tile.opacity;
-		effects = new DrawImageEffects(tile.effects);
+		effects = tile.effects == null ? null : new DrawImageEffects(tile.effects);
 	}
 	
 	public Tile(int spriteX, int spriteY, int outX, int outY, List<TileProp> tileProp)
