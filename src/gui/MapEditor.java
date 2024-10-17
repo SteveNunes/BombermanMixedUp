@@ -18,6 +18,7 @@ import entities.Entity;
 import entities.Explosion;
 import entities.TileCoord;
 import enums.BombType;
+import enums.Direction;
 import enums.Icons;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
@@ -547,6 +548,62 @@ public class MapEditor {
 						pasteCopiedTiles(true);
 					else
 						pasteCopiedTiles();
+				}
+			}
+			else if (e.getCode() == KeyCode.W || e.getCode() == KeyCode.S || e.getCode() == KeyCode.A || e.getCode() == KeyCode.D) {
+				Direction dir = e.getCode() == KeyCode.W ? Direction.UP :
+												e.getCode() == KeyCode.S ? Direction.DOWN :
+												e.getCode() == KeyCode.A ? Direction.LEFT : Direction.RIGHT;
+				if (isCtrlHold()) {
+					if (selection == null) {
+						Map<TileCoord, List<Tile>> tilesMap = new HashMap<>();
+						for (TileCoord coord : getCurrentLayer().getTilesMap().keySet()) {
+							List<Tile> tiles = getCurrentLayer().getTilesFromCoord(coord);
+							TileCoord tileCoord = coord.getNewInstance();
+							tileCoord.incByDirection(dir);
+							for (Tile tile : tiles)
+								tile.setCoord(tileCoord);
+							tilesMap.put(new TileCoord(tileCoord), new ArrayList<>(tiles));
+						}
+						List<Brick> bricks = Brick.getBricks();
+						bricks.forEach(brick -> Brick.removeBrick(brick));
+						bricks.forEach(brick -> {
+							brick.incPositionByDirection(dir, Main.TILE_SIZE);
+							Brick.addBrick(brick);
+						});
+						MapSet.getCurrentLayer().setTilesMap(tilesMap);
+					}
+					else {
+						Map<TileCoord, List<Tile>> tilesMap = new HashMap<>();
+						List<Brick> bricks = new ArrayList<>();
+						iterateAllSelectedCoords(coord -> {
+							if (MapSet.getCurrentLayer().haveTilesOnCoord(coord)) {
+								TileCoord tileCoord = coord.getNewInstance();
+								tileCoord.incByDirection(dir);
+								tilesMap.put(new TileCoord(tileCoord), getCurrentLayer().getTilesFromCoord(coord));
+								if (Brick.haveBrickAt(coord)) {
+									Brick brick = Brick.getBrickAt(coord);
+									bricks.add(brick);
+									brick.incPositionByDirection(dir, Main.TILE_SIZE);
+									Brick.removeBrick(coord);
+								}
+								MapSet.getCurrentLayer().removeAllTilesFromCoord(coord);
+							}
+						});
+						for (TileCoord coord : tilesMap.keySet()) {
+							if (MapSet.getCurrentLayer().haveTilesOnCoord(coord))
+								MapSet.getCurrentLayer().removeAllTilesFromCoord(coord);
+							for (Tile tile : tilesMap.get(coord))
+								MapSet.getCurrentLayer().addTile(tile, coord);
+						}
+						bricks.forEach(brick -> Brick.addBrick(brick));
+						int x = (int)selection.getX(), y = (int)selection.getY(),
+								w = (int)selection.getWidth(), h = (int)selection.getHeight();
+						x += dir == Direction.LEFT ? -1 : dir == Direction.RIGHT ? 1 : 0;
+						y += dir == Direction.UP ? -1 : dir == Direction.DOWN ? 1 : 0;
+						selection.setBounds(x, y, w, h);
+					}
+					MapSet.getCurrentLayer().buildLayer();
 				}
 			}
 			else if (e.getCode() == KeyCode.DELETE) {
