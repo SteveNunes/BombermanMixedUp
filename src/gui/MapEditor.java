@@ -98,7 +98,7 @@ public class MapEditor {
   @FXML
   private Button buttonSetFrameSetFragileGround;
   @FXML
-  private Button buttonSetFrameSetRollingTile;
+  private Button buttonSetFrameSetBrickRolling;
   @FXML
   private Button buttonTileSetZoom1;
   @FXML
@@ -237,18 +237,18 @@ public class MapEditor {
 	}
 	
 	void defineControls() {
-		ControllerUtils.addIconToButton(buttonAddMap, Icons.NEW_FILE.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonRenameMap, Icons.EDIT.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonRemoveMap, Icons.DELETE.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonReloadFromDisk, Icons.REFRESH.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonSaveToDisk, Icons.SAVE.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonAddLayer, Icons.NEW_FILE.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonTileSetZoom1, Icons.ZOOM_PLUS.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonTileSetZoom2, Icons.ZOOM_MINUS.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonAddFrameSet, Icons.NEW_FILE.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonRenameFrameSet, Icons.EDIT.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonEditFrameSet, Icons.EDIT.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonRemoveFrameSet, Icons.DELETE.getValue(), 20, 20, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonAddMap, Icons.NEW_FILE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonRenameMap, Icons.EDIT.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonRemoveMap, Icons.DELETE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonReloadFromDisk, Icons.REFRESH.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonSaveToDisk, Icons.SAVE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonAddLayer, Icons.NEW_FILE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonTileSetZoom1, Icons.ZOOM_PLUS.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonTileSetZoom2, Icons.ZOOM_MINUS.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonAddFrameSet, Icons.NEW_FILE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonRenameFrameSet, Icons.EDIT.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonEditFrameSet, Icons.EDIT.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonRemoveFrameSet, Icons.DELETE.getValue(), 16, 16, Color.WHITE, 150);
 		buttonAddMap.setTooltip(new Tooltip("Adicionar mapa"));
 		buttonRenameMap.setTooltip(new Tooltip("Renomear mapa"));
 		buttonRemoveMap.setTooltip(new Tooltip("Remover mapa"));
@@ -265,6 +265,25 @@ public class MapEditor {
 		buttonSaveToDisk.setOnAction(e -> saveCurrentMap());
 		checkBoxShowBricks.setSelected(true);
 		checkBoxShowItens.setSelected(true);
+		buttonAddLayer.setOnAction(e -> {
+			String str = Alerts.textPrompt("Prompt", "Adicionar camada", "Digite o indice da camada á ser adicionada");
+			if (str != null) {
+				int layer;
+				try
+					{ layer = Integer.parseInt(str); }
+				catch (Exception ex) {
+					Alerts.error("Erro", "Valor inválido para o indice da nova camada");
+					return;
+				}
+				if (MapSet.isValidLayer(layer)) {
+					Alerts.error("Erro", "Já existe uma camada na lista com o valor informado");
+					return;
+				}
+				MapSet.addLayer(layer);
+				setLayersListView();
+				Alerts.information("Info", "Camada adicionada com sucesso");
+			}
+		});
 		checkBoxShowBricks.setOnAction(e -> {
 			if (!checkBoxShowBricks.isSelected())
 				Brick.clearBricks();
@@ -284,8 +303,29 @@ public class MapEditor {
 				rebuildTileSetCanvas();
 			}
 		});
+		List<String> frameSetNames = Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet", "BrickRollingFrameSet");
+		List<Button> buttons = Arrays.asList(buttonSetFrameSetBrickStand, buttonSetFrameSetBrickBreaking, buttonSetFrameSetBrickRegen, buttonSetFrameSetBrickRolling);
+		for (int n = 0; n < 3; n++) {
+			final String frameSetName = frameSetNames.get(n);
+			buttons.get(n).setOnAction(e -> {
+				String str = Alerts.textPrompt("Prompt", "Editar FrameSet", MapSet.getTileSetIniFile().read("CONFIG", frameSetName), "Editar FrameSet '" + frameSetName + "'");
+				if (str != null) {
+					try {
+						for (Brick brick : Brick.getBricks())
+							brick.replaceFrameSetFromString(frameSetName, str);
+					}
+					catch (Exception ex) {
+						Alerts.error("Erro", "O FrameSet informado é inválido ou contém erros");
+						return;
+					}
+					MapSet.getTileSetIniFile().write("CONFIG", frameSetName, str);
+					setSampleTiles();
+				}
+			});
+		}
 		buttonSetFrameSetGroundSprite.setOnAction(e -> {
 			MapSet.setGroundTile(new Position(tileSelection.getMinX() * 16, tileSelection.getMinY() * 16));
+			MapSet.rebuildAllLayers();
 			setSampleTiles();
 		});
 		buttonSetFrameSetGroundWithWallShadow.setOnAction(e -> {
@@ -300,10 +340,12 @@ public class MapEditor {
 		});
 		buttonSetFrameSetWallSprite.setOnAction(e -> {
 			MapSet.setWallTile(new Position(tileSelection.getMinX() * 16, tileSelection.getMinY() * 16));
+			MapSet.rebuildAllLayers();
 			setSampleTiles();
 		});
 		buttonSetFrameSetFragileGround.setOnAction(e -> {
 			MapSet.setFragileGround(new Position(tileSelection.getMinX() * 16, tileSelection.getMinY() * 16));
+			MapSet.rebuildAllLayers();
 			setSampleTiles();
 		});
 		List<File> list = FindFile.findFile("./appdata/tileset/", "*.tiles");
@@ -449,30 +491,49 @@ public class MapEditor {
 
 	private void setLayersListView() {
 		listViewLayers.getItems().clear();
+		listViewLayers.setFixedCellSize(26);
 		List<Integer> list = new ArrayList<Integer>(MapSet.getLayersMap().keySet());
 		list.sort((n1, n2) -> n2 - n1);
 		list.forEach(layer -> {
-			HBox hBox = new HBox(new Text((layer == MapSet.getCopyImageLayerIndex() ? "* " : "") + layer));
+			HBox textHBox = new HBox(new Text((layer == MapSet.getCopyImageLayerIndex() ? "📌  " : "") + layer + " "));
+			textHBox.setPrefWidth(35);
+			textHBox.setAlignment(Pos.CENTER_RIGHT);
+			HBox hBox = new HBox(textHBox);
 			HBox hBox2 = new HBox(new Text(MapSet.getLayer(layer).getWidth() + " x " + MapSet.getLayer(layer).getHeight()));
 			ComboBox<SpriteLayerType> comboBox = new ComboBox<>();
 			ControllerUtils.setListToComboBox(comboBox, Arrays.asList(SpriteLayerType.getList()));
 			comboBox.getSelectionModel().select(MapSet.getLayer(layer).getSpriteLayerType());
 			comboBox.valueProperty().addListener((o, oldV, newV) -> MapSet.getLayer(layer).setSpriteLayerType(newV));
+			ControllerUtils.forceComboBoxSize(comboBox, 125, 23);
 			hBox.setSpacing(5);
 			hBox.setAlignment(Pos.CENTER_LEFT);
 			hBox2.setAlignment(Pos.CENTER);
-			hBox2.setPrefWidth(70);
+			hBox2.setPrefWidth(85);
 			hBox.getChildren().add(comboBox);
 			hBox.getChildren().add(hBox2);
 			hBox.setOnMouseClicked(event -> setLayer(layer));
+			if (layer != 26) {
+				Button button = new Button();
+				ControllerUtils.forceButtonSize(button, 19, 19);
+				button.setTooltip(new Tooltip("Excluir camada"));
+				button.setOnAction(e -> {
+					if (Alerts.confirmation("Confirmation", "Deseja mesmo excluir a camada " + layer + "?")) {
+						MapSet.removeLayer(layer);
+						setLayersListView();
+					}
+				});
+				ControllerUtils.addIconToButton(button, Icons.DELETE.getValue(), 12, 12, Color.WHITE, 50);
+				hBox.getChildren().add(button);
+			}
 			if (MapSet.getCopyImageLayerIndex() != layer) {
 				Button button = new Button();
+				ControllerUtils.forceButtonSize(button, 19, 19);
 				button.setTooltip(new Tooltip("Definir como 'CopyImageLayer'"));
 				button.setOnAction(e -> {
 					MapSet.setCopyImageLayerIndex(layer);
 					setLayersListView();
 				});
-				ControllerUtils.addIconToButton(button, Icons.COPY.getValue(), 12, 12);
+				ControllerUtils.addIconToButton(button, Icons.PIN.getValue(), 12, 12, Color.WHITE, 50);
 				hBox.getChildren().add(button);
 			}
 			listViewLayers.getItems().add(hBox);
@@ -727,7 +788,7 @@ public class MapEditor {
 			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 			if (!playing && e.getButton() == MouseButton.PRIMARY) {
 				if (selection == null && !prevCoord.equals(canvasMouseDraw.tileCoord))
-					updateTileSelectionArray();
+					addSelectedTileOnCurrentCursorPosition();
 				if (isShiftHold()) {
 					if (selection == null)
 						selection = new Rectangle();

@@ -15,6 +15,7 @@ import enums.Direction;
 import enums.Elevation;
 import enums.ItemType;
 import enums.PassThrough;
+import enums.SpriteLayerType;
 import enums.StageClearCriteria;
 import enums.TileProp;
 import frameset.FrameSet;
@@ -170,6 +171,27 @@ public abstract class MapSet {
 			Sound.playWav("StageClear");
 		}
 	}
+	
+	public static void addLayer(int layerIndex)
+		{ layers.put(layerIndex, new Layer(layerIndex)); }
+
+	public static void addLayer(int layerIndex, SpriteLayerType layerType)
+		{ layers.put(layerIndex, new Layer(layerIndex, layerType)); }
+	
+	public static void removeLayer(int layerIndex) {
+		if (!isValidLayer(layerIndex))
+			throw new RuntimeException("Invalid layer index");
+		if (getTotalLayers() == 1)
+			throw new RuntimeException("You can't remove this layer because the map must have at least one layer");
+		if (layerIndex == 26)
+			throw new RuntimeException("You can't remove this layer because it's the main layer");
+		layers.remove(layerIndex);
+		if (currentLayerIndex == layerIndex)
+			setCurrentLayerIndex(layers.keySet().iterator().next());
+	}
+	
+	public static int getTotalLayers()
+		{ return layers.size(); }
 	
 	public static Layer getCurrentLayer()
 		{ return layers.get(currentLayerIndex); }

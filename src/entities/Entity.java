@@ -431,6 +431,17 @@ public class Entity extends Position {
 		addFrameSet(frameSetName, frameSet);
 	}
 	
+	public void replaceFrameSetFromString(String existingFrameSetName, String stringWithFrameTags) {
+		FrameSet frameSet;
+		if (frameSets.containsKey(stringWithFrameTags))
+			frameSet = new FrameSet(frameSets.get(stringWithFrameTags), this);
+		else {
+			frameSet = new FrameSet(this);
+			frameSet.loadFromString(stringWithFrameTags);
+		}
+		replaceFrameSet(existingFrameSetName, frameSet);
+	}
+	
 	public boolean canCross(MapSet mapSet, TileCoord coord) {
 		// NOTA: Implementar a parte de mob nao passar por mob
 		Elevation elevation = getElevation();

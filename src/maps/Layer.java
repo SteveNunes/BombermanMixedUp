@@ -26,25 +26,42 @@ public class Layer {
 	private int height;
 	private SpriteLayerType layerType;
 	
+	public Layer(int layerIndex)
+		{ this(layerIndex, SpriteLayerType.GROUND); }
+	
+	public Layer(int layerIndex, SpriteLayerType layerType) {
+		this(null);
+		this.layerType = layerType;
+		layer = layerIndex;
+		buildLayer();
+	}
+	
 	public Layer(List<String> tileInfos) {
 		tilesMap = new HashMap<>();
 		tileList = new ArrayList<>();
-		for (String s : tileInfos) {
-			String[] split = s.split(" ");
-			try
-				{ layerType = SpriteLayerType.valueOf(split[1]); }
-			catch (Exception e)
-				{ throw new RuntimeException(split[1] + " - Invalid SpriteLayerType param"); }
-			try
-				{ layer = Integer.parseInt(split[0]); }
-			catch (Exception e)
-				{ throw new RuntimeException(split[0] + " - Invalid Layer param"); }
-			Tile tile = new Tile(s);
-			addTile(tile);
-		}
+		if (tileInfos != null)
+			for (String s : tileInfos) {
+				String[] split = s.split(" ");
+				try
+					{ layerType = SpriteLayerType.valueOf(split[1]); }
+				catch (Exception e)
+					{ throw new RuntimeException(split[1] + " - Invalid SpriteLayerType param"); }
+				try
+					{ layer = Integer.parseInt(split[0]); }
+				catch (Exception e)
+					{ throw new RuntimeException(split[0] + " - Invalid Layer param"); }
+				Tile tile = new Tile(s);
+				addTile(tile);
+			}
 	}
 	
 	public void buildLayer() {
+		if (tilesMap.isEmpty()) {
+			width = Main.TILE_SIZE * 3;
+			height = Main.TILE_SIZE * 3;
+			setLayerImage(new WritableImage(width, height));
+			return;
+		}
 		int w, h, width = 0, height = 0;
 		for (TileCoord coord : tilesMap.keySet())
 			for (Tile tile : tilesMap.get(coord)) {

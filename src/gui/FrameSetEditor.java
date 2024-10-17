@@ -258,9 +258,9 @@ public class FrameSetEditor {
 					item = new MenuItem("Adicionar Sprite novo");
 					item.setOnAction(e -> {
 						defaultContextMenu.hide();
-						String spriteSourceName = Alerts.textPrompt("Prompt", "Image source name", null, "Digite o nome do Sprite");
+						String spriteSourceName = Alerts.textPrompt("Prompt", "Image source name", "Digite o nome do Sprite");
 						try {
-							String s = Alerts.textPrompt("Prompt", "Coordenada inicial", null, "Informe: X Y W H SpritesPerLine SpriteIndex");
+							String s = Alerts.textPrompt("Prompt", "Coordenada inicial", "Informe: X Y W H SpritesPerLine SpriteIndex");
 							String[] split = s.split(" ");
 							int sx = Integer.parseInt(split[0]), sy = Integer.parseInt(split[1]),
 									sw = Integer.parseInt(split[2]), sh = Integer.parseInt(split[3]),
@@ -300,7 +300,7 @@ public class FrameSetEditor {
 		{ return getCurrentFrameSet().getCurrentFrame(); }
 	
 	void addFrameSet(FrameSet frameSet) {
-		String name = Alerts.textPrompt("Prompt", "Adicionar FrameSet", null, "Digite o nome do FrameSet á ser adicionado:");
+		String name = Alerts.textPrompt("Prompt", "Adicionar FrameSet", "Digite o nome do FrameSet á ser adicionado:");
 		if (currentEntity.getFrameSetsNames().contains(name))
 			Alerts.error("Erro", "Já existe um FrameSet com esse nome!");
 		else {
@@ -325,14 +325,14 @@ public class FrameSetEditor {
 			MenuItem itemEditFrameTag = new MenuItem("Editar FrameTag do(s) Sprite(s) selecionado(s)");
 			itemEditFrameTag.setOnAction(e -> {
 				spriteContextMenu.hide();
-				String tag = Alerts.textPrompt("Prompt", "Adicionar FrameTag", null, "Digite a FrameTag á ser adicionada");
+				String tag = Alerts.textPrompt("Prompt", "Adicionar FrameTag", "Digite a FrameTag á ser adicionada");
 				if (tag != null)
 					iterateSelectedSprites(sprite -> getCurrentFrameSet().addFrameTagToSpriteFromString(sprite, tag));
 			});
 			MenuItem itemAddFrameTag = new MenuItem("Adicionar FrameTag ao(s) Sprite(s) selecionado(s)");
 			itemAddFrameTag.setOnAction(e -> {
 				spriteContextMenu.hide();
-				String tag = Alerts.textPrompt("Prompt", "Adicionar FrameTag", null, "Digite a FrameTag á ser adicionada");
+				String tag = Alerts.textPrompt("Prompt", "Adicionar FrameTag", "Digite a FrameTag á ser adicionada");
 				if (tag != null)
 					iterateSelectedSprites(sprite -> getCurrentFrameSet().addFrameTagToSpriteFromString(sprite, tag));
 			});
