@@ -2,6 +2,7 @@ package entities;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -31,7 +32,7 @@ public class Entity extends Position {
 	private List<LinkedEntityInfos> linkedEntityInfos;
 	private List<PassThrough> passThrough;
 	private List<Curse> curses;
-	private Position speed;
+	private double speed;
 	private Direction direction;
 	private Elevation elevation;
 	private String currentFrameSetName;
@@ -54,7 +55,7 @@ public class Entity extends Position {
 			frameSets.put(fSetName, new FrameSet(entity.frameSets.get(fSetName), this));
 			freshFrameSets.put(fSetName, new FrameSet(entity.freshFrameSets.get(fSetName), this));
 		});
-		speed = new Position(entity.speed);
+		speed = entity.speed;
 		direction = entity.direction;
 		elevation = entity.elevation;
 		noMove = entity.noMove;
@@ -86,7 +87,7 @@ public class Entity extends Position {
 		linkedEntityOffset = null;
 		shadow = null;
 		this.direction = direction;
-		speed = new Position();
+		speed = 0;
 		elevation = Elevation.ON_GROUND;
 		shadowOpacity = 0;
 		noMove = false;
@@ -252,10 +253,19 @@ public class Entity extends Position {
 	public FrameSet getCurrentFrameSet()
 		{ return getFrameSet(currentFrameSetName); }
 
-	public FrameSet getFrameSet(String frameSetName)
-		{ return frameSets.get(frameSetName); }
+	public FrameSet getFrameSet(String frameSetName) {
+		String frameSetNameWithDir = frameSetName + "." + getDirection().name();
+		if (frameSets.containsKey(frameSetNameWithDir))
+			frameSetName = frameSetNameWithDir;
+		return frameSets.get(frameSetName);
+	}
 	
 	public void setFrameSet(String frameSetName) {
+		String frameSetNameWithDir = frameSetName + "." + getDirection().name();
+		if (frameSets.containsKey(frameSetNameWithDir))
+			frameSetName = frameSetNameWithDir;
+		if (currentFrameSetName != null && frameSetName != null && currentFrameSetName.equals(frameSetName))
+			return;
 		if (!frameSets.containsKey(frameSetName))
 			throw new RuntimeException(frameSetName + " - Invalid FrameSet name for this entity");
 		frameSets.put(frameSetName, new FrameSet(freshFrameSets.get(frameSetName), this));
@@ -322,6 +332,19 @@ public class Entity extends Position {
 					Tools.getTempGc().restore();
 				}
 				frameSets.get(currentFrameSetName).run(gc, isPaused);
+				Position lu = new Position(getX(), getY());
+				Position ru = new Position(getX() + Main.TILE_SIZE - 1, getY());
+				Position ld = new Position(getX(), getY() + Main.TILE_SIZE - 1);
+				Position rd = new Position(getX() + Main.TILE_SIZE - 1, getY() + Main.TILE_SIZE - 1);
+				boolean move = true;
+				for (Position pos : Arrays.asList(lu, ru, ld, rd)) {
+					pos.incPositionByDirection(direction, speed);
+					TileCoord coord = new TileCoord((int)(pos.getX() / Main.TILE_SIZE), (int)(pos.getY() / Main.TILE_SIZE));
+					if (!MapSet.tileIsFree(coord, passThrough))
+						move = false;
+				}
+				if (move)
+					incPositionByDirection(direction, speed);
 			}
 		}
 	}
@@ -334,7 +357,11 @@ public class Entity extends Position {
 
 	public void setDirection(Direction direction) {
 		if (this.direction != direction) {
-			String name = currentFrameSetName.split("\\.")[0] + "." + direction.name();
+			String name = currentFrameSetName;
+			int i = name.indexOf('.');
+			if (i > 1)
+				name = name.substring(0, i);
+			name += "." + direction.name();
 			if (frameSets.containsKey(name))
 				setFrameSet(name);
 			this.direction = direction;
@@ -347,20 +374,11 @@ public class Entity extends Position {
 	public void setElevation(Elevation elevation)
 		{ this.elevation = elevation; }
 	
-	public Position getSpeed()
+	public double getSpeed()
 		{ return speed; }
 	
 	public void setSpeed(double speed)
-		{ this.speed.setPosition(speed, speed); }
-	
-	public void setSpeedX(double speed)
-		{ this.speed.setPosition(speed, this.speed.getY()); }
-
-	public void setSpeedY(double speed)
-		{ this.speed.setPosition(this.speed.getX(), speed); }
-
-	public void setSpeed(double speedX, double speedY)
-		{ this.speed.setPosition(speedX, speedY); }
+		{ this.speed = speed; }
 	
 	public void setNoMove(boolean state)
 		{ noMove = state; }

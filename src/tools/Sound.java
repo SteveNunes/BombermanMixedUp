@@ -42,7 +42,7 @@ public abstract class Sound {
 		final String mp3Patch2 = mp3Patch += ".mp3";
 		if (stopCurrent && mp3s.containsKey(mp3Patch2))
 			mp3s.get(mp3Patch2).stop();
-  	File file = new File("appdata/musics/" + mp3Patch2);
+  	File file = new File("appdata/musics/" + mp3Patch2 + ".mp3");
 		if (!file.exists())
 			throw new RuntimeException("Não foi possível reproduzir o arquivo \"" + file.getName() + "\" Arquivo não encontrado no local informado.");
 		try {
@@ -103,7 +103,7 @@ public abstract class Sound {
 		Task<Void> task = new Task<>() {
 	    @Override
 	    protected Void call() throws Exception {
-	    	File file = new File("appdata/sounds/" + wavPath2);
+	    	File file = new File("appdata/sounds/" + wavPath2 + ".wav");
 				if (!file.exists())
 					throw new RuntimeException("Não foi possível reproduzir o arquivo \"" + file.getName() + "\" Arquivo não encontrado no local informado.");
 				try {

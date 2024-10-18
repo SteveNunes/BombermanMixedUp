@@ -406,17 +406,17 @@ public abstract class MapSet {
 		return true;
 	}
 
-	public static TileCoord getInitialPlayerPosition(int playerIndex) {
+	public static Position getInitialPlayerPosition(int playerIndex) {
 		for (TileCoord coord : initialPlayerCoords.keySet())
 			if (initialPlayerCoords.get(coord) == playerIndex)
-				return coord;
+				return new Position(coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE);
 		return null;
 	}
 	
-	public static TileCoord getInitialMonsterPosition(int monsterIndex) {
+	public static Position getInitialMonsterPosition(int monsterIndex) {
 		for (TileCoord coord : initialMonsterCoords.keySet())
 			if (initialMonsterCoords.get(coord) == monsterIndex)
-				return coord;
+				return new Position(coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE);
 		return null;
 	}
 	

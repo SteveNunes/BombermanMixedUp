@@ -111,12 +111,12 @@ public abstract class FrameTag {
 	static void processTile(Sprite sprite, List<TileCoord2> tileCoords, Consumer<TileCoord> consumer) {
 		for (TileCoord2 coord : tileCoords) {
 			int tx = coord.getX(), ty = coord.getY();
-			if (tx == -1 && ty == -1) {
+			if (tx == -1 || ty == -1) {
 				if (sprite == null)
 					throw new RuntimeException("sprite is null (This FrameTag becames from StageTag instead of a tile tag, so you must provide 'width;height;targetX;targetY' params)");
 				TileCoord coord2 = sprite.getTileCoord();
-				tx = coord2.getX();
-				ty = coord2.getY();
+				tx = tx == -1 ? coord2.getX() : tx;
+				ty = ty == -1 ? coord2.getY() : ty;
 			}
 			consumer.accept(new TileCoord(tx + coord.getOffsetX(), ty + coord.getOffsetY()));
 		}

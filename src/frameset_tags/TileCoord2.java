@@ -47,6 +47,6 @@ public class TileCoord2 extends TileCoord {
 
 	@Override
 	public String toString()
-		{ return "TileCoord2 [" + offsetX + "," + offsetY + "]"; }
+		{ return "TileCoord2 [" + getX() + "," + getY() + "] [" + offsetX + "," + offsetY + "]"; }
 
 }

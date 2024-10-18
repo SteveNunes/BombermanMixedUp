@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 
 import application.Main;
 import entities.Bomb;
+import entities.BomberMan;
 import entities.Effect;
 import entities.Entity;
 import entities.Explosion;
@@ -164,8 +165,6 @@ public class MapEditor {
   @FXML
   private VBox vBoxLayerList;
   @FXML
-  private HBox hBoxCheckBoxes;
-  @FXML
   private HBox hBoxFrameSetButtons;
   @FXML
   private VBox vBoxTileSet;
@@ -195,6 +194,7 @@ public class MapEditor {
 	private int ctrlZPos;
 	private long resetBricks;
 	private boolean playing;
+	private BomberMan bomber;
 	private String defaultMap = "SBM2_1-1";
 	
 	public void init() {
@@ -225,6 +225,8 @@ public class MapEditor {
 		setMainCanvasMouseEvents();
 		rebuildTileSetCanvas();
 		updateTileSelectionArray();
+		bomber = new BomberMan(0);
+		bomber.setPosition(MapSet.getInitialPlayerPosition(0));
 		mainLoop();
   }
 	
@@ -378,7 +380,6 @@ public class MapEditor {
 			if (playing)
 				MapSet.resetMapFrameSets();
 			vBoxLayerList.setDisable(playing);
-			hBoxCheckBoxes.setDisable(playing);
 			hBoxFrameSetButtons.setDisable(playing);
 			vBoxTileSet.setDisable(playing);
 		});
@@ -666,6 +667,11 @@ public class MapEditor {
 					}
 					MapSet.getCurrentLayer().buildLayer();
 				}
+				else {
+					bomber.setFrameSet("Moving");
+					bomber.setDirection(dir);
+					bomber.setSpeed(1);
+				}
 			}
 			else if (e.getCode() == KeyCode.DELETE) {
 				if (selection == null) {
@@ -691,6 +697,10 @@ public class MapEditor {
 		});
 		Main.sceneMain.setOnKeyReleased(e -> {
 			holdedKeys.remove(e.getCode());
+			if (e.getCode() == KeyCode.W || e.getCode() == KeyCode.S || e.getCode() == KeyCode.A || e.getCode() == KeyCode.D) {
+				bomber.setFrameSet("Stand");
+				bomber.setSpeed(0);
+			}
 		});
 	}
 	
@@ -938,6 +948,7 @@ public class MapEditor {
 		}
 		Bomb.drawBombs();
 		Item.drawItems();
+		bomber.run();
 		Effect.drawEffects();
 		fragileTiles.values().forEach(e -> e.run());
 		updateTileSelectionArray();
@@ -964,12 +975,12 @@ public class MapEditor {
 
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
     Tools.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
-    if (playing)
-    	return;
     drawBlockTypeMark();
     drawGridAndAim();
     drawTileTagsOverCursor();
     drawTileSetCanvas();
+    if (playing)
+    	return;
     Arrays.asList(selection, tileSelection).forEach(rect -> {
 			if (rect != null) {
 				GraphicsContext gc = rect == selection ? gcMain : gcTileSet;
@@ -1431,7 +1442,7 @@ public class MapEditor {
 						props += "!";
 					props += prop.getValue();
 				}
-				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.outX / 16) + " " + (tile.outY / 16) + " " + (tile.spriteX / 16) + " " + (tile.spriteY / 16) + " " + tile.flip.getValue() + " " + tile.rotate / 90 + " " + props + " " + tile.opacity + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.getStringTags() == null ? "" : tile.getStringTags());
+				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.spriteX / 16) + "!" + (tile.spriteY / 16) + " " + (tile.outX / 16) + "!" + (tile.outY / 16) + " " + tile.flip.name() + " " + tile.rotate + " " + props + " " + tile.opacity + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.getStringTags() == null ? "" : tile.getStringTags());
 				MapSet.getMapIniFile().write("TILES", "" + n++, s);
 			}
 		MapSet.getMapIniFile().write("SETUP", "CopyImageLayer", "" + MapSet.getCopyImageLayerIndex());

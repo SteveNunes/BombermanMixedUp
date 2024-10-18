@@ -135,6 +135,8 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(newTag = new IncSprGlowLevel(s));
 			else if (tag.equals("IncSprIndex"))
 				tags.addFrameSetTag(newTag = new IncSprIndex(s));
+			else if (tag.equals("DecSprIndex"))
+				tags.addFrameSetTag(newTag = new DecSprIndex(s));
 			else if (tag.equals("IncSprInnerShadowOffsetX"))
 				tags.addFrameSetTag(newTag = new IncSprInnerShadowOffsetX(s));
 			else if (tag.equals("IncSprInnerShadowOffsetY"))

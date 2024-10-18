@@ -234,16 +234,19 @@ public class Sprite {
 	public void setSpriteIndex(int spriteIndex)
 		{ this.spriteIndex = spriteIndex; }
 
+	public void incSpriteIndex()
+		{ incSpriteIndex(1); }
+
 	public void incSpriteIndex(int value)
 		{ spriteIndex += value; }
 	
-	public void decSpriteIndex() {
-		if (spriteIndex > 0)
-			spriteIndex--;
-	}
+	public void decSpriteIndex()
+		{ decSpriteIndex(1); }
 
-	public void incSpriteIndex()
-		{ spriteIndex++; }
+	public void decSpriteIndex(int value) {
+		if (spriteIndex - value >= 0)
+			spriteIndex -= value;
+	}
 
 	public Rectangle getOriginSpritePos()
 		{ return originSpriteSizePos; }

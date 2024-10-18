@@ -28,7 +28,7 @@ public class RemoveTileProp extends FrameTag {
 				sb.append("!");
 			sb.append(prop.name());
 		}
-		return "{" + FrameTag.getClassName(this) + ";" + targetLayer + ";" + FrameTag.tileCoord2ListToString(targetCoords) + ";" + sb.toString() + "}";
+		return "{" + FrameTag.getClassName(this) + ";" + targetLayer + ";" + sb.toString() + ";" + FrameTag.tileCoord2ListToString(targetCoords) + "}";
 	}
 
 	public RemoveTileProp(String tags) {

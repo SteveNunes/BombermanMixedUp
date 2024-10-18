@@ -27,14 +27,12 @@ public abstract class Materials {
 	public static Map<String, Image> tileSets;
 	public static Map<Integer, Integer> bomberSpriteIndex;
 	public static Map<String, WritableImage> loadedSprites;
-	public static Map<Image, String> loadedSprites2;
 	public static Map<String, WritableImage> tempSprites;
 	
 	public static void loadFromFiles() {
 		System.out.println("Carregando materiais...");
 		long ms = System.currentTimeMillis();
 		loadedSprites = new HashMap<>();
-		loadedSprites2 = new HashMap<>();
 		tempSprites = new HashMap<>();
 		rides = new ArrayList<>();
 		tileSets = new HashMap<>();
@@ -55,15 +53,15 @@ public abstract class Materials {
 					rgbList.add(rgba);
 				else {
 					WritableImage img = ImageUtils.cloneWritableImage(image);
-					for (int x = 0; x < img.getWidth(); x++)
-						img.getPixelWriter().setArgb(x, 0, 0);
 					if (originalRgb == null) {
 						originalRgb = new ArrayList<>(rgbList);
-						characters.add(img);
 						bomberSpriteIndex.put(n, index);
 					}
 					else
-						characters.add(ImageUtils.replaceColor(img, originalRgb.toArray(new Integer[rgbList.size()]), rgbList.toArray(new Integer[rgbList.size()])));
+						img = ImageUtils.replaceColor(img, originalRgb.toArray(new Integer[rgbList.size()]), rgbList.toArray(new Integer[rgbList.size()]));
+					for (int x = 0; x < img.getWidth(); x++)
+						img.getPixelWriter().setArgb(x, 0, 0);
+					characters.add(img);
 					rgbList.clear();
 					index++;
 				}
@@ -100,17 +98,23 @@ public abstract class Materials {
 
 	public static WritableImage loadImage(String imagePartialPath, Color removeColor) throws RuntimeException { // Informe apenas o nome do arquivo (com pasta ou nao) a partir da pasta sprites, sem o .png
 		if (!loadedSprites.containsKey(imagePartialPath)) {
-			WritableImage image;
 			if (removeColor != null)
-				loadedSprites.put(imagePartialPath, image = (WritableImage)ImageUtils.removeBgColor(new Image("file:./appdata/sprites/" + imagePartialPath + ".png"), removeColor));
+				loadedSprites.put(imagePartialPath, (WritableImage)ImageUtils.removeBgColor(new Image("file:./appdata/sprites/" + imagePartialPath + ".png"), removeColor));
 			else
-				loadedSprites.put(imagePartialPath, image = (WritableImage)new Image("file:./appdata/sprites/" + imagePartialPath + ".png"));
-			loadedSprites2.put(image, imagePartialPath);
+				loadedSprites.put(imagePartialPath, (WritableImage)new Image("file:./appdata/sprites/" + imagePartialPath + ".png"));
 		}
 		return loadedSprites.get(imagePartialPath);
 	}
 	
 	public static WritableImage getImageFromSpriteName(String spriteName) {
+		if (spriteName.length() > 10 && spriteName.substring(0, 10).equals("Character.")) {
+			try {
+				int charId = Integer.parseInt(spriteName.substring(spriteName.indexOf(".") + 1));
+				return (WritableImage)getCharacterSprite(charId, 0);
+			}
+			catch (Exception e)
+				{ return null; }
+		}
 		if (loadedSprites.containsKey(spriteName))
 			return loadedSprites.get(spriteName);
 		if (tempSprites.containsKey(spriteName))
@@ -118,12 +122,6 @@ public abstract class Materials {
 		return null;
 	}
 
-	public static String getSpriteNameFromImage(Image image) {
-		if (loadedSprites2.containsKey(image))
-			return loadedSprites2.get(image);
-		return null;
-	}
-	
 	public static Image getCharacterSprite(int characterId, int palleteId) {
 		if (!bomberSpriteIndex.containsKey(characterId))
 			return null;

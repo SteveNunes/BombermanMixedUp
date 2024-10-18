@@ -1,7 +1,6 @@
 package maps;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import application.Main;
@@ -11,7 +10,6 @@ import entities.TileCoord;
 import enums.ImageFlip;
 import enums.TileProp;
 import frameset.FrameSet;
-import gui.util.ImageUtils;
 import javafx.scene.paint.Color;
 import objmoveutils.Position;
 import tools.Tools;
