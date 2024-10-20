@@ -1,7 +1,6 @@
 package maps;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +19,7 @@ import tools.Tools;
 public class Layer {
 	
 	private Map<TileCoord, List<Tile>> tilesMap;
+	private Map<TileCoord, List<TileProp>> tilesProps;
 	private List<Tile> tileList;
 	private int layer;
 	private int width;
@@ -38,6 +38,7 @@ public class Layer {
 	
 	public Layer(List<String> tileInfos) {
 		tilesMap = new HashMap<>();
+		tilesProps = new HashMap<>();
 		tileList = new ArrayList<>();
 		if (tileInfos != null)
 			for (String s : tileInfos) {
@@ -50,11 +51,46 @@ public class Layer {
 					{ layer = Integer.parseInt(split[0]); }
 				catch (Exception e)
 					{ throw new RuntimeException(split[0] + " - Invalid Layer param"); }
-				Tile tile = new Tile(s);
+				Tile tile = new Tile(this, s);
 				addTile(tile);
 			}
 	}
 	
+	public void addTileProp(TileCoord coord, TileProp ... props) {
+		if (!tilesProps.containsKey(coord))
+			tilesProps.put(coord.getNewInstance(), new ArrayList<>());
+		for (TileProp prop : props)
+			tilesProps.get(coord).add(prop);
+	}
+	
+	public void removeTileProp(TileCoord coord, TileProp ... props) {
+		for (TileProp prop : props)
+			tilesProps.get(coord).remove(prop);
+		if (tilesProps.get(coord).isEmpty())
+			tilesProps.get(coord).add(TileProp.NOTHING);
+	}
+	
+	public List<TileProp> getTileProps(TileCoord coord) {
+		if (!tilesProps.containsKey(coord))
+			return null;
+		return tilesProps.get(coord);
+	}
+	
+	public int getTotalTileProps(TileCoord coord) {
+		if (!tilesProps.containsKey(coord))
+			return 0;
+		return tilesProps.get(coord).size();
+	} 
+	
+	public void replaceTileProps(TileCoord coord, List<TileProp> newTileProps)
+		{ tilesProps.put(coord, new ArrayList<>(newTileProps)); }
+
+	public boolean tileContainsProp(TileCoord coord, TileProp prop)
+		{ return tilesProps.containsKey(coord) && tilesProps.get(coord).contains(prop); }
+	
+	public Map<TileCoord, List<TileProp>> getTilePropsMap()
+		{ return tilesProps; }
+
 	public void buildLayer() {
 		if (tilesMap.isEmpty()) {
 			width = Main.TILE_SIZE * 3;
@@ -115,8 +151,6 @@ public class Layer {
 	public void addTile(Tile tile, TileCoord coord) {
 		if (!tilesMap.containsKey(coord))
 			tilesMap.put(coord, new ArrayList<>());
-		else
-			tile.tileProp = new ArrayList<>(Arrays.asList(TileProp.NOTHING));
 		tilesMap.get(coord).add(tile);
 		tileList.add(tile);
 		tile.setCoord(coord);

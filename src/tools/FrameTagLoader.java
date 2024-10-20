@@ -327,6 +327,16 @@ public abstract class FrameTagLoader {
 				tags.addFrameSetTag(newTag = new DelayTags(s));
 			else if (tag.equals("RunStageTags"))
 				tags.addFrameSetTag(newTag = new RunStageTags(s));
+			else if (tag.equals("DisableEntity"))
+				tags.addFrameSetTag(newTag = new DisableEntity(s));
+			else if (tag.equals("MoveEntity"))
+				tags.addFrameSetTag(newTag = new MoveEntity(s));
+			else if (tag.equals("SetBlockedMovement"))
+				tags.addFrameSetTag(newTag = new SetBlockedMovement(s));
+			else if (tag.equals("SetEntitySpeed"))
+				tags.addFrameSetTag(newTag = new SetEntitySpeed(s));
+			else if (tag.equals("SetEntityTempSpeed"))
+				tags.addFrameSetTag(newTag = new SetEntityTempSpeed(s));
 			if (delay > 0)
 				newTag.setTriggerDelay(delay);
 		}

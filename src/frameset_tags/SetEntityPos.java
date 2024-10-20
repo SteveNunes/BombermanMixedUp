@@ -1,7 +1,5 @@
 package frameset_tags;
 
-import entities.Entity;
-import frameset.FrameSet;
 import frameset.Sprite;
 
 public class SetEntityPos extends FrameTag {
@@ -35,10 +33,8 @@ public class SetEntityPos extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		FrameSet frameSet = sprite.getMainFrameSet();
-		Entity entity = frameSet.getEntity();
-		entity.setX(x);
-		entity.setY(y);
+		sprite.getSourceEntity().setX(x);
+		sprite.getSourceEntity().setY(y);
 	}
 
 }

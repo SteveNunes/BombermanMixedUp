@@ -20,6 +20,7 @@ import entities.Explosion;
 import entities.TileCoord;
 import enums.BombType;
 import enums.Direction;
+import enums.GameInputs;
 import enums.Icons;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
@@ -169,6 +170,7 @@ public class MapEditor {
   @FXML
   private VBox vBoxTileSet;
 
+  private KeyCode[] keysInputs = {KeyCode.W, KeyCode.D, KeyCode.S, KeyCode.A, KeyCode.NUMPAD1, KeyCode.NUMPAD2, KeyCode.NUMPAD4, KeyCode.NUMPAD5, KeyCode.SPACE, KeyCode.ENTER};
 	private ListenerHandle<String> listenerHandleComboBoxMapFrameSets;
 	private ContextMenu contextMenu;
 	private ContextMenu contextMenuTileSet;
@@ -201,8 +203,8 @@ public class MapEditor {
 		canvasMouseDraw = new CanvasMouse();
 		canvasMouseTileSet = new CanvasMouse();
 		tileSelection = new Rectangle(0, 0, 1, 1);
-		holdedKeys = new ArrayList<>();
 		copiedTiles = new HashMap<>();
+		holdedKeys = new ArrayList<>();
 		backupTiles = new ArrayList<>();
 		fragileTiles = new HashMap<>();
 		font = new Font("Lucida Console", 15);
@@ -326,27 +328,27 @@ public class MapEditor {
 			});
 		}
 		buttonSetFrameSetGroundSprite.setOnAction(e -> {
-			MapSet.setGroundTile(new Position(tileSelection.getMinX() * 16, tileSelection.getMinY() * 16));
+			MapSet.setGroundTile(new Position(tileSelection.getMinX() * Main.TILE_SIZE, tileSelection.getMinY() * Main.TILE_SIZE));
 			MapSet.rebuildAllLayers();
 			setSampleTiles();
 		});
 		buttonSetFrameSetGroundWithWallShadow.setOnAction(e -> {
-			MapSet.setGroundWithWallShadow(new Position(tileSelection.getMinX() * 16, tileSelection.getMinY() * 16));
+			MapSet.setGroundWithWallShadow(new Position(tileSelection.getMinX() * Main.TILE_SIZE, tileSelection.getMinY() * Main.TILE_SIZE));
 			MapSet.rebuildAllLayers();
 			setSampleTiles();
 		});
 		buttonSetFrameSetGroundWithBrickShadow.setOnAction(e -> {
-			MapSet.setGroundWithBrickShadow(new Position(tileSelection.getMinX() * 16, tileSelection.getMinY() * 16));
+			MapSet.setGroundWithBrickShadow(new Position(tileSelection.getMinX() * Main.TILE_SIZE, tileSelection.getMinY() * Main.TILE_SIZE));
 			MapSet.rebuildAllLayers();
 			setSampleTiles();
 		});
 		buttonSetFrameSetWallSprite.setOnAction(e -> {
-			MapSet.setWallTile(new Position(tileSelection.getMinX() * 16, tileSelection.getMinY() * 16));
+			MapSet.setWallTile(new Position(tileSelection.getMinX() * Main.TILE_SIZE, tileSelection.getMinY() * Main.TILE_SIZE));
 			MapSet.rebuildAllLayers();
 			setSampleTiles();
 		});
 		buttonSetFrameSetFragileGround.setOnAction(e -> {
-			MapSet.setFragileGround(new Position(tileSelection.getMinX() * 16, tileSelection.getMinY() * 16));
+			MapSet.setFragileGround(new Position(tileSelection.getMinX() * Main.TILE_SIZE, tileSelection.getMinY() * Main.TILE_SIZE));
 			MapSet.rebuildAllLayers();
 			setSampleTiles();
 		});
@@ -566,7 +568,7 @@ public class MapEditor {
 			sampleFragileTile.setFrameSet("FragileGroundFrameSet");
 		}
 		MapSet.getTileListFromCurrentLayer().forEach(tile -> {
-			if (tile.tileProp.contains(TileProp.FRAGILE_GROUND_LV1)) {
+			if (MapSet.getTileProps(tile.getTileCoord()).contains(TileProp.FRAGILE_GROUND_LV1)) {
 				Entity fragileTile = new Entity(sampleFragileTile);
 				fragileTiles.put(tile.getTileCoord(), fragileTile);
 				fragileTile.setFrameSet("FragileGroundFrameSet");
@@ -577,7 +579,10 @@ public class MapEditor {
 	
 	void setKeyboardEvents() {
 		Main.sceneMain.setOnKeyPressed(e -> {
-			holdedKeys.add(e.getCode());
+			for (int n = 0; n < keysInputs.length; n++) {
+				if (e.getCode() == keysInputs[n])
+					bomber.keyPress(GameInputs.getList()[n]);
+			}
 			if (e.getCode() == KeyCode.PAGE_UP || e.getCode() == KeyCode.PAGE_DOWN) {
 				if (isNoHolds())
 					incLayerIndex(e.getCode() == KeyCode.PAGE_UP ? -1 : 1);
@@ -667,11 +672,6 @@ public class MapEditor {
 					}
 					MapSet.getCurrentLayer().buildLayer();
 				}
-				else {
-					bomber.setFrameSet("Moving");
-					bomber.setDirection(dir);
-					bomber.setSpeed(1);
-				}
 			}
 			else if (e.getCode() == KeyCode.DELETE) {
 				if (selection == null) {
@@ -696,10 +696,9 @@ public class MapEditor {
 			}
 		});
 		Main.sceneMain.setOnKeyReleased(e -> {
-			holdedKeys.remove(e.getCode());
-			if (e.getCode() == KeyCode.W || e.getCode() == KeyCode.S || e.getCode() == KeyCode.A || e.getCode() == KeyCode.D) {
-				bomber.setFrameSet("Stand");
-				bomber.setSpeed(0);
+			for (int n = 0; n < keysInputs.length; n++) {
+				if (e.getCode() == keysInputs[n])
+					bomber.keyRelease(GameInputs.getList()[n]);
 			}
 		});
 	}
@@ -881,11 +880,11 @@ public class MapEditor {
 		tileSelectionArray = new Tile[h > w ? h : w][h > w ? h : w];
 		for (int y = 0; y < tileSelection.getHeight(); y++)
 			for (int x = 0; x < tileSelection.getWidth(); x++) {
-				Tile tile = new Tile((int)tileSelection.getMinX() * 16 + x * 16,
-						(int)tileSelection.getMinY() * 16 + y * 16,
-						canvasMouseDraw.getCoordX() * 16 + x * 16,
-						canvasMouseDraw.getCoordY() * 16 + y * 16,
-						new ArrayList<>(Arrays.asList(comboBoxTileType.getSelectionModel().getSelectedItem())),
+				Tile tile = new Tile((int)tileSelection.getMinX() * Main.TILE_SIZE + x * Main.TILE_SIZE,
+						(int)tileSelection.getMinY() * Main.TILE_SIZE + y * Main.TILE_SIZE,
+						canvasMouseDraw.getCoordX() * Main.TILE_SIZE + x * Main.TILE_SIZE,
+						canvasMouseDraw.getCoordY() * Main.TILE_SIZE + y * Main.TILE_SIZE,
+// NOTA: alterar para adicionar os props na coord do novo tile						new ArrayList<>(Arrays.asList(comboBoxTileType.getSelectionModel().getSelectedItem())),
 						flip, rotate, sliderTileOpacity.getValue());
 				tileSelectionArray[y][x] = tile;
 			}
@@ -933,23 +932,26 @@ public class MapEditor {
 		if (playing) {
 			getDrawGc().fillRect(0, 0, MapSet.getLayer(26).getWidth(), MapSet.getLayer(26).getHeight());
 			MapSet.run();
+			Tools.runAllStuffs();
 		}
-		else if (MapSet.getLayersMap().containsKey(MapSet.getCurrentLayerIndex())) {
-			getDrawGc().fillRect(0, 0, getCurrentLayer().getWidth(), getCurrentLayer().getHeight());
-			Tools.addDrawImageQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
+		else {
+			if (MapSet.getLayersMap().containsKey(MapSet.getCurrentLayerIndex())) {
+				getDrawGc().fillRect(0, 0, getCurrentLayer().getWidth(), getCurrentLayer().getHeight());
+				Tools.addDrawImageQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
+			}
+			Explosion.drawExplosions();
+			if (checkBoxShowBricks.isSelected() && MapSet.getCurrentLayerIndex() == 26) {
+				Brick.drawBricks();
+				if (checkBoxShowItens.isSelected() && Misc.blink(200))
+					for (Brick brick : Brick.getBricks())
+						if (brick.getItem() != null)
+							Tools.addDrawImageQueue(SpriteLayerType.GROUND, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileX() * Main.TILE_SIZE, brick.getTileY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
+			}
+			Bomb.drawBombs();
+			Item.drawItems();
+			Effect.drawEffects();
 		}
-		Explosion.drawExplosions();
-		if (checkBoxShowBricks.isSelected() && MapSet.getCurrentLayerIndex() == 26) {
-			Brick.drawBricks();
-			if (checkBoxShowItens.isSelected() && Misc.blink(200))
-				for (Brick brick : Brick.getBricks())
-					if (brick.getItem() != null)
-						Tools.addDrawImageQueue(SpriteLayerType.GROUND, Materials.mainSprites, (brick.getItem().getValue() - 1) * 16, 16, 16, 16, brick.getTileX() * Main.TILE_SIZE, brick.getTileY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
-		}
-		Bomb.drawBombs();
-		Item.drawItems();
 		bomber.run();
-		Effect.drawEffects();
 		fragileTiles.values().forEach(e -> e.run());
 		updateTileSelectionArray();
 		if (!playing) {
@@ -975,6 +977,22 @@ public class MapEditor {
 
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
     Tools.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
+
+    // TEMP PARA EXIBIR QUADRADOS INDICANDO SE OS CANTOS DO TILE DO BOMBERMAN ESTAO LIVRES
+    Position[] cornersPos = bomber.getCornersPositions();
+    boolean[] corners = bomber.getFreeCorners();
+    for (int x = 0; x < 4; x++) { 
+    	int xx = (int)cornersPos[x].getX() * zoomMain,
+    			yy = (int)cornersPos[x].getY() * zoomMain;
+    	if (x % 2 != 0)
+    		xx -= 9;
+    	if (x > 1)
+    		yy -= 9;
+    	gcMain.setFill(corners[x] ? Color.GREEN : Color.RED);
+    	gcMain.fillRect(xx, yy, 10, 10);
+    }
+    // FIM DO TEMP
+    
     drawBlockTypeMark();
     drawGridAndAim();
     drawTileTagsOverCursor();
@@ -1001,9 +1019,9 @@ public class MapEditor {
 				gcMain.setStroke(Color.BLACK);
 				gcMain.setFont(font);
 				gcMain.setLineWidth(3);
-				while (y + tile.tileProp.size() * 20 >= canvasMain.getHeight() - 10)
+				while (y + MapSet.getTotalTileProps(tile.getTileCoord()) * 20 >= canvasMain.getHeight() - 10)
 					y -= 10;
-				for (TileProp prop : tile.tileProp) {
+				for (TileProp prop : MapSet.getTileProps(tile.getTileCoord())) {
 					String s = prop.name();
 					Text text = new Text(s);
 					ControllerUtils.setNodeFont(text, "Lucida Console", 15);
@@ -1120,46 +1138,42 @@ public class MapEditor {
 		}
 		else {
 			MenuItem menuItem;
-			if (getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
-				final Tile tile = MapSet.getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
+			final TileCoord coord = canvasMouseDraw.tileCoord.getNewInstance();
+			if (getCurrentLayer().haveTilesOnCoord(coord)) {
 				Menu mainMenu = new Menu("TileProps");
 				contextMenu.getItems().add(mainMenu);
 				Menu menu = new Menu("Adicionar");
 				mainMenu.getItems().add(menu);
 				for (TileProp prop : TileProp.getList()) {
 					menuItem = new MenuItem(prop.name());
-					menuItem.setOnAction(e -> tile.tileProp.add(prop));
+					menuItem.setOnAction(e -> MapSet.addTileProp(coord, prop));
 					menu.getItems().addAll(menuItem);
 				}
 				menuItem = new MenuItem("Copiar");
 				mainMenu.getItems().add(menuItem);
-				menuItem.setOnAction(e -> copyProps = new ArrayList<>(tile.tileProp));
+				menuItem.setOnAction(e -> copyProps = new ArrayList<>(MapSet.getTileProps(coord)));
 				menuItem = new MenuItem("Colar (Adicionar)");
 				mainMenu.getItems().add(menuItem);
 				menuItem.setDisable(copyProps == null);
-				menuItem.setOnAction(e -> tile.tileProp.addAll(copyProps));
+				menuItem.setOnAction(e -> MapSet.getTileProps(coord).addAll(copyProps));
 				menuItem = new MenuItem("Colar (Substituir)");
 				mainMenu.getItems().add(menuItem);
 				menuItem.setDisable(copyProps == null);
-				menuItem.setOnAction(e -> tile.tileProp = new ArrayList<>(copyProps));
+				menuItem.setOnAction(e -> MapSet.replaceTileProps(coord, new ArrayList<>(copyProps)));
 				menu = new Menu("Remover");
 				mainMenu.getItems().add(menu);
-				menu.setDisable(tile.tileProp.isEmpty());
-				for (TileProp prop : tile.tileProp) {
+				menu.setDisable(MapSet.getTileProps(coord).isEmpty());
+				for (TileProp prop : MapSet.getTileProps(coord)) {
 					menuItem = new MenuItem(prop.name());
 					menu.getItems().addAll(menuItem);
-					menuItem.setOnAction(e -> {
-						Tile tile2 = MapSet.getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
-						tile2.tileProp.remove(prop);
-						if (tile2.tileProp.isEmpty())
-							tile2.tileProp.add(TileProp.NOTHING);
-					});
+					menuItem.setOnAction(e -> MapSet.removeTileProp(coord, prop));
 				}
 				contextMenu.getItems().add(new SeparatorMenuItem());
 				menu = new Menu("Tile Tags");
 				contextMenu.getItems().add(menu);
 				menuItem = new MenuItem("Editar");
 				menu.getItems().add(menuItem);
+				final Tile tile = MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord);
 				menuItem.setOnAction(e -> {
 					String str = Alerts.textPrompt("Prompt", "Editar Tile Frame Tag", tile.getStringTags(), "Digite o novo Frame Tag para o tile atual");
 					if (str != null)
@@ -1257,7 +1271,7 @@ public class MapEditor {
 		if (Brick.haveBrickAt(coord))
 			Brick.removeBrick(coord);
 		else if (getCurrentLayer().haveTilesOnCoord(coord)) {
-			if (MapSet.getTopTileFromCoord(coord).tileProp.contains(TileProp.FRAGILE_GROUND_LV1) && fragileTiles.containsKey(coord))
+			if (MapSet.getTileProps(coord).contains(TileProp.FRAGILE_GROUND_LV1) && fragileTiles.containsKey(coord))
 				fragileTiles.remove(coord);
 			if (!removeOnlyTopSprite)
 				getCurrentLayer().removeAllTilesFromCoord(coord);
@@ -1291,85 +1305,90 @@ public class MapEditor {
 			MapSet.getTileListFromCurrentLayer().forEach(tile -> {
     		Color color;
     		if (!ok.contains(tile.getTileCoord())) {
-	    		if (tile.tileProp.contains(TileProp.EXPLOSION))
-	    			color = Color.INDIANRED;
-	    		else if (tile.tileProp.contains(TileProp.PLAYER_INITIAL_POSITION))
+    			List<TileProp> tileProps = MapSet.getTileProps(tile.getTileCoord());
+	    		if (tileProps.contains(TileProp.DAMAGE_PLAYER) ||
+	    				tileProps.contains(TileProp.DAMAGE_ENEMY) ||
+	    				tileProps.contains(TileProp.DAMAGE_BOMB) ||
+	    				tileProps.contains(TileProp.DAMAGE_BRICK) ||
+	    				tileProps.contains(TileProp.DAMAGE_ITEM))
+	    					color = Color.INDIANRED;
+	    		else if (tileProps.contains(TileProp.PLAYER_INITIAL_POSITION))
 	    			color = Color.DEEPPINK;
-	    		else if (tile.tileProp.contains(TileProp.MOB_INITIAL_POSITION))
+	    		else if (tileProps.contains(TileProp.MOB_INITIAL_POSITION))
 	    			color = Color.INDIANRED;
-	    		else if (tile.tileProp.contains(TileProp.REDIRECT_BOMB_TO_DOWN) ||
-	    						 tile.tileProp.contains(TileProp.REDIRECT_BOMB_TO_RIGHT) ||
-	    						 tile.tileProp.contains(TileProp.REDIRECT_BOMB_TO_UP) ||
-	    						 tile.tileProp.contains(TileProp.REDIRECT_BOMB_TO_LEFT))
+	    		else if (tileProps.contains(TileProp.REDIRECT_BOMB_TO_DOWN) ||
+	    						 tileProps.contains(TileProp.REDIRECT_BOMB_TO_RIGHT) ||
+	    						 tileProps.contains(TileProp.REDIRECT_BOMB_TO_UP) ||
+	    						 tileProps.contains(TileProp.REDIRECT_BOMB_TO_LEFT))
 	    							 color = Color.MEDIUMPURPLE;
-	    		else if (tile.tileProp.contains(TileProp.RAIL_DL) ||
-	    						 tile.tileProp.contains(TileProp.RAIL_DR) ||
-	    						 tile.tileProp.contains(TileProp.RAIL_UL) ||
-	    						 tile.tileProp.contains(TileProp.RAIL_UR) ||
-	    						 tile.tileProp.contains(TileProp.RAIL_H) ||
-	    						 tile.tileProp.contains(TileProp.RAIL_V) ||
-	    						 tile.tileProp.contains(TileProp.RAIL_JUMP) ||
-	    						 tile.tileProp.contains(TileProp.RAIL_START) ||
-	    						 tile.tileProp.contains(TileProp.RAIL_END) ||
-	    						 tile.tileProp.contains(TileProp.TREADMILL_TO_LEFT) ||
-	    						 tile.tileProp.contains(TileProp.TREADMILL_TO_UP) ||
-	    						 tile.tileProp.contains(TileProp.TREADMILL_TO_RIGHT) ||
-	    						 tile.tileProp.contains(TileProp.TREADMILL_TO_DOWN))
+	    		else if (tileProps.contains(TileProp.RAIL_DL) ||
+	    						 tileProps.contains(TileProp.RAIL_DR) ||
+	    						 tileProps.contains(TileProp.RAIL_UL) ||
+	    						 tileProps.contains(TileProp.RAIL_UR) ||
+	    						 tileProps.contains(TileProp.RAIL_H) ||
+	    						 tileProps.contains(TileProp.RAIL_V) ||
+	    						 tileProps.contains(TileProp.RAIL_JUMP) ||
+	    						 tileProps.contains(TileProp.RAIL_START) ||
+	    						 tileProps.contains(TileProp.RAIL_END) ||
+	    						 tileProps.contains(TileProp.TREADMILL_TO_LEFT) ||
+	    						 tileProps.contains(TileProp.TREADMILL_TO_UP) ||
+	    						 tileProps.contains(TileProp.TREADMILL_TO_RIGHT) ||
+	    						 tileProps.contains(TileProp.TREADMILL_TO_DOWN))
 	    							 color = Color.SADDLEBROWN;
-	    		else if (tile.tileProp.contains(TileProp.GROUND_NO_MOB) ||
-	    						 tile.tileProp.contains(TileProp.GROUND_NO_PLAYER) ||
-	    						 tile.tileProp.contains(TileProp.GROUND_NO_BOMB) ||
-	    						 tile.tileProp.contains(TileProp.GROUND_NO_FIRE))
+	    		else if (tileProps.contains(TileProp.GROUND_NO_MOB) ||
+	    						 tileProps.contains(TileProp.GROUND_NO_PLAYER) ||
+	    						 tileProps.contains(TileProp.GROUND_NO_BOMB) ||
+	    						 tileProps.contains(TileProp.GROUND_NO_FIRE))
 	    							 color = Color.LIGHTGOLDENRODYELLOW;
-	    		else if (tile.tileProp.contains(TileProp.FRAGILE_GROUND_LV1) ||
-	    						 tile.tileProp.contains(TileProp.FRAGILE_GROUND_LV2))
+	    		else if (tileProps.contains(TileProp.FRAGILE_GROUND_LV1) ||
+	    						 tileProps.contains(TileProp.FRAGILE_GROUND_LV2))
 	    							 color = Color.LIGHTPINK;
-	    		else if (tile.tileProp.contains(TileProp.TRIGGER_BY_BLOCK) ||
-	    						 tile.tileProp.contains(TileProp.TRIGGER_BY_BOMB) ||
-	    						 tile.tileProp.contains(TileProp.TRIGGER_BY_EXPLOSION) ||
-	    						 tile.tileProp.contains(TileProp.TRIGGER_BY_ITEM) ||
-	    						 tile.tileProp.contains(TileProp.TRIGGER_BY_MOB) ||
-	    						 tile.tileProp.contains(TileProp.TRIGGER_BY_PLAYER) ||
-	    						 tile.tileProp.contains(TileProp.TRIGGER_BY_RIDE) ||
-	    						 tile.tileProp.contains(TileProp.TRIGGER_BY_UNRIDE_PLAYER) ||
-	    						 tile.tileProp.contains(TileProp.TRIGGER_BY_STOPPED_BOMB) ||
-	    						 tile.tileProp.contains(TileProp.NO_TRIGGER_WHILE_HAVE_BOMB) ||
-	    						 tile.tileProp.contains(TileProp.NO_TRIGGER_WHILE_HAVE_BRICK) ||
-	    						 tile.tileProp.contains(TileProp.NO_TRIGGER_WHILE_HAVE_ITEM) ||
-	    						 tile.tileProp.contains(TileProp.NO_TRIGGER_WHILE_HAVE_MOB) ||
-	    						 tile.tileProp.contains(TileProp.NO_TRIGGER_WHILE_HAVE_PLAYER))
+	    		else if (tileProps.contains(TileProp.TRIGGER_BY_BLOCK) ||
+	    						 tileProps.contains(TileProp.TRIGGER_BY_BOMB) ||
+	    						 tileProps.contains(TileProp.TRIGGER_BY_EXPLOSION) ||
+	    						 tileProps.contains(TileProp.TRIGGER_BY_ITEM) ||
+	    						 tileProps.contains(TileProp.TRIGGER_BY_MOB) ||
+	    						 tileProps.contains(TileProp.TRIGGER_BY_PLAYER) ||
+	    						 tileProps.contains(TileProp.TRIGGER_BY_RIDE) ||
+	    						 tileProps.contains(TileProp.TRIGGER_BY_UNRIDE_PLAYER) ||
+	    						 tileProps.contains(TileProp.TRIGGER_BY_STOPPED_BOMB) ||
+	    						 tileProps.contains(TileProp.NO_TRIGGER_WHILE_HAVE_BOMB) ||
+	    						 tileProps.contains(TileProp.NO_TRIGGER_WHILE_HAVE_BRICK) ||
+	    						 tileProps.contains(TileProp.NO_TRIGGER_WHILE_HAVE_ITEM) ||
+	    						 tileProps.contains(TileProp.NO_TRIGGER_WHILE_HAVE_MOB) ||
+	    						 tileProps.contains(TileProp.NO_TRIGGER_WHILE_HAVE_PLAYER))
 	    							 color = Color.DARKORANGE;
-	    		else if (tile.tileProp.contains(TileProp.BRICK_RANDOM_SPAWNER))
+	    		else if (tileProps.contains(TileProp.BRICK_RANDOM_SPAWNER))
 	    			color = Color.LIGHTGREEN;
-	    		else if (tile.tileProp.contains(TileProp.PUSH_BOMB_TO_DOWN) ||
-	    						 tile.tileProp.contains(TileProp.PUSH_BOMB_TO_LEFT) ||
-	    						 tile.tileProp.contains(TileProp.PUSH_BOMB_TO_RIGHT) ||
-	    						 tile.tileProp.contains(TileProp.PUSH_BOMB_TO_UP))
+	    		else if (tileProps.contains(TileProp.PUSH_BOMB_TO_DOWN) ||
+	    						 tileProps.contains(TileProp.PUSH_BOMB_TO_LEFT) ||
+	    						 tileProps.contains(TileProp.PUSH_BOMB_TO_RIGHT) ||
+	    						 tileProps.contains(TileProp.PUSH_BOMB_TO_UP))
 	    							 color = Color.LIGHTSLATEGRAY;
-	    		else if (tile.tileProp.contains(TileProp.FIXED_BRICK))
+	    		else if (tileProps.contains(TileProp.FIXED_BRICK))
 	    			color = Color.GREEN;
-	    		else if (tile.tileProp.contains(TileProp.MOVING_BLOCK))
+	    		else if (tileProps.contains(TileProp.MOVING_BLOCK))
 	    			color = Color.PALEVIOLETRED;
-	    		else if (tile.tileProp.contains(TileProp.GROUND_HOLE))
+	    		else if (tileProps.contains(TileProp.GROUND_HOLE))
 	    			color = Color.ALICEBLUE;
-	    		else if (tile.tileProp.contains(TileProp.DEEP_HOLE))
+	    		else if (tileProps.contains(TileProp.DEEP_HOLE))
 	    			color = Color.GRAY;
-	    		else if (tile.tileProp.contains(TileProp.JUMP_OVER))
+	    		else if (tileProps.contains(TileProp.JUMP_OVER))
 	    			color = Color.CORAL;
-	    		else if (tile.tileProp.contains(TileProp.MAP_EDGE))
+	    		else if (tileProps.contains(TileProp.MAP_EDGE))
 	    			color = Color.SADDLEBROWN;
-	    		else if (tile.tileProp.contains(TileProp.WATER))
+	    		else if (tileProps.contains(TileProp.WATER))
 	    			color = Color.LIGHTBLUE;
-	    		else if (tile.tileProp.contains(TileProp.DEEP_WATER))
+	    		else if (tileProps.contains(TileProp.DEEP_WATER))
 	    			color = Color.DARKBLUE;
-	    		else if (tile.tileProp.contains(TileProp.TELEPORT_FROM_FLOATING_PLATFORM))
+	    		else if (tileProps.contains(TileProp.TELEPORT_FROM_FLOATING_PLATFORM))
 	    			color = Color.ROSYBROWN;
-	    		else if (tile.tileProp.contains(TileProp.STAGE_CLEAR))
+	    		else if (tileProps.contains(TileProp.STAGE_CLEAR))
 	    			color = Color.AQUA;
-	    		else if (tile.tileProp.contains(TileProp.GROUND))
+	    		else if (tileProps.contains(TileProp.GROUND))
 	    			color = Color.YELLOW;
-	    		else if (tile.tileProp.contains(TileProp.WALL) ||
-	    						 tile.tileProp.contains(TileProp.HIGH_WALL))
+	    		else if (tileProps.contains(TileProp.WALL) ||
+	    						 tileProps.contains(TileProp.HIGH_WALL))
 	    							 color = Color.RED;
 	    		else
 	    			color = Color.ORANGE;
@@ -1437,12 +1456,12 @@ public class MapEditor {
 		for (Layer layer : MapSet.getLayersMap().values())
 			for (Tile tile : layer.getTileList()) {
 				String props = "";
-				for (TileProp prop : tile.tileProp) {
+				for (TileProp prop : MapSet.getTileProps(tile.getTileCoord())) {
 					if (!props.isEmpty())
 						props += "!";
 					props += prop.getValue();
 				}
-				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.spriteX / 16) + "!" + (tile.spriteY / 16) + " " + (tile.outX / 16) + "!" + (tile.outY / 16) + " " + tile.flip.name() + " " + tile.rotate + " " + props + " " + tile.opacity + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.getStringTags() == null ? "" : tile.getStringTags());
+				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.spriteX / Main.TILE_SIZE) + "!" + (tile.spriteY / Main.TILE_SIZE) + " " + (tile.outX / Main.TILE_SIZE) + "!" + (tile.outY / Main.TILE_SIZE) + " " + tile.flip.name() + " " + tile.rotate + " " + props + " " + tile.opacity + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.getStringTags() == null ? "" : tile.getStringTags());
 				MapSet.getMapIniFile().write("TILES", "" + n++, s);
 			}
 		MapSet.getMapIniFile().write("SETUP", "CopyImageLayer", "" + MapSet.getCopyImageLayerIndex());

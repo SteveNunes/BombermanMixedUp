@@ -6,7 +6,6 @@ import java.util.List;
 import enums.TileProp;
 import frameset.Sprite;
 import maps.MapSet;
-import maps.Tile;
 
 public class RemoveTileProp extends FrameTag {
 	
@@ -56,12 +55,8 @@ public class RemoveTileProp extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		FrameTag.processTile(sprite, targetCoords, coord -> {
-			Tile tile = MapSet.getLayer(targetLayer).getFirstBottomTileFromCoord(coord);
-			tileProps.forEach(p -> tile.tileProp.remove(p));
-			if (tile.tileProp.isEmpty())
-				tile.tileProp.add(TileProp.NOTHING);
-		});
+		FrameTag.processTile(sprite, targetCoords, coord ->
+			tileProps.forEach(p -> MapSet.getCurrentLayer().removeTileProp(coord, p)));
 	}
 
 }

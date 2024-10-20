@@ -2,33 +2,32 @@ package frameset_tags;
 
 import frameset.Sprite;
 
-public class SetEntityNoMove extends FrameTag {
+public class SetEntityTempSpeed extends FrameTag {
 	
-	public boolean value;
+	public double value;
 	
-	public SetEntityNoMove(boolean value)
+	public SetEntityTempSpeed(double value)
 		{ this.value = value; }
 
 	@Override
 	public String toString()
 		{ return "{" + FrameTag.getClassName(this) + ";" + value + "}"; }
 
-	public SetEntityNoMove(String tags) {
+	public SetEntityTempSpeed(String tags) {
 		String[] params = FrameTag.validateStringTags(this, tags, 1);
 		try
-			{ value = Boolean.parseBoolean(params[0]); }
+			{ value = Integer.parseInt(params[0]); }
 		catch (Exception e)
 			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
 	}
 
 	@Override
-	public SetEntityNoMove getNewInstanceOfThis()
-		{ return new SetEntityNoMove(value); }
+	public SetEntityTempSpeed getNewInstanceOfThis()
+		{ return new SetEntityTempSpeed(value); }
 	
 	@Override
-	public void process(Sprite sprite) {
-		sprite.getSourceEntity().setNoMove(value);
-	}
+	public void process(Sprite sprite)
+		{ sprite.getSourceEntity().setTempSpeed(value); }
 
 }
 

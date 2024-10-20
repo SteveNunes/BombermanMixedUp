@@ -72,7 +72,7 @@ public class Tags {
 		{ return frameSetTags.size(); }
 	
 	public void run() {
-		if ((rootSprite != null && rootSprite.getMainFrameSet().isStopped()))
+		if ((rootSprite != null && rootSprite.getSourceFrameSet().isStopped()))
 			return;
 		if (getTotalTags() > 0 && getFrameSetTags().get(0) instanceof DelayTags) {
 			final Tags tags2 = new Tags(this);

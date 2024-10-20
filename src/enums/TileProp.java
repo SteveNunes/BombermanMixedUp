@@ -20,21 +20,17 @@ public enum TileProp {
 	GROUND_NO_ITEM(9), // Chão normal, que não para item que estiver kikando e cair nesse tile
 	GROUND_NO_BLOCK(10), // Chão normal, que não para bloco que estiver kikando e cair nesse tile
 	JUMP_OVER(11), // O personagem pula por cima desse bloco ao andar na direção dele
-	WALL(12), // Parede (Só pode atravessar pulando)
+	WALL(12), // Parede (Não dá para passar nem pulando)
 	HIGH_WALL(13), // Parede (Não dá para passar nem pulando)
 	PLAYER_INITIAL_POSITION(14), // Define o tile onde os players vão iniciar nos mapas
 	MOB_INITIAL_POSITION(15), // Define o tile onde os mobs vão iniciar nos mapas
 	BRICK_RANDOM_SPAWNER(16), // Tile onde pode ser gerado um tijolo aleatoriamente
 	FIXED_BRICK(17), // Tile onde deverá haver um tijolo obrigatoriamente
-	EXPLOSION(18), // Tile marcado como explosão (pode ser de bomba ou não)
 	HOLE(19), // Buraco (Só pode atravessar voando ou pulando, explosão passa por cima)
 	DEEP_HOLE(20), // Buraco profundo (Se a bomba cair nesse tile, causa o efeito da bomba caindo diminuindo)
 	WATER(21), // Água (Igual GROUND, mas gera efeito visual de água cobrindo as pernas)
 	DEEP_WATER(22), // Água profunda (Se o personagem cair nesse tile, causa o efeito dele se afogando)
 	SLIPPY(23), // Personagem escorrega ao andar em cima
-	DAMAGE_PLAYER(24), // Causa dano no jogador que passar por cima
-	DAMAGE_MOB(25), // Causa dano no mob que passar por cima
-	DAMAGE_BOMB(26), // Explode bombas que forem colocadas em cima
 	SPEED_MIN(27), // Deixa a velocidade de movimento no minimo
 	SPEED_HALF(28), // Deixa a velocidade de movimento pela metade
 	SPEED_NORMAL(29), // Normaliza a velocidade de movimento, caso tenha sido alterada
@@ -83,8 +79,13 @@ public enum TileProp {
 	NO_TRIGGER_WHILE_HAVE_MOB(75), // As Tags de tile só são disparadas se não houver mob no bloco atual
 	NO_TRIGGER_WHILE_HAVE_BRICK(76), // As Tags de tile só são disparadas se não houver tijolo no bloco atual
 	NO_TRIGGER_WHILE_HAVE_ITEM(77), // As Tags de tile só são disparadas se não houver item no bloco atual
-	NO_TRIGGER_WHILE_HAVE_BOMB(78); // As Tags de tile só são disparadas se não houver bomba no bloco atual
-	// NOTA: VAGOS: 49 50 51
+	NO_TRIGGER_WHILE_HAVE_BOMB(78), // As Tags de tile só são disparadas se não houver bomba no bloco atual
+	DAMAGE_PLAYER(79),
+	DAMAGE_ENEMY(80),
+	DAMAGE_BOMB(81),
+	DAMAGE_BRICK(82),
+	DAMAGE_ITEM(83);
+	// NOTA: VAGOS: 18, 24, 25, 26, 49 50 51
 	
 	@SuppressWarnings("serial")
 	private static Map<Elevation, List<TileProp>> cantCross = new HashMap<>() {{
@@ -128,15 +129,11 @@ public enum TileProp {
 		put(15, MOB_INITIAL_POSITION);
 		put(16, BRICK_RANDOM_SPAWNER);
 		put(17, FIXED_BRICK);
-		put(18, EXPLOSION);
 		put(19, HOLE);
 		put(20, DEEP_HOLE);
 		put(21, WATER);
 		put(22, DEEP_WATER);
 		put(23, SLIPPY);
-		put(24, DAMAGE_PLAYER);
-		put(25, DAMAGE_MOB);
-		put(26, DAMAGE_BOMB);
 		put(27, SPEED_MIN);
 		put(28, SPEED_HALF);
 		put(29, SPEED_NORMAL);
@@ -186,6 +183,11 @@ public enum TileProp {
 		put(76, NO_TRIGGER_WHILE_HAVE_BRICK);
 		put(77, NO_TRIGGER_WHILE_HAVE_ITEM);
 		put(78, NO_TRIGGER_WHILE_HAVE_BOMB);
+		put(79, DAMAGE_PLAYER);
+		put(80, DAMAGE_ENEMY);
+		put(81, DAMAGE_BOMB);
+		put(82, DAMAGE_BRICK);
+		put(83, DAMAGE_ITEM);
 	}};
 	
 	public static List<TileProp> getCantCrossList(Elevation elevation)

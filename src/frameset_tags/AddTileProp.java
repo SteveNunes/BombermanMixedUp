@@ -6,7 +6,6 @@ import java.util.List;
 import enums.TileProp;
 import frameset.Sprite;
 import maps.MapSet;
-import maps.Tile;
 
 public class AddTileProp extends FrameTag {
 	
@@ -57,8 +56,7 @@ public class AddTileProp extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		FrameTag.processTile(sprite, targetCoords, coord -> {
-			Tile tile = MapSet.getLayer(targetLayer).getFirstBottomTileFromCoord(coord);
-			tileProps.forEach(p -> tile.tileProp.add(p));
+			tileProps.forEach(p -> MapSet.getCurrentLayer().addTileProp(coord, p));
 		});
 	}
 

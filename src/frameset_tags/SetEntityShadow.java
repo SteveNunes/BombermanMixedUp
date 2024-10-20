@@ -1,7 +1,5 @@
 package frameset_tags;
 
-import entities.Entity;
-import frameset.FrameSet;
 import frameset.Sprite;
 
 public class SetEntityShadow extends FrameTag {
@@ -25,14 +23,16 @@ public class SetEntityShadow extends FrameTag {
 		{ return "{" + FrameTag.getClassName(this) + ";" + offsetX + ";" + offsetY + ";" + width + ";" + height + ";" + opacity + "}"; }
 
 	public SetEntityShadow(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 5);
+		String[] params = FrameTag.validateStringTags(this, tags);
+		if (params.length > 5)
+			throw new RuntimeException(tags + " - Too much parameters");
 		int n = 0;
 		try {
-			offsetX = Integer.parseInt(params[n++]);
-			offsetY = Integer.parseInt(params[n++]);
-			width = Integer.parseInt(params[n++]);
-			height = Integer.parseInt(params[n++]);
-			opacity = Float.parseFloat(params[n++]);
+			offsetX = n <= params.length || params[n].equals("-") ? 0 : Integer.parseInt(params[n]); n++;
+			offsetY = n <= params.length || params[n].equals("-") ? -3 : Integer.parseInt(params[n]); n++;
+			width = n <= params.length || params[n].equals("-") ? 14 : Integer.parseInt(params[n]); n++;
+			height = n <= params.length || params[n].equals("-") ? 6 : Integer.parseInt(params[n]); n++;
+			opacity = n <= params.length || params[n].equals("-") ? 0.5f : Float.parseFloat(params[n]);
 		}
 		catch (Exception e)
 			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
@@ -43,11 +43,8 @@ public class SetEntityShadow extends FrameTag {
 		{ return new SetEntityShadow(offsetX, offsetY, width, height, opacity); }
 
 	@Override
-	public void process(Sprite sprite) {
-		FrameSet frameSet = sprite.getMainFrameSet();
-		Entity entity = frameSet.getEntity();
-		entity.setShadow(offsetX, offsetY, width, height, opacity);
-	}
+	public void process(Sprite sprite)
+		{ sprite.getSourceEntity().setShadow(offsetX, offsetY, width, height, opacity); }
 
 }
 

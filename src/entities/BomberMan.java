@@ -1,11 +1,28 @@
 package entities;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import enums.BombType;
+import enums.Direction;
+import enums.GameInputs;
+import javafx.scene.canvas.GraphicsContext;
 import tools.IniFiles;
 
 public class BomberMan extends Entity {
 	
+	private List<Direction> pressedDirs;
+	private List<GameInputs> holdedInputs;
+	private List<GameInputs> queuedInputs;
+
 	public BomberMan(int bomberIndex) {
+		super();
+		pressedDirs = new ArrayList<>();
+		holdedInputs = new ArrayList<>();
+		queuedInputs = new ArrayList<>();
 		String section = "" + bomberIndex;
+		setSpeed(1);
 		for (String item : IniFiles.characters.getItemList(section)) {
 			if (item.length() > 9 && item.substring(0, 9).equals("FrameSet."))
 				addNewFrameSetFromString(item.substring(9), IniFiles.characters.read(section, item));
@@ -13,4 +30,78 @@ public class BomberMan extends Entity {
 		setFrameSet("Stand");
 	}
 	
+	public boolean isPressed(GameInputs input)
+		{ return holdedInputs.contains(input); }
+
+	public void keyPress(GameInputs input) {
+		if (isBlockedMovement()) {
+			queuedInputs.add(input);
+			return;
+		}
+		Direction dir = input.getDirection();
+		if (dir != null && !pressedDirs.contains(dir)) {
+			if (!pressedDirs.isEmpty() && (isPerfectlyBlockedDir(getDirection()) || pressedDirs.get(0).getReverseDirection() == dir))
+				pressedDirs.add(0, dir);
+			else
+				pressedDirs.add(dir);
+		}
+		holdedInputs.add(input);
+		if (input == GameInputs.B && !Bomb.haveBombAt(null, getTileCoord()))
+			Bomb.addBomb(this, getTileCoord(), BombType.NORMAL, 4);
+	}
+	
+	public void keyRelease(GameInputs input) {
+		if (isBlockedMovement()) {
+			queuedInputs.remove(input);
+			return;
+		}
+		if (input.isDirection())
+			pressedDirs.removeAll(Arrays.asList(input.getDirection()));
+		holdedInputs.remove(input);
+	}
+
+	@Override
+	public void run()
+		{ run(null, false); }
+	
+	@Override
+	public void run(boolean isPaused)
+		{ run(null, isPaused); }
+	
+	@Override
+	public void run(GraphicsContext gc)
+		{ run(gc, false); }
+	
+	@Override
+	public void run(GraphicsContext gc, boolean isPaused) {
+		if (!isBlockedMovement()) {
+			if (!queuedInputs.isEmpty()) {
+				List<GameInputs> list = new ArrayList<>(queuedInputs);
+				queuedInputs.clear();
+				list.forEach(i -> keyPress(i));
+			}
+			if (pressedDirs.isEmpty()) {
+				setElapsedSteps(0);
+				setFrameSet("Stand");
+			}
+			else {
+				Direction dir = pressedDirs.get(0); 
+				setFrameSet("Moving");
+				setDirection(dir);
+			}
+		}
+		super.run(gc, isPaused);
+		if (tileWasChanged()) {
+			if (pressedDirs.size() > 1) {
+				Direction dir = pressedDirs.get(1);
+				if (isPerfectlyFreeDir(dir)) {
+					dir = pressedDirs.get(0); 
+					pressedDirs.remove(0);
+					pressedDirs.add(dir);
+				}
+				setElapsedSteps(0);
+			}
+		}
+	}
+
 }

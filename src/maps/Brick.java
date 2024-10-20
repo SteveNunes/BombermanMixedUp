@@ -118,7 +118,7 @@ public class Brick extends Entity {
 		List<Brick> removeBricks = new ArrayList<>();
 		for (Brick brick : bricks.values()) {
 			String cFSet = brick.getCurrentFrameSetName();
-			if (!cFSet.equals("BrickBreakFrameSet") && MapSet.tileContainsProp(brick.getTileCoord(), TileProp.EXPLOSION))
+			if (!cFSet.equals("BrickBreakFrameSet") && MapSet.tileContainsProp(brick.getTileCoord(), TileProp.DAMAGE_BRICK))
 				brick.breakIt();
 			else if (cFSet.equals("BrickRegenFrameSet") && !brick.getCurrentFrameSet().isRunning()) {
 				brick.setFrameSet("BrickStandFrameSet");
@@ -152,13 +152,13 @@ public class Brick extends Entity {
 		{ return getCurrentFrameSetName().equals("BrickBreakFrameSet") && !getCurrentFrameSet().isRunning(); }
 
 	public static boolean haveBrickAt(TileCoord coord, boolean ignoreDestroyedRegenBricks)
-		{ return bricks.containsKey(coord) && (ignoreDestroyedRegenBricks || !bricks.get(coord).getCurrentFrameSetName().equals("BrickRegenFrameSet")); }
+		{ return bricks.containsKey(coord) && (!ignoreDestroyedRegenBricks || !bricks.get(coord).getCurrentFrameSetName().equals("BrickBreakFrameSet") || bricks.get(coord).getCurrentFrameSet().isRunning()); }
 
 	public static boolean haveBrickAt(TileCoord coord)
-		{ return haveBrickAt(coord, false); }
+		{ return haveBrickAt(coord, true); }
 	
 	public static Brick getBrickAt(TileCoord tileCoord)
-		{ return haveBrickAt(tileCoord, false) ? bricks.get(tileCoord) : null; }
+		{ return haveBrickAt(tileCoord, true) ? bricks.get(tileCoord) : null; }
 
 	public void setRegenTime(int bricksRegenTimeInSecs)
 		{ regenTimeInFrames = bricksRegenTimeInSecs * 60; }

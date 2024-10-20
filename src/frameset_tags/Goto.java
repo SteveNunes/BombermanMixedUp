@@ -56,7 +56,7 @@ public class Goto extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		FrameSet frameSet = sprite.getMainFrameSet();
+		FrameSet frameSet = sprite.getSourceFrameSet();
 		if (!Main.frameSetEditorIsPaused() && !frameSet.isStopped()) {
 			if (haveLeftCycles()) {
 				currentRepeatCycle++;

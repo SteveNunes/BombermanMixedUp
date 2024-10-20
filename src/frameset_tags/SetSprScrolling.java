@@ -1,10 +1,6 @@
 package frameset_tags;
 
 import frameset.Sprite;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
-import tools.Tools;
 
 public class SetSprScrolling extends FrameTag {
 	

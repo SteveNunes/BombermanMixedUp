@@ -28,7 +28,7 @@ public class IncTicksPerFrame extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		FrameSet frameSet = sprite.getMainFrameSet();
+		FrameSet frameSet = sprite.getSourceFrameSet();
 		frameSet.incFramesPerTick(increment);
 	}
 

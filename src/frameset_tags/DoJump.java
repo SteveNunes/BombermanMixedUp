@@ -36,6 +36,6 @@ public class DoJump extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite)
-		{ sprite.getMainFrameSet().setJumpMove(jumpStrenght, strenghtMultipiler, speedInFrames); }
+		{ sprite.getSourceFrameSet().setJumpMove(jumpStrenght, strenghtMultipiler, speedInFrames); }
 
 }

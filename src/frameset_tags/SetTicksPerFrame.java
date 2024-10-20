@@ -28,7 +28,7 @@ public class SetTicksPerFrame extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		FrameSet frameSet = sprite.getMainFrameSet();
+		FrameSet frameSet = sprite.getSourceFrameSet();
 		frameSet.setFramesPerTick(value);
 	}
 

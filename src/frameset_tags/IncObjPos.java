@@ -34,7 +34,7 @@ public class IncObjPos extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		FrameSet frameSet = sprite.getMainFrameSet();
+		FrameSet frameSet = sprite.getSourceFrameSet();
 		frameSet.incX(incrementX);
 		frameSet.incY(incrementY);
 	}

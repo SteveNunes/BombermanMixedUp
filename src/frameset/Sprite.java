@@ -26,7 +26,7 @@ import tools.Tools;
 
 public class Sprite {
 
-	private FrameSet mainFrameSet;
+	private FrameSet sourceFrameSet;
 	private String spriteSourceName;
 	private Rectangle originSpriteSizePos;
 	private Rectangle outputSpriteSizePos;
@@ -48,11 +48,11 @@ public class Sprite {
 	private WavingImage wavingImage;
 	
 	public Sprite(Sprite sprite)
-		{ this(sprite, sprite.getMainFrameSet()); }
+		{ this(sprite, sprite.getSourceFrameSet()); }
 	
 	public Sprite(Sprite sprite, FrameSet mainFrameSet) {
 		super();
-		this.mainFrameSet = mainFrameSet;
+		this.sourceFrameSet = mainFrameSet;
 		originSpriteSizePos = new Rectangle(sprite.originSpriteSizePos);
 		outputSpriteSizePos = new Rectangle(sprite.outputSpriteSizePos);
 		spriteEffects = new DrawImageEffects(sprite.spriteEffects);
@@ -79,7 +79,7 @@ public class Sprite {
 		this.spriteSourceName = spriteSourceName;
 		this.spriteIndex = spriteIndex;
 		this.spritesPerLine = spritesPerLine;
-		this.mainFrameSet = mainFrameSet;
+		this.sourceFrameSet = mainFrameSet;
 		this.originSpriteSizePos = new Rectangle(originSpriteSizePos);
 		this.outputSpriteSizePos = new Rectangle(outputSpriteSizePos);
 		spriteScroll = null;
@@ -179,27 +179,27 @@ public class Sprite {
 		{ outputSpriteSizePos.setFrame(getX(), getY() + incY, getOutputWidth(), getOutputHeight()); }
 
 	public double getAbsoluteX() {
-		if (mainFrameSet != null)
-			return mainFrameSet.getAbsoluteX() + getX();
+		if (sourceFrameSet != null)
+			return sourceFrameSet.getAbsoluteX() + getX();
 		return getX();
 	}
 
 	public double getAbsoluteY() {
-		if (mainFrameSet != null)
-			return mainFrameSet.getAbsoluteY() + getY();
+		if (sourceFrameSet != null)
+			return sourceFrameSet.getAbsoluteY() + getY();
 		return getY();
 	}
 
 	public void setAbsoluteX(int x) {
-		if (mainFrameSet != null)
-			setX(x - (int)mainFrameSet.getAbsoluteX());
+		if (sourceFrameSet != null)
+			setX(x - (int)sourceFrameSet.getAbsoluteX());
 		else
 			setX(x);
 	}
 	
 	public void setAbsoluteY(int y) {
-		if (mainFrameSet != null)
-			setY(y - (int)mainFrameSet.getAbsoluteY());
+		if (sourceFrameSet != null)
+			setY(y - (int)sourceFrameSet.getAbsoluteY());
 		else
 			setY(y);
 	}
@@ -332,14 +332,14 @@ public class Sprite {
 	public void incSpritesPerLine(int value)
 		{ spritesPerLine += value; }
 	
-	public Entity getOriginEntity()
-		{ return mainFrameSet.getEntity(); }
-
-	public FrameSet getMainFrameSet()
-		{ return mainFrameSet; }
+	public Entity getSourceEntity()
+		{ return sourceFrameSet.getSourceEntity(); }
+	
+	public FrameSet getSourceFrameSet()
+		{ return sourceFrameSet; }
 
 	public void setMainFrameSet(FrameSet frameSet)
-		{ mainFrameSet = frameSet; }
+		{ sourceFrameSet = frameSet; }
 	
 	public DrawImageEffects getEffects()
 		{ return spriteEffects; }

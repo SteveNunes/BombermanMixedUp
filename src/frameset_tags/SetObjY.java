@@ -28,7 +28,7 @@ public class SetObjY extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		FrameSet frameSet = sprite.getMainFrameSet();
+		FrameSet frameSet = sprite.getSourceFrameSet();
 		frameSet.setY(value);
 	}
 

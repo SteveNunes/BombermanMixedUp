@@ -2,7 +2,6 @@ package entities;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -20,7 +19,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import maps.Brick;
 import maps.MapSet;
-import maps.Tile;
 import objmoveutils.Position;
 import tools.Tools;
 
@@ -33,15 +31,21 @@ public class Entity extends Position {
 	private List<PassThrough> passThrough;
 	private List<Curse> curses;
 	private double speed;
+	private double tempSpeed;
 	private Direction direction;
 	private Elevation elevation;
 	private String currentFrameSetName;
 	private Entity linkedEntityFront;
 	private Entity linkedEntityBack;
 	private Position linkedEntityOffset;
+	private TileCoord previewTileCoord;
 	private boolean noMove;
 	private boolean isDisabled;
+	private boolean blockedMovement;
 	private float shadowOpacity;
+	private int elapsedSteps;
+	private int elapsedFrames;
+	private boolean tileWasChanged;
 	
 	public Entity(Entity entity) {
 		super(entity.getPosition());
@@ -56,15 +60,21 @@ public class Entity extends Position {
 			freshFrameSets.put(fSetName, new FrameSet(entity.freshFrameSets.get(fSetName), this));
 		});
 		speed = entity.speed;
+		tempSpeed = entity.tempSpeed;
 		direction = entity.direction;
 		elevation = entity.elevation;
 		noMove = entity.noMove;
 		isDisabled = entity.isDisabled;
+		blockedMovement = entity.blockedMovement;
 		shadowOpacity = entity.shadowOpacity;
+		elapsedSteps = entity.elapsedSteps;
+		elapsedFrames = entity.elapsedFrames;
+		previewTileCoord = new TileCoord();
 		linkedEntityInfos = new LinkedList<>();
 		linkedEntityBack = null;
 		linkedEntityFront = null;
 		linkedEntityOffset = null;
+		tileWasChanged = false;
 	}
 	
 	public Entity()
@@ -81,6 +91,7 @@ public class Entity extends Position {
 		curses = new ArrayList<>();
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
+		previewTileCoord = new TileCoord();
 		linkedEntityInfos = new ArrayList<>();
 		linkedEntityBack = null;
 		linkedEntityFront = null;
@@ -88,11 +99,22 @@ public class Entity extends Position {
 		shadow = null;
 		this.direction = direction;
 		speed = 0;
+		tempSpeed = -1;
 		elevation = Elevation.ON_GROUND;
 		shadowOpacity = 0;
+		elapsedSteps = 0;
+		elapsedFrames = 0;
 		noMove = false;
 		isDisabled = false;
+		blockedMovement = false;
+		tileWasChanged = false;
 	}
+	
+	public boolean isBlockedMovement()
+		{ return blockedMovement; }
+	
+	public void setBlockedMovement(boolean state)
+		{ blockedMovement = state; }
 	
 	public List<Curse> getCurses()
 		{ return curses; }
@@ -148,6 +170,9 @@ public class Entity extends Position {
 
 	public TileCoord getTileCoord()
 		{ return new TileCoord(getTileX(), getTileY()); }
+	
+	public boolean tileWasChanged()
+		{ return tileWasChanged; }
 
 	public boolean isLinkedToAnEntity()
 		{ return linkedEntityBack != null || linkedEntityFront != null; }
@@ -268,6 +293,8 @@ public class Entity extends Position {
 			return;
 		if (!frameSets.containsKey(frameSetName))
 			throw new RuntimeException(frameSetName + " - Invalid FrameSet name for this entity");
+		else if (frameSetName.equals(currentFrameSetName))
+			return;
 		frameSets.put(frameSetName, new FrameSet(freshFrameSets.get(frameSetName), this));
 		currentFrameSetName = frameSetName;
 	}
@@ -308,47 +335,161 @@ public class Entity extends Position {
 			if (frameSets.isEmpty())
 				throw new RuntimeException("This entity have no FrameSets");
 			if (currentFrameSetName != null && frameSets.containsKey(currentFrameSetName)) {
-				if (linkedEntityFront != null) {
-					if (linkedEntityInfos.isEmpty()) {
-						setPosition(linkedEntityFront.getX() + linkedEntityOffset.getX(),
-								linkedEntityFront.getY() + linkedEntityOffset.getY());
-						if (direction != linkedEntityFront.getDirection())
-							setDirection(linkedEntityFront.getDirection());
-					}
-					else {
-						setPosition(linkedEntityInfos.get(0).x + linkedEntityOffset.getX(),
-												linkedEntityInfos.get(0).y + linkedEntityOffset.getY());
-						if (direction != linkedEntityInfos.get(0).direction)
-							setDirection(linkedEntityInfos.get(0).direction);
-						linkedEntityInfos.remove(0);
-						linkedEntityInfos.add(new LinkedEntityInfos(linkedEntityFront));
-					}
-				}
-				if (haveShadow()) {
-					Tools.getTempGc().save();
-					Tools.getTempGc().setFill(Color.BLACK);
-					Tools.getTempGc().setGlobalAlpha(shadowOpacity);
-					Tools.getTempGc().fillOval(getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight(), getShadowWidth(), getShadowHeight());
-					Tools.getTempGc().restore();
-				}
+				processLinkedEntity();
+				applyShadow();
+				if (!blockedMovement)
+					moveEntity();
 				frameSets.get(currentFrameSetName).run(gc, isPaused);
-				Position lu = new Position(getX(), getY());
-				Position ru = new Position(getX() + Main.TILE_SIZE - 1, getY());
-				Position ld = new Position(getX(), getY() + Main.TILE_SIZE - 1);
-				Position rd = new Position(getX() + Main.TILE_SIZE - 1, getY() + Main.TILE_SIZE - 1);
-				boolean move = true;
-				for (Position pos : Arrays.asList(lu, ru, ld, rd)) {
-					pos.incPositionByDirection(direction, speed);
-					TileCoord coord = new TileCoord((int)(pos.getX() / Main.TILE_SIZE), (int)(pos.getY() / Main.TILE_SIZE));
-					if (!MapSet.tileIsFree(coord, passThrough))
-						move = false;
-				}
-				if (move)
-					incPositionByDirection(direction, speed);
+				if (this instanceof BomberMan && !currentFrameSetName.substring(0, 4).equals("Dead") && 
+						MapSet.tileContainsProp(getTileCoord(), TileProp.DAMAGE_BOMB))
+							setFrameSet("Dead");
 			}
+			elapsedFrames++;
 		}
 	}
 	
+	private void processLinkedEntity() {
+		if (linkedEntityFront != null) {
+			if (linkedEntityInfos.isEmpty()) {
+				setPosition(linkedEntityFront.getX() + linkedEntityOffset.getX(),
+						linkedEntityFront.getY() + linkedEntityOffset.getY());
+				if (direction != linkedEntityFront.getDirection())
+					setDirection(linkedEntityFront.getDirection());
+			}
+			else {
+				setPosition(linkedEntityInfos.get(0).x + linkedEntityOffset.getX(),
+										linkedEntityInfos.get(0).y + linkedEntityOffset.getY());
+				if (direction != linkedEntityInfos.get(0).direction)
+					setDirection(linkedEntityInfos.get(0).direction);
+				linkedEntityInfos.remove(0);
+				linkedEntityInfos.add(new LinkedEntityInfos(linkedEntityFront));
+			}
+		}
+	}
+
+	private void applyShadow() {
+		if (haveShadow()) {
+			Tools.getTempGc().save();
+			Tools.getTempGc().setFill(Color.BLACK);
+			Tools.getTempGc().setGlobalAlpha(shadowOpacity);
+			Tools.getTempGc().fillOval(getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight(), getShadowWidth(), getShadowHeight());
+			Tools.getTempGc().restore();
+		}
+	}
+	
+	public boolean[] getFreeCorners()
+		{ return getFreeCorners(getDirection()); }
+	
+	public boolean[] getFreeCorners(Direction direction) {
+		boolean[] freeCorners = new boolean[4];
+		int x = 0;
+		for (Position pos : getCornersPositions()) {
+			pos.incPositionByDirection(direction);
+			TileCoord coord = new TileCoord(((int)pos.getX() / Main.TILE_SIZE), ((int)pos.getY() / Main.TILE_SIZE));
+			freeCorners[x++] = MapSet.tileIsFree(this, coord, passThrough);
+		}
+		return freeCorners;
+	}
+
+	public Position[] getCornersPositions() {
+		Position[] cornersPositions = new Position[4];
+		cornersPositions[0] = new Position(getX(), getY());
+		cornersPositions[1] = new Position(getX() + Main.TILE_SIZE - 1, getY());
+		cornersPositions[2] = new Position(getX(), getY() + Main.TILE_SIZE - 1);
+		cornersPositions[3] = new Position(getX() + Main.TILE_SIZE - 1, getY() + Main.TILE_SIZE - 1);
+		return cornersPositions;
+	}
+
+	public boolean isPerfectlyFreeDir(Direction dir) {
+		boolean[] freeCorners = getFreeCorners(dir);
+		return (dir == Direction.LEFT && freeCorners[0] && freeCorners[2]) ||
+					 (dir == Direction.UP && freeCorners[0] && freeCorners[1]) ||
+					 (dir == Direction.RIGHT && freeCorners[1] && freeCorners[3]) ||
+					 (dir == Direction.DOWN && freeCorners[2] && freeCorners[3]);
+	}
+	
+	public boolean isPerfectlyBlockedDir(Direction dir) {
+		boolean[] freeCorners = getFreeCorners(dir);
+		return (dir == Direction.LEFT && !freeCorners[0] && !freeCorners[2]) ||
+					 (dir == Direction.UP && !freeCorners[0] && !freeCorners[1]) ||
+					 (dir == Direction.RIGHT && !freeCorners[1] && !freeCorners[3]) ||
+					 (dir == Direction.DOWN && !freeCorners[2] && !freeCorners[3]);
+	}
+	
+	public void moveEntity()
+		{ moveEntity(getDirection()); }
+	
+	public void moveEntity(double speed)
+		{ moveEntity(getDirection(), speed); }
+		
+	public void moveEntity(Direction direction)
+		{ moveEntity(direction, getTempSpeed() >= 0 ? getTempSpeed() : getSpeed()); }
+
+	public void moveEntity(Direction direction, double speed) {
+		tileWasChanged = false;
+		getFreeCorners(direction);
+		if (speed != 0) {
+			Position[] cornersPositions = getCornersPositions();
+			Position lu = cornersPositions [0], ru = cornersPositions[1], ld = cornersPositions[2], rd = cornersPositions[3];
+			boolean[] freeCorners = getFreeCorners(direction);
+			int z = 10;
+			// Sistema para alinhar o personagem quando ele esta tentando ir em uma direcao onde um dos 2 cantos a frente do personagem é um tile livre mas o canto oposto a frente do personagem está bloqueado
+			if (direction == Direction.UP) {
+				if (freeCorners[0] && freeCorners[1])
+					incPositionByDirection(direction, speed);
+				else if (!freeCorners[0] && freeCorners[1] && (int)ru.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para cima, e o canto esquerdo superior estiver bloqueado, mas o canto direito superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+					incPosition(speed, -speed / 2);
+				else if (freeCorners[0] && !freeCorners[1] && (int)lu.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para cima, e o canto direito superior estiver bloqueado, mas o canto esquerdo superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+					incPosition(-speed, -speed / 2);
+			}
+			else if (direction == Direction.DOWN) {
+				if (freeCorners[2] && freeCorners[3])
+					incPositionByDirection(direction, speed);
+				else if (!freeCorners[2] && freeCorners[3] && (int)rd.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para baixo, e o canto esquerdo inferior estiver bloqueado, mas o canto direito inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+					incPosition(speed, speed / 2);
+				else if (freeCorners[2] && !freeCorners[3] && (int)ld.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para baixo, e o canto direito inferior estiver bloqueado, mas o canto esquerdo inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+					incPosition(-speed, speed / 2);
+			}
+			else if (direction == Direction.LEFT) {
+				if (freeCorners[0] && freeCorners[2])
+					incPositionByDirection(direction, speed);
+				else if (!freeCorners[0] && freeCorners[2] && (int)ld.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para esquerda, e o canto esquerdo superior estiver bloqueado, mas o canto esquerdo inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+					incPosition(-speed / 2, speed);
+				else if (freeCorners[0] && !freeCorners[2] && (int)lu.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para esquerda, e o canto esquerdo inferior estiver bloqueado, mas o canto esquerdo superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+					incPosition(-speed / 2, -speed);
+			}
+			else if (direction == Direction.RIGHT) {
+				if (freeCorners[1] && freeCorners[3])
+					incPositionByDirection(direction, speed);
+				else if (!freeCorners[1] && freeCorners[3] && (int)rd.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para direita, e o canto direita superior estiver bloqueado, mas o canto direita inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+					incPosition(speed / 2, speed);
+				else if (freeCorners[1] && !freeCorners[3] && (int)ru.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para direita, e o canto direita inferior estiver bloqueado, mas o canto direita superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+					incPosition(speed / 2, -speed);
+			}
+			if (!previewTileCoord.equals(getTileCoord()) &&
+				 ((getDirection() == Direction.LEFT && (int)((getX() + Main.TILE_SIZE - 1) / Main.TILE_SIZE) < previewTileCoord.getX()) ||
+				  (getDirection() == Direction.UP && (int)((getY() + Main.TILE_SIZE - 1) / Main.TILE_SIZE) < previewTileCoord.getY()) ||
+				  (getDirection() == Direction.RIGHT && (int)(getX() / Main.TILE_SIZE) != previewTileCoord.getX()) ||
+				  (getDirection() == Direction.DOWN && (int)(getY() / Main.TILE_SIZE) != previewTileCoord.getY()))) {
+						previewTileCoord.setCoord(getTileCoord());
+						elapsedSteps++;
+						tileWasChanged = true;
+			}
+		}
+	}
+
+	public int getElapsedSteps()
+		{ return elapsedSteps; }
+
+	public void setElapsedSteps(int elapsedSteps)
+		{ this.elapsedSteps = elapsedSteps; }
+
+	public int getElapsedFrames()
+		{ return elapsedFrames; }
+
+	public void setElapsedFrames(int elapsedFrames)
+		{ this.elapsedFrames = elapsedFrames; }
+
 	public int getTotalFrameSets()
 		{ return frameSets.size(); }
 
@@ -356,7 +497,7 @@ public class Entity extends Position {
 		{ return direction; }
 
 	public void setDirection(Direction direction) {
-		if (this.direction != direction) {
+		if (!blockedMovement && this.direction != direction) {
 			String name = currentFrameSetName;
 			int i = name.indexOf('.');
 			if (i > 1)
@@ -380,6 +521,12 @@ public class Entity extends Position {
 	public void setSpeed(double speed)
 		{ this.speed = speed; }
 	
+	public double getTempSpeed()
+		{ return tempSpeed; }
+	
+	public void setTempSpeed(double tempSpeed)
+		{ this.tempSpeed = tempSpeed; }
+
 	public void setNoMove(boolean state)
 		{ noMove = state; }
 	
@@ -460,15 +607,14 @@ public class Entity extends Position {
 		replaceFrameSet(existingFrameSetName, frameSet);
 	}
 	
-	public boolean canCross(MapSet mapSet, TileCoord coord) {
+	public boolean canCross(TileCoord coord) {
 		// NOTA: Implementar a parte de mob nao passar por mob
 		Elevation elevation = getElevation();
 		if (elevation != Elevation.HIGH_FLYING)
 			return true;
-		Tile tile = MapSet.getTopTileFromCoord(coord);
-		for (TileProp prop : tile.tileProp) {
+			for (TileProp prop : MapSet.getCurrentLayer().getTileProps(coord)) {
 			if (TileProp.getCantCrossList(elevation).contains(prop) ||
-					(Brick.haveBrickAt(coord, true) && !canPassThroughBrick()) || (Bomb.haveBombAt(coord) && !canPassThroughBomb()))
+					(Brick.haveBrickAt(coord, true) && !canPassThroughBrick()) || (Bomb.haveBombAt(this, coord) && !canPassThroughBomb()))
 						return false;
 		}
 		return true;

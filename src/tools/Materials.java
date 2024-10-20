@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import application.Main;
 import entities.Effect;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
@@ -89,9 +90,9 @@ public abstract class Materials {
 			for (int x = 0; x < 5; x++)
 				for (int y = 0; y < 15; y++) {
 					int sprX = y == 0 ? 48 : 32, sprY = 32 + 16 * x,
-							outX = d == 0 ? x * 16 : y * 16,
-							outY = d == 0 ? y * 16 : 240 + x * 16;
-					ImageUtils.drawImage(gc, mainSprites, sprX, sprY, 16, 16, outX, outY, 16, 16, d == 1 && y == 0 ? 270 : d * 90);
+							outX = d == 0 ? x * Main.TILE_SIZE : y * Main.TILE_SIZE,
+							outY = d == 0 ? y * Main.TILE_SIZE : 240 + x * Main.TILE_SIZE;
+					ImageUtils.drawImage(gc, mainSprites, sprX, sprY, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
 				}
 		explosions = Tools.getCanvasSnapshot(c);
 	}

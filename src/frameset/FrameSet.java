@@ -16,7 +16,7 @@ import tools.Tools;
 
 public class FrameSet extends Position {
 	
-	private Entity entity;
+	private Entity sourceEntity;
 	private List<Sprite> sprites;
 	private List<Frame> frames;
 	private int framesPerTick;
@@ -43,7 +43,7 @@ public class FrameSet extends Position {
 		frames = new ArrayList<>();
 		frameSet.sprites.forEach(sprite -> sprites.add(sprite = new Sprite(sprite, this)));
 		frameSet.frames.forEach(frame -> frames.add(frame = new Frame(frame, this)));
-		this.entity = entity;
+		this.sourceEntity = entity;
 		framesPerTick = frameSet.framesPerTick;
 		maxY = frameSet.maxY;
 		changedIndex = false;
@@ -54,7 +54,7 @@ public class FrameSet extends Position {
 	
 	public FrameSet(Entity entity, Position position) {
 		super(position);
-		this.entity = entity;
+		this.sourceEntity = entity;
 		framesPerTick = 1;
 		frames = new ArrayList<>();
 		sprites = new ArrayList<>();
@@ -82,36 +82,36 @@ public class FrameSet extends Position {
 		{ jumpMove = new JumpMove(getPosition(), new Position(), jumpStrenght, strenghtMultipiler, speedInFrames); }
 
 	public double getAbsoluteX() {
-		if (entity != null)
-			return entity.getX() + getX();
+		if (sourceEntity != null)
+			return sourceEntity.getX() + getX();
 		return getX();
 	}
 
 	public double getAbsoluteY() {
-		if (entity != null)
-			return entity.getY() + getY();
+		if (sourceEntity != null)
+			return sourceEntity.getY() + getY();
 		return getY();
 	}
 
 	public void setAbsoluteX(int x) {
-		if (entity != null)
-			setX(x - (int)entity.getX());
+		if (sourceEntity != null)
+			setX(x - (int)sourceEntity.getX());
 		else
 			setX(x);
 	}
 	
 	public void setAbsoluteY(int y) {
-		if (entity != null)
-			setY(y - (int)entity.getY());
+		if (sourceEntity != null)
+			setY(y - (int)sourceEntity.getY());
 		else
 			setY(y);
 	}
 	
-	public Entity getEntity()
-		{ return entity; }
+	public Entity getSourceEntity()
+		{ return sourceEntity; }
 	
 	public void setEntity(Entity entity)
-		{ this.entity = entity; }
+		{ this.sourceEntity = entity; }
 	
 	public void stop()
 		{ stop = true; }

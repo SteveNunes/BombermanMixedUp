@@ -9,6 +9,7 @@ import background_effects.BackgroundEffect;
 import drawimage_stuffs.DrawImageEffects;
 import entities.Bomb;
 import entities.Explosion;
+import entities.TileDamage;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
 import fades.Fade;
@@ -152,6 +153,7 @@ public abstract class Tools {
 		Brick.drawBricks();
 		Bomb.drawBombs();
 		Item.drawItems();
+		TileDamage.runTileDamages();
 	}
 	
 	public static WritableImage getTempCanvasSnapshot(WritableImage outputImage)

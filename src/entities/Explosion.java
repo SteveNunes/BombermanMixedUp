@@ -58,8 +58,8 @@ public class Explosion {
 	}
 	
 	public static void drawExplosions() {
-		List<Explosion> removeExplosions = new ArrayList<>();
-		for (Explosion ex : explosions) {
+		for (int p = explosions.size() - 1; p >= 0; p--) {
+			Explosion ex = explosions.get(p);
 			if (++ex.count == 1) {
 				Direction dir = Direction.UP;
 				ex.fireDis = new int[] {0, 0, 0, 0};
@@ -79,10 +79,10 @@ public class Explosion {
 			else if (ex.count == 6)
 				ex.markTiles(false);
 			int z = ex.count / 5;
-			z = z < 5 ? z : 8 - z; 
+			z = z < 5 ? z : 8 - z;
 			if (z == -1) {
 				ex.markTiles(true);
-				removeExplosions.add(ex);
+				explosions.remove(p--);
 			}
 			else {
 				int x = ex.centerCoord.getX() * Main.TILE_SIZE,
@@ -99,7 +99,6 @@ public class Explosion {
 					Tools.addDrawImageQueue(SpriteLayerType.GROUND, Materials.explosions, ex.fireDis[3] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[3] * 16, 16, x - ex.fireDis[3] * Main.TILE_SIZE, y, ex.fireDis[3] * Main.TILE_SIZE, Main.TILE_SIZE);
 			}
 		}
-		removeExplosions.forEach(ex -> explosions.remove(ex));
 	}
 
 	private void markTiles(boolean remove) {
@@ -112,28 +111,22 @@ public class Explosion {
 					if (x > 0)
 						coord.incByDirection(dir);
 					if (x > 0 || directions.size() == 4) {
-						if (MapSet.haveTilesOnCoord(coord)) {
-							if (remove)
-								MapSet.removePropFromTile(coord, TileProp.EXPLOSION);
-							else {
-								MapSet.addPropToTile(coord, TileProp.EXPLOSION);
-								checkExplodedTile(coord);
-							}
+						if (MapSet.haveTilesOnCoord(coord) && !remove) {
+							TileDamage.addTileDamage(owner, coord, 44).setDamageToAll();
+							checkExplodedTile(coord);
 						}
-						Tile tile = MapSet.getFirstBottomTileFromCoord(coord);
-						if (x > 0 && (tile.tileProp.contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord, passThroughAllBricks ? Arrays.asList(PassThrough.BRICK) : null)))
+						if (x > 0 && (MapSet.getCurrentLayer().getTileProps(coord).contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord, passThroughAllBricks ? Arrays.asList(PassThrough.BRICK) : null)))
 							break;
 					}
 				}
 			}
 		}
 	}
-
 	
 	private void checkExplodedTile(TileCoord coord) {
 		Tile tile = MapSet.getFirstBottomTileFromCoord(coord);
 		if (tile.getStringTags() != null)
-			for (TileProp prop : tile.tileProp)
+			for (TileProp prop : MapSet.getCurrentLayer().getTileProps(coord))
 				if (prop == TileProp.TRIGGER_BY_EXPLOSION)
 					tile.runTags(owner);
 	}

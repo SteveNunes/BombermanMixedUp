@@ -103,12 +103,12 @@ public abstract class MapSet {
 		tileInfos.keySet().forEach(i -> {
 			Layer layer = new Layer(tileInfos.get(i));
 			layers.put(i, layer);
-			layer.getTileList().forEach(tile -> {
-				if (tile.tileProp.contains(TileProp.PLAYER_INITIAL_POSITION))
-					initialPlayerCoords.put(tile.getTileCoord(), initialPlayerCoords.size());
-				else if (tile.tileProp.contains(TileProp.MOB_INITIAL_POSITION))
-					initialMonsterCoords.put(tile.getTileCoord(), initialMonsterCoords.size());
-			});
+			for (TileCoord coord : layer.getTilePropsMap().keySet()) {
+				if (layer.getTileProps(coord).contains(TileProp.PLAYER_INITIAL_POSITION))
+					initialPlayerCoords.put(coord.getNewInstance(), initialPlayerCoords.size());
+				else if (layer.getTileProps(coord).contains(TileProp.MOB_INITIAL_POSITION))
+					initialMonsterCoords.put(coord.getNewInstance(), initialMonsterCoords.size());
+			}
 		});
 		groundTile = getTilePositionFromIni(iniFileMap, "GroundTile");
 		groundWithBrickShadow = Misc.notNull(getTilePositionFromIni(iniFileMap, "GroundWithBrickShadow"), new Position(groundTile));
@@ -265,35 +265,33 @@ public abstract class MapSet {
 	public static void setBricks() {
 		Brick.clearBricks();
 		List<Brick> addBricks = new ArrayList<>();
-		getLayer(26).getTileList().forEach(tile ->
-			tile.tileProp.forEach(prop -> {
-				if (prop == TileProp.FIXED_BRICK)
-					addBricks.add(new Brick(tile.getTileCoord(), null));
-			}));
+		for (TileCoord coord : getTilePropsMap().keySet())
+			if (MapSet.getTileProps(coord).contains(TileProp.FIXED_BRICK))
+				addBricks.add(new Brick(coord, null));
 		if (IniFiles.stages.read(iniMapName, "Blocks") != null && !IniFiles.stages.read(iniMapName, "Blocks").equals("0")) {
-			int totalBricks = 0,
-					bricksQuant = 0;
+			int totalBricks = 0, bricksQuant = 0;
 			int[] totalBrickSpawners = {0};
 			try {
 				String[] split = IniFiles.stages.read(iniMapName, "Blocks").split("!");
 				int minBricks = Integer.parseInt(split[0]),
 						maxBricks = Integer.parseInt(split[split.length == 1 ? 0 : 1]);
 						totalBricks = (int)MyMath.getRandom(minBricks, maxBricks);
-						getLayer(26).getTileList().forEach(tile ->
-							tile.tileProp.forEach(prop -> {
-							if (prop == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(tile.getTileCoord()))
+						for (TileCoord coord : getTilePropsMap().keySet()) {
+							MapSet.getTileProps(coord).forEach(prop -> {
+							if (prop == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(coord))
 								totalBrickSpawners[0]++;
-							}));
+							});
+						}
 			}
 			catch (Exception e)
 				{ throw new RuntimeException(IniFiles.stages.read(iniMapName, "Blocks") + " - Wrong data for this item"); }
 			done:
 			while (totalBricks > 0) {
-				for (Tile t : getLayer(26).getTileList())
-					for (TileProp p : t.tileProp)
-						if (p == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(t.getTileCoord())) {
+				for (Tile tile : getLayer(26).getTileList())
+					for (TileProp p : MapSet.getTileProps(tile.getTileCoord()))
+						if (p == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(tile.getTileCoord())) {
 							if ((int)MyMath.getRandom(0, 3) == 0) {
-								addBricks.add(new Brick(t.getTileCoord(), null));
+								addBricks.add(new Brick(tile.getTileCoord(), null));
 								if (--totalBricks == 0 || ++bricksQuant >= totalBrickSpawners[0])
 									break done;
 							}
@@ -344,31 +342,25 @@ public abstract class MapSet {
 			}
 			catch (Exception e)
 				{ throw new RuntimeException(IniFiles.stages.read(iniMapName, "FixedBlocks") + " - Wrong data for this item"); }
-			Map<Tile, List<TileProp>> recProp = new HashMap<>();
+			Map<TileCoord, List<TileProp>> recProp = new HashMap<>();
 			done:
 			while (totalWalls > 0) {
 				List<TileCoord> coords = new ArrayList<>();
 				for (TileCoord coord : getLayer(26).getTilesMap().keySet())
 					coords.add(coord.getNewInstance());
 				for (TileCoord coord : coords) {
-					Tile tile = getTopTileFromCoord(coord);
-					if (tile.tileProp.contains(TileProp.GROUND) && (int)MyMath.getRandom(0, 9) == 0) {
-						Tile tile2 = new Tile((int)wallTile.getX(), (int)wallTile.getY(), coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE, new ArrayList<>(Arrays.asList(TileProp.WALL)));
-						Tile tile3 = getFirstBottomTileFromCoord(coord);
-						List<TileProp> backupProps = tile3.tileProp;
-						tile3.tileProp = Arrays.asList(TileProp.WALL);
+					if (MapSet.getTileProps(coord).contains(TileProp.GROUND) && (int)MyMath.getRandom(0, 9) == 0) {
+						Tile tile = new Tile((int)wallTile.getX(), (int)wallTile.getY(), coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE);
 						if (testCoordForInsertFixedBlock(coord)) {
-							recProp .put(tile3, tile3.tileProp);
-							addWalls.add(tile2);
+							recProp.put(coord, Arrays.asList(TileProp.WALL));
+							addWalls.add(tile);
 							if (--totalWalls == 0)
 								break done;
 						}
-						else
-							tile3.tileProp = backupProps;
 					}
 				}
 			}
-			recProp.forEach((tile, props) -> tile.tileProp = props);
+			recProp.forEach((coord, props) -> MapSet.replaceTileProps(coord, new ArrayList<>(props)));
 			addWalls.sort((t1, t2) -> (int)t2.outY - (int)t1.outY);
 			addWalls.forEach(tile -> {
 				TileCoord coord = tile.getTileCoord();
@@ -420,18 +412,6 @@ public abstract class MapSet {
 		return null;
 	}
 	
-	public static List<TileProp> getTilePropsFromCoord(TileCoord coord)
-		{ return getFirstBottomTileFromCoord(coord).tileProp; }
-	
-	public static boolean tileContainsProp(TileCoord coord, TileProp prop)
-		{ return getTilePropsFromCoord(coord).contains(prop); }
-	
-	public static void addPropToTile(TileCoord coord, TileProp prop)
-		{ getFirstBottomTileFromCoord(coord).tileProp.add(prop); }
-
-	public static void removePropFromTile(TileCoord coord, TileProp prop)
-		{ getFirstBottomTileFromCoord(coord).tileProp.remove(prop); }
-
 	public static IniFile getMapIniFile()
 		{ return iniFileMap; }
 	
@@ -534,15 +514,21 @@ public abstract class MapSet {
 		{ return getCurrentLayer().getTilesFromCoord(coord); }
 
 	public static boolean tileIsFree(TileCoord coord)
-		{ return tileIsFree(coord, null); }
+		{ return tileIsFree(null, coord); }
 	
-	public static boolean tileIsFree(TileCoord coord, List<PassThrough> passThrough) {
+	public static boolean tileIsFree(TileCoord coord, List<PassThrough> passThrough)
+		{ return tileIsFree(null, coord, passThrough); }
+
+	public static boolean tileIsFree(Entity entity, TileCoord coord)
+		{ return tileIsFree(entity, coord, null); }
+	
+	public static boolean tileIsFree(Entity entity, TileCoord coord, List<PassThrough> passThrough) {
 		if (!haveTilesOnCoord(coord))
 			return false;
-		for (TileProp prop : getTilePropsFromCoord(coord))
+		for (TileProp prop : getTileProps(coord))
 			if (TileProp.getCantCrossList(Elevation.ON_GROUND).contains(prop) ||
-				 (Brick.haveBrickAt(coord, true) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
-				 (Bomb.haveBombAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BOMB))))
+				 (Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
+				 (Bomb.haveBombAt(entity, coord) && (passThrough == null || !passThrough.contains(PassThrough.BOMB))))
 						return false;
 		return true;
 	}
@@ -567,9 +553,33 @@ public abstract class MapSet {
 		removeStageTag.forEach(fs -> runningStageTags.remove(fs));
 	}
 
-	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough) {
-		// NOTA: Implementar retornando se tem monstro ou player em cima
-		return !tileIsFree(coord, passThrough) || Item.haveItemAt(coord);
-	}
+	public static void addTileProp(TileCoord coord, TileProp ... props)
+		{ getCurrentLayer().addTileProp(coord, props); }
 	
+	public static void removeTileProp(TileCoord coord, TileProp ... props)
+		{ getCurrentLayer().removeTileProp(coord, props); }
+	
+	public static List<TileProp> getTileProps(TileCoord coord)
+		{ return getCurrentLayer().getTileProps(coord); }
+	
+	public static int getTotalTileProps(TileCoord coord)
+		{ return getCurrentLayer().getTotalTileProps(coord); }
+	
+	public static void replaceTileProps(TileCoord coord, List<TileProp> newTileProps)
+		{ getCurrentLayer().replaceTileProps(coord, newTileProps); }
+	
+	public static Map<TileCoord, List<TileProp>> getTilePropsMap()
+		{	return getCurrentLayer().getTilePropsMap(); }
+	
+	public static boolean tileContainsProp(TileCoord coord, TileProp prop)
+		{ return getCurrentLayer().tileContainsProp(coord, prop); }
+	
+	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough)
+		{ return tileIsOccuped(null, coord, passThrough); }
+	
+	public static boolean tileIsOccuped(Entity entity, TileCoord coord, List<PassThrough> passThrough) {
+		// NOTA: Implementar retornando se tem monstro ou player em cima
+		return !tileIsFree(entity, coord, passThrough) || Item.haveItemAt(coord);
+	}
+
 }

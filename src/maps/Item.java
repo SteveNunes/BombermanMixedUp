@@ -134,7 +134,7 @@ public class Item extends Entity{
 			
 		for (Item item : items.values()) {
 			if (--item.startInvFrames <= 0 && item.getCurrentFrameSetName().equals("ItemStandFrameSet") &&
-					MapSet.tileContainsProp(item.getTileCoord(), TileProp.EXPLOSION)) {
+					MapSet.tileContainsProp(item.getTileCoord(), TileProp.DAMAGE_ITEM)) {
 				removeItems.add(item);
 				Effect.runEffect(item.getPosition(), "FIRE_SKULL_EXPLOSION");
 			}
