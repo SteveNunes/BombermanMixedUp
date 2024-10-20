@@ -59,6 +59,7 @@ public class Explosion {
 	public static void drawExplosions() {
 		for (int p = explosions.size() - 1; p >= 0; p--) {
 			Explosion ex = explosions.get(p);
+			boolean nes = ((Bomb)ex.owner).isNesBomb();
 			if (++ex.count == 1) {
 				Direction dir = Direction.UP;
 				ex.fireDis = new int[] {0, 0, 0, 0};
@@ -77,8 +78,8 @@ public class Explosion {
 			}
 			else if (ex.count == 6)
 				ex.markTiles(false);
-			int z = ex.count / 5;
-			z = z < 5 ? z : 8 - z;
+			int z = ex.count / (nes ? 4 : 5);
+			z = z < (nes ? 4 : 5) ? z : (nes ? 7 : 8) - z;
 			if (z == -1) {
 				ex.markTiles(true);
 				explosions.remove(p--);
@@ -87,15 +88,15 @@ public class Explosion {
 				int x = ex.centerCoord.getX() * Main.TILE_SIZE,
 						y = ex.centerCoord.getY() * Main.TILE_SIZE;
 				if (ex.directions.size() == 4)
-					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.mainSprites, 16, 32 + z * 16, 16, 16, x, y, Main.TILE_SIZE, Main.TILE_SIZE); // Explosão central
+					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.mainSprites, 16, (nes ? 112 : 32) + z * 16, 16, 16, x, y, Main.TILE_SIZE, Main.TILE_SIZE); // Explosão central
 				if (ex.directions.contains(Direction.UP))
-					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions, z * 16, ex.fireDis[0] == ex.tileRange ? 0 : 16, 16, ex.fireDis[0] * 16, x, y - ex.fireDis[0] * Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[0] * Main.TILE_SIZE);
+					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions[nes ? 1 : 0], z * 16, ex.fireDis[0] == ex.tileRange ? 0 : 16, 16, ex.fireDis[0] * 16, x, y - ex.fireDis[0] * Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[0] * Main.TILE_SIZE);
 				if (ex.directions.contains(Direction.RIGHT))
-					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions, ex.fireDis[1] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[1] * 16, 16, x + Main.TILE_SIZE, y, ex.fireDis[1] * Main.TILE_SIZE, Main.TILE_SIZE, 180);
+					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions[nes ? 1 : 0], ex.fireDis[1] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[1] * 16, 16, x + Main.TILE_SIZE, y, ex.fireDis[1] * Main.TILE_SIZE, Main.TILE_SIZE, 180);
 				if (ex.directions.contains(Direction.DOWN))
-					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions, z * 16, ex.fireDis[2] == ex.tileRange ? 0 : 16, 16, ex.fireDis[2] * 16, x, y + Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[2] * Main.TILE_SIZE, 180);
+					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions[nes ? 1 : 0], z * 16, ex.fireDis[2] == ex.tileRange ? 0 : 16, 16, ex.fireDis[2] * 16, x, y + Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[2] * Main.TILE_SIZE, 180);
 				if (ex.directions.contains(Direction.LEFT))
-					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions, ex.fireDis[3] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[3] * 16, 16, x - ex.fireDis[3] * Main.TILE_SIZE, y, ex.fireDis[3] * Main.TILE_SIZE, Main.TILE_SIZE);
+					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions[nes ? 1 : 0], ex.fireDis[3] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[3] * 16, 16, x - ex.fireDis[3] * Main.TILE_SIZE, y, ex.fireDis[3] * Main.TILE_SIZE, Main.TILE_SIZE);
 			}
 		}
 	}

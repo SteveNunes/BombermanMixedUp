@@ -8,31 +8,60 @@ import enums.BombType;
 import enums.Direction;
 import enums.GameInputs;
 import enums.TileProp;
+import frameset.Tags;
 import javafx.scene.canvas.GraphicsContext;
 import maps.Item;
 import maps.MapSet;
 import tools.IniFiles;
+import tools.Sound;
 
 public class BomberMan extends Entity {
 	
+	private int bomberIndex;
+	private int palleteIndex;
+	private String setBombSound;
 	private List<Direction> pressedDirs;
 	private List<GameInputs> holdedInputs;
 	private List<GameInputs> queuedInputs;
 
-	public BomberMan(int bomberIndex) {
+	public BomberMan(int bomberIndex, int palleteIndex) {
 		super();
+		this.bomberIndex = bomberIndex;
+		this.palleteIndex = palleteIndex;
 		pressedDirs = new ArrayList<>();
 		holdedInputs = new ArrayList<>();
 		queuedInputs = new ArrayList<>();
 		String section = "" + bomberIndex;
 		setSpeed(1);
+		if (IniFiles.characters.read(section, "DefaultTags") != null)
+			setDefaultTags(Tags.loadTagsFromString(IniFiles.characters.read(section, "DefaultTags")));
 		for (String item : IniFiles.characters.getItemList(section)) {
 			if (item.length() > 9 && item.substring(0, 9).equals("FrameSet."))
 				addNewFrameSetFromString(item.substring(9), IniFiles.characters.read(section, item));
 		}
+		setBombSound = IniFiles.characters.read(section, "SetBombSound");
+		if (setBombSound == null)
+			setBombSound = "SetBomb";
 		setFrameSet("Stand");
+		if (IniFiles.characters.read(section, "DefaultStartTags") != null) {
+			Tags tags = Tags.loadTagsFromString(IniFiles.characters.read(section, "DefaultStartTags"));
+			tags.setRootSprite(getCurrentFrameSet().getSprite(0));
+			tags.run();
+		}
 	}
 	
+	public int getBomberIndex()
+		{ return bomberIndex; }
+
+	public void setBomberIndex(int bomberIndex)
+		{ this.bomberIndex = bomberIndex; }
+
+	public int getPalleteIndex()
+		{ return palleteIndex; }
+
+	public void setPalleteIndex(int palleteIndex)
+		{ this.palleteIndex = palleteIndex; }
+
 	public boolean isPressed(GameInputs input)
 		{ return holdedInputs.contains(input); }
 
@@ -49,8 +78,6 @@ public class BomberMan extends Entity {
 				pressedDirs.add(dir);
 		}
 		holdedInputs.add(input);
-		if (input == GameInputs.B && !Bomb.haveBombAt(null, getTileCoord()))
-			Bomb.addBomb(this, getTileCoord(), BombType.NORMAL, 4);
 	}
 	
 	public void keyRelease(GameInputs input) {
@@ -91,6 +118,10 @@ public class BomberMan extends Entity {
 				Direction dir = pressedDirs.get(0); 
 				setFrameSet("Moving");
 				setDirection(dir);
+			}
+			if (holdedInputs.contains(GameInputs.B) && !Bomb.haveBombAt(null, getTileCoord())) {
+				Bomb.addBomb(this, getTileCoord(), BombType.NORMAL, 4);
+				Sound.playWav(setBombSound);
 			}
 		}
 		super.run(gc, isPaused);

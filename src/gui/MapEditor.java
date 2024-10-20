@@ -227,7 +227,7 @@ public class MapEditor {
 		setMainCanvasMouseEvents();
 		rebuildTileSetCanvas();
 		updateTileSelectionArray();
-		bomber = new BomberMan(0);
+		bomber = new BomberMan(1, 0);
 		bomber.setPosition(MapSet.getInitialPlayerPosition(0));
 		mainLoop();
   }

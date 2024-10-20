@@ -17,6 +17,7 @@ public class Bomb extends Entity {
 	private static Map<TileCoord, List<Bomb>> bombs = new HashMap<>();
 	private static List<Bomb> bombList = new ArrayList<>();
 	
+	private boolean nesBomb;
 	private Entity owner;
 	BombType type;
 	private int timer;
@@ -30,6 +31,7 @@ public class Bomb extends Entity {
 		timer = bomb.timer;
 		fireDistance = bomb.fireDistance;
 		ownerIsOver = bomb.ownerIsOver;
+		nesBomb = bomb.nesBomb;
 	}
 
 	public Bomb(TileCoord coord, BombType type, int fireDistance)
@@ -37,10 +39,11 @@ public class Bomb extends Entity {
 	
 	public Bomb(Entity owner, TileCoord coord, BombType type, int fireDistance) {
 		super();
+		nesBomb = owner instanceof BomberMan && ((BomberMan)owner).getBomberIndex() == 0;
 		this.type = type;
 		this.fireDistance = fireDistance;
 		this.owner = owner;
-		int y = 32 + 16 * type.getValue();
+		int y = nesBomb ? 32 : 32 + 16 * type.getValue();
 		timer = type == BombType.REMOTE || type == BombType.SPIKED_REMOTE ? -1 : 180;
 		int ticksPerFrame = 17;
 		ownerIsOver = owner != null;
@@ -63,6 +66,9 @@ public class Bomb extends Entity {
 		setFrameSet("StandFrames");
 		setPosition(coord.getPosition(Main.TILE_SIZE));
 	}
+	
+	public boolean isNesBomb()
+		{ return nesBomb; }
 
 	public static void addBomb(TileCoord coord, BombType type, int fireDistance)
 		{ addBomb(null, coord, type, fireDistance, false); }

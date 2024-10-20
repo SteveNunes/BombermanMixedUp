@@ -6,7 +6,6 @@ import java.util.List;
 
 import frameset_tags.DelayTags;
 import frameset_tags.FrameTag;
-import frameset_tags.IncEntityPos;
 import tools.FrameTagLoader;
 import util.TimerFX;
 
@@ -37,10 +36,6 @@ public class Tags {
 	public Tags(Sprite rootSprite)
 		{ this(rootSprite, null); }
 	
-	public Tags(FrameTag tag) {
-		// TODO Auto-generated constructor stub
-	}
-
 	public Sprite getRootSprite()
 		{ return rootSprite; }
 	

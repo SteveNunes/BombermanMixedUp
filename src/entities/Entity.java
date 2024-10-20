@@ -15,6 +15,7 @@ import enums.Elevation;
 import enums.PassThrough;
 import enums.TileProp;
 import frameset.FrameSet;
+import frameset.Tags;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import maps.Brick;
@@ -34,6 +35,7 @@ public class Entity extends Position {
 	private double tempSpeed;
 	private Direction direction;
 	private Elevation elevation;
+	private Tags defaultTags;
 	private String currentFrameSetName;
 	private Entity linkedEntityFront;
 	private Entity linkedEntityBack;
@@ -69,6 +71,7 @@ public class Entity extends Position {
 		shadowOpacity = entity.shadowOpacity;
 		elapsedSteps = entity.elapsedSteps;
 		elapsedFrames = entity.elapsedFrames;
+		defaultTags = entity.defaultTags == null ? null : new Tags(defaultTags);
 		previewTileCoord = new TileCoord();
 		linkedEntityInfos = new LinkedList<>();
 		linkedEntityBack = null;
@@ -96,6 +99,7 @@ public class Entity extends Position {
 		linkedEntityBack = null;
 		linkedEntityFront = null;
 		linkedEntityOffset = null;
+		defaultTags = null;
 		shadow = null;
 		this.direction = direction;
 		speed = 0;
@@ -110,6 +114,12 @@ public class Entity extends Position {
 		tileWasChanged = false;
 	}
 	
+	public Tags getDefaultTags()
+		{ return defaultTags; }
+
+	public void setDefaultTags(Tags tags)
+		{ defaultTags = new Tags(tags); }
+
 	public boolean isBlockedMovement()
 		{ return blockedMovement; }
 	

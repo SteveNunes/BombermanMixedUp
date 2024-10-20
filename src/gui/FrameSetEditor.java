@@ -943,7 +943,6 @@ public class FrameSetEditor {
 					currentEntity.incPositionByDirection(currentEntity.getDirection());
 			}
 		}
-		entities.sort((e1, e2) -> e1.getCurrentFrameSet().getMaxY() - e2.getCurrentFrameSet().getMaxY());
 		entities.forEach(e -> e.run(isPaused));
 		if (isChangingSprite) {
 			Sprite sprite = selectedSprites.get(0);

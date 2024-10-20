@@ -22,7 +22,6 @@ public class FrameSet extends Position {
 	private int framesPerTick;
 	private int currentFrameIndex;
 	private int ticks;
-	private int maxY;
 	private boolean changedIndex;
 	private boolean stop;
 	private JumpMove jumpMove;
@@ -45,7 +44,6 @@ public class FrameSet extends Position {
 		frameSet.frames.forEach(frame -> frames.add(frame = new Frame(frame, this)));
 		this.sourceEntity = entity;
 		framesPerTick = frameSet.framesPerTick;
-		maxY = frameSet.maxY;
 		changedIndex = false;
 		stop = false;
 		currentFrameIndex = 0;
@@ -62,7 +60,6 @@ public class FrameSet extends Position {
 		stop = false;
 		currentFrameIndex = 0;
 		ticks = 0;
-		maxY = 0;
 		jumpMove = null;
 	}
 	
@@ -122,9 +119,6 @@ public class FrameSet extends Position {
 	public boolean isStopped()
 		{ return stop; }
 
-	public int getMaxY()
-		{ return maxY; }
-	
 	public List<Sprite> getSprites()
 		{ return sprites; }
 
@@ -147,6 +141,10 @@ public class FrameSet extends Position {
 			if (ticks == 0) {
 				if (isPaused)
 					ticks = 1;
+				if (currentFrameIndex == 0 && getSourceEntity().getDefaultTags() != null) {
+					getSourceEntity().getDefaultTags().setRootSprite(sprites.get(0));
+					getSourceEntity().getDefaultTags().run();
+				}
 				frames.get(currentFrameIndex).run();
 			}
 			if (changedIndex) {
@@ -158,7 +156,6 @@ public class FrameSet extends Position {
 				if (isStopped())
 					return;
 				sprite.draw(gc);
-				maxY = sprite.getMaxOutputSpriteY();
 			}
 			if (!isPaused && ++ticks >= framesPerTick) {
 				ticks = 0;
@@ -407,7 +404,6 @@ public class FrameSet extends Position {
 		frames.clear();
 		currentFrameIndex = 0;
 		ticks = 0;
-		maxY = 0;
 		changedIndex = false;
 		stop = false;
 		String[] frames = tags.split("\\|"); // Divisor de frames
@@ -445,7 +441,7 @@ public class FrameSet extends Position {
 		return fSet;
 	}
 
-	public void resetTags() {
+	public void TEMPresetTags() { // AParentemente nao esta em uso entao apagar se confirmado
 		frames.forEach(frame -> {
 			for (Tags tags : frame.getFrameSetTagsList())
 				for (FrameTag tag : tags.getFrameSetTags()) {

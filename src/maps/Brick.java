@@ -125,6 +125,7 @@ public class Brick extends Entity {
 				brick.setBrickShadow();
 			}
 			if (cFSet.equals("BrickBreakFrameSet") && brick.regenTimeInFrames > 0 &&
+					!MapSet.getTileProps(brick.getTileCoord()).contains(TileProp.DAMAGE_BRICK) &&
 					(brick.regenTimeInFrames > 30 || !MapSet.tileIsOccuped(brick.getTileCoord(), brick.getPassThrough())) && --brick.regenTimeInFrames == 0)
 						brick.setFrameSet("BrickRegenFrameSet");
 			brick.run();
@@ -144,7 +145,7 @@ public class Brick extends Entity {
 	}
 	
 	public void breakIt() {
-		if (getCurrentFrameSetName().equals("BrickStandFrameSet"))
+		if (!getCurrentFrameSetName().equals("BrickBreakFrameSet"))
 			setFrameSet("BrickBreakFrameSet");
 	}
 

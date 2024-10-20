@@ -21,7 +21,7 @@ public abstract class Materials {
 	public static WritableImage frames;
 	public static WritableImage auras;
 	public static WritableImage thunders;
-	public static WritableImage explosions;
+	public static WritableImage[] explosions;
 	public static WritableImage blankImage;
 	public static List<Image> characters;
 	public static List<Image> rides;
@@ -36,6 +36,7 @@ public abstract class Materials {
 		loadedSprites = new HashMap<>();
 		tempSprites = new HashMap<>();
 		rides = new ArrayList<>();
+		explosions = new WritableImage[2];
 		tileSets = new HashMap<>();
 		bomberSpriteIndex = new HashMap<>();
 		blankImage = new WritableImage(320, 240);
@@ -85,16 +86,18 @@ public abstract class Materials {
 		Canvas c = new Canvas(sz, sz);
 		GraphicsContext gc = c.getGraphicsContext2D();
 		gc.setImageSmoothing(false);
-		gc.clearRect(0, 0, sz, sz);
-		for (int d = 0; d < 2; d++)
-			for (int x = 0; x < 5; x++)
-				for (int y = 0; y < 15; y++) {
-					int sprX = y == 0 ? 48 : 32, sprY = 32 + 16 * x,
-							outX = d == 0 ? x * Main.TILE_SIZE : y * Main.TILE_SIZE,
-							outY = d == 0 ? y * Main.TILE_SIZE : 240 + x * Main.TILE_SIZE;
-					ImageUtils.drawImage(gc, mainSprites, sprX, sprY, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
-				}
-		explosions = Tools.getCanvasSnapshot(c);
+		for (int z = 0; z < 2; z++) {
+			gc.clearRect(0, 0, sz, sz);
+			for (int d = 0; d < 2; d++)
+				for (int x = 0; x < 5 - z; x++)
+					for (int y = 0; y < 15; y++) {
+						int sprX = y == 0 ? 48 : 32, sprY = 32 + 16 * x + 80 * z,
+								outX = d == 0 ? x * Main.TILE_SIZE : y * Main.TILE_SIZE,
+								outY = d == 0 ? y * Main.TILE_SIZE : 240 + x * Main.TILE_SIZE;
+						ImageUtils.drawImage(gc, mainSprites, sprX, sprY, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
+					}
+			explosions[z] = Tools.getCanvasSnapshot(c);
+		}
 	}
 
 	public static WritableImage loadImage(String imagePartialPath, Color removeColor) throws RuntimeException { // Informe apenas o nome do arquivo (com pasta ou nao) a partir da pasta sprites, sem o .png
