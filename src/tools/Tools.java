@@ -84,12 +84,15 @@ public abstract class Tools {
 		gc.setFill(clearColor);
 		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 		for (SpriteLayerType layerType : SpriteLayerType.getList())
-			if (drawParamsList.containsKey(layerType))
+			if (drawParamsList.containsKey(layerType)) {
+				if (layerType == SpriteLayerType.SPRITE)
+					drawParamsList.get(layerType).sort((p1, p2) -> p1.getFrontValue() - p2.getFrontValue());
 				for (DrawParams dp : drawParamsList.get(layerType)) {
 					if (backgroundEffect != null && layerType == SpriteLayerType.BACKGROUND)
 						backgroundEffect.apply(getTempCanvas());
 					dp.draw(gcTemp);
 				}
+			}
 		LightSpot.setMultipleLightSpots(gcTemp);
 		LightSpot.setMultipleLightSpotsInDarkness(gcTemp);
 		ColoredLightSpot.setMultipleColoredLightSpots(gcTemp);
@@ -227,96 +230,186 @@ public abstract class Tools {
 	}
 
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Integer rotateAngle, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, null, effects); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, null, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Double opacity, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, opacity, effects); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, opacity, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Integer rotateAngle, Double opacity, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, opacity, effects); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, opacity, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Integer rotateAngle, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, null, effects); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, null, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Double opacity, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, opacity, effects); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, opacity, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, null, effects); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, null, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, null, effects); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, null, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Integer rotateAngle)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, null, null); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, null, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Double opacity)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, opacity, null); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, opacity, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Integer rotateAngle, Double opacity)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, opacity, null); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, opacity, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Integer rotateAngle)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, null, null); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, null, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Double opacity)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, opacity, null); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, opacity, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, null, null); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, null, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight)
-		{ addDrawImageQueue(layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, null, null); }
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, null, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, Integer rotateAngle, Double opacity, DrawImageEffects effects) 
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, flip, rotateAngle, opacity, effects); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, rotateAngle, opacity, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, Integer rotateAngle, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, flip, rotateAngle, null, effects); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, rotateAngle, null, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, Double opacity, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, effects); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Integer rotateAngle, Double opacity, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, effects); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Integer rotateAngle, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, effects); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Double opacity, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, opacity, effects); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, opacity, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, effects); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, DrawImageEffects effects)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, null, effects); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, null, effects); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, Integer rotateAngle)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, flip, rotateAngle, null, null); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, rotateAngle, null, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, Double opacity)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, null); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Integer rotateAngle, Double opacity)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, null); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Integer rotateAngle)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, null); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Double opacity)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, opacity, null); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, opacity, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, null); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, null); }
 	
 	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer targetX, Integer targetY)
-		{ addDrawImageQueue(layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, null, null); }
+		{ addDrawImageQueue(0, layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, null, null); }
+	
+	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Integer rotateAngle, Double opacity, DrawImageEffects effects)
+		{ addDrawImageQueue(0, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, opacity, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Integer rotateAngle, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, null, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Double opacity, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, opacity, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Integer rotateAngle, Double opacity, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, opacity, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Integer rotateAngle, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, null, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Double opacity, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, opacity, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, null, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, null, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Integer rotateAngle)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, null, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Double opacity)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, opacity, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Integer rotateAngle, Double opacity)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, opacity, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Integer rotateAngle)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, rotateAngle, null, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, Double opacity)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, opacity, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, null, null, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight)
+		{ addDrawImageQueue(frontValue, layerType, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, null, null, null, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, Integer rotateAngle, Double opacity, DrawImageEffects effects) 
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, rotateAngle, opacity, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, Integer rotateAngle, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, rotateAngle, null, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, Double opacity, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Integer rotateAngle, Double opacity, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Integer rotateAngle, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Double opacity, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, opacity, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, DrawImageEffects effects)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, null, effects); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, Integer rotateAngle)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, rotateAngle, null, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip, Double opacity)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Integer rotateAngle, Double opacity)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Integer rotateAngle)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, null, rotateAngle, null, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, Double opacity)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, opacity, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY, ImageFlip flip)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, flip, null, null, null); }
+	
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer targetX, Integer targetY)
+		{ addDrawImageQueue(frontValue, layerType, image, null, null, null, null, targetX, targetY, null, null, null, null, null, null); }
 
-	public static void addDrawImageQueue(SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Integer rotateAngle, Double opacity, DrawImageEffects effects) {
+	public static void addDrawImageQueue(int frontValue, SpriteLayerType layerType, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Integer rotateAngle, Double opacity, DrawImageEffects effects) {
 		if (!drawParamsList.containsKey(layerType))
 			drawParamsList.put(layerType, new ArrayList<>());
-		drawParamsList.get(layerType).add(new DrawParams(image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, opacity, effects));
+		drawParamsList.get(layerType).add(new DrawParams(frontValue, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, opacity, effects));
 	}
 
 }
@@ -336,8 +429,9 @@ class DrawParams {
 	private Integer rotateAngle;
 	private Double opacity;
 	private DrawImageEffects effects;
+	private int frontValue;
 	
-	public DrawParams(Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Integer rotateAngle, Double opacity, DrawImageEffects effects) {
+	public DrawParams(int frontValue, Image image, Integer sourceX, Integer sourceY, Integer sourceWidth, Integer sourceHeight, Integer targetX, Integer targetY, Integer targetWidth, Integer targetHeight, ImageFlip flip, Integer rotateAngle, Double opacity, DrawImageEffects effects) {
 		this.image = image;
 		this.sourceX = sourceX;
 		this.sourceY = sourceY;
@@ -351,7 +445,11 @@ class DrawParams {
 		this.rotateAngle = rotateAngle;
 		this.opacity = opacity;
 		this.effects = effects;
+		this.frontValue = frontValue;
 	}
+	
+	public int getFrontValue()
+		{ return frontValue; }
 	
 	public void draw(GraphicsContext gc)
 		{ ImageUtils.drawImage(gc, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, opacity, effects); }

@@ -10,7 +10,6 @@ import enums.PassThrough;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import maps.MapSet;
-import maps.Tile;
 import tools.Materials;
 import tools.Tools;
 
@@ -88,15 +87,15 @@ public class Explosion {
 				int x = ex.centerCoord.getX() * Main.TILE_SIZE,
 						y = ex.centerCoord.getY() * Main.TILE_SIZE;
 				if (ex.directions.size() == 4)
-					Tools.addDrawImageQueue(SpriteLayerType.GROUND, Materials.mainSprites, 16, 32 + z * 16, 16, 16, x, y, Main.TILE_SIZE, Main.TILE_SIZE); // Explosão central
+					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.mainSprites, 16, 32 + z * 16, 16, 16, x, y, Main.TILE_SIZE, Main.TILE_SIZE); // Explosão central
 				if (ex.directions.contains(Direction.UP))
-					Tools.addDrawImageQueue(SpriteLayerType.GROUND, Materials.explosions, z * 16, ex.fireDis[0] == ex.tileRange ? 0 : 16, 16, ex.fireDis[0] * 16, x, y - ex.fireDis[0] * Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[0] * Main.TILE_SIZE);
+					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions, z * 16, ex.fireDis[0] == ex.tileRange ? 0 : 16, 16, ex.fireDis[0] * 16, x, y - ex.fireDis[0] * Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[0] * Main.TILE_SIZE);
 				if (ex.directions.contains(Direction.RIGHT))
-					Tools.addDrawImageQueue(SpriteLayerType.GROUND, Materials.explosions, ex.fireDis[1] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[1] * 16, 16, x + Main.TILE_SIZE, y, ex.fireDis[1] * Main.TILE_SIZE, Main.TILE_SIZE, 180);
+					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions, ex.fireDis[1] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[1] * 16, 16, x + Main.TILE_SIZE, y, ex.fireDis[1] * Main.TILE_SIZE, Main.TILE_SIZE, 180);
 				if (ex.directions.contains(Direction.DOWN))
-					Tools.addDrawImageQueue(SpriteLayerType.GROUND, Materials.explosions, z * 16, ex.fireDis[2] == ex.tileRange ? 0 : 16, 16, ex.fireDis[2] * 16, x, y + Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[2] * Main.TILE_SIZE, 180);
+					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions, z * 16, ex.fireDis[2] == ex.tileRange ? 0 : 16, 16, ex.fireDis[2] * 16, x, y + Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[2] * Main.TILE_SIZE, 180);
 				if (ex.directions.contains(Direction.LEFT))
-					Tools.addDrawImageQueue(SpriteLayerType.GROUND, Materials.explosions, ex.fireDis[3] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[3] * 16, 16, x - ex.fireDis[3] * Main.TILE_SIZE, y, ex.fireDis[3] * Main.TILE_SIZE, Main.TILE_SIZE);
+					Tools.addDrawImageQueue(SpriteLayerType.SPRITE, Materials.explosions, ex.fireDis[3] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[3] * 16, 16, x - ex.fireDis[3] * Main.TILE_SIZE, y, ex.fireDis[3] * Main.TILE_SIZE, Main.TILE_SIZE);
 			}
 		}
 	}
@@ -113,7 +112,7 @@ public class Explosion {
 					if (x > 0 || directions.size() == 4) {
 						if (MapSet.haveTilesOnCoord(coord) && !remove) {
 							TileDamage.addTileDamage(owner, coord, 44).setDamageToAll();
-							checkExplodedTile(coord);
+							MapSet.checkTileTrigger(owner, coord, TileProp.TRIGGER_BY_EXPLOSION);
 						}
 						if (x > 0 && (MapSet.getCurrentLayer().getTileProps(coord).contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord, passThroughAllBricks ? Arrays.asList(PassThrough.BRICK) : null)))
 							break;
@@ -121,14 +120,6 @@ public class Explosion {
 				}
 			}
 		}
-	}
-	
-	private void checkExplodedTile(TileCoord coord) {
-		Tile tile = MapSet.getFirstBottomTileFromCoord(coord);
-		if (tile.getStringTags() != null)
-			for (TileProp prop : MapSet.getCurrentLayer().getTileProps(coord))
-				if (prop == TileProp.TRIGGER_BY_EXPLOSION)
-					tile.runTags(owner);
 	}
 	
 }

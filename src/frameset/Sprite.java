@@ -43,6 +43,7 @@ public class Sprite {
 	private Integer spriteIndex;
 	private double alpha;
 	private int rotation;
+	public int frontValue;
 	private boolean visibleSprite;
 	private SpriteLayerType layerType;
 	private WavingImage wavingImage;
@@ -72,6 +73,7 @@ public class Sprite {
 		visibleSprite = sprite.visibleSprite;
 		wavingImage = sprite.wavingImage == null ? null : new WavingImage(sprite.wavingImage);
 		spriteScroll = sprite.spriteScroll == null ? null : new Position(sprite.spriteScroll);
+		frontValue = sprite.frontValue;
 	}
 	
 	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spriteIndex, int spritesPerLine) {
@@ -95,7 +97,8 @@ public class Sprite {
 		jumpMove = null;
 		gotoMove = null;
 		visibleSprite = true;
-		layerType = SpriteLayerType.GROUND;
+		layerType = SpriteLayerType.SPRITE;
+		frontValue = 0;
 	}
 
 	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, int spriteIndex, int spritesPerLine)
@@ -443,7 +446,7 @@ public class Sprite {
 				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 														 tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 			else
-				Tools.addDrawImageQueue(layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+				Tools.addDrawImageQueue((int)getSourceEntity().getY() + frontValue, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 																tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
 		}
 		scrollSprite();

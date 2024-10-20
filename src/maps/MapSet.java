@@ -532,6 +532,14 @@ public abstract class MapSet {
 						return false;
 		return true;
 	}
+	
+	public static void checkTileTrigger(Entity entity, TileCoord coord, TileProp triggerProp) {
+		Tile tile = getFirstBottomTileFromCoord(coord);
+		if (tile.getStringTags() != null)
+			for (TileProp prop : getTileProps(coord))
+				if (prop == triggerProp)
+					tile.runTags(entity);
+	}
 
 	public static boolean haveTilesOnCoord(TileCoord coord)
 		{ return getCurrentLayer().haveTilesOnCoord(coord); }

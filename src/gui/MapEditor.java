@@ -819,8 +819,6 @@ public class MapEditor {
 			canvasMouseDraw.x = (int)e.getX() + deslocX();
 			canvasMouseDraw.y = (int)e.getY() + deslocY();
 			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
-			if (Item.haveItemAt(canvasMouseDraw.tileCoord))
-				Item.getItemAt(canvasMouseDraw.tileCoord).pick();
 		});
 		canvasMain.setOnMousePressed(e -> {
 			canvasMouseDraw.startDragX = (int)e.getX();
@@ -978,20 +976,20 @@ public class MapEditor {
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
     Tools.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
 
-    // TEMP PARA EXIBIR QUADRADOS INDICANDO SE OS CANTOS DO TILE DO BOMBERMAN ESTAO LIVRES
-    Position[] cornersPos = bomber.getCornersPositions();
-    boolean[] corners = bomber.getFreeCorners();
-    for (int x = 0; x < 4; x++) { 
-    	int xx = (int)cornersPos[x].getX() * zoomMain,
-    			yy = (int)cornersPos[x].getY() * zoomMain;
-    	if (x % 2 != 0)
-    		xx -= 9;
-    	if (x > 1)
-    		yy -= 9;
-    	gcMain.setFill(corners[x] ? Color.GREEN : Color.RED);
-    	gcMain.fillRect(xx, yy, 10, 10);
+    if (!Misc.alwaysTrue()) { // TEMP PARA EXIBIR QUADRADOS INDICANDO SE OS CANTOS DO TILE DO BOMBERMAN ESTAO LIVRES
+	    Position[] cornersPos = bomber.getCornersPositions();
+	    boolean[] corners = bomber.getFreeCorners();
+	    for (int x = 0; x < 4; x++) { 
+	    	int xx = (int)cornersPos[x].getX() * zoomMain,
+	    			yy = (int)cornersPos[x].getY() * zoomMain;
+	    	if (x % 2 != 0)
+	    		xx -= 9;
+	    	if (x > 1)
+	    		yy -= 9;
+	    	gcMain.setFill(corners[x] ? Color.GREEN : Color.RED);
+	    	gcMain.fillRect(xx, yy, 10, 10);
+	    }
     }
-    // FIM DO TEMP
     
     drawBlockTypeMark();
     drawGridAndAim();

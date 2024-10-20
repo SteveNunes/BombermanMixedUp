@@ -343,6 +343,7 @@ public class FrameSet extends Position {
 			sprites.add(index, sprite);
 			frames.forEach(frame -> frame.getFrameSetTagsList().add(index, new Tags(sprite)));
 		}
+		sprite.frontValue = index;
 	}
 
 	public void addSpriteAtTop(Sprite sprite)
@@ -354,8 +355,10 @@ public class FrameSet extends Position {
 	public Sprite getSprite(int spriteIndex)
 		{ return sprites.get(spriteIndex); }
 	
-	public void setSprite(int index, Sprite sprite)
-		{ sprites.set(index, sprite); }
+	public void setSprite(int index, Sprite sprite) {
+		sprites.set(index, sprite);
+		sprite.frontValue = index;
+	}
 
 	public void removeSprite(int index) {
 		if (index < 0 || index >= getTotalSprites())
@@ -373,6 +376,7 @@ public class FrameSet extends Position {
 		int i = sprites.indexOf(sprite);
 		Tools.moveItemTo(sprites, sprite, index);
 		frames.forEach(frame -> Tools.moveItemTo(frame.getFrameSetTagsList(), frame.getFrameSetTagsList().get(i), index));
+		sprite.frontValue = index;
 	}
 	
 	public void moveSpriteToBack(Sprite sprite)

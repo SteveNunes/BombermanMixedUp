@@ -7,7 +7,10 @@ import java.util.List;
 import enums.BombType;
 import enums.Direction;
 import enums.GameInputs;
+import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
+import maps.Item;
+import maps.MapSet;
 import tools.IniFiles;
 
 public class BomberMan extends Entity {
@@ -91,7 +94,7 @@ public class BomberMan extends Entity {
 			}
 		}
 		super.run(gc, isPaused);
-		if (tileWasChanged()) {
+		if (!isBlockedMovement() && tileWasChanged()) {
 			if (pressedDirs.size() > 1) {
 				Direction dir = pressedDirs.get(1);
 				if (isPerfectlyFreeDir(dir)) {
@@ -101,6 +104,9 @@ public class BomberMan extends Entity {
 				}
 				setElapsedSteps(0);
 			}
+			MapSet.checkTileTrigger(this, getTileCoord(), TileProp.TRIGGER_BY_PLAYER);
+			if (Item.haveItemAt(getTileCoord()))
+				Item.getItemAt(getTileCoord()).pick();
 		}
 	}
 
