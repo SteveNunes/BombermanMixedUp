@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import frameset.FrameSet;
 import frameset.Sprite;
 
 public class SetObjPos extends FrameTag {
@@ -33,10 +32,8 @@ public class SetObjPos extends FrameTag {
 		{ return new SetObjPos(x, y); }
 
 	@Override
-	public void process(Sprite sprite) {
-		FrameSet frameSet = sprite.getSourceFrameSet();
-		frameSet.setPosition(x, y);
-	}
+	public void process(Sprite sprite)
+		{ sprite.getSourceFrameSet().setPosition(x, y); }
 
 }
 

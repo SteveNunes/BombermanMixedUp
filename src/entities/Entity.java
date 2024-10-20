@@ -11,8 +11,10 @@ import java.util.Map;
 import application.Main;
 import enums.Curse;
 import enums.Direction;
+import enums.DrawType;
 import enums.Elevation;
 import enums.PassThrough;
+import enums.SpriteLayerType;
 import enums.TileProp;
 import frameset.FrameSet;
 import frameset.Tags;
@@ -285,6 +287,13 @@ public class Entity extends Position {
 	public String getCurrentFrameSetName()
 		{ return currentFrameSetName; }
 
+	public boolean currentFrameSetNameIsEqual(String string) {
+		return currentFrameSetName.equals(string) ||
+					 (currentFrameSetName.length() > string.length() &&
+						currentFrameSetName.charAt(string.length()) == '.' &&
+						currentFrameSetName.substring(0, string.length()).equals(string));
+	}
+	
 	public FrameSet getCurrentFrameSet()
 		{ return getFrameSet(currentFrameSetName); }
 
@@ -346,13 +355,10 @@ public class Entity extends Position {
 				throw new RuntimeException("This entity have no FrameSets");
 			if (currentFrameSetName != null && frameSets.containsKey(currentFrameSetName)) {
 				processLinkedEntity();
-				applyShadow();
 				if (!blockedMovement)
 					moveEntity();
+				applyShadow();
 				frameSets.get(currentFrameSetName).run(gc, isPaused);
-				if (this instanceof BomberMan && !currentFrameSetName.substring(0, 4).equals("Dead") && 
-						MapSet.tileContainsProp(getTileCoord(), TileProp.DAMAGE_BOMB))
-							setFrameSet("Dead");
 			}
 			elapsedFrames++;
 		}
@@ -379,11 +385,11 @@ public class Entity extends Position {
 
 	private void applyShadow() {
 		if (haveShadow()) {
-			Tools.getTempGc().save();
-			Tools.getTempGc().setFill(Color.BLACK);
-			Tools.getTempGc().setGlobalAlpha(shadowOpacity);
-			Tools.getTempGc().fillOval(getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight(), getShadowWidth(), getShadowHeight());
-			Tools.getTempGc().restore();
+			Tools.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.SAVE);
+			Tools.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.SET_FILL, Color.BLACK);
+			Tools.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.SET_GLOBAL_ALPHA, shadowOpacity);
+			Tools.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.FILL_OVAL, getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight(), getShadowWidth(), getShadowHeight());
+			Tools.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.RESTORE);
 		}
 	}
 	

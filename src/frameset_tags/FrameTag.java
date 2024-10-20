@@ -2,7 +2,9 @@ package frameset_tags;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import entities.TileCoord;
@@ -13,6 +15,7 @@ public abstract class FrameTag {
 	// Mudar esse valor para 'true' no construtor da classe que herda FrameTag, se for uma Tag que só precisa ser lida uma unica vez.
 	public boolean deleteMeAfterFirstRead = false;
 	int triggerDelay = 0;
+	Map<String, Double> vars = new HashMap<>();
 	
 	public abstract FrameTag getNewInstanceOfThis();
 

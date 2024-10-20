@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import frameset.FrameSet;
 import frameset.Sprite;
 
 public class IncObjPos extends FrameTag {
@@ -34,9 +33,8 @@ public class IncObjPos extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		FrameSet frameSet = sprite.getSourceFrameSet();
-		frameSet.incX(incrementX);
-		frameSet.incY(incrementY);
+		sprite.getSourceFrameSet().incX(incrementX);
+		sprite.getSourceFrameSet().incY(incrementY);
 	}
 
 }

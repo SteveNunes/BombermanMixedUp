@@ -104,6 +104,10 @@ public class BomberMan extends Entity {
 	
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
+		if (!currentFrameSetNameIsEqual("Dead") && 
+				MapSet.tileContainsProp(getTileCoord(), TileProp.DAMAGE_BOMB))
+					setFrameSet("Dead");
+		super.run(gc, isPaused);
 		if (!isBlockedMovement()) {
 			if (!queuedInputs.isEmpty()) {
 				List<GameInputs> list = new ArrayList<>(queuedInputs);
@@ -123,21 +127,20 @@ public class BomberMan extends Entity {
 				Bomb.addBomb(this, getTileCoord(), BombType.NORMAL, 4);
 				Sound.playWav(setBombSound);
 			}
-		}
-		super.run(gc, isPaused);
-		if (!isBlockedMovement() && tileWasChanged()) {
-			if (pressedDirs.size() > 1) {
-				Direction dir = pressedDirs.get(1);
-				if (isPerfectlyFreeDir(dir)) {
-					dir = pressedDirs.get(0); 
-					pressedDirs.remove(0);
-					pressedDirs.add(dir);
+			if (tileWasChanged()) {
+				if (pressedDirs.size() > 1) {
+					Direction dir = pressedDirs.get(1);
+					if (isPerfectlyFreeDir(dir)) {
+						dir = pressedDirs.get(0); 
+						pressedDirs.remove(0);
+						pressedDirs.add(dir);
+					}
+					setElapsedSteps(0);
 				}
-				setElapsedSteps(0);
+				MapSet.checkTileTrigger(this, getTileCoord(), TileProp.TRIGGER_BY_PLAYER);
+				if (Item.haveItemAt(getTileCoord()))
+					Item.getItemAt(getTileCoord()).pick();
 			}
-			MapSet.checkTileTrigger(this, getTileCoord(), TileProp.TRIGGER_BY_PLAYER);
-			if (Item.haveItemAt(getTileCoord()))
-				Item.getItemAt(getTileCoord()).pick();
 		}
 	}
 

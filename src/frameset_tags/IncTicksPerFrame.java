@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import frameset.FrameSet;
 import frameset.Sprite;
 
 public class IncTicksPerFrame extends FrameTag {
@@ -27,10 +26,8 @@ public class IncTicksPerFrame extends FrameTag {
 		{ return new IncTicksPerFrame(increment); }
 	
 	@Override
-	public void process(Sprite sprite) {
-		FrameSet frameSet = sprite.getSourceFrameSet();
-		frameSet.incFramesPerTick(increment);
-	}
+	public void process(Sprite sprite)
+		{ sprite.getSourceFrameSet().incFramesPerTick(increment); }
 
 }
 

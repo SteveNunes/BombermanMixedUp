@@ -935,19 +935,19 @@ public class MapEditor {
 		else {
 			if (MapSet.getLayersMap().containsKey(MapSet.getCurrentLayerIndex())) {
 				getDrawGc().fillRect(0, 0, getCurrentLayer().getWidth(), getCurrentLayer().getHeight());
-				Tools.addDrawImageQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
+				Tools.addDrawQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
 			}
 			Explosion.drawExplosions();
-			if (checkBoxShowBricks.isSelected() && MapSet.getCurrentLayerIndex() == 26) {
-				Brick.drawBricks();
-				if (checkBoxShowItens.isSelected() && Misc.blink(200))
-					for (Brick brick : Brick.getBricks())
-						if (brick.getItem() != null)
-							Tools.addDrawImageQueue(SpriteLayerType.GROUND, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileX() * Main.TILE_SIZE, brick.getTileY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
-			}
 			Bomb.drawBombs();
 			Item.drawItems();
 			Effect.drawEffects();
+		}
+		if (checkBoxShowBricks.isSelected() && MapSet.getCurrentLayerIndex() == 26) {
+			Brick.drawBricks();
+			if (checkBoxShowItens.isSelected() && Misc.blink(200))
+				for (Brick brick : Brick.getBricks())
+					if (brick.getItem() != null)
+						Tools.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileX() * Main.TILE_SIZE, brick.getTileY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
 		}
 		bomber.run();
 		fragileTiles.values().forEach(e -> e.run());
@@ -957,7 +957,7 @@ public class MapEditor {
 				for (int x = 0; x < tileSelectionArray[0].length; x++) {
 					Tile tile = tileSelectionArray[y][x];
 					if (tile != null)
-						Tools.addDrawImageQueue(SpriteLayerType.GROUND, MapSet.getTileSetImage(),
+						Tools.addDrawQueue(SpriteLayerType.GROUND, MapSet.getTileSetImage(),
 								tile.spriteX, tile.spriteY,
 								Main.TILE_SIZE, Main.TILE_SIZE,
 								tile.outX, tile.outY,

@@ -65,11 +65,11 @@ public class Goto extends FrameTag {
 					index = 0;
 				else if (index >= frameSet.getTotalFrames())
 					index = frameSet.getTotalFrames() == 0 ? 0 : frameSet.getTotalFrames() - 1;
-				frameSet.setCurrentFrameIndex(index);
+				sprite.getSourceFrameSet().setCurrentFrameIndex(index);
 			}
 			else {
 				resetCycles();
-				frameSet.incFrameIndex();
+				sprite.getSourceFrameSet().incFrameIndex();
 			}
 		}
 	}

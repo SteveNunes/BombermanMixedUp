@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import frameset.FrameSet;
 import frameset.Sprite;
 
 public class SetObjY extends FrameTag {
@@ -27,10 +26,8 @@ public class SetObjY extends FrameTag {
 		{ return new SetObjY(value); }
 	
 	@Override
-	public void process(Sprite sprite) {
-		FrameSet frameSet = sprite.getSourceFrameSet();
-		frameSet.setY(value);
-	}
+	public void process(Sprite sprite)
+		{ sprite.getSourceFrameSet().setY(value); }
 
 }
 
