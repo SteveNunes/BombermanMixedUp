@@ -1272,6 +1272,7 @@ public class MapEditor {
 			MapSet.getTileListFromCurrentLayer().forEach(tile -> {
     		Color color;
     		if (!ok.contains(tile.getTileCoord())) {
+    			System.out.println(tile.getTileCoord() + " " + MapSet.getTileProps(tile.getTileCoord()));
     			List<TileProp> tileProps = MapSet.getTileProps(tile.getTileCoord());
 	    		if (tileProps.contains(TileProp.DAMAGE_PLAYER) ||
 	    				tileProps.contains(TileProp.DAMAGE_ENEMY) ||
