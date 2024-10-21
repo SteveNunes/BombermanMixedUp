@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import application.Main;
 import enums.BombType;
 import enums.Curse;
 import enums.ItemType;
@@ -66,10 +65,6 @@ public class Bomb extends Entity {
 				}
 			}
 		}
-		String fragileGroundFrameSet = "{SetSprSource;MainSprites;64;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}";
-		addNewFrameSetFromString("StandFrames", fragileGroundFrameSet);
-		setFrameSet("StandFrames");
-		setPosition(coord.getPosition(Main.TILE_SIZE));
 	}
 	
 	public boolean isNesBomb()

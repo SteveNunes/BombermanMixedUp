@@ -247,17 +247,6 @@
                      <children>
                         <VBox alignment="CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
                            <children>
-                              <Canvas fx:id="canvasFragileGround" height="48.0" width="48.0" />
-                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Chão frágil" />
-                              <Button fx:id="buttonSetFrameSetFragileGround" maxHeight="24.0" maxWidth="90.0" minHeight="24.0" minWidth="90.0" mnemonicParsing="false" prefHeight="24.0" prefWidth="90.0" text="Set Sprite" />
-                           </children>
-                        </VBox>
-                     </children>
-                  </HBox>
-                  <HBox prefWidth="100.0">
-                     <children>
-                        <VBox alignment="CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
-                           <children>
                               <Canvas fx:id="canvasRollingTile" height="48.0" width="48.0" />
                               <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Bloco rolante" />
                               <Button fx:id="buttonSetFrameSetBrickRolling" maxHeight="24.0" maxWidth="90.0" minHeight="24.0" minWidth="90.0" mnemonicParsing="false" prefHeight="24.0" prefWidth="90.0" text="Set FrameSet" />

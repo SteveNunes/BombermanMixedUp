@@ -76,6 +76,9 @@ public class Layer {
 		return tilesProps.get(coord);
 	}
 	
+	public boolean tileHaveProps(TileCoord coord)
+		{ return getTotalTileProps(coord) > 0; }
+
 	public int getTotalTileProps(TileCoord coord) {
 		if (!tilesProps.containsKey(coord))
 			return 0;

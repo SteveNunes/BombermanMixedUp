@@ -49,7 +49,6 @@ public abstract class MapSet {
 	private static Position wallTile;
 	private static Position groundWithBrickShadow;
 	private static Position groundWithWallShadow;
-	private static Position fragileGround;
 	private static Position mapMove;
 	public static Map<String, FrameSet> runningStageTags;
 	private static Map<String, FrameSet> preLoadedStageTags;
@@ -114,7 +113,6 @@ public abstract class MapSet {
 		groundWithBrickShadow = Misc.notNull(getTilePositionFromIni(iniFileMap, "GroundWithBrickShadow"), new Position(groundTile));
 		groundWithWallShadow = Misc.notNull(getTilePositionFromIni(iniFileMap, "GroundWithWallShadow"), new Position(groundTile));
 		wallTile = getTilePositionFromIni(iniFileMap, "WallTile");
-		fragileGround = getTilePositionFromIni(iniFileMap, "FragileGround");
 		currentLayerIndex = 26;
 		setRandomWalls();
 		rebuildAllLayers();
@@ -350,7 +348,7 @@ public abstract class MapSet {
 					coords.add(coord.getNewInstance());
 				for (TileCoord coord : coords) {
 					if (MapSet.getTileProps(coord).contains(TileProp.GROUND) && (int)MyMath.getRandom(0, 9) == 0) {
-						Tile tile = new Tile((int)wallTile.getX(), (int)wallTile.getY(), coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE);
+						Tile tile = new Tile(getLayer(26), (int)wallTile.getX(), (int)wallTile.getY(), coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE);
 						if (testCoordForInsertFixedBlock(coord)) {
 							recProp.put(coord, Arrays.asList(TileProp.WALL));
 							addWalls.add(tile);
@@ -444,9 +442,6 @@ public abstract class MapSet {
 	public static Position getGroundWithWallShadow()
 		{ return groundWithWallShadow; }
 
-	public static Position getFragileGround()
-		{ return fragileGround; }
-	
 	public static void rebuildAllLayers()
 		{ layers.keySet().forEach(layer -> layers.get(layer).buildLayer()); }
 	
@@ -461,9 +456,6 @@ public abstract class MapSet {
 
 	public static void setGroundWithWallShadow(Position groundWithWallShadow)
 		{ MapSet.groundWithWallShadow = new Position(groundWithWallShadow); }
-
-	public static void setFragileGround(Position fragileGround)
-		{ MapSet.fragileGround = new Position(fragileGround); }
 
 	public static Map<Integer, Layer> getLayersMap()
 		{ return layers; }
@@ -525,11 +517,12 @@ public abstract class MapSet {
 	public static boolean tileIsFree(Entity entity, TileCoord coord, List<PassThrough> passThrough) {
 		if (!haveTilesOnCoord(coord))
 			return false;
-		for (TileProp prop : getTileProps(coord))
-			if (TileProp.getCantCrossList(Elevation.ON_GROUND).contains(prop) ||
-				 (Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
-				 (Bomb.haveBombAt(entity, coord) && (passThrough == null || !passThrough.contains(PassThrough.BOMB))))
-						return false;
+		if (getTileProps(coord) != null)
+			for (TileProp prop : getTileProps(coord))
+				if (TileProp.getCantCrossList(Elevation.ON_GROUND).contains(prop) ||
+					 (Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
+					 (Bomb.haveBombAt(entity, coord) && (passThrough == null || !passThrough.contains(PassThrough.BOMB))))
+							return false;
 		return true;
 	}
 	
@@ -582,6 +575,9 @@ public abstract class MapSet {
 	public static boolean tileContainsProp(TileCoord coord, TileProp prop)
 		{ return getCurrentLayer().tileContainsProp(coord, prop); }
 	
+	public static boolean tileHaveProps(TileCoord coord)
+		{ return getTotalTileProps(coord) > 0; }
+
 	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough)
 		{ return tileIsOccuped(null, coord, passThrough); }
 	

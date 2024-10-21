@@ -99,8 +99,6 @@ public class MapEditor {
   @FXML
   private Button buttonSetFrameSetGroundWithWallShadow;
   @FXML
-  private Button buttonSetFrameSetFragileGround;
-  @FXML
   private Button buttonSetFrameSetBrickRolling;
   @FXML
   private Button buttonTileSetZoom1;
@@ -128,8 +126,6 @@ public class MapEditor {
   private Canvas canvasGroundWithWallShadow;
   @FXML
   private Canvas canvasGroundWithBrickShadow;
-  @FXML
-  private Canvas canvasFragileGround;
   @FXML
   private Canvas canvasRollingTile;
   @FXML
@@ -185,8 +181,6 @@ public class MapEditor {
 	private Tile[][] tileSelectionArray;
 	private List<KeyCode> holdedKeys;
 	private List<TileProp> copyProps;
-	private Map<TileCoord, Entity> fragileTiles;
-	private Entity sampleFragileTile;
 	private Map<TileCoord, List<Tile>> copiedTiles;
 	private List<Map<TileCoord, List<Tile>>> backupTiles;
 	private Font font;
@@ -207,7 +201,6 @@ public class MapEditor {
 		copiedTiles = new HashMap<>();
 		holdedKeys = new ArrayList<>();
 		backupTiles = new ArrayList<>();
-		fragileTiles = new HashMap<>();
 		font = new Font("Lucida Console", 15);
 		resetBricks = System.currentTimeMillis();
 		zoomMain = 3;
@@ -234,7 +227,7 @@ public class MapEditor {
   }
 	
 	void setAllCanvas() {
-		canvasList = new Canvas[] {canvasBrickStand, canvasBrickBreaking, canvasBrickRegen, canvasWallSprite, canvasGroundSprite, canvasGroundWithWallShadow, canvasGroundWithBrickShadow, canvasFragileGround, canvasRollingTile};
+		canvasList = new Canvas[] {canvasBrickStand, canvasBrickBreaking, canvasBrickRegen, canvasWallSprite, canvasGroundSprite, canvasGroundWithWallShadow, canvasGroundWithBrickShadow, canvasRollingTile};
 		for (Canvas canvas : canvasList)
 			canvas.getGraphicsContext2D().setImageSmoothing(false);
 		gcMain = canvasMain.getGraphicsContext2D();
@@ -345,11 +338,6 @@ public class MapEditor {
 		});
 		buttonSetFrameSetWallSprite.setOnAction(e -> {
 			MapSet.setWallTile(new Position(tileSelection.getMinX() * Main.TILE_SIZE, tileSelection.getMinY() * Main.TILE_SIZE));
-			MapSet.rebuildAllLayers();
-			setSampleTiles();
-		});
-		buttonSetFrameSetFragileGround.setOnAction(e -> {
-			MapSet.setFragileGround(new Position(tileSelection.getMinX() * Main.TILE_SIZE, tileSelection.getMinY() * Main.TILE_SIZE));
 			MapSet.rebuildAllLayers();
 			setSampleTiles();
 		});
@@ -552,30 +540,12 @@ public class MapEditor {
 		{ return Tools.getTempGc(); }
 
 	void setSampleTiles() {
-		tilePosition = new Position[] {MapSet.getWallTile(), MapSet.getGroundTile(), MapSet.getGroundWithWallShadow(), MapSet.getGroundWithBrickShadow(), MapSet.getFragileGround()};
+		tilePosition = new Position[] {MapSet.getWallTile(), MapSet.getGroundTile(), MapSet.getGroundWithWallShadow(), MapSet.getGroundWithBrickShadow()};
 		bricks = new Brick[] {new Brick(), new Brick(), new Brick(), new Brick()};
 		bricks[0].setFrameSet("BrickStandFrameSet");
 		bricks[1].setFrameSet("BrickBreakFrameSet");
 		bricks[2].setFrameSet("BrickRegenFrameSet");
 		bricks[3].setFrameSet("BrickRollingFrameSet");
-		fragileTiles.clear();
-		sampleFragileTile = null;
-		if (MapSet.getFragileGround() != null) {
-			int x1 = (int)MapSet.getGroundTile().getX(), y1 = (int)MapSet.getGroundTile().getY();
-			int x2 = (int)MapSet.getFragileGround().getX(), y2 = (int)MapSet.getFragileGround().getY();
-			String fragileGroundFrameSet = "{SetSprSource;/tileset/" + MapSet.getTileSetName() + ";" + x1 + ";" + y1 + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;30},{SetSprIndex;0}|{SetSprSource;/tileset/" + MapSet.getTileSetName() + ";" + x2 + ";" + y2 + ";16;16;0;0;0;0;16;16},{SetSprIndex;0}|{SetSprIndex;1}|{Goto;0}";
-			sampleFragileTile = new Entity();
-			sampleFragileTile.addNewFrameSetFromString("FragileGroundFrameSet", fragileGroundFrameSet);
-			sampleFragileTile.setFrameSet("FragileGroundFrameSet");
-		}
-		MapSet.getTileListFromCurrentLayer().forEach(tile -> {
-			if (MapSet.getTileProps(tile.getTileCoord()).contains(TileProp.FRAGILE_GROUND_LV1)) {
-				Entity fragileTile = new Entity(sampleFragileTile);
-				fragileTiles.put(tile.getTileCoord(), fragileTile);
-				fragileTile.setFrameSet("FragileGroundFrameSet");
-				fragileTile.setPosition(tile.getTileX() * Main.TILE_SIZE, tile.getTileY() * Main.TILE_SIZE);
-			}
-		});
 	}
 	
 	void setKeyboardEvents() {
@@ -879,15 +849,13 @@ public class MapEditor {
 		tileSelectionArray = new Tile[h > w ? h : w][h > w ? h : w];
 		for (int y = 0; y < tileSelection.getHeight(); y++)
 			for (int x = 0; x < tileSelection.getWidth(); x++) {
-				Tile tile = new Tile((int)tileSelection.getMinX() * Main.TILE_SIZE + x * Main.TILE_SIZE,
+				Tile tile = new Tile(getCurrentLayer(), (int)tileSelection.getMinX() * Main.TILE_SIZE + x * Main.TILE_SIZE,
 						(int)tileSelection.getMinY() * Main.TILE_SIZE + y * Main.TILE_SIZE,
 						canvasMouseDraw.getCoordX() * Main.TILE_SIZE + x * Main.TILE_SIZE,
 						canvasMouseDraw.getCoordY() * Main.TILE_SIZE + y * Main.TILE_SIZE,
-// NOTA: alterar para adicionar os props na coord do novo tile						new ArrayList<>(Arrays.asList(comboBoxTileType.getSelectionModel().getSelectedItem())),
 						flip, rotate, sliderTileOpacity.getValue());
 				tileSelectionArray[y][x] = tile;
 			}
-		
 		for (int y = 0; y < tileSelectionArray.length; y++)
 			for (int x = 0; x < tileSelectionArray.length; x++) {
 				int a, b;
@@ -904,8 +872,13 @@ public class MapEditor {
 					boolean vf = tile.flip == ImageFlip.VERTICAL || tile.flip == ImageFlip.BOTH,
 									hf = tile.flip == ImageFlip.HORIZONTAL || tile.flip == ImageFlip.BOTH;
 					tile.setCoord(new TileCoord(canvasMouseDraw.getCoordX() + (hf ? w - 1 - x : x), canvasMouseDraw.getCoordY() + (vf ? h - 1 - y : y)));
-					if (fixTilesOnLayer)
+					if (fixTilesOnLayer) {
 						getCurrentLayer().addTile(tile);
+						if (!MapSet.tileHaveProps(tile.getTileCoord())) {
+							MapSet.addTileProp(tile.getTileCoord(), comboBoxTileType.getSelectionModel().getSelectedItem());
+							System.out.println(MapSet.getTileProps(tile.getTileCoord()));
+						}
+					}
 				}
 			}
 		w = getCurrentLayer().getWidth();
@@ -951,7 +924,6 @@ public class MapEditor {
 						Tools.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileX() * Main.TILE_SIZE, brick.getTileY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
 		}
 		bomber.run();
-		fragileTiles.values().forEach(e -> e.run());
 		updateTileSelectionArray();
 		if (!playing) {
 			for (int y = 0; y < tileSelectionArray.length; y++)
@@ -1059,9 +1031,7 @@ public class MapEditor {
 			drawBrickSample(canvasList[n], bricks[n]);
 		for (int n = 3; n < 7; n++)
 			drawBrickSample(canvasList[n], tilePosition[n - 3]);
-		drawBrickSample(canvasFragileGround, sampleFragileTile);
-		drawBrickSample(canvasRollingTile, sampleFragileTile);
-		drawBrickSample(canvasList[8], bricks[3]);
+		drawBrickSample(canvasList[7], bricks[3]);
 		if (System.currentTimeMillis() >= resetBricks)
 			resetBricks += 1500;
 		gcTileSet.setFill(Color.BLACK);
@@ -1161,7 +1131,7 @@ public class MapEditor {
 				menuItem.setOnAction(e -> MapSet.replaceTileProps(coord, new ArrayList<>(copyProps)));
 				menu = new Menu("Remover");
 				mainMenu.getItems().add(menu);
-				menu.setDisable(MapSet.getTileProps(coord).isEmpty());
+				menu.setDisable(!MapSet.tileHaveProps(coord));
 				for (TileProp prop : MapSet.getTileProps(coord)) {
 					menuItem = new MenuItem(prop.name());
 					menu.getItems().addAll(menuItem);
@@ -1270,8 +1240,6 @@ public class MapEditor {
 		if (Brick.haveBrickAt(coord))
 			Brick.removeBrick(coord);
 		else if (getCurrentLayer().haveTilesOnCoord(coord)) {
-			if (MapSet.getTileProps(coord).contains(TileProp.FRAGILE_GROUND_LV1) && fragileTiles.containsKey(coord))
-				fragileTiles.remove(coord);
 			if (!removeOnlyTopSprite)
 				getCurrentLayer().removeAllTilesFromCoord(coord);
 			else
@@ -1339,9 +1307,6 @@ public class MapEditor {
 	    						 tileProps.contains(TileProp.GROUND_NO_BOMB) ||
 	    						 tileProps.contains(TileProp.GROUND_NO_FIRE))
 	    							 color = Color.LIGHTGOLDENRODYELLOW;
-	    		else if (tileProps.contains(TileProp.FRAGILE_GROUND_LV1) ||
-	    						 tileProps.contains(TileProp.FRAGILE_GROUND_LV2))
-	    							 color = Color.LIGHTPINK;
 	    		else if (tileProps.contains(TileProp.TRIGGER_BY_BLOCK) ||
 	    						 tileProps.contains(TileProp.TRIGGER_BY_BOMB) ||
 	    						 tileProps.contains(TileProp.TRIGGER_BY_EXPLOSION) ||
@@ -1395,8 +1360,8 @@ public class MapEditor {
 	    		gcMain.setFill(color);
 	    		gcMain.setLineWidth(1);
 	    		gcMain.setGlobalAlpha(0.6);
-		    	gcMain.fillRect(tile.getTileX() * Main.TILE_SIZE * zoomMain,
-		    									tile.getTileY() * Main.TILE_SIZE * zoomMain,
+		    	gcMain.fillRect(tile.getTileX() * Main.TILE_SIZE * zoomMain + deslocX(),
+		    									tile.getTileY() * Main.TILE_SIZE * zoomMain + deslocY(),
 		    									Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
 	    		gcMain.restore();
 	    		ok.add(tile.getTileCoord());
@@ -1451,18 +1416,27 @@ public class MapEditor {
 	
 	void saveCurrentMap() {
 		MapSet.getMapIniFile().clearSection("TILES");
+		Map<Layer, Set<TileCoord>> ok = new HashMap<>();
 		int n = 0;
-		for (Layer layer : MapSet.getLayersMap().values())
+		for (Layer layer : MapSet.getLayersMap().values()) {
+			if (!ok.containsKey(layer))
+				ok.put(layer, new HashSet<>());
 			for (Tile tile : layer.getTileList()) {
 				String props = "";
-				for (TileProp prop : MapSet.getTileProps(tile.getTileCoord())) {
-					if (!props.isEmpty())
-						props += "!";
-					props += prop.getValue();
+				if (!ok.get(layer).contains(tile.getTileCoord())) {
+					for (TileProp prop : layer.getTileProps(tile.getTileCoord())) {
+						if (!props.isEmpty())
+							props += "!";
+						props += prop.getValue();
+					}
+					ok.get(layer).add(tile.getTileCoord());
 				}
+				else
+					props = "" + TileProp.NOTHING.getValue();
 				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.spriteX / Main.TILE_SIZE) + "!" + (tile.spriteY / Main.TILE_SIZE) + " " + (tile.outX / Main.TILE_SIZE) + "!" + (tile.outY / Main.TILE_SIZE) + " " + tile.flip.name() + " " + tile.rotate + " " + props + " " + tile.opacity + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.getStringTags() == null ? "" : tile.getStringTags());
 				MapSet.getMapIniFile().write("TILES", "" + n++, s);
 			}
+		}
 		MapSet.getMapIniFile().write("SETUP", "CopyImageLayer", "" + MapSet.getCopyImageLayerIndex());
 		MapSet.getMapIniFile().write("SETUP", "Tiles", MapSet.getTileSetName());
 		String criterias = "";

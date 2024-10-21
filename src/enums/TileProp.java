@@ -11,8 +11,6 @@ public enum TileProp {
 	NOTHING(0), // Tiles que não tem função alguma
 	GROUND(1), // Chão normal, qualquer coisa passa por cima
 	GROUND_HOLE(2), // Buraco (Só pode atravessar voando ou pulando, explosão passa por cima)
-	FRAGILE_GROUND_LV1(3), // Chão intacto que raxa ao passar por cima
-	FRAGILE_GROUND_LV2(4), // Chão raxado que quebra e vira buraco ao passar por cima
 	GROUND_NO_PLAYER(5), // Chão normal, que player não passa
 	GROUND_NO_MOB(6), // Chão normal, que mob não passa
 	GROUND_NO_BOMB(7), // Chão normal, que não pode por bomba
@@ -85,7 +83,7 @@ public enum TileProp {
 	DAMAGE_BOMB(81),
 	DAMAGE_BRICK(82),
 	DAMAGE_ITEM(83);
-	// NOTA: VAGOS: 18, 24, 25, 26, 49 50 51
+	// NOTA: VAGOS: 3, 4, 18, 24, 25, 26, 49 50 51
 	
 	@SuppressWarnings("serial")
 	private static Map<Elevation, List<TileProp>> cantCross = new HashMap<>() {{
@@ -114,8 +112,6 @@ public enum TileProp {
 		put(0, NOTHING);
 		put(1, GROUND);
 		put(2, GROUND_HOLE);
-		put(3, FRAGILE_GROUND_LV1);
-		put(4, FRAGILE_GROUND_LV2);
 		put(5, GROUND_NO_PLAYER);
 		put(6, GROUND_NO_MOB);
 		put(7, GROUND_NO_BOMB);

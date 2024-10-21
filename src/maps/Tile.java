@@ -44,16 +44,16 @@ public class Tile {
 		effects = tile.effects == null ? null : new DrawImageEffects(tile.effects);
 	}
 	
-	public Tile(int spriteX, int spriteY, int outX, int outY)
-		{ this(spriteX, spriteY, outX, outY, ImageFlip.NONE, 0, 1, Color.TRANSPARENT, null); }
+	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY)
+		{ this(originLayer, spriteX, spriteY, outX, outY, ImageFlip.NONE, 0, 1, Color.TRANSPARENT, null); }
 
-	public Tile(int spriteX, int spriteY, int outX, int outY, ImageFlip flip, int rotate, double opacity)
-		{ this(spriteX, spriteY, outX, outY, flip, rotate, opacity, Color.TRANSPARENT, null); }
+	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY, ImageFlip flip, int rotate, double opacity)
+		{ this(originLayer, spriteX, spriteY, outX, outY, flip, rotate, opacity, Color.TRANSPARENT, null); }
 
-	public Tile(int spriteX, int spriteY, int outX, int outY, ImageFlip flip, int rotate, double opacity, Color tint)
-		{ this(spriteX, spriteY, outX, outY, flip, rotate, opacity, tint, null); }
+	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY, ImageFlip flip, int rotate, double opacity, Color tint)
+		{ this(originLayer, spriteX, spriteY, outX, outY, flip, rotate, opacity, tint, null); }
 	
-	public Tile(int spriteX, int spriteY, int outX, int outY, ImageFlip flip, int rotate, double opacity, Color tint, DrawImageEffects effects) {
+	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY, ImageFlip flip, int rotate, double opacity, Color tint, DrawImageEffects effects) {
 		this.spriteX = spriteX;
 		this.spriteY = spriteY;
 		this.outX = outX;
@@ -62,7 +62,7 @@ public class Tile {
 		this.rotate = rotate;
 		this.opacity = opacity;
 		this.effects = effects;
-		originLayer = null;
+		this.originLayer = originLayer;
 	}
 	
 	public Tile(Layer originLayer, String strFromIni) {
@@ -84,7 +84,7 @@ public class Tile {
 			flip = ImageFlip.valueOf(split[++n]);
 			rotate = Integer.parseInt(split[++n]);
 			split2 = split[++n].split("!");
-			if (!MapSet.isValidLayer(layer) || MapSet.getLayer(layer).haveTilesOnCoord(getTileCoord()))
+			if (!originLayer.haveTilesOnCoord(getTileCoord()) || !originLayer.tileHaveProps(getTileCoord()))
 				for (String s : split2) {
 					int v = Integer.parseInt(s);
 					if (TileProp.getPropFromValue(v) != null) {
@@ -92,11 +92,9 @@ public class Tile {
 						originLayer.addTileProp(getTileCoord(), prop);
 					}
 				}
-			else
-				MapSet.getLayer(layer).addTileProp(getTileCoord(), TileProp.NOTHING);
 			opacity = Double.parseDouble(split[++n]);
 			effects = Tools.loadEffectsFromString(MyConverters.arrayToString(split, ++n));
-			if (Main.mapEditor != null && split.length > 9)
+			if (split.length > 9)
 				setTileTagsFrameSetFromString(MyConverters.arrayToString(split, 9));
 		}
 		catch (Exception e)
@@ -150,7 +148,7 @@ public class Tile {
 		if (tile == null || (tile.spriteX == groundTile.getX() && tile.spriteY == groundTile.getY())) {
 			if (tile != null)
 				MapSet.getCurrentLayer().removeFirstTileFromCoord(coord);
-			tile = new Tile((int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition(Main.TILE_SIZE).getX(), (int)coord.getPosition(Main.TILE_SIZE).getY());
+			tile = new Tile(MapSet.getCurrentLayer(), (int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition(Main.TILE_SIZE).getX(), (int)coord.getPosition(Main.TILE_SIZE).getY());
 			MapSet.getCurrentLayer().addTile(tile);
 			if (updateLayer)
 				MapSet.getCurrentLayer().buildLayer();
@@ -169,7 +167,7 @@ public class Tile {
 				(tile.spriteX == wallShadow.getX() && tile.spriteY == wallShadow.getY())) {
 					if (tile != null)
 						MapSet.getCurrentLayer().removeFirstTileFromCoord(coord);
-					tile = new Tile((int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition(Main.TILE_SIZE).getX(), (int)coord.getPosition(Main.TILE_SIZE).getY());
+					tile = new Tile(tile.originLayer, (int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition(Main.TILE_SIZE).getX(), (int)coord.getPosition(Main.TILE_SIZE).getY());
 					MapSet.getCurrentLayer().addTile(tile);
 					if (updateLayer)
 						MapSet.getCurrentLayer().buildLayer();
