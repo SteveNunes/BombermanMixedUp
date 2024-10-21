@@ -118,16 +118,23 @@ public class Brick extends Entity {
 		List<Brick> removeBricks = new ArrayList<>();
 		for (Brick brick : bricks.values()) {
 			String cFSet = brick.getCurrentFrameSetName();
-			if (!cFSet.equals("BrickBreakFrameSet") && MapSet.tileContainsProp(brick.getTileCoord(), TileProp.DAMAGE_BRICK))
-				brick.breakIt();
-			else if (cFSet.equals("BrickRegenFrameSet") && !brick.getCurrentFrameSet().isRunning()) {
-				brick.setFrameSet("BrickStandFrameSet");
-				brick.setBrickShadow();
+			if (!cFSet.equals("BrickBreakFrameSet")) {
+				if (MapSet.tileContainsProp(brick.getTileCoord(), TileProp.DAMAGE_BRICK))
+					brick.breakIt();
+				else if (cFSet.equals("BrickRegenFrameSet") && !brick.getCurrentFrameSet().isRunning()) {
+					brick.setFrameSet("BrickStandFrameSet");
+					brick.setBrickShadow();
+				}
 			}
-			if (cFSet.equals("BrickBreakFrameSet") && brick.regenTimeInFrames > 0 &&
-					!MapSet.getTileProps(brick.getTileCoord()).contains(TileProp.DAMAGE_BRICK) &&
-					(brick.regenTimeInFrames > 30 || !MapSet.tileIsOccuped(brick.getTileCoord(), brick.getPassThrough())) && --brick.regenTimeInFrames == 0)
-						brick.setFrameSet("BrickRegenFrameSet");
+			else if (!brick.getCurrentFrameSet().isRunning()) {
+				if (brick.regenTimeInFrames > 0)
+					brick.regenTimeInFrames--;
+				if (brick.regenTimeInFrames == 0 &&
+						!MapSet.getTileProps(brick.getTileCoord()).contains(TileProp.DAMAGE_BRICK) &&
+						!MapSet.tileIsOccuped(brick.getTileCoord(), brick.getPassThrough()) &&
+						!Entity.haveAnyEntityAtCoord(brick.getTileCoord()))
+							brick.setFrameSet("BrickRegenFrameSet");
+			}
 			brick.run();
 			if (brick.isBreaked() && brick.regenTimeInFrames == 0) {
 				brick.unsetBrickShadow();

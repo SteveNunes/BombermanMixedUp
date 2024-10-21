@@ -4,9 +4,11 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import application.Main;
 import enums.Direction;
@@ -26,6 +28,8 @@ import tools.Tools;
 
 public class Entity extends Position {
 	
+	private static Map<TileCoord, Set<Entity>> entityList = new HashMap<>();
+
 	private Rectangle shadow;
 	private Map<String, FrameSet> frameSets;
 	private Map<String, FrameSet> freshFrameSets;
@@ -439,6 +443,7 @@ public class Entity extends Position {
 		tileWasChanged = false;
 		getFreeCorners(direction);
 		if (speed != 0) {
+			removeEntityFromList(getTileCoord(), this);
 			Position[] cornersPositions = getCornersPositions();
 			Position lu = cornersPositions [0], ru = cornersPositions[1], ld = cornersPositions[2], rd = cornersPositions[3];
 			boolean[] freeCorners = getFreeCorners(direction);
@@ -487,7 +492,7 @@ public class Entity extends Position {
 			}
 			if (isPerfectlyBlockedDir(getDirection()) && !isPerfectTileCentred())
 				setPosition(getTileCoord().getX() * Main.TILE_SIZE, getTileCoord().getY() * Main.TILE_SIZE);
-				
+			addEntityToList(getTileCoord(), this);
 		}
 	}
 
@@ -636,6 +641,30 @@ public class Entity extends Position {
 	public void restartCurrentFrameSet()
 		{ setFrameSet(currentFrameSetName);	}
 	
+	public Entity getFirstEntityFromCoord(TileCoord coord) {
+		if (entityList.containsKey(coord))
+			return entityList.get(coord).iterator().next();
+		return null;
+		
+	}
+	
+	public static void addEntityToList(TileCoord coord, Entity entity) {
+		if (!entityList.containsKey(coord))
+			entityList.put(coord, new HashSet<>());
+		entityList.get(coord).add(entity);
+	}
+
+	public static void removeEntityFromList(TileCoord coord, Entity entity) {
+		if (entityList.containsKey(coord))
+			entityList.get(coord).remove(entity);
+	}
+	
+	public static boolean entityIsAtCoord(Entity entity, TileCoord coord)
+		{ return entityList.containsKey(coord) && entityList.get(coord).contains(entity); }
+	
+	public static boolean haveAnyEntityAtCoord(TileCoord coord)
+		{ return entityList.containsKey(coord) && !entityList.get(coord).isEmpty(); }
+
 }
 
 class LinkedEntityInfos {

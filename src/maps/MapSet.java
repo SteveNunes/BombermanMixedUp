@@ -500,7 +500,7 @@ public abstract class MapSet {
 
 	public static String getIniMapName()
 		{ return iniMapName; }
-
+	
 	public static List<Tile> getTileListFromCurrentLayer()
 		{ return getCurrentLayer().getTileList(); }
 
