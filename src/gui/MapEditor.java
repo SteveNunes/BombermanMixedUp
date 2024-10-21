@@ -18,6 +18,7 @@ import entities.Effect;
 import entities.Entity;
 import entities.Explosion;
 import entities.TileCoord;
+import entities.TileDamage;
 import enums.BombType;
 import enums.Direction;
 import enums.GameInputs;
@@ -930,18 +931,18 @@ public class MapEditor {
 		if (playing) {
 			getDrawGc().fillRect(0, 0, MapSet.getLayer(26).getWidth(), MapSet.getLayer(26).getHeight());
 			MapSet.run();
-			Tools.runAllStuffs();
 		}
 		else {
 			if (MapSet.getLayersMap().containsKey(MapSet.getCurrentLayerIndex())) {
 				getDrawGc().fillRect(0, 0, getCurrentLayer().getWidth(), getCurrentLayer().getHeight());
 				Tools.addDrawQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
 			}
-			Explosion.drawExplosions();
-			Bomb.drawBombs();
-			Item.drawItems();
-			Effect.drawEffects();
 		}
+		Explosion.drawExplosions();
+		Bomb.drawBombs();
+		Item.drawItems();
+		Effect.drawEffects();
+		TileDamage.runTileDamages();
 		if (checkBoxShowBricks.isSelected() && MapSet.getCurrentLayerIndex() == 26) {
 			Brick.drawBricks();
 			if (checkBoxShowItens.isSelected() && Misc.blink(200))

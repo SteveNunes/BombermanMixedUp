@@ -2,7 +2,9 @@ package entities;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import enums.BombType;
 import enums.Curse;
@@ -29,7 +31,7 @@ public class BomberMan extends Entity {
 	private List<Item> gotItens;
 	private List<Bomb> bombs;
 	private List<Direction> pressedDirs;
-	private List<GameInputs> holdedInputs;
+	private Set<GameInputs> holdedInputs;
 	private List<GameInputs> queuedInputs;
 
 	public BomberMan(int bomberIndex, int palleteIndex) {
@@ -37,7 +39,7 @@ public class BomberMan extends Entity {
 		this.bomberIndex = bomberIndex;
 		this.palleteIndex = palleteIndex;
 		pressedDirs = new ArrayList<>();
-		holdedInputs = new ArrayList<>();
+		holdedInputs = new HashSet<>();
 		queuedInputs = new ArrayList<>();
 		bombs = new ArrayList<>();
 		gotItens = new ArrayList<>();
@@ -92,10 +94,6 @@ public class BomberMan extends Entity {
 	}
 	
 	public void keyRelease(GameInputs input) {
-		if (isBlockedMovement()) {
-			queuedInputs.remove(input);
-			return;
-		}
 		if (input.isDirection())
 			pressedDirs.removeAll(Arrays.asList(input.getDirection()));
 		holdedInputs.remove(input);

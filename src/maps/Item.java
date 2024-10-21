@@ -17,11 +17,15 @@ import javafx.scene.paint.Color;
 import objmoveutils.Position;
 import tools.Materials;
 import tools.RGBColor;
+import tools.Sound;
+import util.TimerFX;
 
 public class Item extends Entity{
 
 	private static Map<TileCoord, Item> items = new HashMap<>();
 	private static RGBColor itemEdigeColor;
+	private static ItemType[] itemTypes = {ItemType.BOMB_UP, ItemType.FIRE_UP, ItemType.FIRE_MAX, ItemType.SPEED_UP, ItemType.KICK_BOMB, ItemType.CURSE_SKULL, ItemType.POWER_GLOVE, ItemType.PASS_BOMB, ItemType.PASS_WALL, ItemType.PUNCH_BOMB, ItemType.PUSH_POWER, ItemType.LINED_BOMBS};
+	private static String[] itemSoundNames = {"BombUp", "FireUp", "FireUp", "SpeedUp", "BombKick", "Curse", "PowerGlove", "Special", "Special", "Special", "Special", "Special"};
 	
 	private Curse curse;
 	private ItemType itemType;
@@ -77,8 +81,8 @@ public class Item extends Entity{
 						+ "|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{SetEntityShadow;0;0;18;4;0.65}|{SetSprIndex;0}|{Goto;-4;1}"
 						+ "|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{SetEntityShadow;0;0;16;3;0.5}|{SetSprIndex;0}|{Goto;-4;1}|{Goto;0}";
 		String itemPickUpFrameSet =
-							"{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{SetTicksPerFrame;3},{IncOutputSprY;-8}"
-						+ "|{SetSprIndex;-},{IncOutputSprY;-1}|{SetSprIndex;" + itemIndex + "},{IncOutputSprY;-1}|{Goto;-2;8}";
+							"{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{SetTicksPerFrame;3},{IncOutputSprY;-12}"
+						+ "|{SetSprIndex;-},{IncOutputSprY;-1}|{SetSprIndex;" + itemIndex + "},{IncOutputSprY;-2}|{Goto;-2;7}";
 		addNewFrameSetFromString("ItemStandFrameSet", itemStandFrameSet);
 		addNewFrameSetFromString("ItemPickedUpFrameSet", itemPickUpFrameSet);
 		setFrameSet("ItemStandFrameSet");
@@ -158,9 +162,16 @@ public class Item extends Entity{
 		removeItems.forEach(item -> removeItem(item));
 	}
 	
-	public void pick() { // NOTA: Adicionar som ao pegar item
-		if (getCurrentFrameSetName().equals("ItemStandFrameSet"))
+	public void pick() {
+		if (getCurrentFrameSetName().equals("ItemStandFrameSet")) {
 			setFrameSet("ItemPickedUpFrameSet");
+			Sound.playWav("ItemPickUp");
+			for (int n = 0; n < itemTypes.length; n++)
+				if (itemType == itemTypes[n]) {
+					final String sound = itemSoundNames[n];
+					TimerFX.createTimer("ItemPickUp@" + hashCode(), 150, () -> Sound.playWav("voices/Item-" + sound));
+				}
+		}
 	}
 
 	public static boolean haveItemAt(TileCoord coord)

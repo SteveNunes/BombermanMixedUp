@@ -6,13 +6,3 @@ BrickStandFrameSet={SetSprSource;/tileset/Tile39;48;0;16;16;0;0;0;0;16;16},{SetT
 BrickBreakFrameSet={SetSprSource;/tileset/Tile39;96;80;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 BrickRegenFrameSet={SetSprSource;/tileset/Tile39;176;80;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}|{IncSprIndex;-1}
 GroundWithWallShadow=2 0
-
-[Effect-1]
-FrameSet_Default=0/FrameSpd"0.15"/Layer"0",1,2,goto3
-Sprite=Tiles 144 112 48 48 0 0,0,0,0 0
-Centre=-9
-
-[Effect-2]
-FrameSet_Default=0/FrameSpd"0.25"/Layer"0",-,goto1@9
-Sprite=Tiles 160 32 48 32 0 0,0,0,0 0
-Centre=-9

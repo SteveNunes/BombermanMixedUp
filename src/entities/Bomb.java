@@ -142,7 +142,7 @@ public class Bomb extends Entity {
 				bomb.timer = 0;
 			if (bomb.timer == 0) {
 				bomb.isActive = false;
-				Sound.playWav("Explosion" + (bomb.nesBomb ? "" : bomb.fireDistance < 3 ? "1" : (int)(bomb.fireDistance / 3)));
+				Sound.playWav("explosion/Explosion" + (bomb.nesBomb ? "" : bomb.fireDistance < 3 ? "1" : (int)(bomb.fireDistance / 3)));
 				Explosion.addExplosion(bomb, bomb.getTileCoord(), bomb.fireDistance, bomb.type == BombType.SPIKED || bomb.type == BombType.SPIKED_REMOTE);
 				removeBombs.add(bomb);
 			}
