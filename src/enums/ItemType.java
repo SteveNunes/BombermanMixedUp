@@ -10,7 +10,7 @@ public enum ItemType {
 	SPIKE_BOMB(4),
 	REMOTE_BOMB(5),
 	P_BOMB(6),
-	MINE_BOMB(7),
+	LAND_MINE_BOMB(7),
 	RUBBER_BOMB(8),
 	FOLLOW_BOMB(9),
 	MAGNET_BOMB(10),
@@ -57,7 +57,7 @@ public enum ItemType {
 	
 	private int value;
 	private static ItemType[] list = {null, BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB, REMOTE_BOMB,
-			P_BOMB, MINE_BOMB, RUBBER_BOMB, FOLLOW_BOMB, MAGNET_BOMB, MAGMA_BOMB, HEART_BOMB,
+			P_BOMB, LAND_MINE_BOMB, RUBBER_BOMB, FOLLOW_BOMB, MAGNET_BOMB, MAGMA_BOMB, HEART_BOMB,
 			SENSOR_BOMB, SPIKE_REMOTE_BOMB, PASS_BOMB, PASS_WALL, LINED_BOMBS, KICK_BOMB,
 			PUNCH_BOMB, POWER_GLOVE, PUSH_POWER, EXTRA_LIVE, HEART_UP, ARMOR, TIME_STOP,
 			ICECREAM, APPLE, ORANGE, BANANA, GOHAN, CAKE_SLICE, PICO_HAMMER, POPSILE,
@@ -93,5 +93,11 @@ public enum ItemType {
 			throw new RuntimeException(itemId + " - Invalid item ID");
 		return list[itemId];
 	}
+	
+	public boolean isBomb() {
+		return this == FOLLOW_BOMB || this == HEART_BOMB || this == MAGMA_BOMB ||
+					 this == MAGNET_BOMB || this == LAND_MINE_BOMB || this == REMOTE_BOMB ||
+					 this == RUBBER_BOMB || this == SENSOR_BOMB || this == SPIKE_BOMB ||
+					 this == SPIKE_REMOTE_BOMB;	}
 	
 }

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import application.Main;
-import enums.Curse;
 import enums.Direction;
 import enums.DrawType;
 import enums.Elevation;
@@ -32,7 +31,6 @@ public class Entity extends Position {
 	private Map<String, FrameSet> freshFrameSets;
 	private List<LinkedEntityInfos> linkedEntityInfos;
 	private List<PassThrough> passThrough;
-	private List<Curse> curses;
 	private double speed;
 	private double tempSpeed;
 	private Direction direction;
@@ -50,6 +48,7 @@ public class Entity extends Position {
 	private int elapsedSteps;
 	private int elapsedFrames;
 	private boolean tileWasChanged;
+	private boolean isVisible;
 	
 	public Entity(Entity entity) {
 		super(entity.getPosition());
@@ -58,7 +57,6 @@ public class Entity extends Position {
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
 		passThrough = new ArrayList<>(entity.passThrough);
-		curses = new ArrayList<>(entity.curses);
 		entity.frameSets.keySet().forEach(fSetName -> {
 			frameSets.put(fSetName, new FrameSet(entity.frameSets.get(fSetName), this));
 			freshFrameSets.put(fSetName, new FrameSet(entity.freshFrameSets.get(fSetName), this));
@@ -73,6 +71,7 @@ public class Entity extends Position {
 		shadowOpacity = entity.shadowOpacity;
 		elapsedSteps = entity.elapsedSteps;
 		elapsedFrames = entity.elapsedFrames;
+		isVisible = entity.isVisible;
 		defaultTags = entity.defaultTags == null ? null : new Tags(defaultTags);
 		previewTileCoord = new TileCoord();
 		linkedEntityInfos = new LinkedList<>();
@@ -93,7 +92,6 @@ public class Entity extends Position {
 		setTileSize(Main.TILE_SIZE);
 		currentFrameSetName = null;
 		passThrough = new ArrayList<>();
-		curses = new ArrayList<>();
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
 		previewTileCoord = new TileCoord();
@@ -111,6 +109,7 @@ public class Entity extends Position {
 		elapsedSteps = 0;
 		elapsedFrames = 0;
 		noMove = false;
+		isVisible = true;
 		isDisabled = false;
 		blockedMovement = false;
 		tileWasChanged = false;
@@ -128,17 +127,6 @@ public class Entity extends Position {
 	public void setBlockedMovement(boolean state)
 		{ blockedMovement = state; }
 	
-	public List<Curse> getCurses()
-		{ return curses; }
-	
-	public void addCurse(Curse curse) {
-		if (!curses.contains(curse))
-			curses.add(curse);
-	}
-	
-	public void removeCurse(Curse curse)
-		{ curses.remove(curse); }
-	
 	public List<PassThrough> getPassThrough()
 		{ return passThrough; }
 
@@ -149,6 +137,12 @@ public class Entity extends Position {
 	
 	private void removePassThrough(PassThrough pass)
 		{ passThrough.remove(pass); }
+	
+	public void setVisible(boolean state)
+		{ isVisible = state; }
+	
+	public boolean isVisible()
+		{ return isVisible; }
 	
 	public void setPassThroughBrick(boolean state) {
 		if (state)
@@ -491,6 +485,9 @@ public class Entity extends Position {
 						elapsedSteps++;
 						tileWasChanged = true;
 			}
+			if (isPerfectlyBlockedDir(getDirection()) && !isPerfectTileCentred())
+				setPosition(getTileCoord().getX() * Main.TILE_SIZE, getTileCoord().getY() * Main.TILE_SIZE);
+				
 		}
 	}
 

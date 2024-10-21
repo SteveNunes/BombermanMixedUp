@@ -9,6 +9,7 @@ import application.Main;
 import entities.Effect;
 import entities.Entity;
 import entities.TileCoord;
+import enums.Curse;
 import enums.ItemType;
 import enums.TileProp;
 import javafx.scene.image.WritableImage;
@@ -22,6 +23,7 @@ public class Item extends Entity{
 	private static Map<TileCoord, Item> items = new HashMap<>();
 	private static RGBColor itemEdigeColor;
 	
+	private Curse curse;
 	private ItemType itemType;
 	private TileCoord coord;
 	private int startInvFrames;
@@ -80,7 +82,17 @@ public class Item extends Entity{
 		addNewFrameSetFromString("ItemStandFrameSet", itemStandFrameSet);
 		addNewFrameSetFromString("ItemPickedUpFrameSet", itemPickUpFrameSet);
 		setFrameSet("ItemStandFrameSet");
+		if (itemType == ItemType.CURSE_SKULL)
+			curse = Curse.getRandom();
+		else
+			curse = null;
 	}
+	
+	public boolean isCurse()
+		{ return curse != null; }
+	
+	public Curse getCurse()
+		{ return curse; }
 	
 	public ItemType getItemType()
 		{ return itemType; }

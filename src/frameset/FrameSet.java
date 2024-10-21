@@ -152,11 +152,12 @@ public class FrameSet extends Position {
 				run(gc, isPaused);
 				return;
 			}
-			for (Sprite sprite : sprites) {
-				if (isStopped())
-					return;
-				sprite.draw(gc);
-			}
+			if (getSourceEntity().isVisible())
+				for (Sprite sprite : sprites) {
+					if (isStopped())
+						return;
+					sprite.draw(gc);
+				}
 			if (!isPaused && ++ticks >= framesPerTick) {
 				ticks = 0;
 				currentFrameIndex++;

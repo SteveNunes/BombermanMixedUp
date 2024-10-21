@@ -5,8 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import enums.BombType;
+import enums.Curse;
 import enums.Direction;
 import enums.GameInputs;
+import enums.ItemType;
 import enums.TileProp;
 import frameset.Tags;
 import javafx.scene.canvas.GraphicsContext;
@@ -17,9 +19,15 @@ import tools.Sound;
 
 public class BomberMan extends Entity {
 	
+	private Curse curse;
+	private int curseDuration = Curse.getDuration(curse);;
+	private int fireRange;
+	private int maxBombs;
 	private int bomberIndex;
 	private int palleteIndex;
 	private String setBombSound;
+	private List<Item> gotItens;
+	private List<Bomb> bombs;
 	private List<Direction> pressedDirs;
 	private List<GameInputs> holdedInputs;
 	private List<GameInputs> queuedInputs;
@@ -31,8 +39,11 @@ public class BomberMan extends Entity {
 		pressedDirs = new ArrayList<>();
 		holdedInputs = new ArrayList<>();
 		queuedInputs = new ArrayList<>();
+		bombs = new ArrayList<>();
+		gotItens = new ArrayList<>();
+		curseDuration = 0;
 		String section = "" + bomberIndex;
-		setSpeed(1);
+		updateStatusByItens();
 		if (IniFiles.characters.read(section, "DefaultTags") != null)
 			setDefaultTags(Tags.loadTagsFromString(IniFiles.characters.read(section, "DefaultTags")));
 		for (String item : IniFiles.characters.getItemList(section)) {
@@ -104,6 +115,11 @@ public class BomberMan extends Entity {
 	
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
+		for (int n = 0; n < bombs.size(); n++)
+			if (!bombs.get(n).isActive())
+				bombs.remove(n--);
+		if (curse != null && --curseDuration == 0)
+			removeCurse();
 		if (!currentFrameSetNameIsEqual("Dead") && 
 				MapSet.tileContainsProp(getTileCoord(), TileProp.DAMAGE_BOMB))
 					setFrameSet("Dead");
@@ -121,12 +137,10 @@ public class BomberMan extends Entity {
 			else {
 				Direction dir = pressedDirs.get(0); 
 				setFrameSet("Moving");
-				setDirection(dir);
+				setDirection(curse == Curse.REVERSED ? dir.getReverseDirection() : dir);
 			}
-			if (holdedInputs.contains(GameInputs.B) && !Bomb.haveBombAt(null, getTileCoord())) {
-				Bomb.addBomb(this, getTileCoord(), BombType.NORMAL, 4);
-				Sound.playWav(setBombSound);
-			}
+			if (holdedInputs.contains(GameInputs.B))
+				setBomb();
 			if (tileWasChanged()) {
 				if (pressedDirs.size() > 1) {
 					Direction dir = pressedDirs.get(1);
@@ -139,9 +153,73 @@ public class BomberMan extends Entity {
 				}
 				MapSet.checkTileTrigger(this, getTileCoord(), TileProp.TRIGGER_BY_PLAYER);
 				if (Item.haveItemAt(getTileCoord()))
-					Item.getItemAt(getTileCoord()).pick();
+					pickItem(Item.getItemAt(getTileCoord()));
 			}
 		}
+	}
+
+	public void setBomb() {
+		if (bombs.size() < maxBombs && MapSet.tileIsFree(getTileCoord())) {
+			BombType type = !gotItens.isEmpty() && gotItens.get(0).getItemType().isBomb() ?
+											Bomb.getBombTypeFromItem(gotItens.get(0)) : BombType.NORMAL;
+			bombs.add(Bomb.addBomb(this, getTileCoord(), type, fireRange));
+			Sound.playWav(setBombSound);
+		}
+	}
+
+	public void pickItem(Item item) {
+		item.pick();
+		if (item.getItemType().isBomb() && !gotItens.isEmpty())
+			gotItens.add(0, item);
+		else
+			gotItens.add(item);
+		updateStatusByItens();
+	}
+
+	public void updateStatusByItens() {
+		fireRange = 2;
+		maxBombs = 1;
+		double speed = 0.75;
+		curse = null;
+		gotItens.forEach(item -> {
+			ItemType type = item.getItemType();
+			if (item.isCurse())
+				setCurse(item.getCurse());
+			else if (type == ItemType.BOMB_UP)
+				maxBombs++;
+			else if (type == ItemType.FIRE_MAX)
+				fireRange = 9;
+			else if (type == ItemType.FIRE_UP && fireRange < 9)
+				fireRange++;
+		});
+		setSpeed(speed);
+		if (curse == null || curse != Curse.INVISIBLE)
+			setVisible(true);
+	}
+
+	public void removeCurse() {
+		curse = null;
+		updateStatusByItens();
+	}
+	
+	public Curse getCurse()
+		{ return curse; }
+	
+	public void setCurse(Curse curse) { // FALTA: Implementar BLINDNESS e SWAP_PLAYERS
+		this.curse = curse;
+		curseDuration = Curse.getDuration(curse);
+		if (curse == Curse.MIN_BOMB)
+			maxBombs = 1;
+		else if (curse == Curse.MIN_FIRE)
+			fireRange = 1;
+		else if (curse == Curse.INVISIBLE)
+			setVisible(false);
+		else if (curse == Curse.MIN_SPEED)
+			setSpeed(0.25);
+		else if (curse == Curse.NO_BOMB)
+			maxBombs = 0;
+		else if (curse == Curse.ULTRA_SPEED)
+			setSpeed(4);
 	}
 
 }
