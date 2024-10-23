@@ -16,10 +16,10 @@ public class DoJump extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + jumpStrenght + ";" + strenghtMultipiler + ";" + speedInFrames + "}"; }
+		{ return "{" + getClassName(this) + ";" + jumpStrenght + ";" + strenghtMultipiler + ";" + speedInFrames + "}"; }
 
 	public DoJump(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 3);
+		String[] params = validateStringTags(this, tags, 3);
 		int n = 0;
 		try {
 			jumpStrenght = Double.parseDouble(params[n++]);

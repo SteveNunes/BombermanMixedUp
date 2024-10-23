@@ -1,18 +1,25 @@
 package maps;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import application.Main;
 import entities.TileCoord;
 import enums.SpriteLayerType;
 import enums.TileProp;
+import frameset.FrameSet;
+import frameset.Tags;
+import frameset_tags.FrameTag;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
+import objmoveutils.Position;
 import tools.Materials;
 import tools.Tools;
 
@@ -20,6 +27,8 @@ public class Layer {
 	
 	private Map<TileCoord, List<Tile>> tilesMap;
 	private Map<TileCoord, List<TileProp>> tilesProps;
+	private Set<TileCoord> disabledTileTags;
+	private Map<TileCoord, FrameSet> tilesTags;
 	private List<Tile> tileList;
 	private int layer;
 	private int width;
@@ -39,14 +48,18 @@ public class Layer {
 	public Layer(List<String> tileInfos) {
 		tilesMap = new HashMap<>();
 		tilesProps = new HashMap<>();
+		tilesTags = new HashMap<>();
+		disabledTileTags = new HashSet<>();
 		tileList = new ArrayList<>();
 		if (tileInfos != null)
 			for (String s : tileInfos) {
 				String[] split = s.split(" ");
-				try
-					{ layerType = SpriteLayerType.valueOf(split[1]); }
-				catch (Exception e)
-					{ throw new RuntimeException(split[1] + " - Invalid SpriteLayerType param"); }
+				if (!split[1].equals("-")) {
+					try
+						{ layerType = SpriteLayerType.valueOf(split[1]); }
+					catch (Exception e)
+						{ throw new RuntimeException(split[1] + " - Invalid SpriteLayerType param"); }
+				}
 				try
 					{ layer = Integer.parseInt(split[0]); }
 				catch (Exception e)
@@ -93,6 +106,58 @@ public class Layer {
 	
 	public Map<TileCoord, List<TileProp>> getTilePropsMap()
 		{ return tilesProps; }
+	
+	public boolean tileHaveTags(TileCoord coord)
+		{ return tilesMap.containsKey(coord) && tilesTags.containsKey(coord); }
+
+	public void setTileTagsFromString(TileCoord coord, String stringTileTags)
+		{ setTileTagsFromString(coord, stringTileTags, getFirstBottomTileFromCoord(coord)); }
+	
+	void setTileTagsFromString(TileCoord coord, String stringTileTags, Tile tile) {
+		tilesTags.remove(coord);
+		int x = coord.getX() * Main.TILE_SIZE, y = coord.getY() * Main.TILE_SIZE;
+		FrameSet frameSet = new FrameSet(new Position(x, y));
+		frameSet.loadFromString(stringTileTags);
+		frameSet.getSprite(0).setOutputSpritePos(new Rectangle(x, y, 0, 0));
+		tilesTags.put(coord.getNewInstance(), frameSet);
+		if (tile != null)
+			tile.stringTileTags = stringTileTags;
+	}
+	
+	public void setTileTags(TileCoord coord, Tags tags) {
+		if (!tilesMap.containsKey(coord))
+			throw new RuntimeException(coord + " - Invalid tile coordinate");
+		setTileTagsFromString(coord, tags.toString());
+	}
+	
+	public Tags getTileTags(TileCoord coord) {
+		if (!tilesMap.containsKey(coord))
+			throw new RuntimeException(coord + " - Invalid tile coordinate");
+		if (!tilesTags.containsKey(coord))
+			throw new RuntimeException(coord + " - Tile have no tags");
+		return tilesTags.get(coord).getFrameSetTagsFrom(0);
+	}
+	
+	public void removeTileTag(TileCoord coord, String tagStr) {
+		FrameTag tag = FrameTag.getFrameTagClassFromString(tilesTags.get(coord).getFrameSetTagsFrom(0).getTags(), tagStr);
+		if (tag != null)
+			removeTileTag(coord, tag);
+	}
+
+	public void removeTileTag(TileCoord coord, FrameTag tag) {
+		if (!tilesMap.containsKey(coord))
+			throw new RuntimeException(coord + " - Invalid tile coordinate");
+		if (!tilesTags.containsKey(coord))
+			throw new RuntimeException(coord + " - Tile have no tags");
+		tilesTags.get(coord).getFrameSetTagsFrom(0).removeTag(tag);
+		if (tilesTags.get(coord).getFrameSetTagsFrom(0).getTotalTags() == 0)
+			clearTileTags(coord);
+	}
+
+	public void clearTileTags(TileCoord coord) {
+		getFirstBottomTileFromCoord(coord).stringTileTags = null;
+		tilesTags.remove(coord);
+	}
 
 	public void buildLayer() {
 		if (tilesMap.isEmpty()) {
@@ -206,6 +271,18 @@ public class Layer {
 		tilesMap.remove(coord);
 	}
 	
+	public void disableTileTags(TileCoord coord)
+		{ disabledTileTags.add(coord); }
+	
+	public void enableTileTags(TileCoord coord)
+		{ disabledTileTags.remove(coord); }
+	
+	public boolean tileTagsIsDisabled(TileCoord coord)
+		{ return disabledTileTags.contains(coord); }
+
+	public FrameSet getTileTagsFrameSet(TileCoord coord)
+		{ return tilesTags.get(coord); }
+
 	public int getLayer()
 		{ return layer; }
 
@@ -220,5 +297,11 @@ public class Layer {
 
 	public void setSpriteLayerType(SpriteLayerType layerType)
 		{ this.layerType = layerType; }
+
+	public String getStringTags(TileCoord coord) {
+		if (MapSet.haveTilesOnCoord(coord))
+			return MapSet.getFirstBottomTileFromCoord(coord).getStringTags();
+		return null;
+	}
 
 }

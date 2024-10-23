@@ -359,7 +359,7 @@ public class FrameSetEditor {
 				currentEntity.setDirection(Direction.DOWN);
 			else {
 				boolean added = false;
-				List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFromFirstSprite().getFrameSetTags();
+				List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFromFirstSprite().getTags();
 				for (int n = 0; n < list.size(); n++) {
 					FrameTag tag = list.get(n);
 					if (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
@@ -388,7 +388,7 @@ public class FrameSetEditor {
 		else if (isHold(1, 0, 0)) {
 			boolean added = false;
 			isChangingSprite = false;
-			List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFromFirstSprite(getCurrentFrame()).getFrameSetTags();
+			List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFromFirstSprite(getCurrentFrame()).getTags();
 			for (int n = 0; n < list.size(); n++) {
 				FrameTag tag = list.get(n);
 				if (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
@@ -416,7 +416,7 @@ public class FrameSetEditor {
 		else if (isHold(0, 1, 0)) {
 			iterateSelectedSprites(sprite -> {
 				boolean added = false;
-				List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFrom(sprite).getFrameSetTags();
+				List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFrom(sprite).getTags();
 				for (int n = 0; n < list.size(); n++) {
 					FrameTag tag = list.get(n);
 					if (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
@@ -454,7 +454,7 @@ public class FrameSetEditor {
 		else if (isHold(0, 1, 1)) {
 			iterateSelectedSprites(sprite -> {
 				boolean added = false;
-				List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFrom(sprite).getFrameSetTags();
+				List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFrom(sprite).getTags();
 				for (int n = 0; n < list.size(); n++) {
 					FrameTag tag = list.get(n);
 					if (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
@@ -484,7 +484,7 @@ public class FrameSetEditor {
 		else if (isHold(1, 1, 0)) {
 			iterateSelectedSprites(sprite -> {
 				boolean added = false;
-				List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFrom(sprite).getFrameSetTags();
+				List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFrom(sprite).getTags();
 				for (int n = 0; n < list.size(); n++) {
 					FrameTag tag = list.get(n);
 					if (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
@@ -524,11 +524,11 @@ public class FrameSetEditor {
 					selectedSprites.clear();
 				}
 				else {
-					List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFromFirstSprite().getFrameSetTags();
+					List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFromFirstSprite().getTags();
 					iterateSelectedSprites(sprite -> {
 						isChangingSprite = false;
 						boolean added = false;
-						List<FrameTag> list2 = getCurrentFrameSet().getFrameSetTagsFrom(sprite).getFrameSetTags();
+						List<FrameTag> list2 = getCurrentFrameSet().getFrameSetTagsFrom(sprite).getTags();
 						for (int n = 0; n < list2.size(); n++) {
 							FrameTag tag = list2.get(n);
 							if (e.getCode() == KeyCode.F && tag instanceof SetSprFlip) {
@@ -811,7 +811,7 @@ public class FrameSetEditor {
 			int inc = (isShiftHold() ? e.getDeltaX() : e.getDeltaY()) < 0 ? -1 : 1;
 			iterateSelectedSprites(sprite -> {
 				isChangingSprite = false;
-				List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFrom(sprite).getFrameSetTags();
+				List<FrameTag> list = getCurrentFrameSet().getFrameSetTagsFrom(sprite).getTags();
 				for (int n = 0; n < list.size(); n++) {
 					FrameTag tag = list.get(n);
 					if (isNoHolds() && tag instanceof SetSprIndex) {
@@ -1004,11 +1004,11 @@ public class FrameSetEditor {
 							"\nAlpha: " + focused.getAlpha() +
 							"\nAlignment: " + focused.getAlignment().name();
 					if (getCurrentFrameSet().getFrameSetTagsFrom(focused) != null &&
-							!getCurrentFrameSet().getFrameSetTagsFrom(focused).getFrameSetTags().isEmpty()) {
+							!getCurrentFrameSet().getFrameSetTagsFrom(focused).getTags().isEmpty()) {
 						str += "\n\nFrameTags:";
 						n += 3;
 					}
-					for (FrameTag tag : getCurrentFrameSet().getFrameSetTagsFrom(focused).getFrameSetTags()) {
+					for (FrameTag tag : getCurrentFrameSet().getFrameSetTagsFrom(focused).getTags()) {
 						str += "\n" + tag.toString();
 						n += 2;
 					}

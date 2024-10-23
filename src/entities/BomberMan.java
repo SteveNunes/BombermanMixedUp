@@ -33,6 +33,7 @@ public class BomberMan extends Entity {
 	private List<Direction> pressedDirs;
 	private Set<GameInputs> holdedInputs;
 	private List<GameInputs> queuedInputs;
+	private int setBombCd;
 
 	public BomberMan(int bomberIndex, int palleteIndex) {
 		super();
@@ -43,6 +44,7 @@ public class BomberMan extends Entity {
 		queuedInputs = new ArrayList<>();
 		bombs = new ArrayList<>();
 		gotItens = new ArrayList<>();
+		setBombCd = 0;
 		curseDuration = 0;
 		String section = "" + bomberIndex;
 		updateStatusByItens();
@@ -113,6 +115,7 @@ public class BomberMan extends Entity {
 	
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
+		setBombCd--;
 		for (int n = 0; n < bombs.size(); n++)
 			if (!bombs.get(n).isActive())
 				bombs.remove(n--);
@@ -157,11 +160,12 @@ public class BomberMan extends Entity {
 	}
 
 	public void setBomb() {
-		if (bombs.size() < maxBombs && MapSet.tileIsFree(getTileCoord())) {
+		if (setBombCd <= 0 && bombs.size() < maxBombs && MapSet.tileIsFree(getTileCoord())) {
 			BombType type = !gotItens.isEmpty() && gotItens.get(0).getItemType().isBomb() ?
 											Bomb.getBombTypeFromItem(gotItens.get(0)) : BombType.NORMAL;
 			bombs.add(Bomb.addBomb(this, getTileCoord(), type, fireRange));
 			Sound.playWav(setBombSound);
+			setBombCd = 20;
 		}
 	}
 

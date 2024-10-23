@@ -14,10 +14,10 @@ public class IncSprInnerShadowValues extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + incrementOffsetX + ";" + incrementOffsetY + "}"; }
+		{ return "{" + getClassName(this) + ";" + incrementOffsetX + ";" + incrementOffsetY + "}"; }
 
 	public IncSprInnerShadowValues(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 2);
+		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
 			incrementOffsetX = Double.parseDouble(params[n++]);

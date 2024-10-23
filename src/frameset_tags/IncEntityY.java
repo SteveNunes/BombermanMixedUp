@@ -11,10 +11,10 @@ public class IncEntityY extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + increment + "}"; }
+		{ return "{" + getClassName(this) + ";" + increment + "}"; }
 
 	public IncEntityY(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 1);
+		String[] params = validateStringTags(this, tags, 1);
 		try
 			{ increment = Integer.parseInt(params[0]); }
 		catch (Exception e)

@@ -11,10 +11,10 @@ public class SetSprInnerShadowOffsetX extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + value + "}"; }
+		{ return "{" + getClassName(this) + ";" + value + "}"; }
 
 	public SetSprInnerShadowOffsetX(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 1);
+		String[] params = validateStringTags(this, tags, 1);
 		try
 			{ value = Integer.parseInt(params[0]); }
 		catch (Exception e)

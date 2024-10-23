@@ -12,10 +12,10 @@ public class SetSprAlign extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + alignment.name() + "}"; }
+		{ return "{" + getClassName(this) + ";" + alignment.name() + "}"; }
 
 	public SetSprAlign(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 1);
+		String[] params = validateStringTags(this, tags, 1);
 		try
 			{ alignment = ImageAlignment.valueOf(params[0]); }
 		catch (Exception e)

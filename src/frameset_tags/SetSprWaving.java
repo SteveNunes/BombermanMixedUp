@@ -22,11 +22,11 @@ public class SetSprWaving extends FrameTag {
 				pattern.append(":");
 			pattern.append(i);
 		}
-		return "{" + FrameTag.getClassName(this) + ";" + speed + ";" + pattern.toString() + "}";
+		return "{" + getClassName(this) + ";" + speed + ";" + pattern.toString() + "}";
 	}
 
 	public SetSprWaving(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags);
+		String[] params = validateStringTags(this, tags);
 		if (params.length > 2)
 			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length > 0) {

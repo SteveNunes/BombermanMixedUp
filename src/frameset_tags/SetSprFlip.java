@@ -12,10 +12,10 @@ public class SetSprFlip extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + flip.name() + "}"; }
+		{ return "{" + getClassName(this) + ";" + flip.name() + "}"; }
 
 	public SetSprFlip(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 1);
+		String[] params = validateStringTags(this, tags, 1);
 		int n = 0;
 		try
 			{ flip = ImageFlip.valueOf(params[n++]); }

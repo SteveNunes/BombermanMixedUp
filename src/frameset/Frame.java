@@ -66,7 +66,7 @@ public class Frame {
 			throw new RuntimeException(spriteIndex  + " - Invalid Sprite Index (Min 0, Max " + (sourceFrameSet.getTotalSprites() - 1) + ")");
 		while (getTotalTags() < sourceFrameSet.getTotalSprites())
 			getFrameSetTagsList().add(new Tags(sourceFrameSet.getSprites().get(spriteIndex)));
-		getFrameSetTagsList().get(spriteIndex).addFrameSetTag(tag);
+		getFrameSetTagsList().get(spriteIndex).addTag(tag);
 	}
 	
 	public void addFrameTagToSprite(Sprite sprite, FrameTag tag) {

@@ -12,10 +12,10 @@ public class SetSprBloomBlendMode extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + blendMode.name() + "}"; }
+		{ return "{" + getClassName(this) + ";" + blendMode.name() + "}"; }
 
 	public SetSprBloomBlendMode(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 1);
+		String[] params = validateStringTags(this, tags, 1);
 		try
 			{ blendMode = BlendMode.valueOf(params[0]); }
 		catch (Exception e)

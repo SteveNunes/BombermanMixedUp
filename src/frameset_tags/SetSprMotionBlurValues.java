@@ -20,10 +20,10 @@ public class SetSprMotionBlurValues extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + angle + ";" + radius + ";" + blendMode.name() + "}"; }
+		{ return "{" + getClassName(this) + ";" + angle + ";" + radius + ";" + blendMode.name() + "}"; }
 	
 	public SetSprMotionBlurValues(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 3);
+		String[] params = validateStringTags(this, tags, 3);
 		int n = 0;
 		try {
 			angle = Double.parseDouble(params[n++]);

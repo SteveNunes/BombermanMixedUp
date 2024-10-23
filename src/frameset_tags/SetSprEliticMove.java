@@ -20,10 +20,10 @@ public class SetSprEliticMove extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + orientation.name() + ";" + radiusWidth + ";" + radiusHeight + ";" + speed + "}"; }
+		{ return "{" + getClassName(this) + ";" + orientation.name() + ";" + radiusWidth + ";" + radiusHeight + ";" + speed + "}"; }
 
 	public SetSprEliticMove(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 4);
+		String[] params = validateStringTags(this, tags, 4);
 		int n = 0;
 		try {
 			orientation = DirectionOrientation.valueOf(params[n++]);

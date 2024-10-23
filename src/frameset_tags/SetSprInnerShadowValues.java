@@ -20,10 +20,10 @@ public class SetSprInnerShadowValues extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + offsetX + ";" + offsetY + ";" + blendMode.name() + "}"; }
+		{ return "{" + getClassName(this) + ";" + offsetX + ";" + offsetY + ";" + blendMode.name() + "}"; }
 
 	public SetSprInnerShadowValues(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 3);
+		String[] params = validateStringTags(this, tags, 3);
 		int n = 0;
 		try {
 			offsetX = Double.parseDouble(params[n++]);

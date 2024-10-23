@@ -17,10 +17,10 @@ public class IncSprColorAdjustValues extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + incrementHue + ";" + incrementSaturation + ";" + incrementBrightness + "}"; }
+		{ return "{" + getClassName(this) + ";" + incrementHue + ";" + incrementSaturation + ";" + incrementBrightness + "}"; }
 	
 	public IncSprColorAdjustValues(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 3);
+		String[] params = validateStringTags(this, tags, 3);
 		int n = 0;
 		try {
 			incrementHue = Double.parseDouble(params[n++]);

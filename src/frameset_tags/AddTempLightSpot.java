@@ -25,10 +25,10 @@ public class AddTempLightSpot extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + x + ";" + y + ";" + xVariance + ";" + yVariance + ";" + minRadius + ";" + maxRadius + ";" + radiusInc + "}"; }
+		{ return "{" + getClassName(this) + ";" + x + ";" + y + ";" + xVariance + ";" + yVariance + ";" + minRadius + ";" + maxRadius + ";" + radiusInc + "}"; }
 
 	public AddTempLightSpot(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 7);
+		String[] params = validateStringTags(this, tags, 7);
 		int n = 0;
 		try {
 			x = Integer.parseInt(params[n++]);

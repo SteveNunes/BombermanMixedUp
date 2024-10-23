@@ -10,11 +10,11 @@ public class RunStageTags extends FrameTag {
 	
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + stageTagsName + "}"; }
+		{ return "{" + getClassName(this) + ";" + stageTagsName + "}"; }
 
 	public RunStageTags(String tags) {
 		this.tags = tags;
-		String[] params = FrameTag.validateStringTags(this, tags, 1);
+		String[] params = validateStringTags(this, tags, 1);
 		stageTagsName = params[0];
 	}
 

@@ -36,307 +36,321 @@ public abstract class FrameTagLoader {
 			}
 			FrameTag newTag = null;
 			if (tag.equals("AddColoredLightSpot"))
-				tags.addFrameSetTag(newTag = new AddColoredLightSpot(s));
+				tags.addTag(newTag = new AddColoredLightSpot(s));
 			else if (tag.equals("AddColoredLightSpotToSprite"))
-				tags.addFrameSetTag(newTag = new AddColoredLightSpotToSprite(s));
+				tags.addTag(newTag = new AddColoredLightSpotToSprite(s));
 			else if (tag.equals("AddLightSpot"))
-				tags.addFrameSetTag(newTag = new AddLightSpot(s));
+				tags.addTag(newTag = new AddLightSpot(s));
 			else if (tag.equals("AddLightSpotToSprite"))
-				tags.addFrameSetTag(newTag = new AddLightSpotToSprite(s));
+				tags.addTag(newTag = new AddLightSpotToSprite(s));
 			else if (tag.equals("AddTempColoredLightSpot"))
-				tags.addFrameSetTag(newTag = new AddTempColoredLightSpot(s));
+				tags.addTag(newTag = new AddTempColoredLightSpot(s));
 			else if (tag.equals("AddTempColoredLightSpotToSprite"))
-				tags.addFrameSetTag(newTag = new AddTempColoredLightSpotToSprite(s));
+				tags.addTag(newTag = new AddTempColoredLightSpotToSprite(s));
 			else if (tag.equals("AddTempLightSpot"))
-				tags.addFrameSetTag(newTag = new AddTempLightSpot(s));
+				tags.addTag(newTag = new AddTempLightSpot(s));
 			else if (tag.equals("AddTempLightSpotToSprite"))
-				tags.addFrameSetTag(newTag = new AddTempLightSpotToSprite(s));
+				tags.addTag(newTag = new AddTempLightSpotToSprite(s));
 			else if (tag.equals("DecSprAlign"))
-				tags.addFrameSetTag(newTag = new DecSprAlign(s));
+				tags.addTag(newTag = new DecSprAlign(s));
 			else if (tag.equals("DecSprFlip"))
-				tags.addFrameSetTag(newTag = new DecSprFlip(s));
+				tags.addTag(newTag = new DecSprFlip(s));
 			else if (tag.equals("DoJump"))
-				tags.addFrameSetTag(newTag = new DoJump(s));
+				tags.addTag(newTag = new DoJump(s));
 			else if (tag.equals("Goto"))
-				tags.addFrameSetTag(newTag = new Goto(s));
+				tags.addTag(newTag = new Goto(s));
 			else if (tag.equals("IncEntityPos"))
-				tags.addFrameSetTag(newTag = new IncEntityPos(s));
+				tags.addTag(newTag = new IncEntityPos(s));
 			else if (tag.equals("IncEntityX"))
-				tags.addFrameSetTag(newTag = new IncEntityX(s));
+				tags.addTag(newTag = new IncEntityX(s));
 			else if (tag.equals("IncEntityY"))
-				tags.addFrameSetTag(newTag = new IncEntityY(s));
+				tags.addTag(newTag = new IncEntityY(s));
 			else if (tag.equals("IncObjPos"))
-				tags.addFrameSetTag(newTag = new IncObjPos(s));
+				tags.addTag(newTag = new IncObjPos(s));
 			else if (tag.equals("IncObjX"))
-				tags.addFrameSetTag(newTag = new IncObjX(s));
+				tags.addTag(newTag = new IncObjX(s));
 			else if (tag.equals("IncObjY"))
-				tags.addFrameSetTag(newTag = new IncObjY(s));
+				tags.addTag(newTag = new IncObjY(s));
 			else if (tag.equals("IncOriginSprHeight"))
-				tags.addFrameSetTag(newTag = new IncOriginSprHeight(s));
+				tags.addTag(newTag = new IncOriginSprHeight(s));
 			else if (tag.equals("IncOriginSprPerLine"))
-				tags.addFrameSetTag(newTag = new IncOriginSprPerLine(s));
+				tags.addTag(newTag = new IncOriginSprPerLine(s));
 			else if (tag.equals("IncOriginSprPos"))
-				tags.addFrameSetTag(newTag = new IncOriginSprPos(s));
+				tags.addTag(newTag = new IncOriginSprPos(s));
 			else if (tag.equals("IncOriginSprSize"))
-				tags.addFrameSetTag(newTag = new IncOriginSprSize(s));
+				tags.addTag(newTag = new IncOriginSprSize(s));
 			else if (tag.equals("IncOriginSprWidth"))
-				tags.addFrameSetTag(newTag = new IncOriginSprWidth(s));
+				tags.addTag(newTag = new IncOriginSprWidth(s));
 			else if (tag.equals("IncOriginSprX"))
-				tags.addFrameSetTag(newTag = new IncOriginSprX(s));
+				tags.addTag(newTag = new IncOriginSprX(s));
 			else if (tag.equals("IncOriginSprY"))
-				tags.addFrameSetTag(newTag = new IncOriginSprY(s));
+				tags.addTag(newTag = new IncOriginSprY(s));
 			else if (tag.equals("IncOutputSprHeight"))
-				tags.addFrameSetTag(newTag = new IncOutputSprHeight(s));
+				tags.addTag(newTag = new IncOutputSprHeight(s));
 			else if (tag.equals("IncOutputSprPos"))
-				tags.addFrameSetTag(newTag = new IncOutputSprPos(s));
+				tags.addTag(newTag = new IncOutputSprPos(s));
 			else if (tag.equals("IncOutputSprSize"))
-				tags.addFrameSetTag(newTag = new IncOutputSprSize(s));
+				tags.addTag(newTag = new IncOutputSprSize(s));
 			else if (tag.equals("IncOutputSprWidth"))
-				tags.addFrameSetTag(newTag = new IncOutputSprWidth(s));
+				tags.addTag(newTag = new IncOutputSprWidth(s));
 			else if (tag.equals("IncOutputSprX"))
-				tags.addFrameSetTag(newTag = new IncOutputSprX(s));
+				tags.addTag(newTag = new IncOutputSprX(s));
 			else if (tag.equals("IncOutputSprY"))
-				tags.addFrameSetTag(newTag = new IncOutputSprY(s));
+				tags.addTag(newTag = new IncOutputSprY(s));
 			else if (tag.equals("IncSprAlign"))
-				tags.addFrameSetTag(newTag = new IncSprAlign(s));
+				tags.addTag(newTag = new IncSprAlign(s));
 			else if (tag.equals("IncSprAlpha"))
-				tags.addFrameSetTag(newTag = new IncSprAlpha(s));
+				tags.addTag(newTag = new IncSprAlpha(s));
 			else if (tag.equals("IncSprBloomThreshold"))
-				tags.addFrameSetTag(newTag = new IncSprBloomThreshold(s));
+				tags.addTag(newTag = new IncSprBloomThreshold(s));
 			else if (tag.equals("IncSprColorAdjustBrightness"))
-				tags.addFrameSetTag(newTag = new IncSprColorAdjustBrightness(s));
+				tags.addTag(newTag = new IncSprColorAdjustBrightness(s));
 			else if (tag.equals("IncSprColorAdjustHue"))
-				tags.addFrameSetTag(newTag = new IncSprColorAdjustHue(s));
+				tags.addTag(newTag = new IncSprColorAdjustHue(s));
 			else if (tag.equals("IncSprColorAdjustSaturation"))
-				tags.addFrameSetTag(newTag = new IncSprColorAdjustSaturation(s));
+				tags.addTag(newTag = new IncSprColorAdjustSaturation(s));
 			else if (tag.equals("IncSprColorAdjustValues"))
-				tags.addFrameSetTag(newTag = new IncSprColorAdjustValues(s));
+				tags.addTag(newTag = new IncSprColorAdjustValues(s));
 			else if (tag.equals("IncSprColorTintAlpha"))
-				tags.addFrameSetTag(newTag = new IncSprColorTintAlpha(s));
+				tags.addTag(newTag = new IncSprColorTintAlpha(s));
 			else if (tag.equals("IncSprColorTintBlue"))
-				tags.addFrameSetTag(newTag = new IncSprColorTintBlue(s));
+				tags.addTag(newTag = new IncSprColorTintBlue(s));
 			else if (tag.equals("IncSprColorTintGreen"))
-				tags.addFrameSetTag(newTag = new IncSprColorTintGreen(s));
+				tags.addTag(newTag = new IncSprColorTintGreen(s));
 			else if (tag.equals("IncSprColorTintRed"))
-				tags.addFrameSetTag(newTag = new IncSprColorTintRed(s));
+				tags.addTag(newTag = new IncSprColorTintRed(s));
 			else if (tag.equals("IncSprColorTintValues"))
-				tags.addFrameSetTag(newTag = new IncSprColorTintValues(s));
+				tags.addTag(newTag = new IncSprColorTintValues(s));
 			else if (tag.equals("IncSprDropShadowOffsetX"))
-				tags.addFrameSetTag(newTag = new IncSprDropShadowOffsetX(s));
+				tags.addTag(newTag = new IncSprDropShadowOffsetX(s));
 			else if (tag.equals("IncSprDropShadowOffsetY"))
-				tags.addFrameSetTag(newTag = new IncSprDropShadowOffsetY(s));
+				tags.addTag(newTag = new IncSprDropShadowOffsetY(s));
 			else if (tag.equals("IncSprDropShadowValues"))
-				tags.addFrameSetTag(newTag = new IncSprDropShadowValues(s));
+				tags.addTag(newTag = new IncSprDropShadowValues(s));
 			else if (tag.equals("IncSprFlip"))
-				tags.addFrameSetTag(newTag = new IncSprFlip(s));
+				tags.addTag(newTag = new IncSprFlip(s));
 			else if (tag.equals("IncSprGaussBlurRadius"))
-				tags.addFrameSetTag(newTag = new IncSprGaussBlurRadius(s));
+				tags.addTag(newTag = new IncSprGaussBlurRadius(s));
 			else if (tag.equals("IncSprGlowLevel"))
-				tags.addFrameSetTag(newTag = new IncSprGlowLevel(s));
+				tags.addTag(newTag = new IncSprGlowLevel(s));
 			else if (tag.equals("IncSprIndex"))
-				tags.addFrameSetTag(newTag = new IncSprIndex(s));
+				tags.addTag(newTag = new IncSprIndex(s));
 			else if (tag.equals("DecSprIndex"))
-				tags.addFrameSetTag(newTag = new DecSprIndex(s));
+				tags.addTag(newTag = new DecSprIndex(s));
 			else if (tag.equals("IncSprInnerShadowOffsetX"))
-				tags.addFrameSetTag(newTag = new IncSprInnerShadowOffsetX(s));
+				tags.addTag(newTag = new IncSprInnerShadowOffsetX(s));
 			else if (tag.equals("IncSprInnerShadowOffsetY"))
-				tags.addFrameSetTag(newTag = new IncSprInnerShadowOffsetY(s));
+				tags.addTag(newTag = new IncSprInnerShadowOffsetY(s));
 			else if (tag.equals("IncSprInnerShadowValues"))
-				tags.addFrameSetTag(newTag = new IncSprInnerShadowValues(s));
+				tags.addTag(newTag = new IncSprInnerShadowValues(s));
 			else if (tag.equals("IncSprMotionBlurAngle"))
-				tags.addFrameSetTag(newTag = new IncSprMotionBlurAngle(s));
+				tags.addTag(newTag = new IncSprMotionBlurAngle(s));
 			else if (tag.equals("IncSprMotionBlurRadius"))
-				tags.addFrameSetTag(newTag = new IncSprMotionBlurRadius(s));
+				tags.addTag(newTag = new IncSprMotionBlurRadius(s));
 			else if (tag.equals("IncSprMotionBlurValues"))
-				tags.addFrameSetTag(newTag = new IncSprMotionBlurValues(s));
+				tags.addTag(newTag = new IncSprMotionBlurValues(s));
 			else if (tag.equals("IncSprRotate"))
-				tags.addFrameSetTag(newTag = new IncSprRotate(s));
+				tags.addTag(newTag = new IncSprRotate(s));
 			else if (tag.equals("IncSprSepiaToneLevel"))
-				tags.addFrameSetTag(newTag = new IncSprSepiaToneLevel(s));
+				tags.addTag(newTag = new IncSprSepiaToneLevel(s));
 			else if (tag.equals("IncTicksPerFrame"))
-				tags.addFrameSetTag(newTag = new IncTicksPerFrame(s));
+				tags.addTag(newTag = new IncTicksPerFrame(s));
 			else if (tag.equals("PlayMp3"))
-				tags.addFrameSetTag(newTag = new PlayMp3(s));
+				tags.addTag(newTag = new PlayMp3(s));
 			else if (tag.equals("PlayWav"))
-				tags.addFrameSetTag(newTag = new PlayWav(s));
+				tags.addTag(newTag = new PlayWav(s));
 			else if (tag.equals("RepeatLastFrame"))
-				tags.addFrameSetTag(newTag = new RepeatLastFrame(s));
+				tags.addTag(newTag = new RepeatLastFrame(s));
 			else if (tag.equals("RunEffectAt"))
-				tags.addFrameSetTag(newTag = new RunEffectAt(s));
+				tags.addTag(newTag = new RunEffectAt(s));
 			else if (tag.equals("RunEffectAtEntity"))
-				tags.addFrameSetTag(newTag = new RunEffectAtEntity(s));
+				tags.addTag(newTag = new RunEffectAtEntity(s));
 			else if (tag.equals("RunEffectAtSprite"))
-				tags.addFrameSetTag(newTag = new RunEffectAtSprite(s));
+				tags.addTag(newTag = new RunEffectAtSprite(s));
 			else if (tag.equals("RunEffectAtTile"))
-				tags.addFrameSetTag(newTag = new RunEffectAtTile(s));
+				tags.addTag(newTag = new RunEffectAtTile(s));
 			else if (tag.equals("SetEntityNoMove"))
-				tags.addFrameSetTag(newTag = new SetEntityNoMove(s));
+				tags.addTag(newTag = new SetEntityNoMove(s));
 			else if (tag.equals("SetEntityPos"))
-				tags.addFrameSetTag(newTag = new SetEntityPos(s));
+				tags.addTag(newTag = new SetEntityPos(s));
 			else if (tag.equals("SetEntityShadow"))
-				tags.addFrameSetTag(newTag = new SetEntityShadow(s));
+				tags.addTag(newTag = new SetEntityShadow(s));
 			else if (tag.equals("SetEntityX"))
-				tags.addFrameSetTag(newTag = new SetEntityX(s));
+				tags.addTag(newTag = new SetEntityX(s));
 			else if (tag.equals("SetEntityY"))
-				tags.addFrameSetTag(newTag = new SetEntityY(s));
+				tags.addTag(newTag = new SetEntityY(s));
 			else if (tag.equals("SetFrameSet"))
-				tags.addFrameSetTag(newTag = new SetFrameSet(s));
+				tags.addTag(newTag = new SetFrameSet(s));
 			else if (tag.equals("SetObjPos"))
-				tags.addFrameSetTag(newTag = new SetObjPos(s));
+				tags.addTag(newTag = new SetObjPos(s));
 			else if (tag.equals("SetObjX"))
-				tags.addFrameSetTag(newTag = new SetObjX(s));
+				tags.addTag(newTag = new SetObjX(s));
 			else if (tag.equals("SetObjY"))
-				tags.addFrameSetTag(newTag = new SetObjY(s));
+				tags.addTag(newTag = new SetObjY(s));
 			else if (tag.equals("SetOriginSprHeight"))
-				tags.addFrameSetTag(newTag = new SetOriginSprHeight(s));
+				tags.addTag(newTag = new SetOriginSprHeight(s));
 			else if (tag.equals("SetOriginSprPerLine"))
-				tags.addFrameSetTag(newTag = new SetOriginSprPerLine(s));
+				tags.addTag(newTag = new SetOriginSprPerLine(s));
 			else if (tag.equals("SetOriginSprPos"))
-				tags.addFrameSetTag(newTag = new SetOriginSprPos(s));
+				tags.addTag(newTag = new SetOriginSprPos(s));
 			else if (tag.equals("SetOriginSprSize"))
-				tags.addFrameSetTag(newTag = new SetOriginSprSize(s));
+				tags.addTag(newTag = new SetOriginSprSize(s));
 			else if (tag.equals("SetOriginSprWidth"))
-				tags.addFrameSetTag(newTag = new SetOriginSprWidth(s));
+				tags.addTag(newTag = new SetOriginSprWidth(s));
 			else if (tag.equals("SetOriginSprX"))
-				tags.addFrameSetTag(newTag = new SetOriginSprX(s));
+				tags.addTag(newTag = new SetOriginSprX(s));
 			else if (tag.equals("SetOriginSprY"))
-				tags.addFrameSetTag(newTag = new SetOriginSprY(s));
+				tags.addTag(newTag = new SetOriginSprY(s));
 			else if (tag.equals("SetOutputSprHeight"))
-				tags.addFrameSetTag(newTag = new SetOutputSprHeight(s));
+				tags.addTag(newTag = new SetOutputSprHeight(s));
 			else if (tag.equals("SetOutputSprPos"))
-				tags.addFrameSetTag(newTag = new SetOutputSprPos(s));
+				tags.addTag(newTag = new SetOutputSprPos(s));
 			else if (tag.equals("SetOutputSprSize"))
-				tags.addFrameSetTag(newTag = new SetOutputSprSize(s));
+				tags.addTag(newTag = new SetOutputSprSize(s));
 			else if (tag.equals("SetOutputSprWidth"))
-				tags.addFrameSetTag(newTag = new SetOutputSprWidth(s));
+				tags.addTag(newTag = new SetOutputSprWidth(s));
 			else if (tag.equals("SetOutputSprX"))
-				tags.addFrameSetTag(newTag = new SetOutputSprX(s));
+				tags.addTag(newTag = new SetOutputSprX(s));
 			else if (tag.equals("SetOutputSprY"))
-				tags.addFrameSetTag(newTag = new SetOutputSprY(s));
+				tags.addTag(newTag = new SetOutputSprY(s));
 			else if (tag.equals("SetSprAlign"))
-				tags.addFrameSetTag(newTag = new SetSprAlign(s));
+				tags.addTag(newTag = new SetSprAlign(s));
 			else if (tag.equals("SetSprAlpha"))
-				tags.addFrameSetTag(newTag = new SetSprAlpha(s));
+				tags.addTag(newTag = new SetSprAlpha(s));
 			else if (tag.equals("SetSprBloomBlendMode"))
-				tags.addFrameSetTag(newTag = new SetSprBloomBlendMode(s));
+				tags.addTag(newTag = new SetSprBloomBlendMode(s));
 			else if (tag.equals("SetSprBloomThreshold"))
-				tags.addFrameSetTag(newTag = new SetSprBloomThreshold(s));
+				tags.addTag(newTag = new SetSprBloomThreshold(s));
 			else if (tag.equals("SetSprBloomValues"))
-				tags.addFrameSetTag(newTag = new SetSprBloomValues(s));
+				tags.addTag(newTag = new SetSprBloomValues(s));
 			else if (tag.equals("SetSprColorAdjustBlendMode"))
-				tags.addFrameSetTag(newTag = new SetSprColorAdjustBlendMode(s));
+				tags.addTag(newTag = new SetSprColorAdjustBlendMode(s));
 			else if (tag.equals("SetSprColorAdjustBrightness"))
-				tags.addFrameSetTag(newTag = new SetSprColorAdjustBrightness(s));
+				tags.addTag(newTag = new SetSprColorAdjustBrightness(s));
 			else if (tag.equals("SetSprColorAdjustHue"))
-				tags.addFrameSetTag(newTag = new SetSprColorAdjustHue(s));
+				tags.addTag(newTag = new SetSprColorAdjustHue(s));
 			else if (tag.equals("SetSprColorAdjustSaturation"))
-				tags.addFrameSetTag(newTag = new SetSprColorAdjustSaturation(s));
+				tags.addTag(newTag = new SetSprColorAdjustSaturation(s));
 			else if (tag.equals("SetSprColorAdjustValues"))
-				tags.addFrameSetTag(newTag = new SetSprColorAdjustValues(s));
+				tags.addTag(newTag = new SetSprColorAdjustValues(s));
 			else if (tag.equals("SetSprColorTintAlpha"))
-				tags.addFrameSetTag(newTag = new SetSprColorTintAlpha(s));
+				tags.addTag(newTag = new SetSprColorTintAlpha(s));
 			else if (tag.equals("SetSprColorTintBlendMode"))
-				tags.addFrameSetTag(newTag = new SetSprColorTintBlendMode(s));
+				tags.addTag(newTag = new SetSprColorTintBlendMode(s));
 			else if (tag.equals("SetSprColorTintBlue"))
-				tags.addFrameSetTag(newTag = new SetSprColorTintBlue(s));
+				tags.addTag(newTag = new SetSprColorTintBlue(s));
 			else if (tag.equals("SetSprColorTintGreen"))
-				tags.addFrameSetTag(newTag = new SetSprColorTintGreen(s));
+				tags.addTag(newTag = new SetSprColorTintGreen(s));
 			else if (tag.equals("SetSprColorTintRed"))
-				tags.addFrameSetTag(newTag = new SetSprColorTintRed(s));
+				tags.addTag(newTag = new SetSprColorTintRed(s));
 			else if (tag.equals("SetSprColorTintValues"))
-				tags.addFrameSetTag(newTag = new SetSprColorTintValues(s));
+				tags.addTag(newTag = new SetSprColorTintValues(s));
 			else if (tag.equals("SetSprDropShadowBlendMode"))
-				tags.addFrameSetTag(newTag = new SetSprDropShadowBlendMode(s));
+				tags.addTag(newTag = new SetSprDropShadowBlendMode(s));
 			else if (tag.equals("SetSprDropShadowOffsetX"))
-				tags.addFrameSetTag(newTag = new SetSprDropShadowOffsetX(s));
+				tags.addTag(newTag = new SetSprDropShadowOffsetX(s));
 			else if (tag.equals("SetSprDropShadowOffsetY"))
-				tags.addFrameSetTag(newTag = new SetSprDropShadowOffsetY(s));
+				tags.addTag(newTag = new SetSprDropShadowOffsetY(s));
 			else if (tag.equals("SetSprDropShadowValues"))
-				tags.addFrameSetTag(newTag = new SetSprDropShadowValues(s));
+				tags.addTag(newTag = new SetSprDropShadowValues(s));
 			else if (tag.equals("SetSprEliticMove"))
-				tags.addFrameSetTag(newTag = new SetSprEliticMove(s));
+				tags.addTag(newTag = new SetSprEliticMove(s));
 			else if (tag.equals("SetSprFlip"))
-				tags.addFrameSetTag(newTag = new SetSprFlip(s));
+				tags.addTag(newTag = new SetSprFlip(s));
 			else if (tag.equals("SetSprGaussBlurBlendMode"))
-				tags.addFrameSetTag(newTag = new SetSprGaussBlurBlendMode(s));
+				tags.addTag(newTag = new SetSprGaussBlurBlendMode(s));
 			else if (tag.equals("SetSprGaussBlurRadius"))
-				tags.addFrameSetTag(newTag = new SetSprGaussBlurRadius(s));
+				tags.addTag(newTag = new SetSprGaussBlurRadius(s));
 			else if (tag.equals("SetSprGaussBlurValues"))
-				tags.addFrameSetTag(newTag = new SetSprGaussBlurValues(s));
+				tags.addTag(newTag = new SetSprGaussBlurValues(s));
 			else if (tag.equals("SetSprGlowBlendMode"))
-				tags.addFrameSetTag(newTag = new SetSprGlowBlendMode(s));
+				tags.addTag(newTag = new SetSprGlowBlendMode(s));
 			else if (tag.equals("SetSprGlowLevel"))
-				tags.addFrameSetTag(newTag = new SetSprGlowLevel(s));
+				tags.addTag(newTag = new SetSprGlowLevel(s));
 			else if (tag.equals("SetSprGlowValues"))
-				tags.addFrameSetTag(newTag = new SetSprGlowValues(s));
+				tags.addTag(newTag = new SetSprGlowValues(s));
 			else if (tag.equals("SetSprIndex"))
-				tags.addFrameSetTag(newTag = new SetSprIndex(s));
+				tags.addTag(newTag = new SetSprIndex(s));
 			else if (tag.equals("SetSprInnerShadowBlendMode"))
-				tags.addFrameSetTag(newTag = new SetSprInnerShadowBlendMode(s));
+				tags.addTag(newTag = new SetSprInnerShadowBlendMode(s));
 			else if (tag.equals("SetSprInnerShadowOffsetX"))
-				tags.addFrameSetTag(newTag = new SetSprInnerShadowOffsetX(s));
+				tags.addTag(newTag = new SetSprInnerShadowOffsetX(s));
 			else if (tag.equals("SetSprInnerShadowOffsetY"))
-				tags.addFrameSetTag(newTag = new SetSprInnerShadowOffsetY(s));
+				tags.addTag(newTag = new SetSprInnerShadowOffsetY(s));
 			else if (tag.equals("SetSprInnerShadowValues"))
-				tags.addFrameSetTag(newTag = new SetSprInnerShadowValues(s));
+				tags.addTag(newTag = new SetSprInnerShadowValues(s));
 			else if (tag.equals("SetSprMotionBlurAngle"))
-				tags.addFrameSetTag(newTag = new SetSprMotionBlurAngle(s));
+				tags.addTag(newTag = new SetSprMotionBlurAngle(s));
 			else if (tag.equals("SetSprMotionBlurBlendMode"))
-				tags.addFrameSetTag(newTag = new SetSprMotionBlurBlendMode(s));
+				tags.addTag(newTag = new SetSprMotionBlurBlendMode(s));
 			else if (tag.equals("SetSprMotionBlurRadius"))
-				tags.addFrameSetTag(newTag = new SetSprMotionBlurRadius(s));
+				tags.addTag(newTag = new SetSprMotionBlurRadius(s));
 			else if (tag.equals("SetSprMotionBlurValues"))
-				tags.addFrameSetTag(newTag = new SetSprMotionBlurValues(s));
+				tags.addTag(newTag = new SetSprMotionBlurValues(s));
 			else if (tag.equals("SetSprRotate"))
-				tags.addFrameSetTag(newTag = new SetSprRotate(s));
+				tags.addTag(newTag = new SetSprRotate(s));
 			else if (tag.equals("SetSprSepiaToneBlendMode"))
-				tags.addFrameSetTag(newTag = new SetSprSepiaToneBlendMode(s));
+				tags.addTag(newTag = new SetSprSepiaToneBlendMode(s));
 			else if (tag.equals("SetSprSepiaToneLevel"))
-				tags.addFrameSetTag(newTag = new SetSprSepiaToneLevel(s));
+				tags.addTag(newTag = new SetSprSepiaToneLevel(s));
 			else if (tag.equals("SetSprSepiaToneValues"))
-				tags.addFrameSetTag(newTag = new SetSprSepiaToneValues(s));
+				tags.addTag(newTag = new SetSprSepiaToneValues(s));
 			else if (tag.equals("SetSprSource"))
-				tags.addFrameSetTag(newTag = new SetSprSource(s));
+				tags.addTag(newTag = new SetSprSource(s));
 			else if (tag.equals("SetTicksPerFrame"))
-				tags.addFrameSetTag(newTag = new SetTicksPerFrame(s));
+				tags.addTag(newTag = new SetTicksPerFrame(s));
 			else if (tag.equals("SetSprWaving"))
-				tags.addFrameSetTag(newTag = new SetSprWaving(s));
+				tags.addTag(newTag = new SetSprWaving(s));
 			else if (tag.equals("SetSprScrolling"))
-				tags.addFrameSetTag(newTag = new SetSprScrolling(s));
+				tags.addTag(newTag = new SetSprScrolling(s));
 			else if (tag.equals("SetSwitchValue"))
-				tags.addFrameSetTag(newTag = new SetSwitchValue(s));
+				tags.addTag(newTag = new SetSwitchValue(s));
 			else if (tag.equals("DecSwitchValue"))
-				tags.addFrameSetTag(newTag = new DecSwitchValue(s));
+				tags.addTag(newTag = new DecSwitchValue(s));
 			else if (tag.equals("IncSwitchValue"))
-				tags.addFrameSetTag(newTag = new IncSwitchValue(s));
+				tags.addTag(newTag = new IncSwitchValue(s));
 			else if (tag.equals("SetMapLayerIndex"))
-				tags.addFrameSetTag(newTag = new SetMapLayerIndex(s));
+				tags.addTag(newTag = new SetMapLayerIndex(s));
 			else if (tag.equals("SetMapFrameSet"))
-				tags.addFrameSetTag(newTag = new SetMapFrameSet(s));
+				tags.addTag(newTag = new SetMapFrameSet(s));
 			else if (tag.equals("DisableTileTags"))
-				tags.addFrameSetTag(newTag = new DisableTileTags(s));
+				tags.addTag(newTag = new DisableTileTags(s));
 			else if (tag.equals("EnableTileTags"))
-				tags.addFrameSetTag(newTag = new EnableTileTags(s));
+				tags.addTag(newTag = new EnableTileTags(s));
 			else if (tag.equals("CopySprFromCopyLayer"))
-				tags.addFrameSetTag(newTag = new CopySprFromCopyLayer(s));
+				tags.addTag(newTag = new CopySprFromCopyLayer(s));
 			else if (tag.equals("AddTileProp"))
-				tags.addFrameSetTag(newTag = new AddTileProp(s));
+				tags.addTag(newTag = new AddTileProp(s));
 			else if (tag.equals("RemoveTileProp"))
-				tags.addFrameSetTag(newTag = new RemoveTileProp(s));
+				tags.addTag(newTag = new RemoveTileProp(s));
 			else if (tag.equals("DelayTags"))
-				tags.addFrameSetTag(newTag = new DelayTags(s));
+				tags.addTag(newTag = new DelayTags(s));
 			else if (tag.equals("RunStageTags"))
-				tags.addFrameSetTag(newTag = new RunStageTags(s));
+				tags.addTag(newTag = new RunStageTags(s));
 			else if (tag.equals("DisableEntity"))
-				tags.addFrameSetTag(newTag = new DisableEntity(s));
+				tags.addTag(newTag = new DisableEntity(s));
 			else if (tag.equals("MoveEntity"))
-				tags.addFrameSetTag(newTag = new MoveEntity(s));
+				tags.addTag(newTag = new MoveEntity(s));
 			else if (tag.equals("SetBlockedMovement"))
-				tags.addFrameSetTag(newTag = new SetBlockedMovement(s));
+				tags.addTag(newTag = new SetBlockedMovement(s));
 			else if (tag.equals("SetEntitySpeed"))
-				tags.addFrameSetTag(newTag = new SetEntitySpeed(s));
+				tags.addTag(newTag = new SetEntitySpeed(s));
 			else if (tag.equals("SetEntityTempSpeed"))
-				tags.addFrameSetTag(newTag = new SetEntityTempSpeed(s));
+				tags.addTag(newTag = new SetEntityTempSpeed(s));
+			else if (tag.equals("PushEntity"))
+				tags.addTag(newTag = new PushEntity(s));
+			else if (tag.equals("PushEntityFromTile"))
+				tags.addTag(newTag = new PushEntityFromTile(s));
+			else if (tag.equals("PushPlayerFromTile"))
+				tags.addTag(newTag = new PushPlayerFromTile(s));
+			else if (tag.equals("PushBombFromTile"))
+				tags.addTag(newTag = new PushBombFromTile(s));
+			else if (tag.equals("SetTileTags"))
+				tags.addTag(newTag = new SetTileTags(s));
+			else if (tag.equals("ClearTileTags"))
+				tags.addTag(newTag = new ClearTileTags(s));
+			else if (tag.equals("SetBombStucked"))
+				tags.addTag(newTag = new SetBombStucked(s));
 			if (delay > 0)
 				newTag.setTriggerDelay(delay);
 		}

@@ -14,10 +14,10 @@ public class IncOriginSprSize extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + incrementWidth + ";" + incrementHeight + "}"; }
+		{ return "{" + getClassName(this) + ";" + incrementWidth + ";" + incrementHeight + "}"; }
 	
 	public IncOriginSprSize(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 2);
+		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
 			incrementWidth = Integer.parseInt(params[n++]);

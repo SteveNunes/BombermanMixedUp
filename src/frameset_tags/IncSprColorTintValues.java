@@ -21,10 +21,10 @@ public class IncSprColorTintValues extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + incrementRed + ";" + incrementGreen + ";" + incrementBlue + ";" + incrementAlpha + "}"; }
+		{ return "{" + getClassName(this) + ";" + incrementRed + ";" + incrementGreen + ";" + incrementBlue + ";" + incrementAlpha + "}"; }
 
 	public IncSprColorTintValues(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 4);
+		String[] params = validateStringTags(this, tags, 4);
 		int n = 0;
 		try {
 			incrementRed = Double.parseDouble(params[n++]);

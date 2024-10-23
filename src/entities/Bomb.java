@@ -10,13 +10,14 @@ import enums.BombType;
 import enums.Curse;
 import enums.ItemType;
 import enums.TileProp;
+import javafx.scene.canvas.GraphicsContext;
 import maps.Item;
 import maps.MapSet;
 import tools.Sound;
 
 public class Bomb extends Entity {
 
-	private static Map<TileCoord, List<Bomb>> bombs = new HashMap<>();
+	public static Map<TileCoord, List<Bomb>> bombs = new HashMap<>();
 	private static List<Bomb> bombList = new ArrayList<>();
 	
 	private boolean nesBomb;
@@ -26,6 +27,7 @@ public class Bomb extends Entity {
 	private int fireDistance;
 	private boolean ownerIsOver;
 	private boolean isActive;
+	private boolean isStucked;
 	
 	public Bomb(Bomb bomb) {
 		super(bomb);
@@ -36,6 +38,7 @@ public class Bomb extends Entity {
 		ownerIsOver = bomb.ownerIsOver;
 		nesBomb = bomb.nesBomb;
 		isActive = bomb.isActive;
+		isStucked = bomb.isStucked;
 	}
 
 	public Bomb(TileCoord coord, BombType type, int fireDistance)
@@ -44,6 +47,7 @@ public class Bomb extends Entity {
 	public Bomb(Entity owner, TileCoord coord, BombType type, int fireDistance) {
 		super();
 		isActive = true;
+		isStucked = false;
 		nesBomb = owner instanceof BomberMan && ((BomberMan)owner).getBomberIndex() == 0;
 		this.type = type;
 		this.fireDistance = fireDistance;
@@ -72,6 +76,12 @@ public class Bomb extends Entity {
 		setPosition(coord.getPosition(Main.TILE_SIZE));
 	}
 	
+	public boolean isStucked()
+		{ return isStucked; }
+	
+	public void setStucked(boolean state)
+		{ isStucked = state; }
+	
 	public boolean isNesBomb()
 		{ return nesBomb; }
 	
@@ -94,6 +104,7 @@ public class Bomb extends Entity {
 			Bomb bomb = new Bomb(owner, coord, type, fireDistance);
 			bombs.get(coord).add(bomb);
 			bombList.add(bomb);
+			MapSet.checkTileTrigger(bomb, coord, TileProp.TRIGGER_BY_BOMB);
 			return bomb;
 		}
 		return null;
@@ -151,17 +162,36 @@ public class Bomb extends Entity {
 		}
 		removeBombs.forEach(bomb -> removeBomb(bomb));
 	}
+
+	@Override
+	public void run(GraphicsContext gc, boolean isPaused) {
+		TileCoord coord = getTileCoord().getNewInstance();
+		super.run(gc, isPaused);
+		if (tileWasChanged()) {
+			MapSet.checkTileTrigger(this, getTileCoord(), TileProp.TRIGGER_BY_BOMB);
+		}
+		if (!coord.equals(getTileCoord())) {
+			for (TileCoord t : bombs.keySet())
+				if (bombs.get(t).contains(this)) {
+					bombs.get(t).remove(this);
+					break;
+				}
+			if (!bombs.containsKey(getTileCoord()))
+				bombs.put(getTileCoord().getNewInstance(), new ArrayList<>());
+			bombs.get(getTileCoord()).add(this);
+		}
+	}
 	
 	public static boolean haveBombAt(Entity entity, TileCoord coord) {
 		if (bombs.containsKey(coord)) {
 			Bomb bomb = getBombAt(coord);
-			return bomb.owner == null || entity == null || bomb.owner != entity || !bomb.ownerIsOver;
+			return bomb != null && (bomb.owner == null || entity == null || bomb.owner != entity || !bomb.ownerIsOver);
 		}
 		return false;
 	}
-
+	
 	public static Bomb getBombAt(TileCoord tileCoord)
-		{ return bombs.containsKey(tileCoord) ? bombs.get(tileCoord).get(0) : null; }
+		{ return bombs.containsKey(tileCoord) && !bombs.get(tileCoord).isEmpty() ? bombs.get(tileCoord).get(0) : null; }
 	
 	public static BombType getBombTypeFromItem(Item item) {
 		if (item.getItemType() == ItemType.FOLLOW_BOMB)

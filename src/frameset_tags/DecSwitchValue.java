@@ -16,10 +16,10 @@ public class DecSwitchValue extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + switchName + ";" + incValue + "}"; }
+		{ return "{" + getClassName(this) + ";" + switchName + ";" + incValue + "}"; }
 
 	public DecSwitchValue(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags);
+		String[] params = validateStringTags(this, tags);
 		if (params.length > 2)
 			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length < 1)

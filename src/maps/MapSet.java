@@ -19,6 +19,8 @@ import enums.SpriteLayerType;
 import enums.StageClearCriteria;
 import enums.TileProp;
 import frameset.FrameSet;
+import frameset.Tags;
+import frameset_tags.FrameTag;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import objmoveutils.Position;
@@ -528,7 +530,7 @@ public abstract class MapSet {
 	
 	public static void checkTileTrigger(Entity entity, TileCoord coord, TileProp triggerProp) {
 		Tile tile = getFirstBottomTileFromCoord(coord);
-		if (tile.getStringTags() != null)
+		if (tile.tileHaveTags())
 			for (TileProp prop : getTileProps(coord))
 				if (prop == triggerProp)
 					tile.runTags(entity);
@@ -576,7 +578,40 @@ public abstract class MapSet {
 		{ return getCurrentLayer().tileContainsProp(coord, prop); }
 	
 	public static boolean tileHaveProps(TileCoord coord)
-		{ return getTotalTileProps(coord) > 0; }
+		{ return getCurrentLayer().tileHaveProps(coord); }
+
+	public void setTileTags(TileCoord coord, Tags tags)
+		{ getCurrentLayer().setTileTags(coord, tags); }
+	
+	public void removeTileTag(TileCoord coord, String tagStr)
+		{ getCurrentLayer().removeTileTag(coord, tagStr); }
+
+	public void removeTileTag(TileCoord coord, FrameTag tag)
+		{ getCurrentLayer().removeTileTag(coord, tag); }
+
+	public void clearTileTags(TileCoord coord)
+		{ getCurrentLayer().clearTileTags(coord); }
+	
+	public boolean tileHaveTags(TileCoord coord)
+		{ return getCurrentLayer().tileHaveTags(coord); }
+	
+	public String getStringTags(TileCoord coord)
+		{ return getCurrentLayer().getStringTags(coord); }
+	
+	public Tags getTileTags(TileCoord coord)
+		{ return getCurrentLayer().getTileTags(coord); }
+	
+	public void disableTileTags(TileCoord coord)
+		{ getCurrentLayer().disableTileTags(coord); }
+	
+	public void enableTileTags(TileCoord coord)
+		{ getCurrentLayer().enableTileTags(coord); }
+	
+	public boolean tileTagsIsDisabled(TileCoord coord)
+		{ return getCurrentLayer().tileTagsIsDisabled(coord); }
+	
+	public FrameSet getTileTagsFrameSet(TileCoord coord)
+		{ return getCurrentLayer().getTileTagsFrameSet(coord); }
 
 	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough)
 		{ return tileIsOccuped(null, coord, passThrough); }

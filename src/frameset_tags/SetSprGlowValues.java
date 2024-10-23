@@ -18,10 +18,10 @@ public class SetSprGlowValues extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + level + ";" + blendMode.name() + "}"; }
+		{ return "{" + getClassName(this) + ";" + level + ";" + blendMode.name() + "}"; }
 	
 	public SetSprGlowValues(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 2);
+		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
 			level = Integer.parseInt(params[n++]);

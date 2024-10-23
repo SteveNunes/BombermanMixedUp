@@ -30,10 +30,10 @@ public class SetSprColorTintValues extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + red + ";" + green + ";" + blue + ";" + alpha + ";" + blendMode.name() + "}"; }
+		{ return "{" + getClassName(this) + ";" + red + ";" + green + ";" + blue + ";" + alpha + ";" + blendMode.name() + "}"; }
 
 	public SetSprColorTintValues(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 5);
+		String[] params = validateStringTags(this, tags, 5);
 		int n = 0;
 		try {
 			red = Double.parseDouble(params[n++]);

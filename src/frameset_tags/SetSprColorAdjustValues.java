@@ -22,10 +22,10 @@ public class SetSprColorAdjustValues extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + hue + ";" + saturation + ";" + brightness + ";" + blendMode.name() + "}"; }
+		{ return "{" + getClassName(this) + ";" + hue + ";" + saturation + ";" + brightness + ";" + blendMode.name() + "}"; }
 
 	public SetSprColorAdjustValues(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 4);
+		String[] params = validateStringTags(this, tags, 4);
 		int n = 0;
 		try {
 			hue = Double.parseDouble(params[n++]);

@@ -11,10 +11,10 @@ public class SetSprColorTintAlpha extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + value + "}"; }
+		{ return "{" + getClassName(this) + ";" + value + "}"; }
 
 	public SetSprColorTintAlpha(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 1);
+		String[] params = validateStringTags(this, tags, 1);
 		try
 			{ value = Double.parseDouble(params[0]); }
 		catch (Exception e)

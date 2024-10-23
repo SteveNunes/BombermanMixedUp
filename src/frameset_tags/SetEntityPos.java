@@ -14,10 +14,10 @@ public class SetEntityPos extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + x + ";" + y + "}"; }
+		{ return "{" + getClassName(this) + ";" + x + ";" + y + "}"; }
 
 	public SetEntityPos(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 2);
+		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
 			x = Integer.parseInt(params[n++]);

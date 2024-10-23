@@ -5,7 +5,6 @@ import java.util.List;
 
 import frameset.Sprite;
 import maps.MapSet;
-import maps.Tile;
 
 public class DisableTileTags extends FrameTag {
 	
@@ -19,10 +18,10 @@ public class DisableTileTags extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + targetLayer + ";" + FrameTag.tileCoord2ListToString(targetCoords) + "}"; }
+		{ return "{" + getClassName(this) + ";" + targetLayer + ";" + tileCoord2ListToString(targetCoords) + "}"; }
 
 	public DisableTileTags(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags);
+		String[] params = validateStringTags(this, tags);
 		if (params.length < 2)
 			throw new RuntimeException(tags + " - Too few parameters");
 		if (params.length > 5)
@@ -30,7 +29,7 @@ public class DisableTileTags extends FrameTag {
 		int n = 0;
 		try {
 			targetLayer = Integer.parseInt(params[n = 0]);
-			targetCoords = FrameTag.stringToTileCoord2List((n = 1) >= params.length ? null : params[n]);
+			targetCoords = stringToTileCoord2List((n = 1) >= params.length ? null : params[n]);
 		}
 		catch (Exception e)
 			{ e.printStackTrace(); throw new RuntimeException(params[n] + " - Invalid parameter"); }
@@ -41,12 +40,7 @@ public class DisableTileTags extends FrameTag {
 		{ return new DisableTileTags(targetLayer, targetCoords); }
 
 	@Override
-	public void process(Sprite sprite) {
-		FrameTag.processTile(sprite, targetCoords, coord -> {
-			Tile tile = MapSet.getFirstBottomTileFromCoord(coord);
-			if (tile != null)
-				tile.disableTags();
-		});
-	}
+	public void process(Sprite sprite)
+		{ processTile(sprite, targetCoords, coord -> MapSet.getCurrentLayer().disableTileTags(coord)); }
 
 }

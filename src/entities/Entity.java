@@ -4,7 +4,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -22,13 +22,15 @@ import frameset.Tags;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import maps.Brick;
+import maps.Item;
 import maps.MapSet;
 import objmoveutils.Position;
 import tools.Tools;
 
 public class Entity extends Position {
 	
-	private static Map<TileCoord, Set<Entity>> entityList = new HashMap<>();
+	private static Map<TileCoord, Set<Entity>> entityMap = new HashMap<>();
+	private static Map<Entity, TileCoord> entityMap2 =  new HashMap<>();
 
 	private Rectangle shadow;
 	private Map<String, FrameSet> frameSets;
@@ -38,6 +40,7 @@ public class Entity extends Position {
 	private double speed;
 	private double tempSpeed;
 	private Direction direction;
+	private PushEntity pushEntity;
 	private Elevation elevation;
 	private Tags defaultTags;
 	private String currentFrameSetName;
@@ -77,6 +80,7 @@ public class Entity extends Position {
 		elapsedFrames = entity.elapsedFrames;
 		isVisible = entity.isVisible;
 		defaultTags = entity.defaultTags == null ? null : new Tags(defaultTags);
+		pushEntity = entity.pushEntity == null ? null : new PushEntity(entity.pushEntity);
 		previewTileCoord = new TileCoord();
 		linkedEntityInfos = new LinkedList<>();
 		linkedEntityBack = null;
@@ -105,6 +109,7 @@ public class Entity extends Position {
 		linkedEntityOffset = null;
 		defaultTags = null;
 		shadow = null;
+		pushEntity = null;
 		this.direction = direction;
 		speed = 0;
 		tempSpeed = -1;
@@ -126,7 +131,7 @@ public class Entity extends Position {
 		{ defaultTags = new Tags(tags); }
 
 	public boolean isBlockedMovement()
-		{ return blockedMovement; }
+		{ return blockedMovement || pushEntity != null; }
 	
 	public void setBlockedMovement(boolean state)
 		{ blockedMovement = state; }
@@ -337,7 +342,25 @@ public class Entity extends Position {
 	
 	public boolean haveFrameSet(String frameSetName)
 		{ return frameSets.containsKey(frameSetName); }
-
+	
+	public PushEntity getPushEntity()
+		{ return pushEntity; }
+	
+	public void setPushEntity(Double strenght)
+		{ pushEntity = new PushEntity(this, strenght, null, getDirection()); }
+	
+	public void setPushEntity(Double strenght, Direction direction)
+		{ pushEntity = new PushEntity(this, strenght, null, direction); }
+	
+	public void setPushEntity(Double startStrenght, Double decStrenght)
+		{ pushEntity = new PushEntity(this, startStrenght, decStrenght, getDirection()); }
+	
+	public void setPushEntity(Double startStrenght, Double decStrenght, Direction direction)
+		{ pushEntity = new PushEntity(this, startStrenght, decStrenght, direction); }
+	
+	public void setPushEntity(PushEntity pushEntity)
+		{ this.pushEntity = pushEntity; }
+	
 	public void run()
 		{ run(null, false); }
 
@@ -348,6 +371,13 @@ public class Entity extends Position {
 		{ run(gc, false); }
 
 	public void run(GraphicsContext gc, boolean isPaused) {
+		if (pushEntity != null) {
+			pushEntity.process();
+			if (!pushEntity.isActive()) {
+				pushEntity = null;
+				setBlockedMovement(false);
+			}
+		}
 		if (!isDisabled) {
 			if (frameSets.isEmpty())
 				throw new RuntimeException("This entity have no FrameSets");
@@ -486,14 +516,20 @@ public class Entity extends Position {
 				  (getDirection() == Direction.UP && (int)((getY() + Main.TILE_SIZE - 1) / Main.TILE_SIZE) < previewTileCoord.getY()) ||
 				  (getDirection() == Direction.RIGHT && (int)(getX() / Main.TILE_SIZE) != previewTileCoord.getX()) ||
 				  (getDirection() == Direction.DOWN && (int)(getY() / Main.TILE_SIZE) != previewTileCoord.getY()))) {
-						previewTileCoord.setCoord(getTileCoord());
-						elapsedSteps++;
-						tileWasChanged = true;
+						updatePreviewTileCoord();
 			}
 			if (isPerfectlyBlockedDir(getDirection()) && !isPerfectTileCentred())
-				setPosition(getTileCoord().getX() * Main.TILE_SIZE, getTileCoord().getY() * Main.TILE_SIZE);
+				centerToTile();
 			addEntityToList(getTileCoord(), this);
 		}
+		if (!previewTileCoord.equals(getTileCoord()) && (speed == 0 || isBlockedMovement()))
+			updatePreviewTileCoord();
+	}
+
+	private void updatePreviewTileCoord() {
+		previewTileCoord.setCoord(getTileCoord());
+		elapsedSteps++;
+		tileWasChanged = true;
 	}
 
 	public int getElapsedSteps()
@@ -641,29 +677,45 @@ public class Entity extends Position {
 	public void restartCurrentFrameSet()
 		{ setFrameSet(currentFrameSetName);	}
 	
-	public Entity getFirstEntityFromCoord(TileCoord coord) {
-		if (entityList.containsKey(coord))
-			return entityList.get(coord).iterator().next();
+	public static Set<Entity> getEntityListFromCoord(TileCoord coord) {
+		if (entityMap.containsKey(coord))
+			return entityMap.get(coord);
 		return null;
-		
+	}
+	
+	public static Set<Entity> getEntityList()
+		{ return entityMap2.keySet(); }
+	
+	public static Entity getFirstEntityFromCoord(TileCoord coord) {
+		if (entityMap.containsKey(coord))
+			return entityMap.get(coord).iterator().next();
+		return null;
 	}
 	
 	public static void addEntityToList(TileCoord coord, Entity entity) {
-		if (!entityList.containsKey(coord))
-			entityList.put(coord, new HashSet<>());
-		entityList.get(coord).add(entity);
+		if (entity instanceof Bomb || entity instanceof Item || entity instanceof Brick)
+			return;
+		if (!entityMap.containsKey(coord))
+			entityMap.put(coord, new LinkedHashSet<>());
+		entityMap.get(coord).add(entity);
+		entityMap2.put(entity, coord);
 	}
 
 	public static void removeEntityFromList(TileCoord coord, Entity entity) {
-		if (entityList.containsKey(coord))
-			entityList.get(coord).remove(entity);
+		if (entityMap.containsKey(coord)) {
+			entityMap.get(coord).remove(entity);
+			entityMap2.remove(entity);
+		}
 	}
 	
 	public static boolean entityIsAtCoord(Entity entity, TileCoord coord)
-		{ return entityList.containsKey(coord) && entityList.get(coord).contains(entity); }
+		{ return entityMap.containsKey(coord) && entityMap.get(coord).contains(entity); }
 	
 	public static boolean haveAnyEntityAtCoord(TileCoord coord)
-		{ return entityList.containsKey(coord) && !entityList.get(coord).isEmpty(); }
+		{ return entityMap.containsKey(coord) && !entityMap.get(coord).isEmpty(); }
+
+	public void centerToTile()
+		{ setPosition(getTileCoord().getX() * Main.TILE_SIZE, getTileCoord().getY() * Main.TILE_SIZE); }
 
 }
 

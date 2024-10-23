@@ -6,6 +6,7 @@ import java.util.List;
 
 import entities.TileCoord;
 import frameset.Sprite;
+import frameset.Tags;
 import maps.MapSet;
 import maps.Tile;
 
@@ -24,10 +25,10 @@ public class CopySprFromCopyLayer extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + targetLayer + ";" + (int)copyArea.getX() + ";" + (int)copyArea.getY() + ";" + (int)copyArea.getWidth() + ";" + (int)copyArea.getHeight() + ";" + FrameTag.tileCoord2ListToString(targetCoords) + "}"; }
+		{ return "{" + getClassName(this) + ";" + targetLayer + ";" + (int)copyArea.getX() + ";" + (int)copyArea.getY() + ";" + (int)copyArea.getWidth() + ";" + (int)copyArea.getHeight() + ";" + tileCoord2ListToString(targetCoords) + "}"; }
 
 	public CopySprFromCopyLayer(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags);
+		String[] params = validateStringTags(this, tags);
 		if (params.length > 6)
 			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length < 3)
@@ -38,7 +39,7 @@ public class CopySprFromCopyLayer extends FrameTag {
 			copyArea = new Rectangle(Integer.parseInt(params[++n]), Integer.parseInt(params[++n]),
 					params.length < 4 ? 1 : Integer.parseInt(params[++n]),
 					params.length < 4 ? 1 : Integer.parseInt(params[++n]));
-			targetCoords = FrameTag.stringToTileCoord2List(++n >= params.length ? null : params[n]);
+			targetCoords = stringToTileCoord2List(++n >= params.length ? null : params[n]);
 		}
 		catch (Exception e)
 			{ e.printStackTrace(); throw new RuntimeException(params[n] + " - Invalid parameter"); }
@@ -50,15 +51,20 @@ public class CopySprFromCopyLayer extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		FrameTag.processTile(sprite, targetCoords, coord -> {
+		processTile(sprite, targetCoords, coord -> {
 			for (int y = 0; y < (int)copyArea.getHeight(); y++)
 				for (int x = 0; x < (int)copyArea.getWidth(); x++) {
 					TileCoord sourceCoord = new TileCoord((int)copyArea.getX() + x, (int)copyArea.getY() + y);
 					TileCoord targetCoord = new TileCoord(coord.getX() + x, coord.getY() + y);
 					MapSet.getLayer(targetLayer).removeAllTilesFromCoord(targetCoord);
 					for (Tile tile : MapSet.getCopyLayer().getTilesFromCoord(sourceCoord))
-						MapSet.getLayer(targetLayer).addTile(new Tile(tile), targetCoord);
+						MapSet.getLayer(targetLayer).addTile(new Tile(tile, MapSet.getLayer(targetLayer)), targetCoord);
 					MapSet.getLayer(targetLayer).buildLayer();
+					if (MapSet.getCopyLayer().tileHaveTags(sourceCoord)) {
+						Tags tags = MapSet.getCopyLayer().getTileTags(sourceCoord);
+						MapSet.getLayer(targetLayer).setTileTags(targetCoord, new Tags(tags));
+					}
+					MapSet.getLayer(targetLayer).replaceTileProps(targetCoord, MapSet.getCopyLayer().getTileProps(sourceCoord));
 				}
 		});
 	}

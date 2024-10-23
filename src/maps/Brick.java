@@ -11,6 +11,7 @@ import entities.Entity;
 import entities.TileCoord;
 import enums.ItemType;
 import enums.TileProp;
+import javafx.scene.canvas.GraphicsContext;
 
 public class Brick extends Entity {
 
@@ -149,6 +150,23 @@ public class Brick extends Entity {
 			}
 		}
 		removeBricks.forEach(brick -> removeBrick(brick));
+	}
+	
+	@Override
+	public void run(GraphicsContext gc, boolean isPaused) {
+		TileCoord coord = getTileCoord().getNewInstance();
+		super.run(gc, isPaused);
+		if (tileWasChanged()) {
+			MapSet.checkTileTrigger(this, getTileCoord(), TileProp.TRIGGER_BY_BLOCK);
+		}
+		if (!coord.equals(getTileCoord())) {
+			for (TileCoord t : bricks.keySet())
+				if (bricks.get(t) == this) {
+					bricks.remove(t);
+					break;
+				}
+			bricks.put(getTileCoord(), this);
+		}
 	}
 	
 	public void breakIt() {

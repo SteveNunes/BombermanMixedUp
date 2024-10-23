@@ -445,7 +445,7 @@ public class FrameSet extends Position {
 	public void TEMPresetTags() { // AParentemente nao esta em uso entao apagar se confirmado
 		frames.forEach(frame -> {
 			for (Tags tags : frame.getFrameSetTagsList())
-				for (FrameTag tag : tags.getFrameSetTags()) {
+				for (FrameTag tag : tags.getTags()) {
 					if (tag instanceof Goto)
 						((Goto)tag).resetCycles();
 					else if (tag instanceof RepeatLastFrame)

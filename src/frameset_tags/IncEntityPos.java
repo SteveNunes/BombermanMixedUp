@@ -14,10 +14,10 @@ public class IncEntityPos extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + incrementX + ";" + incrementY + "}"; }
+		{ return "{" + getClassName(this) + ";" + incrementX + ";" + incrementY + "}"; }
 
 	public IncEntityPos(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 2);
+		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
 			incrementX = Double.parseDouble(params[n++]);

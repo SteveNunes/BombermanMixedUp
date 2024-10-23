@@ -23,7 +23,7 @@ public class PlayWav extends FrameTag {
 	}
 	
 	public PlayWav(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags);
+		String[] params = validateStringTags(this, tags);
 		if (params.length > 6)
 			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length < 1)
@@ -43,7 +43,7 @@ public class PlayWav extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + partialSoundPath + ";" + rate + ";" + pan + ";" + balance + ";" + volume + ";" + stopCurrent + "}"; }
+		{ return "{" + getClassName(this) + ";" + partialSoundPath + ";" + rate + ";" + pan + ";" + balance + ";" + volume + ";" + stopCurrent + "}"; }
 
 	@Override
 	public PlayWav getNewInstanceOfThis()

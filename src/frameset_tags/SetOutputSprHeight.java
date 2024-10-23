@@ -11,10 +11,10 @@ public class SetOutputSprHeight extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + value + "}"; }
+		{ return "{" + getClassName(this) + ";" + value + "}"; }
 
 	public SetOutputSprHeight(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 1);
+		String[] params = validateStringTags(this, tags, 1);
 		try
 			{ value = Integer.parseInt(params[0]); }
 		catch (Exception e)

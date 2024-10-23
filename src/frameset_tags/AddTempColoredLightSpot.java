@@ -30,10 +30,10 @@ public class AddTempColoredLightSpot extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + x + ";" + y + ";" + xVariance + ";" + yVariance + ";" + color.toString() + ";" + minRadius + ";" + maxRadius + ";" + radiusInc + ";" + opacity + "}"; }
+		{ return "{" + getClassName(this) + ";" + x + ";" + y + ";" + xVariance + ";" + yVariance + ";" + color.toString() + ";" + minRadius + ";" + maxRadius + ";" + radiusInc + ";" + opacity + "}"; }
 
 	public AddTempColoredLightSpot(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 9);
+		String[] params = validateStringTags(this, tags, 9);
 		int n = 0;
 		try {
 			x = Integer.parseInt(params[n++]);

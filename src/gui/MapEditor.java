@@ -191,6 +191,7 @@ public class MapEditor {
 	private int ctrlZPos;
 	private long resetBricks;
 	private boolean playing;
+	private boolean editable;
 	private BomberMan bomber;
 	private String defaultMap = "SBM2_1-1";
 	
@@ -207,7 +208,7 @@ public class MapEditor {
 		zoomTileSet = 1;
 		MapSet.setCurrentLayerIndex(26);
 		ctrlZPos = -1;
-		playing = false;
+		editable = true;
 		copyProps = null;
 		selection = null;
 		canvasMain.setWidth(320 * zoomMain - 16 * zoomMain * 3);
@@ -364,20 +365,33 @@ public class MapEditor {
 			comboBoxTileRotate.getItems().add(n);
 		comboBoxTileRotate.getSelectionModel().select(0);
 		ControllerUtils.setNodeFont(buttonPlay, "Lucida Console", 14);
+		setPlayButton();
+		canvasBrickStand.setOnMouseClicked(e -> Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickStandFrameSet")));
+		canvasBrickBreaking.setOnMouseClicked(e -> Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickBreakFrameSet")));
+		canvasBrickRegen.setOnMouseClicked(e -> {
+			Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickRegenFrameSet"));
+		});
+	}
+
+	private void setPlayButton() {
+		playing = false;
+		editable = true;
+		vBoxLayerList.setDisable(false);
+		hBoxFrameSetButtons.setDisable(false);
+		vBoxTileSet.setDisable(false);
+		buttonSaveToDisk.setDisable(false);
 		buttonPlay.setText("►");
+		buttonPlay.setTooltip(new Tooltip("Ao rodar o framese, a edição do mapa e o botão\nde salvar serão desativados permanentemente,\naté que você recarregue o mapa, pois ao reproduzir\no frameset do mapa pode fazer com que alguns\nelementos do mapa sejam alterados em tempo real."));
 		buttonPlay.setOnAction(e -> {
 			playing = !playing;
 			buttonPlay.setText(playing ? "■" : "►");
 			if (playing)
 				MapSet.resetMapFrameSets();
-			vBoxLayerList.setDisable(playing);
-			hBoxFrameSetButtons.setDisable(playing);
-			vBoxTileSet.setDisable(playing);
-		});
-		canvasBrickStand.setOnMouseClicked(e -> Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickStandFrameSet")));
-		canvasBrickBreaking.setOnMouseClicked(e -> Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickBreakFrameSet")));
-		canvasBrickRegen.setOnMouseClicked(e -> {
-			Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickRegenFrameSet"));
+			vBoxLayerList.setDisable(true);
+			hBoxFrameSetButtons.setDisable(true);
+			vBoxTileSet.setDisable(true);
+			buttonSaveToDisk.setDisable(true);
+			editable = false;
 		});
 	}
 
@@ -392,7 +406,8 @@ public class MapEditor {
 							+ "     FPS: " + Tools.getFPSHandler().getFPS()
 							+ "     " + canvasMouseDraw.tileCoord
 							+ "     " + canvasMouseDraw.tileCoord.positionString(Main.TILE_SIZE)
-							+ "     (" + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BLOCKED") + ")"
+							+ "     (Sprites: " + (getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord) == null ? "0" : getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord).size()) + ","
+							+ "     " + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BLOCKED") + ")"
 							+ "     Zoom: x" + zoomMain
 							+ "     Tileset Zoom: x" + zoomTileSet
 							+ "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
@@ -451,6 +466,7 @@ public class MapEditor {
 		{ MapSet.setCurrentLayerIndex(newValue); }
 
 	void loadMap(String mapName, boolean resetCurrentLayerIndex) {
+		setPlayButton();
 		if (mapName == null)
 			throw new RuntimeException("Unable to load map because 'mapName' is null");
 		if (defaultMap != null) {
@@ -554,6 +570,8 @@ public class MapEditor {
 				if (e.getCode() == keysInputs[n])
 					bomber.keyPress(GameInputs.getList()[n]);
 			}
+			if (!editable)
+				return;
 			if (e.getCode() == KeyCode.PAGE_UP || e.getCode() == KeyCode.PAGE_DOWN) {
 				if (isNoHolds())
 					incLayerIndex(e.getCode() == KeyCode.PAGE_UP ? -1 : 1);
@@ -609,13 +627,13 @@ public class MapEditor {
 							brick.incPositionByDirection(dir, Main.TILE_SIZE);
 							Brick.addBrick(brick);
 						});
-						MapSet.getCurrentLayer().setTilesMap(tilesMap);
+						getCurrentLayer().setTilesMap(tilesMap);
 					}
 					else {
 						Map<TileCoord, List<Tile>> tilesMap = new HashMap<>();
 						List<Brick> bricks = new ArrayList<>();
 						iterateAllSelectedCoords(coord -> {
-							if (MapSet.getCurrentLayer().haveTilesOnCoord(coord)) {
+							if (getCurrentLayer().haveTilesOnCoord(coord)) {
 								TileCoord tileCoord = coord.getNewInstance();
 								tileCoord.incByDirection(dir);
 								tilesMap.put(new TileCoord(tileCoord), getCurrentLayer().getTilesFromCoord(coord));
@@ -625,14 +643,14 @@ public class MapEditor {
 									brick.incPositionByDirection(dir, Main.TILE_SIZE);
 									Brick.removeBrick(coord);
 								}
-								MapSet.getCurrentLayer().removeAllTilesFromCoord(coord);
+								getCurrentLayer().removeAllTilesFromCoord(coord);
 							}
 						});
 						for (TileCoord coord : tilesMap.keySet()) {
-							if (MapSet.getCurrentLayer().haveTilesOnCoord(coord))
-								MapSet.getCurrentLayer().removeAllTilesFromCoord(coord);
+							if (getCurrentLayer().haveTilesOnCoord(coord))
+								getCurrentLayer().removeAllTilesFromCoord(coord);
 							for (Tile tile : tilesMap.get(coord))
-								MapSet.getCurrentLayer().addTile(tile, coord);
+								getCurrentLayer().addTile(tile, coord);
 						}
 						bricks.forEach(brick -> Brick.addBrick(brick));
 						int x = (int)selection.getX(), y = (int)selection.getY(),
@@ -641,7 +659,7 @@ public class MapEditor {
 						y += dir == Direction.UP ? -1 : dir == Direction.DOWN ? 1 : 0;
 						selection.setBounds(x, y, w, h);
 					}
-					MapSet.getCurrentLayer().buildLayer();
+					getCurrentLayer().buildLayer();
 				}
 			}
 			else if (e.getCode() == KeyCode.DELETE) {
@@ -766,7 +784,7 @@ public class MapEditor {
 			canvasMouseDraw.y = (int)e.getY() + deslocY();
 			TileCoord prevCoord = canvasMouseDraw.tileCoord.getNewInstance();
 			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
-			if (!playing && e.getButton() == MouseButton.PRIMARY) {
+			if (editable && e.getButton() == MouseButton.PRIMARY) {
 				if (selection == null && !prevCoord.equals(canvasMouseDraw.tileCoord))
 					addSelectedTileOnCurrentCursorPosition();
 				if (isShiftHold()) {
@@ -802,7 +820,7 @@ public class MapEditor {
 			}
 			if (e.getButton() == MouseButton.PRIMARY && !isAltHold()) {
 					selection = null;
-				if (!playing && isNoHolds())
+				if (editable && isNoHolds())
 					addSelectedTileOnCurrentCursorPosition();
 			}
 		});
@@ -925,7 +943,7 @@ public class MapEditor {
 		}
 		bomber.run();
 		updateTileSelectionArray();
-		if (!playing) {
+		if (editable) {
 			for (int y = 0; y < tileSelectionArray.length; y++)
 				for (int x = 0; x < tileSelectionArray[0].length; x++) {
 					Tile tile = tileSelectionArray[y][x];
@@ -963,6 +981,10 @@ public class MapEditor {
 	    	gcMain.fillRect(xx, yy, 10, 10);
 	    }
     }
+  	gcMain.setStroke(Color.RED);
+  	gcMain.setLineWidth(4);
+    for (Entity entity : Entity.getEntityList())
+    	gcMain.strokeRect(entity.getX() * zoomMain, entity.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
     
     drawBlockTypeMark();
     drawGridAndAim();
@@ -1041,42 +1063,46 @@ public class MapEditor {
 	}
 
 	void drawTileTagsOverCursor() {
-		if (!checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
-			String tileTags = MapSet.getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord).getStringTags();
-			if (tileTags != null) {
-				gcMain.setFill(Color.LIGHTBLUE);
-				gcMain.setStroke(Color.BLACK);
-				gcMain.setFont(font);
-				gcMain.setLineWidth(3);
-				String str[] = tileTags.split(tileTags.charAt(0) == '{' ? "\\," : "\s");
-				int x, y = canvasMouseDraw.y + 20 - deslocY(), yy = str.length * 20;
-				while (y + yy >= canvasMain.getHeight() - 30)
-					y -= 20;
-				yy = 0;
-				for (String s : str) {
-					Text text = new Text(s);
-					ControllerUtils.setNodeFont(text, "Lucida Console", 15);
-					int w = (int)text.getBoundsInLocal().getWidth();
-					x = canvasMouseDraw.x - w / 2 - deslocX();
-					while (x + w >= canvasMain.getWidth() - 130)
-						x -= 10;
-					gcMain.strokeText(s, x, y + (yy += 20));
-					gcMain.fillText(s, x, y + yy);
-				}
-				gcMain.setStroke(Color.GREENYELLOW);
-				gcMain.setLineWidth(2);
-				gcMain.strokeRect(canvasMouseDraw.getCoordX() * zoomMain * Main.TILE_SIZE + deslocX(), canvasMouseDraw.getCoordY() * zoomMain * Main.TILE_SIZE + deslocY(), 16 * zoomMain, 16 * zoomMain);
-			}
-		}
 		for (int y = 0; Misc.blink(50) && y < 200; y++)
 			for (int x = 0; x < 200; x++) {
 				TileCoord coord = new TileCoord(x, y);
-				if (haveTilesOnCoord(coord) && MapSet.getFirstBottomTileFromCoord(coord).getStringTags() != null) {
+				if (haveTilesOnCoord(coord) && getCurrentLayer().tileHaveTags(coord)) {
 					gcMain.setStroke(Color.WHITESMOKE);
 					gcMain.setLineWidth(2);
 					gcMain.strokeRect(x * zoomMain * Main.TILE_SIZE + deslocX(), y * zoomMain * Main.TILE_SIZE + deslocY(), 16 * zoomMain, 16 * zoomMain);
 				}
 			}
+		if (!checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
+			String tileTags;
+			if (getCurrentLayer().tileHaveTags(canvasMouseDraw.tileCoord))
+				tileTags = getCurrentLayer().getTileTags(canvasMouseDraw.tileCoord).toString();
+			else if (getCurrentLayer().getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord).getStringTags() != null)
+				tileTags = getCurrentLayer().getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord).getStringTags();
+			else
+				return;
+			gcMain.setFill(Color.LIGHTBLUE);
+			gcMain.setStroke(Color.BLACK);
+			gcMain.setFont(font);
+			gcMain.setLineWidth(3);
+			String str[] = tileTags.split(tileTags.charAt(0) == '{' ? "\\," : " ");
+			int x, y = canvasMouseDraw.y + 20 - deslocY(), yy = str.length * 20;
+			while (y + yy >= canvasMain.getHeight() - 30)
+				y -= 20;
+			yy = 0;
+			for (String s : str) {
+				Text text = new Text(s);
+				ControllerUtils.setNodeFont(text, "Lucida Console", 15);
+				int w = (int)text.getBoundsInLocal().getWidth();
+				x = canvasMouseDraw.x - w / 2 - deslocX();
+				while (x + w >= canvasMain.getWidth() - 130)
+					x -= 10;
+				gcMain.strokeText(s, x, y + (yy += 20));
+				gcMain.fillText(s, x, y + yy);
+			}
+			gcMain.setStroke(Color.GREENYELLOW);
+			gcMain.setLineWidth(2);
+			gcMain.strokeRect(canvasMouseDraw.getCoordX() * zoomMain * Main.TILE_SIZE + deslocX(), canvasMouseDraw.getCoordY() * zoomMain * Main.TILE_SIZE + deslocY(), 16 * zoomMain, 16 * zoomMain);
+		}
 	}
 	
 	void setContextMenu() {
@@ -1142,15 +1168,23 @@ public class MapEditor {
 				contextMenu.getItems().add(menu);
 				menuItem = new MenuItem("Editar");
 				menu.getItems().add(menuItem);
-				final Tile tile = MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord);
+				final Tile tile = getCurrentLayer().getFirstBottomTileFromCoord(coord);
 				menuItem.setOnAction(e -> {
 					String str = Alerts.textPrompt("Prompt", "Editar Tile Frame Tag", tile.getStringTags(), "Digite o novo Frame Tag para o tile atual");
-					if (str != null)
-						tile.setTileTagsFrameSetFromString(str);
+					if (str != null) {
+						String backupTags = tile.getStringTags();
+						try
+							{ tile.loadTagsFromString(str); }
+						catch (Exception ex) {
+							tile.loadTagsFromString(backupTags);
+							Alerts.exception("Erro", "Erro ao definir tag do tile", ex);
+							return;
+						}
+					}
 				});
 				menuItem = new MenuItem("Remover");
 				menu.getItems().add(menuItem);
-				menuItem.setOnAction(e -> tile.removeTileTagsFrameSet());
+				menuItem.setOnAction(e -> tile.getTileTags().clearTags());
 			}
 		}
 	}
@@ -1192,11 +1226,11 @@ public class MapEditor {
   	for (TileCoord coord : copiedTiles.keySet()) {
   		TileCoord coord2 = new TileCoord(coord.getX() + xx, coord.getY() + yy);
   		if (removeTilesBeforePaste)
-  			MapSet.getCurrentLayer().removeAllTilesFromCoord(coord2);
+  			getCurrentLayer().removeAllTilesFromCoord(coord2);
   		for (Tile tile : copiedTiles.get(coord))
-  			MapSet.getCurrentLayer().addTile(new Tile(tile), coord2);
+  			getCurrentLayer().addTile(new Tile(tile, getCurrentLayer()), coord2);
   	}
-  	MapSet.getCurrentLayer().buildLayer();
+  	getCurrentLayer().buildLayer();
 	}
 	
 	void replaceTile(TileCoord coord, Tile newTile)
@@ -1272,7 +1306,6 @@ public class MapEditor {
 			MapSet.getTileListFromCurrentLayer().forEach(tile -> {
     		Color color;
     		if (!ok.contains(tile.getTileCoord())) {
-    			System.out.println(tile.getTileCoord() + " " + MapSet.getTileProps(tile.getTileCoord()));
     			List<TileProp> tileProps = MapSet.getTileProps(tile.getTileCoord());
 	    		if (tileProps.contains(TileProp.DAMAGE_PLAYER) ||
 	    				tileProps.contains(TileProp.DAMAGE_ENEMY) ||
@@ -1325,11 +1358,6 @@ public class MapEditor {
 	    							 color = Color.DARKORANGE;
 	    		else if (tileProps.contains(TileProp.BRICK_RANDOM_SPAWNER))
 	    			color = Color.LIGHTGREEN;
-	    		else if (tileProps.contains(TileProp.PUSH_BOMB_TO_DOWN) ||
-	    						 tileProps.contains(TileProp.PUSH_BOMB_TO_LEFT) ||
-	    						 tileProps.contains(TileProp.PUSH_BOMB_TO_RIGHT) ||
-	    						 tileProps.contains(TileProp.PUSH_BOMB_TO_UP))
-	    							 color = Color.LIGHTSLATEGRAY;
 	    		else if (tileProps.contains(TileProp.FIXED_BRICK))
 	    			color = Color.GREEN;
 	    		else if (tileProps.contains(TileProp.MOVING_BLOCK))
@@ -1417,24 +1445,27 @@ public class MapEditor {
 	
 	void saveCurrentMap() {
 		MapSet.getMapIniFile().clearSection("TILES");
-		Map<Layer, Set<TileCoord>> ok = new HashMap<>();
+		Map<Integer, Set<TileCoord>> ok = new HashMap<>();
 		int n = 0;
 		for (Layer layer : MapSet.getLayersMap().values()) {
-			if (!ok.containsKey(layer))
-				ok.put(layer, new HashSet<>());
+			if (!ok.containsKey(layer.getLayer()))
+				ok.put(layer.getLayer(), new HashSet<>());
 			for (Tile tile : layer.getTileList()) {
-				String props = "";
-				if (!ok.get(layer).contains(tile.getTileCoord())) {
+				boolean first = !ok.get(layer.getLayer()).contains(tile.getTileCoord());
+				String props = "",
+						layerType = !first ? "-" : "" + layer.getSpriteLayerType(),
+						tileTags = !first || tile.getStringTags() == null ? "" : tile.getStringTags();
+				if (first) {
 					for (TileProp prop : layer.getTileProps(tile.getTileCoord())) {
 						if (!props.isEmpty())
 							props += "!";
 						props += prop.getValue();
 					}
-					ok.get(layer).add(tile.getTileCoord());
+					ok.get(layer.getLayer()).add(tile.getTileCoord());
 				}
 				else
 					props = "" + TileProp.NOTHING.getValue();
-				String s = layer.getLayer() + " " + layer.getSpriteLayerType() + " " + (tile.spriteX / Main.TILE_SIZE) + "!" + (tile.spriteY / Main.TILE_SIZE) + " " + (tile.outX / Main.TILE_SIZE) + "!" + (tile.outY / Main.TILE_SIZE) + " " + tile.flip.name() + " " + tile.rotate + " " + props + " " + tile.opacity + " " + Tools.SpriteEffectsToString(tile.effects) + " " + (tile.getStringTags() == null ? "" : tile.getStringTags());
+				String s = layer.getLayer() + " " + layerType + " " + (tile.spriteX / Main.TILE_SIZE) + "!" + (tile.spriteY / Main.TILE_SIZE) + " " + (tile.outX / Main.TILE_SIZE) + "!" + (tile.outY / Main.TILE_SIZE) + " " + tile.flip.name() + " " + tile.rotate + " " + props + " " + tile.opacity + " " + Tools.SpriteEffectsToString(tile.effects) + " " + tileTags;
 				MapSet.getMapIniFile().write("TILES", "" + n++, s);
 			}
 		}

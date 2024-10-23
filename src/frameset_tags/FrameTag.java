@@ -52,12 +52,20 @@ public abstract class FrameTag {
 	}
 	
 	static <T> String getClassName(T clazz)
-		{ return clazz.getClass().toString().replace("class frameset_tags.", ""); }
+		{ return clazz.getClass().getSimpleName(); }
 	
-	// Formato da string: X:Y onde se X for --X ou ++X, o valor X,Y de TileCoord2 é atualizado para a coordenada do tile que disparou o evento, e offsetX,offsetY é definido com os valores informados na String
-	static TileCoord2 getCoord2FromString(String str) {
+	public static FrameTag getFrameTagClassFromString(List<FrameTag> list, String frameTagClassName) {
+		for (FrameTag obj : list)
+			if (obj.getClass().getSimpleName().equals(frameTagClassName))
+				return obj;
+		return null;
+	}
+
+  // Formato da string: X:Y onde se X for --X ou ++X, o valor X,Y de TileCoord2 é atualizado para a coordenada do tile que disparou o evento, e offsetX,offsetY é definido com os valores informados na String
+	static TileCoord2 stringToTileCoord2(String str) {
 		String[] split = str.split(":");
 		TileCoord2 coord = new TileCoord2();
+		coord.setOriginalTag(str);
 		for (int n = 0; n < 2; n++) {
 			String s = split[n];
 			if (s.length() > 2 && (s.subSequence(0, 2).equals("--") || s.subSequence(0, 2).equals("++"))) {
@@ -86,43 +94,102 @@ public abstract class FrameTag {
 
 	static String tileCoord2ListToString(List<TileCoord2> coords) {
 		StringBuilder sb = new StringBuilder();
-		for (TileCoord2 pos : coords) {
+		for (TileCoord2 coord : coords) {
 			if (!sb.isEmpty())
 				sb.append("!");
-			sb.append(pos.getX());
-			sb.append(":");
-			sb.append(pos.getY());
-			sb.append(":");
-			sb.append(pos.getOffsetX());
-			sb.append(":");
-			sb.append(pos.getOffsetY());
+			sb.append(coord.getOriginalTag());
 		}
 		return sb.toString();
 	}
 
 	// Formato da String: X1:Y1!X2:Y2!X3:Y3...
 	static List<TileCoord2> stringToTileCoord2List(String coords) {
-		if (coords == null)
-			return new ArrayList<>(Arrays.asList(new TileCoord2(-1, -1, 0, 0)));
+		if (coords == null) {
+			TileCoord2 coord = new TileCoord2(-1, -1, 0, 0);
+			coord.setOriginalTag("");
+			return new ArrayList<>(Arrays.asList(coord));
+		}
 		List<TileCoord2> coordList = new ArrayList<>();
 		String[] split = coords.split("!");
 		for (String s : split)
-			coordList.add(getCoord2FromString(s));
+			coordList.add(stringToTileCoord2(s));
 		return coordList;
 	}
 	
 	static void processTile(Sprite sprite, List<TileCoord2> tileCoords, Consumer<TileCoord> consumer) {
-		for (TileCoord2 coord : tileCoords) {
-			int tx = coord.getX(), ty = coord.getY();
-			if (tx == -1 || ty == -1) {
-				if (sprite == null)
-					throw new RuntimeException("sprite is null (This FrameTag becames from StageTag instead of a tile tag, so you must provide 'width;height;targetX;targetY' params)");
-				TileCoord coord2 = sprite.getTileCoord();
-				tx = tx == -1 ? coord2.getX() : tx;
-				ty = ty == -1 ? coord2.getY() : ty;
-			}
-			consumer.accept(new TileCoord(tx + coord.getOffsetX(), ty + coord.getOffsetY()));
-		}
+		for (TileCoord2 coord : tileCoords)
+			processTile(sprite, coord, consumer);
 	}
 	
+	static void processTile(Sprite sprite, TileCoord2 tileCoord2, Consumer<TileCoord> consumer) {
+		int tx = tileCoord2.getX(), ty = tileCoord2.getY();
+		if (tx == -1 || ty == -1) {
+			if (sprite == null)
+				throw new RuntimeException("sprite is null (This FrameTag becames from StageTag instead of a tile tag, so you must provide 'width;height;targetX;targetY' params)");
+			TileCoord coord2 = sprite.getTileCoord();
+			tx = tx == -1 ? coord2.getX() : tx;
+			ty = ty == -1 ? coord2.getY() : ty;
+		}
+		consumer.accept(new TileCoord(tx + tileCoord2.getOffsetX(), ty + tileCoord2.getOffsetY()));
+	}
+	
+}
+
+class TileCoord2 extends TileCoord {
+
+	private int offsetX;
+	private int offsetY;
+	private String originalTag;
+	
+	public TileCoord2()
+		{ this(0, 0, 0, 0); }
+	
+	public TileCoord2(TileCoord2 tileCoord2)
+		{ this(tileCoord2.getX(), tileCoord2.getY(), tileCoord2.offsetX, tileCoord2.offsetY); }
+	
+	public TileCoord2(int x, int y, int offsetX, int offsetY) {
+		super(x, y);
+		this.offsetX = offsetX;
+		this.offsetY = offsetY;
+	}
+	
+	public TileCoord2 getNewInstance() {
+		TileCoord2 coord = new TileCoord2(getX(), getY(), offsetX, offsetY);
+		coord.setOriginalTag(getOriginalTag());
+		return coord;
+	}
+	
+	public String getOriginalTag()
+		{ return originalTag; }
+
+	public void setOriginalTag(String originalTag)
+		{ this.originalTag = originalTag; }
+
+	public int getOffsetX()
+		{ return offsetX; }
+
+	public void setOffsetX(int offsetX)
+		{ this.offsetX = offsetX; }
+
+	public int getOffsetY()
+	 { return offsetY; }
+
+	public void setOffsetY(int offsetY)
+		{ this.offsetY = offsetY;	}
+	
+	public void setOffset(int offsetX, int offsetY) {
+		setOffsetX(offsetX);
+		setOffsetY(offsetY);
+	}
+	
+	public void setOffset(TileCoord2 tileCoord2)
+		{ setOffset(tileCoord2.getOffsetX(), tileCoord2.getOffsetY()); }
+	
+	public TileCoord getTileCoord()
+		{ return (TileCoord)this; }
+
+	@Override
+	public String toString()
+		{ return "TileCoord2 [" + getX() + "," + getY() + "] [" + offsetX + "," + offsetY + "]"; }
+
 }

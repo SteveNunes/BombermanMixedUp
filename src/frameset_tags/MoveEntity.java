@@ -11,10 +11,10 @@ public class MoveEntity extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + speed + "}"; }
+		{ return "{" + getClassName(this) + ";" + speed + "}"; }
 
 	public MoveEntity(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags);
+		String[] params = validateStringTags(this, tags);
 		if (params.length > 1)
 			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length == 1) {

@@ -10,11 +10,11 @@ public class SetMapFrameSet extends FrameTag {
 	
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + frameSetName + "}"; }
+		{ return "{" + getClassName(this) + ";" + frameSetName + "}"; }
 	
 	public SetMapFrameSet(String tags) {
 		this.tags = tags;
-		String[] params = FrameTag.validateStringTags(this, tags, 1);
+		String[] params = validateStringTags(this, tags, 1);
 		frameSetName = params[0];
 	}
 

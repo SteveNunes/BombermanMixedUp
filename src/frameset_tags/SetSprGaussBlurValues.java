@@ -18,10 +18,10 @@ public class SetSprGaussBlurValues extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + radius + ";" + blendMode.name() + "}"; }
+		{ return "{" + getClassName(this) + ";" + radius + ";" + blendMode.name() + "}"; }
 
 	public SetSprGaussBlurValues(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 2);
+		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
 			radius = Integer.parseInt(params[n++]);

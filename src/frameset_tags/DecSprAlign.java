@@ -8,10 +8,10 @@ public class DecSprAlign extends FrameTag {
 	
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + "}"; }
+		{ return "{" + getClassName(this) + "}"; }
 	
 	public DecSprAlign(String tags)
-		{ FrameTag.validateStringTags(this, tags, 0); }
+		{ validateStringTags(this, tags, 0); }
 
 	@Override
 	public DecSprAlign getNewInstanceOfThis()

@@ -11,17 +11,17 @@ import util.TimerFX;
 
 public class Tags {
 
-	private List<FrameTag> frameSetTags;
+	private List<FrameTag> tags;
 	private Sprite rootSprite;
 
 	public Tags()
 		{ this(null, null); }
 	
 	public Tags(Tags tags) {
-		frameSetTags = new ArrayList<>();
-		for (FrameTag tag : tags.frameSetTags) {
+		this.tags = new ArrayList<>();
+		for (FrameTag tag : tags.tags) {
 			FrameTag tag2;
-			frameSetTags.add(tag2 = tag.getNewInstanceOfThis());
+			this.tags.add(tag2 = tag.getNewInstanceOfThis());
 			tag2.setTriggerDelay(tag.getTriggerDelay());
 			tag2.deleteMeAfterFirstRead = tag.deleteMeAfterFirstRead;
 		}
@@ -30,7 +30,7 @@ public class Tags {
 	
 	public <T extends FrameTag> Tags(Sprite rootSprite, T tag) {
 		this.rootSprite = rootSprite;
-		frameSetTags = tag == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(tag));
+		tags = tag == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(tag));
 	}
 
 	public Tags(Sprite rootSprite)
@@ -42,45 +42,69 @@ public class Tags {
 	public void setRootSprite(Sprite sprite)
 		{ rootSprite = sprite; }
 
-	public void clearFrameSetTags()
-		{ frameSetTags.clear(); }
+	public void clearTags()
+		{ tags.clear(); }
 	
-	public List<FrameTag> getFrameSetTags()
-		{ return frameSetTags; }
+	public List<FrameTag> getTags()
+		{ return tags; }
 	
-	public <T extends FrameTag> void addFrameSetTag(T tag)
-		{ frameSetTags.add(tag); }
+	public <T extends FrameTag> void addTag(T tag)
+		{ tags.add(tag); }
 	
-	public <T extends FrameTag> void removeFrameSetTag(T tag)
-		{ frameSetTags.remove(tag); }
+	public void loadFromString(String stringTags) {
+		tags.clear();
+		loadTagsFromString(stringTags);
+	}
+	
+	public void addTagsFromString(String stringTags) {
+		Tags tempTags = Tags.loadTagsFromString(stringTags);
+		for (FrameTag t : tempTags.getTags())
+			tags.add(t);
+	}
+	
+	public <T extends FrameTag> void removeTag(T tag)
+		{ tags.remove(tag); }
+	
+	public void removeTagFromIndex(int i) {
+		if (i >= tags.size())
+			throw new RuntimeException(i + " - Indice inválido (Max " + (tags.size() - 1));
+		tags.remove(i);
+	}
+	
+	public void removeTag(String tagName) {
+		FrameTag tag = FrameTag.getFrameTagClassFromString(tags, tagName);
+		if (tag == null)
+			throw new RuntimeException(tagName + " - Tag não encontrada");
+		tags.remove(tag);
+	}
 	
 	public int size()
-		{ return frameSetTags.size(); }
+		{ return tags.size(); }
 
 	public <T extends FrameTag> int indexOf(T tag)
-		{ return frameSetTags.indexOf(tag); }
+		{ return tags.indexOf(tag); }
 
 	public FrameTag get(int index)
-		{ return frameSetTags.get(index); }
+		{ return tags.get(index); }
 	
 	public int getTotalTags()
-		{ return frameSetTags.size(); }
+		{ return tags.size(); }
 	
 	public void run() {
 		if ((rootSprite != null && rootSprite.getSourceFrameSet().isStopped()))
 			return;
-		if (getTotalTags() > 0 && getFrameSetTags().get(0) instanceof DelayTags) {
+		if (getTotalTags() > 0 && getTags().get(0) instanceof DelayTags) {
 			final Tags tags2 = new Tags(this);
-			DelayTags delay = (DelayTags)tags2.getFrameSetTags().get(0);  
-			tags2.getFrameSetTags().remove(0);
+			DelayTags delay = (DelayTags)tags2.getTags().get(0);  
+			tags2.getTags().remove(0);
 			if (getTotalTags() > 0)
 				TimerFX.createTimer("delayedProcessTags " + tags2.hashCode(), delay.value, () -> tags2.run());
 			return;
 		}
 		for (int n = 0; n < getTotalTags(); n++) {
-			FrameTag tag = getFrameSetTags().get(n);
+			FrameTag tag = getTags().get(n);
 			if (tag.deleteMeAfterFirstRead)
-				getFrameSetTags().remove(n--);
+				getTags().remove(n--);
 			if (tag.getTriggerDelay() > 0) {
 				final FrameTag tag2 = tag.getNewInstanceOfThis();
 				int delay = tag.getTriggerDelay();
@@ -106,7 +130,7 @@ public class Tags {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (FrameTag tag : frameSetTags) {
+		for (FrameTag tag : tags) {
 			if (!sb.isEmpty())
 				sb.append(",");
 			sb.append(tag.toString());

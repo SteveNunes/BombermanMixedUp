@@ -18,10 +18,10 @@ public class RunEffectAt extends FrameTag {
 	
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + offsetX + ";" + offsetY + ";" + frameSetName + "}"; }
+		{ return "{" + getClassName(this) + ";" + offsetX + ";" + offsetY + ";" + frameSetName + "}"; }
 
 	public RunEffectAt(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags);
+		String[] params = validateStringTags(this, tags);
 		if (params.length > 3)
 			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length == 2 || params.length < 1)

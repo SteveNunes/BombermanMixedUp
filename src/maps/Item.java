@@ -12,6 +12,7 @@ import entities.TileCoord;
 import enums.Curse;
 import enums.ItemType;
 import enums.TileProp;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import objmoveutils.Position;
@@ -160,6 +161,23 @@ public class Item extends Entity{
 				item.run();
 		}
 		removeItems.forEach(item -> removeItem(item));
+	}
+	
+	@Override
+	public void run(GraphicsContext gc, boolean isPaused) {
+		TileCoord coord = getTileCoord().getNewInstance();
+		super.run(gc, isPaused);
+		if (tileWasChanged()) {
+			MapSet.checkTileTrigger(this, getTileCoord(), TileProp.TRIGGER_BY_ITEM);
+		}
+		if (!coord.equals(getTileCoord())) {
+			for (TileCoord t : items.keySet())
+				if (items.get(t) == this) {
+					items.remove(t);
+					break;
+				}
+			items.put(getTileCoord(), this);
+		}
 	}
 	
 	public void pick() {

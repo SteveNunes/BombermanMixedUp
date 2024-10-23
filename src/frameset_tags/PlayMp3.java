@@ -21,7 +21,7 @@ public class PlayMp3 extends FrameTag {
 	}
 	
 	public PlayMp3(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags);
+		String[] params = validateStringTags(this, tags);
 		if (params.length > 6)
 			throw new RuntimeException(tags + " - Too much parameters");
 		if (params.length < 1)
@@ -40,7 +40,7 @@ public class PlayMp3 extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + partialSoundPath + ";" + rate + ";" + balance + ";" + volume + ";" + stopCurrent + "}"; }
+		{ return "{" + getClassName(this) + ";" + partialSoundPath + ";" + rate + ";" + balance + ";" + volume + ";" + stopCurrent + "}"; }
 
 	@Override
 	public PlayMp3 getNewInstanceOfThis()

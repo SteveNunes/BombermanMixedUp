@@ -18,10 +18,10 @@ public class SetSprBloomValues extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + threshold + ";" + blendMode.name() + "}"; }
+		{ return "{" + getClassName(this) + ";" + threshold + ";" + blendMode.name() + "}"; }
 
 	public SetSprBloomValues(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 2);
+		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
 			threshold = Double.parseDouble(params[n++]);

@@ -11,10 +11,10 @@ public class SetFrameSet extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + value + "}"; }
+		{ return "{" + getClassName(this) + ";" + value + "}"; }
 
 	public SetFrameSet(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 1);
+		String[] params = validateStringTags(this, tags, 1);
 		value = params[0];
 	}
 

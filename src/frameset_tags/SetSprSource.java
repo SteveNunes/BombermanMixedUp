@@ -38,11 +38,11 @@ public class SetSprSource extends FrameTag {
 				sw = (int)originSprSizePos.getWidth(), sh = (int)originSprSizePos.getHeight(),
 				tx = (int)outputSprSizePos.getX(), ty = (int)outputSprSizePos.getY(),
 				tw = (int)outputSprSizePos.getWidth(), th = (int)outputSprSizePos.getHeight();
-		return "{" + FrameTag.getClassName(this) + ";" +spriteSourceName + ";" + + sx + ";" + sy + ";" + sw + ";" + sh + ";" + spriteIndex + ";" + spritesPerLine + ";" + tx + ";" + ty + ";" + tw + ";" + th + "}";
+		return "{" + getClassName(this) + ";" +spriteSourceName + ";" + + sx + ";" + sy + ";" + sw + ";" + sh + ";" + spriteIndex + ";" + spritesPerLine + ";" + tx + ";" + ty + ";" + tw + ";" + th + "}";
 	}
 
 	public SetSprSource(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags);
+		String[] params = validateStringTags(this, tags);
 		Image image = Materials.getImageFromSpriteName(spriteSourceName = params[0]);
 		if (image == null)
 			throw new RuntimeException(params[0] + " - Invalid sprite source name");

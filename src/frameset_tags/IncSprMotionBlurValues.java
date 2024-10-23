@@ -14,10 +14,10 @@ public class IncSprMotionBlurValues extends FrameTag {
 
 	@Override
 	public String toString()
-		{ return "{" + FrameTag.getClassName(this) + ";" + incrementAngle + ";" + incrementRadius + "}"; }
+		{ return "{" + getClassName(this) + ";" + incrementAngle + ";" + incrementRadius + "}"; }
 
 	public IncSprMotionBlurValues(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags, 2);
+		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
 			incrementAngle = Double.parseDouble(params[n++]);

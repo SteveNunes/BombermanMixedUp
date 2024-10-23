@@ -27,11 +27,11 @@ public class RemoveTileProp extends FrameTag {
 				sb.append("!");
 			sb.append(prop.name());
 		}
-		return "{" + FrameTag.getClassName(this) + ";" + targetLayer + ";" + sb.toString() + ";" + FrameTag.tileCoord2ListToString(targetCoords) + "}";
+		return "{" + getClassName(this) + ";" + targetLayer + ";" + sb.toString() + ";" + tileCoord2ListToString(targetCoords) + "}";
 	}
 
 	public RemoveTileProp(String tags) {
-		String[] params = FrameTag.validateStringTags(this, tags);
+		String[] params = validateStringTags(this, tags);
 		if (params.length < 3)
 			throw new RuntimeException(tags + " - Too few parameters");
 		if (params.length > 4)
@@ -39,11 +39,11 @@ public class RemoveTileProp extends FrameTag {
 		int n = 0;
 		try {
 			tileProps = new ArrayList<>();
-			targetLayer = Integer.parseInt(params[n = 0]);
+			targetLayer = params[n = 0].equals("-") ? 26 : Integer.parseInt(params[n]);
 			String[] split = params[n = 1].split("!");
 			for (String s : split)
 				tileProps.add(TileProp.valueOf(s));
-			targetCoords = FrameTag.stringToTileCoord2List((n = 2) >= params.length ? null : params[n]);
+			targetCoords = stringToTileCoord2List((n = 2) >= params.length ? null : params[n]);
 		}
 		catch (Exception e)
 			{ e.printStackTrace(); throw new RuntimeException(params[n] + " - Invalid parameter"); }
@@ -55,8 +55,8 @@ public class RemoveTileProp extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		FrameTag.processTile(sprite, targetCoords, coord ->
-			tileProps.forEach(p -> MapSet.getCurrentLayer().removeTileProp(coord, p)));
+		processTile(sprite, targetCoords, coord ->
+			tileProps.forEach(p -> MapSet.getLayer(targetLayer).removeTileProp(coord, p)));
 	}
 
 }

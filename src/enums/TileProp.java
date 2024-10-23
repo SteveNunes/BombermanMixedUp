@@ -60,10 +60,6 @@ public enum TileProp {
 	RAIL_JUMP(58), // Trilho que faz o BomberKart iniciar/finalizar um salto
 	RAIL_START(59), // Trilho de partida do BomberKart
 	RAIL_END(60), // Trilho de chegada do BomberKart
-	PUSH_BOMB_TO_DOWN(61), // Faz bombas depositadas nesse tile serem impussionadas para baixo até esbarrarem em algum obstaculo
-	PUSH_BOMB_TO_RIGHT(62), //  Faz bombas depositadas nesse tile serem impussionadas para direita até esbarrarem em algum obstaculo
-	PUSH_BOMB_TO_UP(63), // Faz bombas depositadas nesse tile serem impussionadas para cima até esbarrarem em algum obstaculo
-	PUSH_BOMB_TO_LEFT(64), // Faz bombas depositadas nesse tile serem impussionadas para esquerda até esbarrarem em algum obstaculo
 	TRIGGER_BY_PLAYER(65), // As Tags de tile só são disparadas se o jogador (COM ou SEM montaria) pisar no tile
 	TRIGGER_BY_UNRIDE_PLAYER(66), // As Tags de tile só são disparadas se o jogador (SEM montaria) pisar no tile
 	TRIGGER_BY_RIDE(67), // As Tags de tile só são disparadas se o jogador (COM montaria) pisar no tile
@@ -83,7 +79,7 @@ public enum TileProp {
 	DAMAGE_BOMB(81),
 	DAMAGE_BRICK(82),
 	DAMAGE_ITEM(83);
-	// NOTA: VAGOS: 3, 4, 18, 24, 25, 26, 49 50 51
+	// NOTA: VAGOS: 3, 4, 18, 24, 25, 26, 49 50 51 61 62 63 64
 	
 	@SuppressWarnings("serial")
 	private static Map<Elevation, List<TileProp>> cantCross = new HashMap<>() {{
@@ -161,10 +157,6 @@ public enum TileProp {
 		put(58, RAIL_JUMP);
 		put(59, RAIL_START);
 		put(60, RAIL_END);
-		put(61, PUSH_BOMB_TO_DOWN);
-		put(62, PUSH_BOMB_TO_RIGHT);
-		put(63, PUSH_BOMB_TO_UP);
-		put(64, PUSH_BOMB_TO_LEFT);
 		put(65, TRIGGER_BY_PLAYER);
 		put(66, TRIGGER_BY_UNRIDE_PLAYER);
 		put(67, TRIGGER_BY_RIDE);
