@@ -13,6 +13,7 @@ import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
 import maps.Item;
 import maps.MapSet;
+import objmoveutils.TileCoord;
 import tools.Sound;
 
 public class Bomb extends Entity {
@@ -73,7 +74,7 @@ public class Bomb extends Entity {
 		String frameSet = "{SetSprSource;MainSprites;64;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}";
 		addNewFrameSetFromString("StandFrames", frameSet);
 		setFrameSet("StandFrames");
-		setPosition(coord.getPosition(Main.TILE_SIZE));
+		setPosition(coord.getPosition());
 	}
 	
 	public boolean isStucked()
@@ -146,8 +147,11 @@ public class Bomb extends Entity {
 		List<Bomb> removeBombs = new ArrayList<>();
 		for (Bomb bomb : bombList) {
 			if (bomb.owner != null && bomb.ownerIsOver) {
-				if (!bomb.getTileCoord().equals(bomb.owner.getTileCoord()))
-					bomb.ownerIsOver = false;
+				int x = (int)bomb.owner.getX() + Main.TILE_SIZE / 2, y = (int)bomb.owner.getY() + Main.TILE_SIZE / 2,
+						xx = (int)bomb.getX() + Main.TILE_SIZE / 2, yy = (int)bomb.getY() + Main.TILE_SIZE / 2;
+				if (xx >= x - Main.TILE_SIZE / 4 && xx <= x + Main.TILE_SIZE / 4 &&
+						yy >= y - Main.TILE_SIZE / 4 && yy <= y + Main.TILE_SIZE / 4)
+							bomb.ownerIsOver = false;
 			}
 			if ((bomb.timer == -1 || --bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoord(), TileProp.DAMAGE_BOMB))
 				bomb.timer = 0;

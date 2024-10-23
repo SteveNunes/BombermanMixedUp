@@ -5,10 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import application.Main;
 import entities.Effect;
 import entities.Entity;
-import entities.TileCoord;
 import enums.Curse;
 import enums.ItemType;
 import enums.TileProp;
@@ -16,6 +14,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import objmoveutils.Position;
+import objmoveutils.TileCoord;
 import tools.Materials;
 import tools.RGBColor;
 import tools.Sound;
@@ -42,10 +41,10 @@ public class Item extends Entity{
 		{ this(new Position(), null); }
 
 	public Item(TileCoord coord)
-		{ this(coord.getPosition(Main.TILE_SIZE), null); }
+		{ this(coord.getPosition(), null); }
 	
 	public Item(TileCoord coord, ItemType itemType)
-		{ this(coord.getPosition(Main.TILE_SIZE), itemType); }
+		{ this(coord.getPosition(), itemType); }
 	
 	public Item(Item item)
 		{ this(item.getPosition(), item.itemType); }
@@ -56,7 +55,7 @@ public class Item extends Entity{
 	public Item(Position position, ItemType itemType) {
 		setPosition(new Position(position));
 		this.itemType = itemType; 
-		coord = new TileCoord(getTileX(), getTileY());
+		coord = new TileCoord(getTileCoord().getX(), getTileCoord().getY());
 		startInvFrames = 10;
 		int itemIndex = itemType.getValue() - 1;
 		String itemStandFrameSet =

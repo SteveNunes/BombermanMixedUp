@@ -12,7 +12,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.text.Font;
 import tools.Tools;
 
-
 public class Game {
 	
 	private final int winW = 312;

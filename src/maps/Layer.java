@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 
 import application.Main;
-import entities.TileCoord;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import frameset.FrameSet;
@@ -20,6 +19,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import objmoveutils.Position;
+import objmoveutils.TileCoord;
 import tools.Materials;
 import tools.Tools;
 
@@ -169,9 +169,9 @@ public class Layer {
 		int w, h, width = 0, height = 0;
 		for (TileCoord coord : tilesMap.keySet())
 			for (Tile tile : tilesMap.get(coord)) {
-				if ((w = tile.getTileX() * Main.TILE_SIZE + 16) > width)
+				if ((w = tile.getTileCoord().getX() * Main.TILE_SIZE + 16) > width)
 					width = w;
-				if ((h = tile.getTileY() * Main.TILE_SIZE + 16) > height)
+				if ((h = tile.getTileCoord().getY() * Main.TILE_SIZE + 16) > height)
 					height = h;
 			}
 		this.width = width;

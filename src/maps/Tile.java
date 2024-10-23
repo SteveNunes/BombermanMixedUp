@@ -6,7 +6,6 @@ import java.util.Map;
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
 import entities.Entity;
-import entities.TileCoord;
 import enums.ImageFlip;
 import enums.TileProp;
 import frameset.FrameSet;
@@ -14,6 +13,7 @@ import frameset.Tags;
 import frameset_tags.FrameTag;
 import javafx.scene.paint.Color;
 import objmoveutils.Position;
+import objmoveutils.TileCoord;
 import tools.Tools;
 import util.MyConverters;
 
@@ -29,6 +29,7 @@ public class Tile {
 	public double opacity;
 	public DrawImageEffects effects;
 	public String stringTileTags;
+	public TileCoord tileCoord;
 	
 	public Tile(Tile tile)
 		{ this(tile, tile.getOriginLayer()); }
@@ -44,6 +45,7 @@ public class Tile {
 		opacity = tile.opacity;
 		effects = tile.effects == null ? null : new DrawImageEffects(tile.effects);
 		stringTileTags = tile.stringTileTags;
+		tileCoord = tile.tileCoord.getNewInstance();
 	}
 	
 	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY)
@@ -66,6 +68,7 @@ public class Tile {
 		this.effects = effects;
 		this.originLayer = originLayer;
 		this.stringTileTags = null;
+		tileCoord = new TileCoord(outX / Main.TILE_SIZE, outY / Main.TILE_SIZE);
 	}
 	
 	public Tile(Layer originLayer, String strFromIni) {
@@ -81,6 +84,7 @@ public class Tile {
 			split2 = split[++n].split("!");
 			outX = Integer.parseInt(split2[0]) * Main.TILE_SIZE;
 			outY = Integer.parseInt(split2[1]) * Main.TILE_SIZE;
+			tileCoord = new TileCoord(outX / Main.TILE_SIZE, outY / Main.TILE_SIZE);
 			flip = ImageFlip.valueOf(split[++n]);
 			rotate = Integer.parseInt(split[++n]);
 			split2 = split[++n].split("!");
@@ -103,14 +107,8 @@ public class Tile {
 	}
 	
 	public TileCoord getTileCoord()
-		{ return new TileCoord(outX / Main.TILE_SIZE, outY / Main.TILE_SIZE); }
+		{ return tileCoord; }
 	
-	public int getTileX()
-		{ return outX / Main.TILE_SIZE; }
-	
-	public int getTileY()
-		{ return outY / Main.TILE_SIZE; }
-
 	public static void addTileShadow(Position shadowType, TileCoord coord)
 		{ addTileShadow(coord, shadowType, true); }
 	
@@ -120,7 +118,7 @@ public class Tile {
 		if (tile == null || (tile.spriteX == groundTile.getX() && tile.spriteY == groundTile.getY())) {
 			if (tile != null)
 				MapSet.getCurrentLayer().removeFirstTileFromCoord(coord);
-			tile = new Tile(MapSet.getCurrentLayer(), (int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition(Main.TILE_SIZE).getX(), (int)coord.getPosition(Main.TILE_SIZE).getY());
+			tile = new Tile(MapSet.getCurrentLayer(), (int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition().getX(), (int)coord.getPosition().getY());
 			MapSet.getCurrentLayer().addTile(tile);
 			if (updateLayer)
 				MapSet.getCurrentLayer().buildLayer();
@@ -139,7 +137,7 @@ public class Tile {
 				(tile.spriteX == wallShadow.getX() && tile.spriteY == wallShadow.getY())) {
 					if (tile != null)
 						MapSet.getCurrentLayer().removeFirstTileFromCoord(coord);
-					tile = new Tile(MapSet.getCurrentLayer(), (int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition(Main.TILE_SIZE).getX(), (int)coord.getPosition(Main.TILE_SIZE).getY());
+					tile = new Tile(MapSet.getCurrentLayer(), (int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition().getX(), (int)coord.getPosition().getY());
 					MapSet.getCurrentLayer().addTile(tile);
 					if (updateLayer)
 						MapSet.getCurrentLayer().buildLayer();

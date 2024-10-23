@@ -10,6 +10,7 @@ import enums.PassThrough;
 import enums.SpriteLayerType;
 import enums.TileProp;
 import maps.MapSet;
+import objmoveutils.TileCoord;
 import tools.Materials;
 import tools.Tools;
 
@@ -67,7 +68,7 @@ public class Explosion {
 					TileCoord coord = ex.centerCoord.getNewInstance();
 					if (ex.directions.contains(dir))
 						for (int n = 0; n < ex.tileRange; n++) {
-							coord.incByDirection(dir);
+							coord.incCoordsByDirection(dir);
 							if (MapSet.tileIsFree(coord, ex.passThroughAllBricks ? Arrays.asList(PassThrough.BRICK) : null))
 								ex.fireDis[d]++;
 							else
@@ -109,7 +110,7 @@ public class Explosion {
 				TileCoord coord = centerCoord.getNewInstance();
 				for (int x = d == 0 ? 0 : 1; x <= tileRange; x++) {
 					if (x > 0)
-						coord.incByDirection(dir);
+						coord.incCoordsByDirection(dir);
 					if (x > 0 || directions.size() == 4) {
 						if (MapSet.haveTilesOnCoord(coord) && !remove) {
 							TileDamage.addTileDamage(owner, coord, 44).setDamageToAll();

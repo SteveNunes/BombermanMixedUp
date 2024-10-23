@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 
 import enums.Direction;
 import maps.MapSet;
+import objmoveutils.TileCoord;
 
 public class PushEntity {
 	
@@ -57,7 +58,7 @@ public class PushEntity {
 			return this;
 		TileCoord coord = entity.getTileCoord().getNewInstance();
 		do {
-			coord.incByDirection(direction);
+			coord.incCoordsByDirection(direction);
 			if (!MapSet.tileIsFree(coord) || !MapSet.haveTilesOnCoord(coord) || Entity.haveAnyEntityAtCoord(coord))
 				direction = null;
 		}

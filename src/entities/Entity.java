@@ -25,6 +25,7 @@ import maps.Brick;
 import maps.Item;
 import maps.MapSet;
 import objmoveutils.Position;
+import objmoveutils.TileCoord;
 import tools.Tools;
 
 public class Entity extends Position {
@@ -59,7 +60,6 @@ public class Entity extends Position {
 	
 	public Entity(Entity entity) {
 		super(entity.getPosition());
-		setTileSize(Main.TILE_SIZE);
 		shadow = entity.shadow == null ? null : new Rectangle(entity.shadow);
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
@@ -97,7 +97,6 @@ public class Entity extends Position {
 
 	public Entity(int x, int y, Direction direction) {
 		super(x, y);
-		setTileSize(Main.TILE_SIZE);
 		currentFrameSetName = null;
 		passThrough = new ArrayList<>();
 		frameSets = new HashMap<>();
@@ -183,9 +182,6 @@ public class Entity extends Position {
 	public boolean canPassThroughMonster()
 		{ return passThrough.contains(PassThrough.MONSTER); }
 
-	public TileCoord getTileCoord()
-		{ return new TileCoord(getTileX(), getTileY()); }
-	
 	public boolean tileWasChanged()
 		{ return tileWasChanged; }
 
@@ -429,8 +425,7 @@ public class Entity extends Position {
 		int x = 0;
 		for (Position pos : getCornersPositions()) {
 			pos.incPositionByDirection(direction);
-			TileCoord coord = new TileCoord(((int)pos.getX() / Main.TILE_SIZE), ((int)pos.getY() / Main.TILE_SIZE));
-			freeCorners[x++] = MapSet.tileIsFree(this, coord, passThrough);
+			freeCorners[x++] = MapSet.tileIsFree(this, pos.getTileCoord(), passThrough);
 		}
 		return freeCorners;
 	}
@@ -527,7 +522,7 @@ public class Entity extends Position {
 	}
 
 	private void updatePreviewTileCoord() {
-		previewTileCoord.setCoord(getTileCoord());
+		previewTileCoord.setCoords(getTileCoord());
 		elapsedSteps++;
 		tileWasChanged = true;
 	}
@@ -714,8 +709,11 @@ public class Entity extends Position {
 	public static boolean haveAnyEntityAtCoord(TileCoord coord)
 		{ return entityMap.containsKey(coord) && !entityMap.get(coord).isEmpty(); }
 
-	public void centerToTile()
-		{ setPosition(getTileCoord().getX() * Main.TILE_SIZE, getTileCoord().getY() * Main.TILE_SIZE); }
+	public void centerToTile() {
+		int x = (int)((getX() + Main.TILE_SIZE / 2) / Main.TILE_SIZE) * Main.TILE_SIZE,
+				y = (int)((getY() + Main.TILE_SIZE / 2) / Main.TILE_SIZE) * Main.TILE_SIZE;
+		setPosition(x, y);
+	}
 
 }
 

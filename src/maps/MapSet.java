@@ -10,7 +10,6 @@ import application.Main;
 import entities.Bomb;
 import entities.Effect;
 import entities.Entity;
-import entities.TileCoord;
 import enums.Direction;
 import enums.Elevation;
 import enums.ItemType;
@@ -24,6 +23,7 @@ import frameset_tags.FrameTag;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import objmoveutils.Position;
+import objmoveutils.TileCoord;
 import pathfinder.PathFinder;
 import pathfinder.PathFinderTileCoord;
 import tools.IniFiles;
@@ -149,7 +149,7 @@ public abstract class MapSet {
 		if (!preLoadedStageTags.containsKey(stageTagsName))
 			throw new RuntimeException(stageTagsName + " - Invalid stage tag name");
 		if (!runningStageTags.containsKey(stageTagsName))
-			runningStageTags.put(stageTagsName, new FrameSet(preLoadedStageTags.get(stageTagsName), tileCoord.getPosition(Main.TILE_SIZE), whoTriggered));
+			runningStageTags.put(stageTagsName, new FrameSet(preLoadedStageTags.get(stageTagsName), tileCoord.getPosition(), whoTriggered));
 	}
 
 	public static void runStageTag(String stageTagsName, TileCoord tileCoord)
@@ -381,13 +381,13 @@ public abstract class MapSet {
 		for (int n = 0; n < 4; n++) {
 			dir1 = dir1.getNext4WayClockwiseDirection();
 			coord1.setCoord(coord3);
-			coord1.incByDirection(dir1);
+			coord1.incCoordsByDirection(dir1);
 			Direction dir2 = Direction.LEFT;
 			if (tileIsFree(new TileCoord(coord1.getX(), coord1.getY())))
 				for (int n2 = 0; n2 < 4; n2++) {
 					dir2 = dir2.getNext4WayClockwiseDirection();
 					coord2.setCoord(coord3);
-					coord2.incByDirection(dir2);
+					coord2.incCoordsByDirection(dir2);
 					if (dir1 != dir2 && tileIsFree(new TileCoord(coord2.getX(), coord2.getY()))) {
 						PathFinder pf = new PathFinder(coord1, coord2, dir1, t -> tileIsFree(new TileCoord(t.getX(), t.getY())));
 						if (!pf.pathWasFound())

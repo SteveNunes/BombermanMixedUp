@@ -9,6 +9,8 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import objmoveutils.Position;
+import objmoveutils.TileCoord;
 import tools.Materials;
 import util.IniFile;
 import util.TimerFX;
@@ -29,6 +31,8 @@ public class Main extends Application {
 	@Override
 	public void start(Stage stage) {
 		try {
+			Position.setGlobalTileSize(TILE_SIZE);
+			TileCoord.setGlobalTileSize(TILE_SIZE);
 			stageMain = stage;
 			Materials.loadFromFiles();
 			if (GAME_MODE == GameMode.FRAMESET_EDITOR) {

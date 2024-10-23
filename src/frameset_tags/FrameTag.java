@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import entities.TileCoord;
 import frameset.Sprite;
+import objmoveutils.TileCoord;
 
 public abstract class FrameTag {
 	

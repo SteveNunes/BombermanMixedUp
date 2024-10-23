@@ -6,12 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import application.Main;
 import entities.Entity;
-import entities.TileCoord;
 import enums.ItemType;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
+import objmoveutils.TileCoord;
 
 public class Brick extends Entity {
 
@@ -32,9 +31,9 @@ public class Brick extends Entity {
 	
 	public Brick(TileCoord coord, ItemType item) {
 		super();
+		setPosition(coord.getPosition());
 		regenTimeInFrames = 0;
 		setPassThroughBrick(true);
-		setPosition(coord.getPosition(Main.TILE_SIZE));
 		this.item = item;
 		Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet", "BrickRollingFrameSet").forEach(frameSet -> {
 			String s = MapSet.getTileSetIniFile().read("CONFIG", frameSet);
@@ -73,7 +72,7 @@ public class Brick extends Entity {
 	public static void addBrick(Brick brick, boolean updateLayer) {
 		TileCoord coord = brick.getTileCoord();
 		if (!haveBrickAt(coord, false)) {
-			brick.setPosition(coord.getPosition(Main.TILE_SIZE));
+			brick.setPosition(coord.getPosition());
 			bricks.put(coord, brick);
 			brick.setBrickShadow();
 		}

@@ -4,11 +4,11 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
-import entities.TileCoord;
 import frameset.Sprite;
 import frameset.Tags;
 import maps.MapSet;
 import maps.Tile;
+import objmoveutils.TileCoord;
 
 public class CopySprFromCopyLayer extends FrameTag {
 	

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import application.Main;
 import enums.BombType;
 import enums.Curse;
 import enums.Direction;
@@ -16,6 +17,7 @@ import frameset.Tags;
 import javafx.scene.canvas.GraphicsContext;
 import maps.Item;
 import maps.MapSet;
+import objmoveutils.TileCoord;
 import tools.IniFiles;
 import tools.Sound;
 
@@ -163,7 +165,8 @@ public class BomberMan extends Entity {
 		if (setBombCd <= 0 && bombs.size() < maxBombs && MapSet.tileIsFree(getTileCoord())) {
 			BombType type = !gotItens.isEmpty() && gotItens.get(0).getItemType().isBomb() ?
 											Bomb.getBombTypeFromItem(gotItens.get(0)) : BombType.NORMAL;
-			bombs.add(Bomb.addBomb(this, getTileCoord(), type, fireRange));
+			TileCoord coord = new TileCoord((int)(getX() + Main.TILE_SIZE / 2) / Main.TILE_SIZE, (int)(getY() + Main.TILE_SIZE / 2) / Main.TILE_SIZE);
+			bombs.add(Bomb.addBomb(this, coord, type, fireRange));
 			Sound.playWav(setBombSound);
 			setBombCd = 20;
 		}

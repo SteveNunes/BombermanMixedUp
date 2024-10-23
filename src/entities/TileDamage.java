@@ -9,6 +9,7 @@ import java.util.Map;
 import enums.TileProp;
 import maps.Layer;
 import maps.MapSet;
+import objmoveutils.TileCoord;
 
 public class TileDamage {
 

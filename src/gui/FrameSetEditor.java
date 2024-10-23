@@ -928,13 +928,13 @@ public class FrameSetEditor {
 				boolean move = true;
 				if (currentEntity.isPerfectTileCentred()) {
 					int mx = zoomedMouseX / Main.TILE_SIZE, my = zoomedMouseY / Main.TILE_SIZE;
-					if (mx > currentEntity.getTileX())
+					if (mx > currentEntity.getTileCoord().getX())
 						currentEntity.setDirection(Direction.RIGHT);
-					else if (mx < currentEntity.getTileX())
+					else if (mx < currentEntity.getTileCoord().getX())
 						currentEntity.setDirection(Direction.LEFT);
-					else if (my > currentEntity.getTileY())
+					else if (my > currentEntity.getTileCoord().getY())
 						currentEntity.setDirection(Direction.DOWN);
-					else if (my < currentEntity.getTileY())
+					else if (my < currentEntity.getTileCoord().getY())
 						currentEntity.setDirection(Direction.UP);
 					else
 						move = false;

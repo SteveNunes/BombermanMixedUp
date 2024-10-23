@@ -17,7 +17,6 @@ import entities.BomberMan;
 import entities.Effect;
 import entities.Entity;
 import entities.Explosion;
-import entities.TileCoord;
 import entities.TileDamage;
 import enums.BombType;
 import enums.Direction;
@@ -60,6 +59,7 @@ import maps.Layer;
 import maps.MapSet;
 import maps.Tile;
 import objmoveutils.Position;
+import objmoveutils.TileCoord;
 import tools.IniFiles;
 import tools.Materials;
 import tools.Tools;
@@ -405,7 +405,7 @@ public class MapEditor {
 					String title = "Map Editor"
 							+ "     FPS: " + Tools.getFPSHandler().getFPS()
 							+ "     " + canvasMouseDraw.tileCoord
-							+ "     " + canvasMouseDraw.tileCoord.positionString(Main.TILE_SIZE)
+							+ "     " + canvasMouseDraw.tileCoord.getPosition()
 							+ "     (Sprites: " + (getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord) == null ? "0" : getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord).size()) + ","
 							+ "     " + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BLOCKED") + ")"
 							+ "     Zoom: x" + zoomMain
@@ -616,7 +616,7 @@ public class MapEditor {
 						for (TileCoord coord : getCurrentLayer().getTilesMap().keySet()) {
 							List<Tile> tiles = getCurrentLayer().getTilesFromCoord(coord);
 							TileCoord tileCoord = coord.getNewInstance();
-							tileCoord.incByDirection(dir);
+							tileCoord.incCoordsByDirection(dir);
 							for (Tile tile : tiles)
 								tile.setCoord(tileCoord);
 							tilesMap.put(new TileCoord(tileCoord), new ArrayList<>(tiles));
@@ -624,7 +624,7 @@ public class MapEditor {
 						List<Brick> bricks = Brick.getBricks();
 						bricks.forEach(brick -> Brick.removeBrick(brick));
 						bricks.forEach(brick -> {
-							brick.incPositionByDirection(dir, Main.TILE_SIZE);
+							brick.incPositionByDirection(dir);
 							Brick.addBrick(brick);
 						});
 						getCurrentLayer().setTilesMap(tilesMap);
@@ -635,12 +635,12 @@ public class MapEditor {
 						iterateAllSelectedCoords(coord -> {
 							if (getCurrentLayer().haveTilesOnCoord(coord)) {
 								TileCoord tileCoord = coord.getNewInstance();
-								tileCoord.incByDirection(dir);
+								tileCoord.incCoordsByDirection(dir);
 								tilesMap.put(new TileCoord(tileCoord), getCurrentLayer().getTilesFromCoord(coord));
 								if (Brick.haveBrickAt(coord)) {
 									Brick brick = Brick.getBrickAt(coord);
 									bricks.add(brick);
-									brick.incPositionByDirection(dir, Main.TILE_SIZE);
+									brick.incPositionByDirection(dir);
 									Brick.removeBrick(coord);
 								}
 								getCurrentLayer().removeAllTilesFromCoord(coord);
@@ -730,7 +730,7 @@ public class MapEditor {
 
 	void setTileSetCanvasMouseEvents() {
 		canvasTileSet.setOnMouseDragged(e -> {
-			canvasMouseTileSet.tileCoord.setCoord((int)e.getX() / (16 * zoomTileSet), (int)e.getY() / (16 * zoomTileSet));
+			canvasMouseTileSet.tileCoord.setCoords((int)e.getX() / (16 * zoomTileSet), (int)e.getY() / (16 * zoomTileSet));
 			if (e.getButton() == MouseButton.PRIMARY)
 				tileSelection.setFrameFromDiagonal(canvasMouseTileSet.startDragDX < canvasMouseTileSet.getCoordX() ? canvasMouseTileSet.startDragDX : canvasMouseTileSet.getCoordX(),
 																					 canvasMouseTileSet.startDragDY < canvasMouseTileSet.getCoordY() ? canvasMouseTileSet.startDragDY : canvasMouseTileSet.getCoordY(),
@@ -741,7 +741,7 @@ public class MapEditor {
 		canvasTileSet.setOnMouseMoved(e -> {
 			canvasMouseTileSet.x = (int)e.getX();
 			canvasMouseTileSet.y = (int)e.getY();
-			canvasMouseTileSet.tileCoord.setCoord((int)e.getX() / (16 * zoomTileSet), (int)e.getY() / (16 * zoomTileSet));
+			canvasMouseTileSet.tileCoord.setCoords((int)e.getX() / (16 * zoomTileSet), (int)e.getY() / (16 * zoomTileSet));
 		});
 
 		canvasTileSet.setOnMousePressed(e -> {
@@ -783,7 +783,7 @@ public class MapEditor {
 			canvasMouseDraw.x = (int)e.getX() + deslocX();
 			canvasMouseDraw.y = (int)e.getY() + deslocY();
 			TileCoord prevCoord = canvasMouseDraw.tileCoord.getNewInstance();
-			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
+			canvasMouseDraw.tileCoord.setCoords(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 			if (editable && e.getButton() == MouseButton.PRIMARY) {
 				if (selection == null && !prevCoord.equals(canvasMouseDraw.tileCoord))
 					addSelectedTileOnCurrentCursorPosition();
@@ -807,7 +807,7 @@ public class MapEditor {
 				return;
 			canvasMouseDraw.x = (int)e.getX() + deslocX();
 			canvasMouseDraw.y = (int)e.getY() + deslocY();
-			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
+			canvasMouseDraw.tileCoord.setCoords(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 		});
 		canvasMain.setOnMousePressed(e -> {
 			canvasMouseDraw.startDragX = (int)e.getX();
@@ -839,7 +839,7 @@ public class MapEditor {
 			}
 		});
 		canvasMain.setOnMouseClicked(e -> {
-			canvasMouseDraw.tileCoord.setCoord(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
+			canvasMouseDraw.tileCoord.setCoords(((int)e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int)e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 			if (e.getButton() == MouseButton.PRIMARY) {
 				if (playing && isAltHold() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord))
 					Bomb.addBomb(new Bomb(null, canvasMouseDraw.tileCoord, BombType.NORMAL, 5));
@@ -939,7 +939,7 @@ public class MapEditor {
 			if (checkBoxShowItens.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
-						Tools.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileX() * Main.TILE_SIZE, brick.getTileY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
+						Tools.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileCoord().getX() * Main.TILE_SIZE, brick.getTileCoord().getY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
 		}
 		bomber.run();
 		updateTileSelectionArray();
@@ -1389,8 +1389,8 @@ public class MapEditor {
 	    		gcMain.setFill(color);
 	    		gcMain.setLineWidth(1);
 	    		gcMain.setGlobalAlpha(0.6);
-		    	gcMain.fillRect(tile.getTileX() * Main.TILE_SIZE * zoomMain + deslocX(),
-		    									tile.getTileY() * Main.TILE_SIZE * zoomMain + deslocY(),
+		    	gcMain.fillRect(tile.getTileCoord().getX() * Main.TILE_SIZE * zoomMain + deslocX(),
+		    									tile.getTileCoord().getY() * Main.TILE_SIZE * zoomMain + deslocY(),
 		    									Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
 	    		gcMain.restore();
 	    		ok.add(tile.getTileCoord());
