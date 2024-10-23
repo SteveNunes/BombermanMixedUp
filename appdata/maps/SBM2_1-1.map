@@ -297,6 +297,10 @@
 295=27 - 12!8 3!2 NONE 0 0 1.0 - 
 296=27 - 13!8 4!2 NONE 0 0 1.0 - 
 297=27 - 14!8 5!2 NONE 0 0 1.0 - 
+298=27 GROUND 0!7 0!4 NONE 0 12!70 1.0 - {CopySprFromCopyLayer;26;1;4;1;1;-:-},{RunStageTags;SetMagnetB.UP}
+299=27 GROUND 1!7 1!4 NONE 0 12!70 1.0 - {CopySprFromCopyLayer;26;2;4;1;1;-:-},{RunStageTags;ClearMagnetB.UP}
+300=27 GROUND 2!7 2!4 NONE 0 12!70 1.0 - {CopySprFromCopyLayer;26;3;4;1;1;-:-},{RunStageTags;SetMagnetB.DOWN}
+301=27 GROUND 3!7 3!4 NONE 0 12!70 1.0 - {CopySprFromCopyLayer;26;0;4;1;1;-:-},{RunStageTags;ClearMagnetB.DOWN}
 
 [SETUP]
 CopyImageLayer=27
@@ -316,7 +320,7 @@ SetMagnetA.DOWN={SetTileTags;26;SetBombStucked@true@-:-;4:12}
 SetMagnetB.DOWN={SetTileTags;26;SetBombStucked@true@-:-;12:12}
 ClearMagnetA.DOWN={ClearTileTags;26;4:12}
 ClearMagnetB.DOWN={ClearTileTags;26;12:12}
-StageIntro={SetSwitchValue;StageClear;1},{CopySprFromCopyLayer;26;1;3;1;1;4:11:0:0!12:11:0:0},{RunStageTags;SetMagnetA.UP},{RunStageTags;SetMagnetB.UP}
+StageIntro={SetSwitchValue;StageClear;1},{CopySprFromCopyLayer;26;1;3;1;1;4:11},{CopySprFromCopyLayer;26;1;4;1;1;12:11},{RunStageTags;SetMagnetA.UP},{RunStageTags;SetMagnetB.UP}
 StageClear={Delay;1500;RunStageTags;OpenDoor}
 OpenDoor={CopySprFromCopyLayer;26;0;1;3;2;11:3},{Delay;150;CopySprFromCopyLayer;26;3;1;3;2;11:3}
 BlinkDoor={SetSprSource;TileSet;96;112;48;32;0;0;176;48;48;32},{SetTicksPerFrame;2},{SetSprColorTintValues;1;1;1;1;SRC_ATOP}|{SetSprIndex;-}|{SetSprIndex;0}|{Goto;-2;30}

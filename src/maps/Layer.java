@@ -2,6 +2,7 @@ package maps;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -69,96 +70,6 @@ public class Layer {
 			}
 	}
 	
-	public void addTileProp(TileCoord coord, TileProp ... props) {
-		if (!tilesProps.containsKey(coord))
-			tilesProps.put(coord.getNewInstance(), new ArrayList<>());
-		for (TileProp prop : props)
-			tilesProps.get(coord).add(prop);
-	}
-	
-	public void removeTileProp(TileCoord coord, TileProp ... props) {
-		for (TileProp prop : props)
-			tilesProps.get(coord).remove(prop);
-		if (tilesProps.get(coord).isEmpty())
-			tilesProps.get(coord).add(TileProp.NOTHING);
-	}
-	
-	public List<TileProp> getTileProps(TileCoord coord) {
-		if (!tilesProps.containsKey(coord))
-			return null;
-		return tilesProps.get(coord);
-	}
-	
-	public boolean tileHaveProps(TileCoord coord)
-		{ return getTotalTileProps(coord) > 0; }
-
-	public int getTotalTileProps(TileCoord coord) {
-		if (!tilesProps.containsKey(coord))
-			return 0;
-		return tilesProps.get(coord).size();
-	} 
-	
-	public void replaceTileProps(TileCoord coord, List<TileProp> newTileProps)
-		{ tilesProps.put(coord, new ArrayList<>(newTileProps)); }
-
-	public boolean tileContainsProp(TileCoord coord, TileProp prop)
-		{ return tilesProps.containsKey(coord) && tilesProps.get(coord).contains(prop); }
-	
-	public Map<TileCoord, List<TileProp>> getTilePropsMap()
-		{ return tilesProps; }
-	
-	public boolean tileHaveTags(TileCoord coord)
-		{ return tilesMap.containsKey(coord) && tilesTags.containsKey(coord); }
-
-	public void setTileTagsFromString(TileCoord coord, String stringTileTags)
-		{ setTileTagsFromString(coord, stringTileTags, getFirstBottomTileFromCoord(coord)); }
-	
-	void setTileTagsFromString(TileCoord coord, String stringTileTags, Tile tile) {
-		tilesTags.remove(coord);
-		int x = coord.getX() * Main.TILE_SIZE, y = coord.getY() * Main.TILE_SIZE;
-		FrameSet frameSet = new FrameSet(new Position(x, y));
-		frameSet.loadFromString(stringTileTags);
-		frameSet.getSprite(0).setOutputSpritePos(new Rectangle(x, y, 0, 0));
-		tilesTags.put(coord.getNewInstance(), frameSet);
-		if (tile != null)
-			tile.stringTileTags = stringTileTags;
-	}
-	
-	public void setTileTags(TileCoord coord, Tags tags) {
-		if (!tilesMap.containsKey(coord))
-			throw new RuntimeException(coord + " - Invalid tile coordinate");
-		setTileTagsFromString(coord, tags.toString());
-	}
-	
-	public Tags getTileTags(TileCoord coord) {
-		if (!tilesMap.containsKey(coord))
-			throw new RuntimeException(coord + " - Invalid tile coordinate");
-		if (!tilesTags.containsKey(coord))
-			throw new RuntimeException(coord + " - Tile have no tags");
-		return tilesTags.get(coord).getFrameSetTagsFrom(0);
-	}
-	
-	public void removeTileTag(TileCoord coord, String tagStr) {
-		FrameTag tag = FrameTag.getFrameTagClassFromString(tilesTags.get(coord).getFrameSetTagsFrom(0).getTags(), tagStr);
-		if (tag != null)
-			removeTileTag(coord, tag);
-	}
-
-	public void removeTileTag(TileCoord coord, FrameTag tag) {
-		if (!tilesMap.containsKey(coord))
-			throw new RuntimeException(coord + " - Invalid tile coordinate");
-		if (!tilesTags.containsKey(coord))
-			throw new RuntimeException(coord + " - Tile have no tags");
-		tilesTags.get(coord).getFrameSetTagsFrom(0).removeTag(tag);
-		if (tilesTags.get(coord).getFrameSetTagsFrom(0).getTotalTags() == 0)
-			clearTileTags(coord);
-	}
-
-	public void clearTileTags(TileCoord coord) {
-		getFirstBottomTileFromCoord(coord).stringTileTags = null;
-		tilesTags.remove(coord);
-	}
-
 	public void buildLayer() {
 		if (tilesMap.isEmpty()) {
 			width = Main.TILE_SIZE * 3;
@@ -271,6 +182,72 @@ public class Layer {
 		tilesMap.remove(coord);
 	}
 	
+	public int getLayer()
+		{ return layer; }
+	
+	public int getWidth()
+		{ return width; }
+	
+	public int getHeight()
+		{ return height	; }
+	
+	public SpriteLayerType getSpriteLayerType()
+		{ return layerType; }
+	
+	public void setSpriteLayerType(SpriteLayerType layerType)
+		{ this.layerType = layerType; }
+
+	// ================ Metodos relacionados a TileProps ==============
+
+	public boolean tileContainsProp(TileCoord coord, TileProp prop)
+		{ return tilesProps.containsKey(coord) && tilesProps.get(coord).contains(prop); }
+	
+	public Map<TileCoord, List<TileProp>> getTilePropsMap()
+		{ return tilesProps; }
+
+	public boolean tileHaveProps(TileCoord coord)
+		{ return getTotalTileProps(coord) > 0; }
+
+	public List<TileProp> getTileProps(TileCoord coord) {
+		if (!tilesProps.containsKey(coord))
+			return null;
+		return tilesProps.get(coord);
+	}
+	
+	public int getTotalTileProps(TileCoord coord) {
+		if (!tilesProps.containsKey(coord))
+			return 0;
+		return tilesProps.get(coord).size();
+	} 
+	
+	public void setTileProps(TileCoord coord, List<TileProp> tileProps) {
+		System.out.print("Setando Props no tile " + coord + " : De " + tilesProps.get(coord));
+		tilesProps.put(coord, new ArrayList<>(tileProps));
+		System.out.println(" para " + tilesProps.get(coord));
+	}
+
+	public void addTileProp(TileCoord coord, TileProp ... props) {
+		if (!tilesProps.containsKey(coord))
+			tilesProps.put(coord.getNewInstance(), new ArrayList<>());
+		for (TileProp prop : props)
+			tilesProps.get(coord).add(prop);
+	}
+	
+	public void removeTileProp(TileCoord coord, TileProp ... props) {
+		for (TileProp prop : props)
+			tilesProps.get(coord).remove(prop);
+		if (tilesProps.get(coord).isEmpty())
+			tilesProps.get(coord).add(TileProp.NOTHING);
+	}
+	
+	public void clearTileProps(TileCoord coord)
+		{ tilesProps.put(coord, new ArrayList<>(Arrays.asList(TileProp.NOTHING))); }
+	
+	// ================ Metodos relacionados a TileTags ==============
+	
+	public boolean tileHaveTags(TileCoord coord)
+		{ return tilesMap.containsKey(coord) && tilesTags.containsKey(coord); }
+	
 	public void disableTileTags(TileCoord coord)
 		{ disabledTileTags.add(coord); }
 	
@@ -280,28 +257,62 @@ public class Layer {
 	public boolean tileTagsIsDisabled(TileCoord coord)
 		{ return disabledTileTags.contains(coord); }
 
-	public FrameSet getTileTagsFrameSet(TileCoord coord)
-		{ return tilesTags.get(coord); }
-
-	public int getLayer()
-		{ return layer; }
-
-	public int getWidth()
-		{ return width; }
-
-	public int getHeight()
-		{ return height	; }
+	public Tags getTileTags(TileCoord coord) {
+		if (!tilesMap.containsKey(coord))
+			throw new RuntimeException(coord + " - Invalid tile coordinate");
+		if (!tilesTags.containsKey(coord))
+			throw new RuntimeException(coord + " - Tile have no tags");
+		return tilesTags.get(coord).getFrameSetTagsFrom(0);
+	}
 	
-	public SpriteLayerType getSpriteLayerType()
-		{ return layerType; }
-
-	public void setSpriteLayerType(SpriteLayerType layerType)
-		{ this.layerType = layerType; }
-
 	public String getStringTags(TileCoord coord) {
 		if (MapSet.haveTilesOnCoord(coord))
 			return MapSet.getFirstBottomTileFromCoord(coord).getStringTags();
 		return null;
+	}
+
+	public FrameSet getTileTagsFrameSet(TileCoord coord)
+		{ return tilesTags.get(coord); }
+
+	public void setTileTagsFromString(TileCoord coord, String stringTileTags)
+		{ setTileTagsFromString(coord, stringTileTags, getFirstBottomTileFromCoord(coord)); }
+	
+	public void setTileTagsFromString(TileCoord coord, String stringTileTags, Tile tile) {
+		tilesTags.remove(coord);
+		int x = coord.getX() * Main.TILE_SIZE, y = coord.getY() * Main.TILE_SIZE;
+		FrameSet frameSet = new FrameSet(new Position(x, y));
+		frameSet.loadFromString(stringTileTags);
+		frameSet.getSprite(0).setOutputSpritePos(new Rectangle(x, y, 0, 0));
+		tilesTags.put(coord.getNewInstance(), frameSet);
+		if (tile != null)
+			tile.stringTileTags = stringTileTags;
+	}
+	
+	public void setTileTags(TileCoord coord, Tags tags) {
+		if (!tilesMap.containsKey(coord))
+			throw new RuntimeException(coord + " - Invalid tile coordinate");
+		setTileTagsFromString(coord, tags.toString());
+	}
+	
+	public void removeTileTag(TileCoord coord, String tagStr) {
+		FrameTag tag = FrameTag.getFrameTagClassFromString(tilesTags.get(coord).getFrameSetTagsFrom(0).getTags(), tagStr);
+		if (tag != null)
+			removeTileTag(coord, tag);
+	}
+	
+	public void removeTileTag(TileCoord coord, FrameTag tag) {
+		if (!tilesMap.containsKey(coord))
+			throw new RuntimeException(coord + " - Invalid tile coordinate");
+		if (!tilesTags.containsKey(coord))
+			throw new RuntimeException(coord + " - Tile have no tags");
+		tilesTags.get(coord).getFrameSetTagsFrom(0).removeTag(tag);
+		if (tilesTags.get(coord).getFrameSetTagsFrom(0).getTotalTags() == 0)
+			clearTileTags(coord);
+	}
+	
+	public void clearTileTags(TileCoord coord) {
+		getFirstBottomTileFromCoord(coord).stringTileTags = null;
+		tilesTags.remove(coord);
 	}
 
 }

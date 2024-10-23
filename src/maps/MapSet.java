@@ -360,7 +360,7 @@ public abstract class MapSet {
 					}
 				}
 			}
-			recProp.forEach((coord, props) -> MapSet.replaceTileProps(coord, new ArrayList<>(props)));
+			recProp.forEach((coord, props) -> MapSet.setTileProps(coord, new ArrayList<>(props)));
 			addWalls.sort((t1, t2) -> (int)t2.outY - (int)t1.outY);
 			addWalls.forEach(tile -> {
 				TileCoord coord = tile.getTileCoord();
@@ -556,63 +556,6 @@ public abstract class MapSet {
 		removeStageTag.forEach(fs -> runningStageTags.remove(fs));
 	}
 
-	public static void addTileProp(TileCoord coord, TileProp ... props)
-		{ getCurrentLayer().addTileProp(coord, props); }
-	
-	public static void removeTileProp(TileCoord coord, TileProp ... props)
-		{ getCurrentLayer().removeTileProp(coord, props); }
-	
-	public static List<TileProp> getTileProps(TileCoord coord)
-		{ return getCurrentLayer().getTileProps(coord); }
-	
-	public static int getTotalTileProps(TileCoord coord)
-		{ return getCurrentLayer().getTotalTileProps(coord); }
-	
-	public static void replaceTileProps(TileCoord coord, List<TileProp> newTileProps)
-		{ getCurrentLayer().replaceTileProps(coord, newTileProps); }
-	
-	public static Map<TileCoord, List<TileProp>> getTilePropsMap()
-		{	return getCurrentLayer().getTilePropsMap(); }
-	
-	public static boolean tileContainsProp(TileCoord coord, TileProp prop)
-		{ return getCurrentLayer().tileContainsProp(coord, prop); }
-	
-	public static boolean tileHaveProps(TileCoord coord)
-		{ return getCurrentLayer().tileHaveProps(coord); }
-
-	public void setTileTags(TileCoord coord, Tags tags)
-		{ getCurrentLayer().setTileTags(coord, tags); }
-	
-	public void removeTileTag(TileCoord coord, String tagStr)
-		{ getCurrentLayer().removeTileTag(coord, tagStr); }
-
-	public void removeTileTag(TileCoord coord, FrameTag tag)
-		{ getCurrentLayer().removeTileTag(coord, tag); }
-
-	public void clearTileTags(TileCoord coord)
-		{ getCurrentLayer().clearTileTags(coord); }
-	
-	public boolean tileHaveTags(TileCoord coord)
-		{ return getCurrentLayer().tileHaveTags(coord); }
-	
-	public String getStringTags(TileCoord coord)
-		{ return getCurrentLayer().getStringTags(coord); }
-	
-	public Tags getTileTags(TileCoord coord)
-		{ return getCurrentLayer().getTileTags(coord); }
-	
-	public void disableTileTags(TileCoord coord)
-		{ getCurrentLayer().disableTileTags(coord); }
-	
-	public void enableTileTags(TileCoord coord)
-		{ getCurrentLayer().enableTileTags(coord); }
-	
-	public boolean tileTagsIsDisabled(TileCoord coord)
-		{ return getCurrentLayer().tileTagsIsDisabled(coord); }
-	
-	public FrameSet getTileTagsFrameSet(TileCoord coord)
-		{ return getCurrentLayer().getTileTagsFrameSet(coord); }
-
 	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough)
 		{ return tileIsOccuped(null, coord, passThrough); }
 	
@@ -621,4 +564,74 @@ public abstract class MapSet {
 		return !tileIsFree(entity, coord, passThrough) || Item.haveItemAt(coord);
 	}
 
+	// ================ Metodos relacionados a TileProps ==============
+
+	public static boolean tileContainsProp(TileCoord coord, TileProp prop)
+		{ return getCurrentLayer().tileContainsProp(coord, prop); }
+	
+	public static Map<TileCoord, List<TileProp>> getTilePropsMap()
+		{ return getCurrentLayer().getTilePropsMap(); }
+
+	public static boolean tileHaveProps(TileCoord coord)
+		{ return getCurrentLayer().tileHaveProps(coord); }
+
+	public static List<TileProp> getTileProps(TileCoord coord)
+		{ return getCurrentLayer().getTileProps(coord); }
+	
+	public static int getTotalTileProps(TileCoord coord)
+		{ return getCurrentLayer().getTotalTileProps(coord); }
+	
+	public static void setTileProps(TileCoord coord, List<TileProp> tileProps)
+		{ getCurrentLayer().setTileProps(coord, tileProps); }
+
+	public static void addTileProp(TileCoord coord, TileProp ... props)
+		{ getCurrentLayer().addTileProp(coord, props); }
+	
+	public static void removeTileProp(TileCoord coord, TileProp ... props)
+		{ getCurrentLayer().removeTileProp(coord, props); }
+	
+	public static void clearTileProps(TileCoord coord)
+		{ getCurrentLayer().clearTileProps(coord); }
+	
+	// ================ Metodos relacionados a TileTags ==============
+	
+	public static boolean tileHaveTags(TileCoord coord)
+		{ return getCurrentLayer().tileHaveTags(coord); }
+	
+	public static void disableTileTags(TileCoord coord)
+		{ getCurrentLayer().disableTileTags(coord); }
+	
+	public static void enableTileTags(TileCoord coord)
+		{ getCurrentLayer().enableTileTags(coord); }
+	
+	public static boolean tileTagsIsDisabled(TileCoord coord)
+		{ return getCurrentLayer().tileTagsIsDisabled(coord); }
+
+	public static Tags getTileTags(TileCoord coord)
+		{ return getCurrentLayer().getTileTags(coord); }
+	
+	public static String getStringTags(TileCoord coord)
+		{ return getCurrentLayer().getStringTags(coord); }
+
+	public static FrameSet getTileTagsFrameSet(TileCoord coord)
+		{ return getCurrentLayer().getTileTagsFrameSet(coord); }
+
+	public static void setTileTagsFromString(TileCoord coord, String stringTileTags)
+		{ getCurrentLayer().setTileTagsFromString(coord, stringTileTags); }
+	
+	public static void setTileTagsFromString(TileCoord coord, String stringTileTags, Tile tile)
+		{ getCurrentLayer().setTileTagsFromString(coord, stringTileTags, tile); }
+	
+	public static void setTileTags(TileCoord coord, Tags tags)
+		{ getCurrentLayer().setTileTags(coord, tags); }
+	
+	public static void removeTileTag(TileCoord coord, String tagStr)
+		{ getCurrentLayer().removeTileTag(coord, tagStr); }
+	
+	public static void removeTileTag(TileCoord coord, FrameTag tag)
+		{ getCurrentLayer().removeTileTag(coord, tag); }
+	
+	public static void clearTileTags(TileCoord coord)
+		{ getCurrentLayer().clearTileTags(coord); }
+	
 }

@@ -990,6 +990,33 @@ public class MapEditor {
     drawGridAndAim();
     drawTileTagsOverCursor();
     drawTileSetCanvas();
+    System.out.println("4, 11 : " + MapSet.getTileProps(new TileCoord(4, 11)));
+    System.out.println("12, 11 : " + MapSet.getTileProps(new TileCoord(12, 11)));
+		if (checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
+	    Tile tile = MapSet.getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
+	    if (tile != null) {
+	    	int x, y = tile.outY * zoomMain + (Main.TILE_SIZE * zoomMain) / 2 - 20 + deslocY();
+				gcMain.setFill(Color.LIGHTBLUE);
+				gcMain.setStroke(Color.BLACK);
+				gcMain.setFont(font);
+				gcMain.setLineWidth(3);
+				while (y + MapSet.getTotalTileProps(tile.getTileCoord()) * 20 >= canvasMain.getHeight() - 10)
+					y -= 10;
+				if (tile.getTileCoord().equals(new TileCoord(4, 11)) || tile.getTileCoord().equals(new TileCoord(12, 11))) {
+					System.out.println(tile.getTileCoord() + " " + tile.getTileProps());
+				}
+				for (TileProp prop : MapSet.getTileProps(tile.getTileCoord())) {
+					String s = prop.name();
+					Text text = new Text(s);
+					ControllerUtils.setNodeFont(text, "Lucida Console", 15);
+					x = tile.outX * zoomMain + deslocX();
+					while (x + (int)text.getBoundsInLocal().getWidth() + 60 >= canvasMain.getWidth())
+						x -= 20;
+					gcMain.strokeText(s, x, y += 20);
+					gcMain.fillText(s, x, y);
+				}
+	    }
+    }
     if (playing)
     	return;
     Arrays.asList(selection, tileSelection).forEach(rect -> {
@@ -1004,28 +1031,6 @@ public class MapEditor {
 				gc.strokeRect(x + deslocX(), y + deslocY(), w, h);
 			}
     });
-		if (checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
-	    Tile tile = MapSet.getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
-	    if (tile != null) {
-	    	int x, y = tile.outY * zoomMain + (Main.TILE_SIZE * zoomMain) / 2 - 20 + deslocY();
-				gcMain.setFill(Color.LIGHTBLUE);
-				gcMain.setStroke(Color.BLACK);
-				gcMain.setFont(font);
-				gcMain.setLineWidth(3);
-				while (y + MapSet.getTotalTileProps(tile.getTileCoord()) * 20 >= canvasMain.getHeight() - 10)
-					y -= 10;
-				for (TileProp prop : MapSet.getTileProps(tile.getTileCoord())) {
-					String s = prop.name();
-					Text text = new Text(s);
-					ControllerUtils.setNodeFont(text, "Lucida Console", 15);
-					x = tile.outX * zoomMain + deslocX();
-					while (x + (int)text.getBoundsInLocal().getWidth() + 60 >= canvasMain.getWidth())
-						x -= 20;
-					gcMain.strokeText(s, x, y += 20);
-					gcMain.fillText(s, x, y);
-				}
-	    }
-    }
  	}
 	
 	void drawBrickSample(Canvas canvas, Entity entity) {
@@ -1107,6 +1112,10 @@ public class MapEditor {
 	
 	void setContextMenu() {
 		contextMenu = new ContextMenu();
+		if (!editable) {
+			contextMenu.getItems().add(new MenuItem("Recarregue o mapa para editá-lo"));
+			return;
+		}
 		if (selection != null) {
 			Menu menuSelecao = new Menu(selection.getWidth() + selection.getHeight() > 2 ? "Tiles selecionados" : "Tile selecionado");
 			contextMenu.getItems().add(menuSelecao);
@@ -1154,7 +1163,7 @@ public class MapEditor {
 				menuItem = new MenuItem("Colar (Substituir)");
 				mainMenu.getItems().add(menuItem);
 				menuItem.setDisable(copyProps == null);
-				menuItem.setOnAction(e -> MapSet.replaceTileProps(coord, new ArrayList<>(copyProps)));
+				menuItem.setOnAction(e -> MapSet.setTileProps(coord, new ArrayList<>(copyProps)));
 				menu = new Menu("Remover");
 				mainMenu.getItems().add(menu);
 				menu.setDisable(!MapSet.tileHaveProps(coord));
@@ -1174,9 +1183,9 @@ public class MapEditor {
 					if (str != null) {
 						String backupTags = tile.getStringTags();
 						try
-							{ tile.loadTagsFromString(str); }
+							{ tile.setTileTagsFromString(str); }
 						catch (Exception ex) {
-							tile.loadTagsFromString(backupTags);
+							tile.setTileTagsFromString(backupTags);
 							Alerts.exception("Erro", "Erro ao definir tag do tile", ex);
 							return;
 						}

@@ -56,6 +56,7 @@ public class CopySprFromCopyLayer extends FrameTag {
 				for (int x = 0; x < (int)copyArea.getWidth(); x++) {
 					TileCoord sourceCoord = new TileCoord((int)copyArea.getX() + x, (int)copyArea.getY() + y);
 					TileCoord targetCoord = new TileCoord(coord.getX() + x, coord.getY() + y);
+					if (MapSet.getLayer(targetLayer).haveTilesOnCoord(targetCoord))
 					MapSet.getLayer(targetLayer).removeAllTilesFromCoord(targetCoord);
 					for (Tile tile : MapSet.getCopyLayer().getTilesFromCoord(sourceCoord))
 						MapSet.getLayer(targetLayer).addTile(new Tile(tile, MapSet.getLayer(targetLayer)), targetCoord);
@@ -64,7 +65,9 @@ public class CopySprFromCopyLayer extends FrameTag {
 						Tags tags = MapSet.getCopyLayer().getTileTags(sourceCoord);
 						MapSet.getLayer(targetLayer).setTileTags(targetCoord, new Tags(tags));
 					}
-					MapSet.getLayer(targetLayer).replaceTileProps(targetCoord, MapSet.getCopyLayer().getTileProps(sourceCoord));
+					else
+						MapSet.getLayer(targetLayer).clearTileTags(targetCoord);
+					MapSet.getLayer(targetLayer).setTileProps(targetCoord, MapSet.getCopyLayer().getTileProps(sourceCoord));
 				}
 		});
 	}

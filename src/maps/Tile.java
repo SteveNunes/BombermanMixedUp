@@ -100,7 +100,7 @@ public class Tile {
 			effects = Tools.loadEffectsFromString(MyConverters.arrayToString(split, ++n));
 			stringTileTags = null;
 			if (split.length > 9 && !getOriginLayer().haveTilesOnCoord(getTileCoord()))
-				loadTagsFromString(MyConverters.arrayToString(split, 9));
+				setTileTagsFromString(MyConverters.arrayToString(split, 9));
 		}
 		catch (Exception e)
 			{ e.printStackTrace(); throw new RuntimeException(split[n] + " - Invalid parameter"); }
@@ -170,67 +170,70 @@ public class Tile {
 		}
 	}
 	
-	public void addTileProp(TileCoord coord, TileProp ... props)
-		{ getOriginLayer().addTileProp(coord, props); }
-	
-	public void removeTileProp(TileCoord coord, TileProp ... props)
-		{ getOriginLayer().removeTileProp(coord, props); }
-	
-	public List<TileProp> getTileProps(TileCoord coord)
-		{ return getOriginLayer().getTileProps(coord); }
-	
-	public int getTotalTileProps(TileCoord coord)
-		{ return getOriginLayer().getTotalTileProps(coord); }
-	
-	public void replaceTileProps(TileCoord coord, List<TileProp> newTileProps)
-		{ getOriginLayer().replaceTileProps(coord, newTileProps); }
+	// ================ Metodos relacionados a TileProps ==============
+
+	public boolean tileContainsProp(TileProp prop)
+		{ return getOriginLayer().tileContainsProp(getTileCoord(), prop); }
 	
 	public Map<TileCoord, List<TileProp>> getTilePropsMap()
-		{	return getOriginLayer().getTilePropsMap(); }
-	
-	public boolean tileContainsProp(TileCoord coord, TileProp prop)
-		{ return getOriginLayer().tileContainsProp(coord, prop); }
-	
-	public boolean tileHaveProps(TileCoord coord)
-		{ return getOriginLayer().tileHaveProps(coord); }
+		{ return getOriginLayer().getTilePropsMap(); }
 
-	public void loadTagsFromString(String stringTileTags) // Passar stringTileTags é temporario eqnuanto eu nao terminar de converter os tile tags antigos
-		{ getOriginLayer().setTileTagsFromString(getTileCoord(), stringTileTags, this); }
+	public boolean tileHaveProps()
+		{ return getOriginLayer().tileHaveProps(getTileCoord()); }
 
+	public List<TileProp> getTileProps()
+		{ return getOriginLayer().getTileProps(getTileCoord()); }
+	
+	public int getTotalTileProps()
+		{ return getOriginLayer().getTotalTileProps(getTileCoord()); }
+	
+	public void setTileProps(List<TileProp> tileProps)
+		{ getOriginLayer().setTileProps(getTileCoord(), tileProps); }
+
+	public void addTileProp(TileProp ... props)
+		{ getOriginLayer().addTileProp(getTileCoord(), props); }
+	
+	public void removeTileProp(TileProp ... props)
+		{ getOriginLayer().removeTileProp(getTileCoord(), props); }
+	
+	public void clearTileProps()
+		{ getOriginLayer().clearTileProps(getTileCoord()); }
+	
+	// ================ Metodos relacionados a TileTags ==============
+	
 	public boolean tileHaveTags()
 		{ return getOriginLayer().tileHaveTags(getTileCoord()); }
 	
-	public String getStringTags() {
-		if (tileHaveTags())
-			return getTileTags().toString();
-		return stringTileTags;
-	}
-	
-	public Tags getTileTags()
-		{ return getOriginLayer().getTileTags(getTileCoord()); }
-
-	public void setTileTags(TileCoord coord, Tags tags)
-		{ getOriginLayer().setTileTags(coord, tags); }
-	
-	public void removeTileTag(TileCoord coord, String tagStr)
-		{ getOriginLayer().removeTileTag(coord, tagStr); }
-	
-	public void removeTileTag(TileCoord coord, FrameTag tag)
-		{ getOriginLayer().removeTileTag(coord, tag); }
-	
-	public void clearTileTags(TileCoord coord)
-		{ getOriginLayer().clearTileTags(coord); }
-
 	public void disableTileTags()
 		{ getOriginLayer().disableTileTags(getTileCoord()); }
-
+	
 	public void enableTileTags()
 		{ getOriginLayer().enableTileTags(getTileCoord()); }
-
+	
 	public boolean tileTagsIsDisabled()
 		{ return getOriginLayer().tileTagsIsDisabled(getTileCoord()); }
+
+	public Tags getTileTags()
+		{ return getOriginLayer().getTileTags(getTileCoord()); }
 	
-	private FrameSet getTileTagsFrameSet()
+	public String getStringTags()
+		{ return getOriginLayer().getStringTags(getTileCoord()); }
+
+	public FrameSet getTileTagsFrameSet()
 		{ return getOriginLayer().getTileTagsFrameSet(getTileCoord()); }
 
+	public void setTileTagsFromString(String stringTileTags)
+		{ getOriginLayer().setTileTagsFromString(getTileCoord(), stringTileTags, this); }
+	
+	public void setTileTags(Tags tags)
+		{ getOriginLayer().setTileTags(getTileCoord(), tags); }
+	
+	public void removeTileTag(String tagStr)
+		{ getOriginLayer().removeTileTag(getTileCoord(), tagStr); }
+	
+	public void removeTileTag(FrameTag tag)
+		{ getOriginLayer().removeTileTag(getTileCoord(), tag); }
+	
+	public void clearTileTags()
+		{ getOriginLayer().clearTileTags(getTileCoord()); }
 }
