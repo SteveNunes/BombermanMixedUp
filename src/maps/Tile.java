@@ -150,11 +150,18 @@ public class Tile {
 	public int getOriginLayerIndex()
 		{ return getOriginLayer().getLayer(); }
 	
-	public void runTags(Entity owner) {
+	public void runTags(Entity whoTriggered, TileCoord triggeredTileCoord) {
 		if (!tileTagsIsDisabled() && getTileTags() != null) {
 			FrameSet frameSet = new FrameSet(getTileTagsFrameSet());
-			frameSet.setEntity(owner);
-			String key = getTileCoord().toString(), key2 = key;
+			frameSet.setEntity(whoTriggered);
+			Position pos = triggeredTileCoord.getPosition();
+			if (!whoTriggered.getTileCoordFromCenter().equals(triggeredTileCoord)) {
+				frameSet.setPosition(-whoTriggered.getX(), -whoTriggered.getY());
+				frameSet.incPosition(pos.getX(), pos.getY());
+			}
+			frameSet.getSprite(0).setPosition(0, 0);
+			frameSet.getSprite(0).setOutputSize(Main.TILE_SIZE, Main.TILE_SIZE);
+			String key = "" + hashCode(), key2 = key;
 			for (int n = 1; MapSet.runningStageTags.containsKey(key); key = key2 + n++);
 			MapSet.runningStageTags.put(key, frameSet);
 		}		
@@ -216,8 +223,11 @@ public class Tile {
 	public Tags getTileTags()
 		{ return getOriginLayer().getTileTags(getTileCoord()); }
 	
-	public String getStringTags()
-		{ return getOriginLayer().getStringTags(getTileCoord()); }
+	public String getStringTags() {
+		if (getOriginLayer().tileHaveTags(getTileCoord()))
+			return getOriginLayer().getTileTags(getTileCoord()).toString();
+		return stringTileTags;
+	}
 
 	public FrameSet getTileTagsFrameSet()
 		{ return getOriginLayer().getTileTagsFrameSet(getTileCoord()); }

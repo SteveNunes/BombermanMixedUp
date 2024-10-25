@@ -80,14 +80,15 @@ public abstract class MapSet {
 		iniFileMap = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
 		if (iniFileMap == null)
 			throw new RuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
-		setTileSet(iniFileMap.read("SETUP", "Tiles"));
+		setTileSet(iniFileMap.read("SETUP", "TileSet"));
 		Map<Integer, List<String>> tileInfos = new HashMap<>();
 		copyImageLayerIndex = iniFileMap.readAsInteger("SETUP", "CopyImageLayer", null);
-		String criterias = iniFileMap.read("SETUP", "PortalCriteria");
-		if (criterias != null) {
+		if (iniFileMap.read("SETUP", "BrickRegenTimer") != null)
+			MapSet.setBricksRegenTime(Integer.parseInt(iniFileMap.getLastReadVal()));
+		if (iniFileMap.read("SETUP", "PortalCriteria") != null) {
 			stageClearCriterias = new ArrayList<>();
 			leftStageClearCriterias = new ArrayList<>();
-			for (String s : criterias.split(" ")) {
+			for (String s : iniFileMap.getLastReadVal().split(" ")) {
 				stageClearCriterias.add(StageClearCriteria.valueOf(s));
 				leftStageClearCriterias.add(StageClearCriteria.valueOf(s));
 			}
@@ -95,11 +96,10 @@ public abstract class MapSet {
 		else
 			leftStageClearCriterias = null;
 		iniFileMap.getItemList("TILES").forEach(item -> {
-			String line = iniFileMap.read("TILES", item);
-			int layer = Integer.parseInt(line.split(" ")[0]);
+			int layer = Integer.parseInt(iniFileMap.read("TILES", item).split(" ")[0]);
 			if (!tileInfos.containsKey(layer))
 				tileInfos.put(layer, new ArrayList<>());
-			tileInfos.get(layer).add(line);
+			tileInfos.get(layer).add(iniFileMap.getLastReadVal());
 		});
 		tileInfos.keySet().forEach(i -> {
 			Layer layer = new Layer(tileInfos.get(i));
@@ -507,33 +507,21 @@ public abstract class MapSet {
 	public static List<Tile> getTileListFromCoord(TileCoord coord)
 		{ return getCurrentLayer().getTilesFromCoord(coord); }
 
-	public static boolean tileIsFree(TileCoord coord)
-		{ return tileIsFree(null, coord); }
+	public static void checkTileTrigger(Entity entity, TileCoord coord, TileProp triggerProp)
+		{ checkTileTrigger(entity, coord, triggerProp, false); }
 	
-	public static boolean tileIsFree(TileCoord coord, List<PassThrough> passThrough)
-		{ return tileIsFree(null, coord, passThrough); }
-
-	public static boolean tileIsFree(Entity entity, TileCoord coord)
-		{ return tileIsFree(entity, coord, null); }
-	
-	public static boolean tileIsFree(Entity entity, TileCoord coord, List<PassThrough> passThrough) {
-		if (!haveTilesOnCoord(coord))
-			return false;
-		if (getTileProps(coord) != null)
-			for (TileProp prop : getTileProps(coord))
-				if (TileProp.getCantCrossList(Elevation.ON_GROUND).contains(prop) ||
-					 (Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
-					 (Bomb.haveBombAt(entity, coord) && (passThrough == null || !passThrough.contains(PassThrough.BOMB))))
-							return false;
-		return true;
-	}
-	
-	public static void checkTileTrigger(Entity entity, TileCoord coord, TileProp triggerProp) {
+	public static void checkTileTrigger(Entity entity, TileCoord coord, TileProp triggerProp, boolean isTileStepOut) {
 		Tile tile = getFirstBottomTileFromCoord(coord);
+		boolean stepTrigger = triggerProp == TileProp.TRIGGER_BY_BLOCK || triggerProp == TileProp.TRIGGER_BY_BOMB || 
+				triggerProp == TileProp.TRIGGER_BY_ITEM || triggerProp == TileProp.TRIGGER_BY_MOB || 
+				triggerProp == TileProp.TRIGGER_BY_PLAYER ||	triggerProp == TileProp.TRIGGER_BY_UNRIDE_PLAYER;
+		boolean containsStepOut = tile.getTileProps().contains(TileProp.TRIGGER_WHEN_STEP_OUT);
+		if (stepTrigger && ((isTileStepOut && !containsStepOut) || (!isTileStepOut && containsStepOut)))
+			return;
 		if (tile.tileHaveTags())
 			for (TileProp prop : getTileProps(coord))
 				if (prop == triggerProp)
-					tile.runTags(entity);
+					tile.runTags(entity, coord);
 	}
 
 	public static boolean haveTilesOnCoord(TileCoord coord)
@@ -554,6 +542,27 @@ public abstract class MapSet {
 				removeStageTag.add(frameSetName);
 		}
 		removeStageTag.forEach(fs -> runningStageTags.remove(fs));
+	}
+
+	public static boolean tileIsFree(TileCoord coord)
+		{ return tileIsFree(null, coord); }
+	
+	public static boolean tileIsFree(TileCoord coord, List<PassThrough> passThrough)
+		{ return tileIsFree(null, coord, passThrough); }
+	
+	public static boolean tileIsFree(Entity entity, TileCoord coord)
+		{ return tileIsFree(entity, coord, null); }
+	
+	public static boolean tileIsFree(Entity entity, TileCoord coord, List<PassThrough> passThrough) {
+		if (!haveTilesOnCoord(coord))
+			return false;
+		if (getTileProps(coord) != null)
+			for (TileProp prop : getTileProps(coord))
+				if (TileProp.getCantCrossList(Elevation.ON_GROUND).contains(prop) ||
+					 (Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
+					 (Bomb.haveBombAt(entity, coord) && (passThrough == null || !passThrough.contains(PassThrough.BOMB))))
+							return false;
+		return true;
 	}
 
 	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough)

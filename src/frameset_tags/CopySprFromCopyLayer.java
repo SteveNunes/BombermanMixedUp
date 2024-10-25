@@ -51,7 +51,7 @@ public class CopySprFromCopyLayer extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		processTile(sprite, targetCoords, coord -> {
+		processTile(sprite.getTileCoordFromCenter(), targetCoords, coord -> {
 			for (int y = 0; y < (int)copyArea.getHeight(); y++)
 				for (int x = 0; x < (int)copyArea.getWidth(); x++) {
 					TileCoord sourceCoord = new TileCoord((int)copyArea.getX() + x, (int)copyArea.getY() + y);

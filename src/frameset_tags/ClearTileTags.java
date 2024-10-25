@@ -37,7 +37,7 @@ public class ClearTileTags extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		processTile(sprite, targetCoords, coord -> {
+		processTile(sprite.getTileCoord(), targetCoords, coord -> {
 			if (MapSet.getLayer(targetLayer).tileHaveTags(coord))
 				MapSet.getLayer(targetLayer).clearTileTags(coord);
 		});

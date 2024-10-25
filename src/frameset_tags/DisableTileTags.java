@@ -41,6 +41,6 @@ public class DisableTileTags extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite)
-		{ processTile(sprite, targetCoords, coord -> MapSet.getCurrentLayer().disableTileTags(coord)); }
+		{ processTile(sprite.getTileCoord(), targetCoords, coord -> MapSet.getCurrentLayer().disableTileTags(coord)); }
 
 }

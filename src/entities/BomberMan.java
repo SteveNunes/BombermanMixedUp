@@ -124,7 +124,7 @@ public class BomberMan extends Entity {
 		if (curse != null && --curseDuration == 0)
 			removeCurse();
 		if (!currentFrameSetNameIsEqual("Dead") && 
-				MapSet.tileContainsProp(getTileCoord(), TileProp.DAMAGE_BOMB))
+				MapSet.tileContainsProp(getTileCoordFromCenter(), TileProp.DAMAGE_PLAYER))
 					setFrameSet("Dead");
 		super.run(gc, isPaused);
 		if (!isBlockedMovement()) {
@@ -154,15 +154,16 @@ public class BomberMan extends Entity {
 					}
 					setElapsedSteps(0);
 				}
-				MapSet.checkTileTrigger(this, getTileCoord(), TileProp.TRIGGER_BY_PLAYER);
-				if (Item.haveItemAt(getTileCoord()))
-					pickItem(Item.getItemAt(getTileCoord()));
+				MapSet.checkTileTrigger(this, getTileCoordFromCenter(), TileProp.TRIGGER_BY_PLAYER);
+				MapSet.checkTileTrigger(this, getPreviewTileCoord(), TileProp.TRIGGER_BY_PLAYER, true);
+				if (Item.haveItemAt(getTileCoordFromCenter()))
+					pickItem(Item.getItemAt(getTileCoordFromCenter()));
 			}
 		}
 	}
 
 	public void setBomb() {
-		if (setBombCd <= 0 && bombs.size() < maxBombs && MapSet.tileIsFree(getTileCoord())) {
+		if (setBombCd <= 0 && bombs.size() < maxBombs && MapSet.tileIsFree(getTileCoordFromCenter())) {
 			BombType type = !gotItens.isEmpty() && gotItens.get(0).getItemType().isBomb() ?
 											Bomb.getBombTypeFromItem(gotItens.get(0)) : BombType.NORMAL;
 			TileCoord coord = new TileCoord((int)(getX() + Main.TILE_SIZE / 2) / Main.TILE_SIZE, (int)(getY() + Main.TILE_SIZE / 2) / Main.TILE_SIZE);

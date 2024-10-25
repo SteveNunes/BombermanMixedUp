@@ -2,6 +2,7 @@ package frameset_tags;
 
 import entities.Bomb;
 import frameset.Sprite;
+import util.Misc;
 
 public class SetBombStucked extends FrameTag {
 	
@@ -33,8 +34,8 @@ public class SetBombStucked extends FrameTag {
 		{ return new SetBombStucked(state, targetTile); }
 
 	@Override
-	public void process(Sprite sprite) {
-		processTile(sprite, targetTile, coord -> {
+	public void process(Sprite sprite) { 
+		processTile(sprite.getTileCoord(), targetTile, coord -> {
 			Bomb bomb = Bomb.getBombAt(coord);
 			if (bomb != null)
 				bomb.setStucked(state);

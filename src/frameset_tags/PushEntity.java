@@ -58,7 +58,7 @@ public class PushEntity extends FrameTag {
 	}
 	
 	public void set(Sprite sprite, Entity entity) {
-		processTile(sprite, targetTile, coord -> {
+		processTile(sprite.getTileCoord(), targetTile, coord -> {
 			if (triggerSound != null)
 				Sound.playWav(triggerSound);
 			entities.PushEntity pushEntity = new entities.PushEntity(entity, startStrenght, decStrenght, direction);

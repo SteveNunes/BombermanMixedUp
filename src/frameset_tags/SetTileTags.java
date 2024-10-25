@@ -54,6 +54,6 @@ public class SetTileTags extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite)
-		{ processTile(sprite, targetCoords, coord -> MapSet.getLayer(targetLayer).setTileTagsFromString(coord, replacedTags)); }
+		{ processTile(sprite.getTileCoord(), targetCoords, coord -> MapSet.getLayer(targetLayer).setTileTagsFromString(coord, replacedTags)); }
 
 }

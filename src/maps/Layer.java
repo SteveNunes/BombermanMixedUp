@@ -220,11 +220,8 @@ public class Layer {
 		return tilesProps.get(coord).size();
 	} 
 	
-	public void setTileProps(TileCoord coord, List<TileProp> tileProps) {
-		System.out.print("Setando Props no tile " + coord + " : De " + tilesProps.get(coord));
-		tilesProps.put(coord, new ArrayList<>(tileProps));
-		System.out.println(" para " + tilesProps.get(coord));
-	}
+	public void setTileProps(TileCoord coord, List<TileProp> tileProps)
+		{ tilesProps.put(coord, new ArrayList<>(tileProps)); }
 
 	public void addTileProp(TileCoord coord, TileProp ... props) {
 		if (!tilesProps.containsKey(coord))

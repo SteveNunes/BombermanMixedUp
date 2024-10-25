@@ -47,6 +47,9 @@ public class PushEntity {
 		consumerWhenHits = consumer;
 		return this;
 	}
+	
+	public TileCoord getTargetTile()
+		{ return targetTile; }
 
 	public PushEntity setTargetTile(TileCoord coord) {
 		targetTile = coord.getNewInstance();

@@ -474,7 +474,6 @@ public class MapEditor {
 			defaultMap = null;
 		}
 		MapSet.loadMap(mapName);
-		MapSet.setBricksRegenTime(5);
 		setLayersListView();
 		canvasTileSet.setWidth(MapSet.getTileSetImage().getWidth());
 		canvasTileSet.setHeight(MapSet.getTileSetImage().getHeight());
@@ -892,10 +891,8 @@ public class MapEditor {
 					tile.setCoord(new TileCoord(canvasMouseDraw.getCoordX() + (hf ? w - 1 - x : x), canvasMouseDraw.getCoordY() + (vf ? h - 1 - y : y)));
 					if (fixTilesOnLayer) {
 						getCurrentLayer().addTile(tile);
-						if (!MapSet.tileHaveProps(tile.getTileCoord())) {
+						if (!MapSet.tileHaveProps(tile.getTileCoord()))
 							MapSet.addTileProp(tile.getTileCoord(), comboBoxTileType.getSelectionModel().getSelectedItem());
-							System.out.println(MapSet.getTileProps(tile.getTileCoord()));
-						}
 					}
 				}
 			}
@@ -981,17 +978,17 @@ public class MapEditor {
 	    	gcMain.fillRect(xx, yy, 10, 10);
 	    }
     }
-  	gcMain.setStroke(Color.RED);
   	gcMain.setLineWidth(4);
+  	gcMain.setStroke(Color.RED);
     for (Entity entity : Entity.getEntityList())
     	gcMain.strokeRect(entity.getX() * zoomMain, entity.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
-    
+  	gcMain.setStroke(Color.ORANGE);
+    for (Bomb bomb : Bomb.getBombs())
+    	gcMain.strokeRect(bomb.getX() * zoomMain, bomb.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
     drawBlockTypeMark();
     drawGridAndAim();
     drawTileTagsOverCursor();
     drawTileSetCanvas();
-    System.out.println("4, 11 : " + MapSet.getTileProps(new TileCoord(4, 11)));
-    System.out.println("12, 11 : " + MapSet.getTileProps(new TileCoord(12, 11)));
 		if (checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
 	    Tile tile = MapSet.getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
 	    if (tile != null) {
@@ -1002,9 +999,6 @@ public class MapEditor {
 				gcMain.setLineWidth(3);
 				while (y + MapSet.getTotalTileProps(tile.getTileCoord()) * 20 >= canvasMain.getHeight() - 10)
 					y -= 10;
-				if (tile.getTileCoord().equals(new TileCoord(4, 11)) || tile.getTileCoord().equals(new TileCoord(12, 11))) {
-					System.out.println(tile.getTileCoord() + " " + tile.getTileProps());
-				}
 				for (TileProp prop : MapSet.getTileProps(tile.getTileCoord())) {
 					String s = prop.name();
 					Text text = new Text(s);
@@ -1479,7 +1473,7 @@ public class MapEditor {
 			}
 		}
 		MapSet.getMapIniFile().write("SETUP", "CopyImageLayer", "" + MapSet.getCopyImageLayerIndex());
-		MapSet.getMapIniFile().write("SETUP", "Tiles", MapSet.getTileSetName());
+		MapSet.getMapIniFile().write("SETUP", "TileSet", MapSet.getTileSetName());
 		String criterias = "";
 		for (StageClearCriteria criteria : MapSet.getStageClearCriterias()) {
 			if (!criterias.isBlank())

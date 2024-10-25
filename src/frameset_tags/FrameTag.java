@@ -116,21 +116,20 @@ public abstract class FrameTag {
 		return coordList;
 	}
 	
-	static void processTile(Sprite sprite, List<TileCoord2> tileCoords, Consumer<TileCoord> consumer) {
-		for (TileCoord2 coord : tileCoords)
-			processTile(sprite, coord, consumer);
+	static void processTile(TileCoord whoActivatedCoord, List<TileCoord2> coords, Consumer<TileCoord> consumer) {
+		for (TileCoord2 coord2 : coords)
+			processTile(whoActivatedCoord, coord2, consumer);
 	}
 	
-	static void processTile(Sprite sprite, TileCoord2 tileCoord2, Consumer<TileCoord> consumer) {
-		int tx = tileCoord2.getX(), ty = tileCoord2.getY();
+	static void processTile(TileCoord whoActivatedCoord, TileCoord2 coord, Consumer<TileCoord> consumer) {
+		int tx = coord.getX(), ty = coord.getY();
 		if (tx == -1 || ty == -1) {
-			if (sprite == null)
+			if (whoActivatedCoord == null)
 				throw new RuntimeException("sprite is null (This FrameTag becames from StageTag instead of a tile tag, so you must provide 'width;height;targetX;targetY' params)");
-			TileCoord coord2 = sprite.getTileCoord();
-			tx = tx == -1 ? coord2.getX() : tx;
-			ty = ty == -1 ? coord2.getY() : ty;
+			tx = tx == -1 ? whoActivatedCoord.getX() : tx;
+			ty = ty == -1 ? whoActivatedCoord.getY() : ty;
 		}
-		consumer.accept(new TileCoord(tx + tileCoord2.getOffsetX(), ty + tileCoord2.getOffsetY()));
+		consumer.accept(new TileCoord(tx + coord.getOffsetX(), ty + coord.getOffsetY()));
 	}
 	
 }

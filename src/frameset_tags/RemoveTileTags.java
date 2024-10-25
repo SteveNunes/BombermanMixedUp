@@ -59,7 +59,7 @@ public class RemoveTileTags extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		processTile(sprite, targetCoords, coord -> {
+		processTile(sprite.getTileCoord(), targetCoords, coord -> {
 			for (String tag : tagsToBeRemoved)
 				MapSet.getLayer(targetLayer).removeTileTag(coord, tag);
 		});

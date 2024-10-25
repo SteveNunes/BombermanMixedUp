@@ -17,7 +17,7 @@ public class AddTempLightSpotToSprite extends AddTempLightSpot {
 	
 	@Override
 	public void process(Sprite sprite) {
-		LightSpot.addTempLightSpot(new LightSpot(sprite.getOutputDrawCoords())
+		LightSpot.addTempLightSpot(new LightSpot(sprite.getSpritePosition())
 				.setOffset(x, y)
 				.setSpotVariance(xVariance, yVariance)
 				.setRadiusVariance(minRadius, maxRadius, radiusInc));

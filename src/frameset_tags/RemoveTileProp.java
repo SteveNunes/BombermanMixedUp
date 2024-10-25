@@ -55,7 +55,7 @@ public class RemoveTileProp extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		processTile(sprite, targetCoords, coord ->
+		processTile(sprite.getTileCoord(), targetCoords, coord ->
 			tileProps.forEach(p -> MapSet.getLayer(targetLayer).removeTileProp(coord, p)));
 	}
 

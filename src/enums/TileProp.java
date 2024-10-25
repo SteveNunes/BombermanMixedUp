@@ -60,6 +60,7 @@ public enum TileProp {
 	RAIL_JUMP(58), // Trilho que faz o BomberKart iniciar/finalizar um salto
 	RAIL_START(59), // Trilho de partida do BomberKart
 	RAIL_END(60), // Trilho de chegada do BomberKart
+	TRIGGER_WHEN_STEP_OUT(64), // Combinado com um TRIGGER_BY_* só dispara o evento quando após pisar no tile, o objeto sair do tile
 	TRIGGER_BY_PLAYER(65), // As Tags de tile só são disparadas se o jogador (COM ou SEM montaria) pisar no tile
 	TRIGGER_BY_UNRIDE_PLAYER(66), // As Tags de tile só são disparadas se o jogador (SEM montaria) pisar no tile
 	TRIGGER_BY_RIDE(67), // As Tags de tile só são disparadas se o jogador (COM montaria) pisar no tile
@@ -79,7 +80,7 @@ public enum TileProp {
 	DAMAGE_BOMB(81),
 	DAMAGE_BRICK(82),
 	DAMAGE_ITEM(83);
-	// NOTA: VAGOS: 3, 4, 18, 24, 25, 26, 49 50 51 61 62 63 64
+	// NOTA: VAGOS: 3, 4, 18, 24, 25, 26, 49 50 51 61 62 63
 	
 	@SuppressWarnings("serial")
 	private static Map<Elevation, List<TileProp>> cantCross = new HashMap<>() {{
@@ -157,6 +158,7 @@ public enum TileProp {
 		put(58, RAIL_JUMP);
 		put(59, RAIL_START);
 		put(60, RAIL_END);
+		put(64, TRIGGER_WHEN_STEP_OUT);
 		put(65, TRIGGER_BY_PLAYER);
 		put(66, TRIGGER_BY_UNRIDE_PLAYER);
 		put(67, TRIGGER_BY_RIDE);

@@ -48,6 +48,7 @@ public class Entity extends Position {
 	private Entity linkedEntityFront;
 	private Entity linkedEntityBack;
 	private Position linkedEntityOffset;
+	private TileCoord tileChangedCoord;
 	private TileCoord previewTileCoord;
 	private boolean noMove;
 	private boolean isDisabled;
@@ -81,12 +82,13 @@ public class Entity extends Position {
 		isVisible = entity.isVisible;
 		defaultTags = entity.defaultTags == null ? null : new Tags(defaultTags);
 		pushEntity = entity.pushEntity == null ? null : new PushEntity(entity.pushEntity);
-		previewTileCoord = new TileCoord();
 		linkedEntityInfos = new LinkedList<>();
 		linkedEntityBack = null;
 		linkedEntityFront = null;
 		linkedEntityOffset = null;
 		tileWasChanged = false;
+		previewTileCoord = null;
+		tileChangedCoord = null;
 	}
 	
 	public Entity()
@@ -101,7 +103,6 @@ public class Entity extends Position {
 		passThrough = new ArrayList<>();
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
-		previewTileCoord = new TileCoord();
 		linkedEntityInfos = new ArrayList<>();
 		linkedEntityBack = null;
 		linkedEntityFront = null;
@@ -121,6 +122,8 @@ public class Entity extends Position {
 		isDisabled = false;
 		blockedMovement = false;
 		tileWasChanged = false;
+		previewTileCoord = null;
+		tileChangedCoord = null;
 	}
 	
 	public Tags getDefaultTags()
@@ -357,6 +360,9 @@ public class Entity extends Position {
 	public void setPushEntity(PushEntity pushEntity)
 		{ this.pushEntity = pushEntity; }
 	
+	public void unsetPushEntity()
+		{ pushEntity = null; }
+	
 	public void run()
 		{ run(null, false); }
 
@@ -367,6 +373,11 @@ public class Entity extends Position {
 		{ run(gc, false); }
 
 	public void run(GraphicsContext gc, boolean isPaused) {
+		if (previewTileCoord == null) {
+			previewTileCoord = getTileCoordFromCenter().getNewInstance();
+			tileChangedCoord = getTileCoordFromCenter().getNewInstance();
+			tileWasChanged = true;
+		}
 		if (pushEntity != null) {
 			pushEntity.process();
 			if (!pushEntity.isActive()) {
@@ -379,7 +390,7 @@ public class Entity extends Position {
 				throw new RuntimeException("This entity have no FrameSets");
 			if (currentFrameSetName != null && frameSets.containsKey(currentFrameSetName)) {
 				processLinkedEntity();
-				if (!blockedMovement)
+				if (!isBlockedMovement())
 					moveEntity();
 				applyShadow();
 				frameSets.get(currentFrameSetName).run(gc, isPaused);
@@ -468,7 +479,7 @@ public class Entity extends Position {
 		tileWasChanged = false;
 		getFreeCorners(direction);
 		if (speed != 0) {
-			removeEntityFromList(getTileCoord(), this);
+			removeEntityFromList(getTileCoordFromCenter(), this);
 			Position[] cornersPositions = getCornersPositions();
 			Position lu = cornersPositions [0], ru = cornersPositions[1], ld = cornersPositions[2], rd = cornersPositions[3];
 			boolean[] freeCorners = getFreeCorners(direction);
@@ -506,23 +517,26 @@ public class Entity extends Position {
 				else if (freeCorners[1] && !freeCorners[3] && (int)ru.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para direita, e o canto direita inferior estiver bloqueado, mas o canto direita superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
 					incPosition(speed / 2, -speed);
 			}
-			if (!previewTileCoord.equals(getTileCoord()) &&
-				 ((getDirection() == Direction.LEFT && (int)((getX() + Main.TILE_SIZE - 1) / Main.TILE_SIZE) < previewTileCoord.getX()) ||
-				  (getDirection() == Direction.UP && (int)((getY() + Main.TILE_SIZE - 1) / Main.TILE_SIZE) < previewTileCoord.getY()) ||
-				  (getDirection() == Direction.RIGHT && (int)(getX() / Main.TILE_SIZE) != previewTileCoord.getX()) ||
-				  (getDirection() == Direction.DOWN && (int)(getY() / Main.TILE_SIZE) != previewTileCoord.getY()))) {
-						updatePreviewTileCoord();
+			if (!getTileCoordFromCenter().equals(tileChangedCoord)) {
+				Position pos = getTileCoordFromCenter().getPosition();
+				int x = (int)getX() + Main.TILE_SIZE / 2, y = (int)getY() + Main.TILE_SIZE / 2,
+						xx = (int)pos.getX() + Main.TILE_SIZE / 2, yy = (int)pos.getY() + Main.TILE_SIZE / 2;
+				if (x >= xx - Main.TILE_SIZE / 4 && y >= yy - Main.TILE_SIZE / 4 &&
+						x <= xx + Main.TILE_SIZE / 4 && y <= yy + Main.TILE_SIZE / 4)
+							updatePreviewTileCoord();
 			}
-			if (isPerfectlyBlockedDir(getDirection()) && !isPerfectTileCentred())
-				centerToTile();
-			addEntityToList(getTileCoord(), this);
+			//while (isPerfectlyBlockedDir(getDirection()) && !isPerfectTileCentred() && MapSet.tileIsFree(this, getTileCoord(), passThrough))
+				//incPositionByDirection(getDirection());
+			addEntityToList(getTileCoordFromCenter(), this);
 		}
-		if (!previewTileCoord.equals(getTileCoord()) && (speed == 0 || isBlockedMovement()))
-			updatePreviewTileCoord();
 	}
+	
+	public TileCoord getPreviewTileCoord()
+		{ return previewTileCoord; }
 
 	private void updatePreviewTileCoord() {
-		previewTileCoord.setCoords(getTileCoord());
+		previewTileCoord.setCoords(tileChangedCoord);
+		tileChangedCoord.setCoords(getTileCoordFromCenter());
 		elapsedSteps++;
 		tileWasChanged = true;
 	}
@@ -546,7 +560,7 @@ public class Entity extends Position {
 		{ return direction; }
 
 	public void setDirection(Direction direction) {
-		if (!blockedMovement && this.direction != direction) {
+		if (!isBlockedMovement() && this.direction != direction) {
 			String name = currentFrameSetName;
 			int i = name.indexOf('.');
 			if (i > 1)
@@ -708,12 +722,6 @@ public class Entity extends Position {
 	
 	public static boolean haveAnyEntityAtCoord(TileCoord coord)
 		{ return entityMap.containsKey(coord) && !entityMap.get(coord).isEmpty(); }
-
-	public void centerToTile() {
-		int x = (int)((getX() + Main.TILE_SIZE / 2) / Main.TILE_SIZE) * Main.TILE_SIZE,
-				y = (int)((getY() + Main.TILE_SIZE / 2) / Main.TILE_SIZE) * Main.TILE_SIZE;
-		setPosition(x, y);
-	}
 
 }
 

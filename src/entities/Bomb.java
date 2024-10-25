@@ -18,12 +18,12 @@ import tools.Sound;
 
 public class Bomb extends Entity {
 
-	public static Map<TileCoord, List<Bomb>> bombs = new HashMap<>();
+	private static Map<TileCoord, List<Bomb>> bombs = new HashMap<>();
 	private static List<Bomb> bombList = new ArrayList<>();
 	
 	private boolean nesBomb;
 	private Entity owner;
-	BombType type;
+	private BombType type;
 	private int timer;
 	private int fireDistance;
 	private boolean ownerIsOver;
@@ -106,6 +106,7 @@ public class Bomb extends Entity {
 			bombs.get(coord).add(bomb);
 			bombList.add(bomb);
 			MapSet.checkTileTrigger(bomb, coord, TileProp.TRIGGER_BY_BOMB);
+			MapSet.checkTileTrigger(bomb, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
 			return bomb;
 		}
 		return null;
@@ -115,21 +116,20 @@ public class Bomb extends Entity {
 		{ addBomb(bomb, false); }
 	
 	public static void addBomb(Bomb bomb, boolean checkTile)
-		{ addBomb(bomb.owner, bomb.getTileCoord(), bomb.type, bomb.fireDistance, checkTile); }
+		{ addBomb(bomb.owner, bomb.getTileCoordFromCenter(), bomb.type, bomb.fireDistance, checkTile); }
 
 	public static void removeBomb(Bomb bomb) {
-		if (bombs.containsKey(bomb.getTileCoord())) {
-			bombs.get(bomb.getTileCoord()).remove(bomb);
-			if (bombs.get(bomb.getTileCoord()).isEmpty())
-				bombs.remove(bomb.getTileCoord());
-			bombList.remove(bomb);
+		if (bombs.containsKey(bomb.getTileCoordFromCenter())) {
+			bombs.get(bomb.getTileCoordFromCenter()).remove(bomb);
+			if (bombs.get(bomb.getTileCoordFromCenter()).isEmpty())
+				bombs.remove(bomb.getTileCoordFromCenter());
 		}
+		bombList.remove(bomb);
 	}
 	
 	public static void removeBomb(TileCoord coord) {
-		List<Bomb> list = new ArrayList<>(bombs.get(coord));
-		for (Bomb bomb : list)
-			removeBomb(bomb);
+		bombList.removeAll(bombs.get(coord));
+		bombs.remove(coord);
 	}
 	
 	public static void clearBombs() {
@@ -149,16 +149,19 @@ public class Bomb extends Entity {
 			if (bomb.owner != null && bomb.ownerIsOver) {
 				int x = (int)bomb.owner.getX() + Main.TILE_SIZE / 2, y = (int)bomb.owner.getY() + Main.TILE_SIZE / 2,
 						xx = (int)bomb.getX() + Main.TILE_SIZE / 2, yy = (int)bomb.getY() + Main.TILE_SIZE / 2;
-				if (xx >= x - Main.TILE_SIZE / 4 && xx <= x + Main.TILE_SIZE / 4 &&
-						yy >= y - Main.TILE_SIZE / 4 && yy <= y + Main.TILE_SIZE / 4)
+				if (x <= xx - Main.TILE_SIZE / 2 || x >= xx + Main.TILE_SIZE / 2 ||
+						y <= yy - Main.TILE_SIZE / 2 || y >= yy + Main.TILE_SIZE / 2)
 							bomb.ownerIsOver = false;
 			}
-			if ((bomb.timer == -1 || --bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoord(), TileProp.DAMAGE_BOMB))
+			if ((bomb.timer == -1 || --bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
 				bomb.timer = 0;
 			if (bomb.timer == 0) {
+				bombs.remove(bomb.getTileCoordFromCenter());
+				bomb.centerToTile();
+				bomb.unsetPushEntity();
 				bomb.isActive = false;
 				Sound.playWav("explosion/Explosion" + (bomb.nesBomb ? "" : bomb.fireDistance < 3 ? "1" : (int)(bomb.fireDistance / 3)));
-				Explosion.addExplosion(bomb, bomb.getTileCoord(), bomb.fireDistance, bomb.type == BombType.SPIKED || bomb.type == BombType.SPIKED_REMOTE);
+				Explosion.addExplosion(bomb, bomb.getTileCoordFromCenter(), bomb.fireDistance, bomb.type == BombType.SPIKED || bomb.type == BombType.SPIKED_REMOTE);
 				removeBombs.add(bomb);
 			}
 			else
@@ -169,27 +172,29 @@ public class Bomb extends Entity {
 
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
-		TileCoord coord = getTileCoord().getNewInstance();
 		super.run(gc, isPaused);
+		TileCoord prevCoord = getPreviewTileCoord();
+		TileCoord coord = getTileCoordFromCenter();
 		if (tileWasChanged()) {
-			MapSet.checkTileTrigger(this, getTileCoord(), TileProp.TRIGGER_BY_BOMB);
+			if (bombs.containsKey(prevCoord)) {
+				bombs.get(prevCoord).remove(this);
+				if (bombs.get(prevCoord).isEmpty())
+					bombs.remove(prevCoord);
+			}
+			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
+			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
 		}
-		if (!coord.equals(getTileCoord())) {
-			for (TileCoord t : bombs.keySet())
-				if (bombs.get(t).contains(this)) {
-					bombs.get(t).remove(this);
-					break;
-				}
-			if (!bombs.containsKey(getTileCoord()))
-				bombs.put(getTileCoord().getNewInstance(), new ArrayList<>());
-			bombs.get(getTileCoord()).add(this);
+		if (isActive() && getSpeed() == 0 && getPushEntity() == null) {
+			if (!bombs.containsKey(coord))
+				bombs.put(coord, new ArrayList<>());
+			bombs.get(coord).add(this);
 		}
 	}
 	
 	public static boolean haveBombAt(Entity entity, TileCoord coord) {
 		if (bombs.containsKey(coord)) {
 			Bomb bomb = getBombAt(coord);
-			return bomb != null && (bomb.owner == null || entity == null || bomb.owner != entity || !bomb.ownerIsOver);
+			return bomb.owner == null || entity == null || bomb.owner != entity || !bomb.ownerIsOver;
 		}
 		return false;
 	}

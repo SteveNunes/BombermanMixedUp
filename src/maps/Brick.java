@@ -70,28 +70,29 @@ public class Brick extends Entity {
 		{ addBrick(brick, true); }
 
 	public static void addBrick(Brick brick, boolean updateLayer) {
-		TileCoord coord = brick.getTileCoord();
+		TileCoord coord = brick.getTileCoordFromCenter();
 		if (!haveBrickAt(coord, false)) {
 			brick.setPosition(coord.getPosition());
 			bricks.put(coord, brick);
 			brick.setBrickShadow();
+			MapSet.checkTileTrigger(brick, coord, TileProp.TRIGGER_BY_BLOCK);
 		}
 	}
 	
 	private void setBrickShadow() {
-		TileCoord coord = getTileCoord().getNewInstance();
+		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		coord.setY(coord.getY() + 1);
 		Tile.addTileShadow(MapSet.getGroundWithBrickShadow(), coord);
 	}
 	
 	private void unsetBrickShadow() {
-		TileCoord coord = getTileCoord().getNewInstance();
+		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		coord.setY(coord.getY() + 1);
 		Tile.removeTileShadow(coord);
 	}
 
 	public static void removeBrick(Brick brick)
-		{ removeBrick(brick.getTileCoord()); }
+		{ removeBrick(brick.getTileCoordFromCenter()); }
 	
 	public static void removeBrick(TileCoord coord)
 		{ removeBrick(coord, true); }
@@ -105,7 +106,7 @@ public class Brick extends Entity {
 	
 	public static void clearBricks() {
 		List<Brick> list = new ArrayList<>(bricks.values());
-		list.forEach(brick -> removeBrick(brick.getTileCoord()));
+		list.forEach(brick -> removeBrick(brick.getTileCoordFromCenter()));
 	}
 	
 	public static int totalBricks()
@@ -119,7 +120,7 @@ public class Brick extends Entity {
 		for (Brick brick : bricks.values()) {
 			String cFSet = brick.getCurrentFrameSetName();
 			if (!cFSet.equals("BrickBreakFrameSet")) {
-				if (MapSet.tileContainsProp(brick.getTileCoord(), TileProp.DAMAGE_BRICK))
+				if (MapSet.tileContainsProp(brick.getTileCoordFromCenter(), TileProp.DAMAGE_BRICK))
 					brick.breakIt();
 				else if (cFSet.equals("BrickRegenFrameSet") && !brick.getCurrentFrameSet().isRunning()) {
 					brick.setFrameSet("BrickStandFrameSet");
@@ -130,9 +131,9 @@ public class Brick extends Entity {
 				if (brick.regenTimeInFrames > 0)
 					brick.regenTimeInFrames--;
 				if (brick.regenTimeInFrames == 0 &&
-						!MapSet.getTileProps(brick.getTileCoord()).contains(TileProp.DAMAGE_BRICK) &&
-						!MapSet.tileIsOccuped(brick.getTileCoord(), brick.getPassThrough()) &&
-						!Entity.haveAnyEntityAtCoord(brick.getTileCoord()))
+						!MapSet.getTileProps(brick.getTileCoordFromCenter()).contains(TileProp.DAMAGE_BRICK) &&
+						!MapSet.tileIsOccuped(brick.getTileCoordFromCenter(), brick.getPassThrough()) &&
+						!Entity.haveAnyEntityAtCoord(brick.getTileCoordFromCenter()))
 							brick.setFrameSet("BrickRegenFrameSet");
 			}
 			brick.run();
@@ -143,7 +144,7 @@ public class Brick extends Entity {
 				else
 					brick.regenTimeInFrames = MapSet.getBricksRegenTimeInFrames();
 				if (brick.getItem() != null) {
-					Item.addItem(brick.getTileCoord(), brick.getItem());
+					Item.addItem(brick.getTileCoordFromCenter(), brick.getItem());
 					brick.setItem(null);
 				}
 			}
@@ -153,18 +154,18 @@ public class Brick extends Entity {
 	
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
-		TileCoord coord = getTileCoord().getNewInstance();
 		super.run(gc, isPaused);
 		if (tileWasChanged()) {
-			MapSet.checkTileTrigger(this, getTileCoord(), TileProp.TRIGGER_BY_BLOCK);
-		}
-		if (!coord.equals(getTileCoord())) {
+			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
+			TileCoord coord = getTileCoordFromCenter().getNewInstance();
+			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BLOCK);
+			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BLOCK, true);
 			for (TileCoord t : bricks.keySet())
 				if (bricks.get(t) == this) {
 					bricks.remove(t);
 					break;
 				}
-			bricks.put(getTileCoord(), this);
+			bricks.put(coord, this);
 		}
 	}
 	

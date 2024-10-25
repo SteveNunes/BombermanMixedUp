@@ -20,7 +20,7 @@ public class AddColoredLightSpotToSprite extends AddTempColoredLightSpot {
 	
 	@Override
 	public void process(Sprite sprite) {
-		ColoredLightSpot.addColoredLightSpot(new ColoredLightSpot(sprite.getOutputDrawCoords())
+		ColoredLightSpot.addColoredLightSpot(new ColoredLightSpot(sprite.getSpritePosition())
 				.setOffset(x, y)
 				.setColor(color)
 				.setSpotVariance(xVariance, yVariance)

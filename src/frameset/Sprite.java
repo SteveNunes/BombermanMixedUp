@@ -24,14 +24,14 @@ import screen_pos_effects.WavingImage;
 import tools.Materials;
 import tools.Tools;
 
-public class Sprite {
+public class Sprite extends Position {
 
 	private FrameSet sourceFrameSet;
 	private String spriteSourceName;
 	private Rectangle originSpriteSizePos;
 	private Rectangle outputSpriteSizePos;
 	private DrawImageEffects spriteEffects;
-	private Position outputSpritePos;
+	private Position absoluteOutputSpritePos;
 	private Position spriteScroll;
 	private EliticMove eliticMove;
 	private RectangleMove rectangleMove;
@@ -52,12 +52,12 @@ public class Sprite {
 		{ this(sprite, sprite.getSourceFrameSet()); }
 	
 	public Sprite(Sprite sprite, FrameSet mainFrameSet) {
-		super();
+		super(sprite);
 		this.sourceFrameSet = mainFrameSet;
 		originSpriteSizePos = new Rectangle(sprite.originSpriteSizePos);
 		outputSpriteSizePos = new Rectangle(sprite.outputSpriteSizePos);
 		spriteEffects = new DrawImageEffects(sprite.spriteEffects);
-		outputSpritePos = new Position();
+		absoluteOutputSpritePos = new Position();
 		spriteSourceName = sprite.spriteSourceName;
 		alpha = sprite.alpha;
 		flip = sprite.flip;
@@ -74,10 +74,11 @@ public class Sprite {
 		wavingImage = sprite.wavingImage == null ? null : new WavingImage(sprite.wavingImage);
 		spriteScroll = sprite.spriteScroll == null ? null : new Position(sprite.spriteScroll);
 		frontValue = sprite.frontValue;
+		updateOutputDrawCoords();
 	}
 	
 	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spriteIndex, int spritesPerLine) {
-		super();
+		super(originSpriteSizePos.getX(), originSpriteSizePos.getY());
 		this.spriteSourceName = spriteSourceName;
 		this.spriteIndex = spriteIndex;
 		this.spritesPerLine = spritesPerLine;
@@ -86,7 +87,7 @@ public class Sprite {
 		this.outputSpriteSizePos = new Rectangle(outputSpriteSizePos);
 		spriteScroll = null;
 		wavingImage = null;
-		outputSpritePos = new Position();
+		absoluteOutputSpritePos = new Position();
 		spriteEffects = new DrawImageEffects();
 		flip =ImageFlip.NONE;
 		alignment = ImageAlignment.NONE;
@@ -99,6 +100,7 @@ public class Sprite {
 		visibleSprite = true;
 		layerType = SpriteLayerType.SPRITE;
 		frontValue = 0;
+		updateOutputDrawCoords();
 	}
 
 	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, int spriteIndex, int spritesPerLine)
@@ -163,23 +165,47 @@ public class Sprite {
 	public void setVisibleSprite(boolean state)
 		{ visibleSprite = state; }
 
-	public double getX()
-		{ return outputSpriteSizePos.getX(); }
+	@Override
+	public Position setX(double x) {
+		outputSpriteSizePos.setFrame(x, getY(), getOutputWidth(), getOutputHeight());
+		super.setX(x);
+		updateOutputDrawCoords();
+		return this;
+	}
 	
-	public double getY()
-		{ return outputSpriteSizePos.getY(); }
+	@Override
+	public Position setY(double y) {
+		outputSpriteSizePos.setFrame(getX(), y, getOutputWidth(), getOutputHeight());
+		super.setY(y);
+		updateOutputDrawCoords();
+		return this;
+	}
+	
+	@Override
+	public Position setPosition(double x, double y) {
+		setX(x);
+		setY(y);
+		return this;
+	}
+	
+	@Override
+	public Position setPosition(Position position) {
+		setX(position.getX());
+		setY(position.getY());
+		return this;
+	}
 
-	public void setX(double x)
-		{ outputSpriteSizePos.setFrame(x, getY(), getOutputWidth(), getOutputHeight()); }
+	@Override
+	public Position incX(double incX) {
+		setX(getX() + incX);
+		return this;
+	}
 	
-	public void setY(double y)
-		{ outputSpriteSizePos.setFrame(getX(), y, getOutputWidth(), getOutputHeight()); }
-
-	public void incX(double incX)
-		{ outputSpriteSizePos.setFrame(getX() + incX, getY(), getOutputWidth(), getOutputHeight()); }
-	
-	public void incY(double incY)
-		{ outputSpriteSizePos.setFrame(getX(), getY() + incY, getOutputWidth(), getOutputHeight()); }
+	@Override
+	public Position incY(double incY) {
+		setY(getY() + incY);
+		return this;
+	}
 
 	public double getAbsoluteX() {
 		if (sourceFrameSet != null)
@@ -192,19 +218,32 @@ public class Sprite {
 			return sourceFrameSet.getAbsoluteY() + getY();
 		return getY();
 	}
+	
+	public Position getAbsolutePosition()
+		{ return new Position(getAbsoluteX(), getAbsoluteY()); }
 
-	public void setAbsoluteX(int x) {
+	public void setAbsoluteX(double x) {
 		if (sourceFrameSet != null)
-			setX(x - (int)sourceFrameSet.getAbsoluteX());
+			setX(x - sourceFrameSet.getAbsoluteX());
 		else
 			setX(x);
 	}
 	
-	public void setAbsoluteY(int y) {
+	public void setAbsoluteY(double y) {
 		if (sourceFrameSet != null)
-			setY(y - (int)sourceFrameSet.getAbsoluteY());
+			setY(y - sourceFrameSet.getAbsoluteY());
 		else
 			setY(y);
+	}
+	
+	public void setAbsolutePosition(int x, int y) {
+		setAbsoluteX(x);
+		setAbsoluteY(y);
+	}
+	
+	public void setAbsolutePosition(Position position) {
+		setAbsoluteX(position.getX());
+		setAbsoluteY(position.getY());
 	}
 	
 	public double getAlpha()
@@ -257,8 +296,11 @@ public class Sprite {
 	public void setOriginSpritePos(int x, int y, int w, int h)
 		{ originSpriteSizePos.setBounds(x, y, w, h); }
 	
-	public void setOutputSpritePos(Rectangle outputSpriteSizePos)
-		{ this.outputSpriteSizePos.setBounds((int)outputSpriteSizePos.getX(), (int)outputSpriteSizePos.getY(), (int)outputSpriteSizePos.getWidth(), (int)outputSpriteSizePos.getHeight()); }
+	public void setOutputSpritePos(Rectangle outputSpriteSizePos) {
+		this.outputSpriteSizePos.setBounds((int)outputSpriteSizePos.getX(), (int)outputSpriteSizePos.getY(), (int)outputSpriteSizePos.getWidth(), (int)outputSpriteSizePos.getHeight());
+		setPosition(outputSpriteSizePos.getX(), outputSpriteSizePos.getY());
+		updateOutputDrawCoords();
+	}
 	
 	public int getOriginSpriteX()
 		{ return (int)originSpriteSizePos.getX(); }
@@ -308,8 +350,10 @@ public class Sprite {
 	public int getOutputHeight()
 		{ return (int)outputSpriteSizePos.getHeight(); }
 
-	public void setOutputSize(int w, int h)
-		{ outputSpriteSizePos.setSize(w, h); }
+	public void setOutputSize(int w, int h) {
+		outputSpriteSizePos.setSize(w, h);
+		updateOutputDrawCoords();
+	}
 	
 	public void setOutputWidth(int w)
 		{ setOutputSize(w, (int)outputSpriteSizePos.getHeight()); }
@@ -371,9 +415,6 @@ public class Sprite {
 	public void setGotoMove(GotoMove gotoMove)
 		{ this.gotoMove = gotoMove; }
 
-	public int getMaxOutputSpriteY()
-		{ return (int)getOutputDrawCoords().getY() + getOutputHeight(); }
-
 	public int[] getCurrentSpriteOriginCoords() {
 		if (spriteIndex == null)
 			return new int[] {0, 0};
@@ -384,9 +425,12 @@ public class Sprite {
 		return new int[] {x, y};
 	}
 	
-	public Position getOutputDrawCoords()
-		{ return outputSpritePos; }
+	public Position getAbsoluteOutputPosition()
+		{ return absoluteOutputSpritePos; }
 	
+	public Position getSpritePosition()
+		{ return this; }
+
 	public void updateOutputDrawCoords() {
 		int x = (int)getAbsoluteX(),
 				y = (int)getAbsoluteY(),
@@ -431,7 +475,7 @@ public class Sprite {
 			default:
 				break;
 		}
-		outputSpritePos.setPosition(x, y);
+		absoluteOutputSpritePos.setPosition(x, y);
 	}
 	
 	public void draw()
@@ -441,7 +485,7 @@ public class Sprite {
 		if (visibleSprite) {
 			updateOutputDrawCoords();
 			int[] in = getCurrentSpriteOriginCoords();
-			int sx = in[0], sy = in[1], tx = (int)getOutputDrawCoords().getX(), ty = (int)getOutputDrawCoords().getY();
+			int sx = in[0], sy = in[1], tx = (int)absoluteOutputSpritePos.getX(), ty = (int)absoluteOutputSpritePos.getY();
 			if (gc != null)
 				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 														 tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
@@ -492,7 +536,12 @@ public class Sprite {
 		}
 	}
 
+	@Override
 	public TileCoord getTileCoord()
-		{ return new TileCoord((int)getX() / Main.TILE_SIZE, (int)getY() / Main.TILE_SIZE); }
+		{ return new TileCoord((int)absoluteOutputSpritePos.getX() / Main.TILE_SIZE, (int)absoluteOutputSpritePos.getY() / Main.TILE_SIZE); }
+
+	@Override
+	public TileCoord getTileCoordFromCenter()
+		{ return new TileCoord((int)(absoluteOutputSpritePos.getX() + getOutputWidth() / 2) / Main.TILE_SIZE, (int)(absoluteOutputSpritePos.getY() + getOutputHeight() / 2) / Main.TILE_SIZE); }
 
 }

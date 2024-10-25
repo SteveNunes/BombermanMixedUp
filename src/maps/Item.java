@@ -55,7 +55,7 @@ public class Item extends Entity{
 	public Item(Position position, ItemType itemType) {
 		setPosition(new Position(position));
 		this.itemType = itemType; 
-		coord = new TileCoord(getTileCoord().getX(), getTileCoord().getY());
+		coord = new TileCoord(getTileCoordFromCenter().getX(), getTileCoordFromCenter().getY());
 		startInvFrames = 10;
 		int itemIndex = itemType.getValue() - 1;
 		String itemStandFrameSet =
@@ -114,8 +114,14 @@ public class Item extends Entity{
 		{ addItem(new Item(coord, itemType)); }
 
 	public static void addItem(Item item) {
-		if (!haveItemAt(item.coord))
+		if (!haveItemAt(item.coord)) {
 			items.put(item.coord.getNewInstance(), item);
+			if (!MapSet.tileIsFree(item.coord)) {
+				// FALTA: implementar frameset do item pulando para um tile aleatorio se ele for inserido num tile não-vago
+			}
+			else
+				MapSet.checkTileTrigger(item, item.coord, TileProp.TRIGGER_BY_ITEM);
+		}
 	}
 
 	public static void removeItem(Item item)
@@ -150,7 +156,7 @@ public class Item extends Entity{
 			
 		for (Item item : items.values()) {
 			if (--item.startInvFrames <= 0 && item.getCurrentFrameSetName().equals("ItemStandFrameSet") &&
-					MapSet.tileContainsProp(item.getTileCoord(), TileProp.DAMAGE_ITEM)) {
+					MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM)) {
 				removeItems.add(item);
 				Effect.runEffect(item.getPosition(), "FIRE_SKULL_EXPLOSION");
 			}
@@ -164,18 +170,18 @@ public class Item extends Entity{
 	
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
-		TileCoord coord = getTileCoord().getNewInstance();
 		super.run(gc, isPaused);
 		if (tileWasChanged()) {
-			MapSet.checkTileTrigger(this, getTileCoord(), TileProp.TRIGGER_BY_ITEM);
-		}
-		if (!coord.equals(getTileCoord())) {
+			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
+			TileCoord coord = getTileCoordFromCenter().getNewInstance();
+			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
+			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_ITEM, true);
 			for (TileCoord t : items.keySet())
 				if (items.get(t) == this) {
 					items.remove(t);
 					break;
 				}
-			items.put(getTileCoord(), this);
+			items.put(coord, this);
 		}
 	}
 	

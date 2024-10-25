@@ -946,8 +946,8 @@ public class FrameSetEditor {
 		entities.forEach(e -> e.run(isPaused));
 		if (isChangingSprite) {
 			Sprite sprite = selectedSprites.get(0);
-			int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
-					y = (int)sprite.getOutputDrawCoords().getY() * zoom;
+			int x = (int)sprite.getSpritePosition().getX() * zoom,
+					y = (int)sprite.getSpritePosition().getY() * zoom;
 			gcs.get(sprite.getLayerType()).drawImage(sprite.getSpriteSource(),
 					sprite.getOriginSpriteX() - 160, sprite.getOriginSpriteY() - 120,
 					480, 360, x - 160, y - 120, 480, 360);
@@ -975,19 +975,20 @@ public class FrameSetEditor {
 				Sprite focused = null;
 				int max = 0;
 				for (Sprite sprite : getCurrentFrameSet().getSprites()) {
-					int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
-							y = (int)sprite.getOutputDrawCoords().getY() * zoom;
-					if (sprite.getMaxOutputSpriteY() > max &&
+					int x = (int)sprite.getSpritePosition().getX() * zoom,
+							y = (int)sprite.getSpritePosition().getY() * zoom,
+							yy = (int)sprite.getAbsoluteOutputPosition().getY() + sprite.getOutputHeight();
+					if (yy > max &&
 							zoomedMouseX * zoom >= x && zoomedMouseY * zoom >= y &&
 							zoomedMouseX * zoom <= x + sprite.getOutputWidth() * zoom &&
 							zoomedMouseY * zoom <= y + sprite.getOutputHeight() * zoom) {
 								focused = sprite;
-								max = sprite.getMaxOutputSpriteY();
+								max = yy;
 					}
 				}
 				if (focused != null) {
-					int x = (int)focused.getOutputDrawCoords().getX() * zoom,
-							y = (int)focused.getOutputDrawCoords().getY() * zoom;
+					int x = (int)focused.getSpritePosition().getX() * zoom,
+							y = (int)focused.getSpritePosition().getY() * zoom;
 					focusedSprite = focused;
 					gcMain.setFill(Color.LIGHTBLUE);
 					gcMain.setStroke(Color.BLACK);
@@ -1018,15 +1019,15 @@ public class FrameSetEditor {
 			}
 			if (Misc.blink(50)) { 
 				if (focusedSprite != null) {
-					int x = (int)focusedSprite.getOutputDrawCoords().getX() * zoom,
-							y = (int)focusedSprite.getOutputDrawCoords().getY() * zoom;
+					int x = (int)focusedSprite.getSpritePosition().getX() * zoom,
+							y = (int)focusedSprite.getSpritePosition().getY() * zoom;
 					gcMain.setStroke(Color.YELLOW);
 					gcMain.setLineWidth(2);
 					gcMain.strokeRect(x, y, focusedSprite.getOutputWidth() * zoom, focusedSprite.getOutputHeight() * zoom);
 				}
 				for (Sprite sprite : selectedSprites) {
-					int x = (int)sprite.getOutputDrawCoords().getX() * zoom,
-							y = (int)sprite.getOutputDrawCoords().getY() * zoom,
+					int x = (int)sprite.getSpritePosition().getX() * zoom,
+							y = (int)sprite.getSpritePosition().getY() * zoom,
 							w = (int)(sprite.getOutputWidth() * zoom),
 							h = (int)(sprite.getOutputHeight() * zoom);
 					gcMain.setStroke(Color.GREEN);

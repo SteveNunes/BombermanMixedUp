@@ -89,6 +89,9 @@ public class FrameSet extends Position {
 			return sourceEntity.getY() + getY();
 		return getY();
 	}
+	
+	public Position getAbsolutePosition()
+		{ return new Position(getAbsoluteX(), getAbsoluteY()); }
 
 	public void setAbsoluteX(int x) {
 		if (sourceEntity != null)
@@ -102,6 +105,11 @@ public class FrameSet extends Position {
 			setY(y - (int)sourceEntity.getY());
 		else
 			setY(y);
+	}
+	
+	public void setAbsolutePosition(int x, int y) {
+		setAbsoluteX(x);
+		setAbsoluteX(y);
 	}
 	
 	public Entity getSourceEntity()
