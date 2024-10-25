@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,6 +27,7 @@ import maps.Item;
 import maps.MapSet;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
+import tools.GameConfigs;
 import tools.Tools;
 
 public class Entity extends Position {
@@ -33,15 +35,13 @@ public class Entity extends Position {
 	private static Map<TileCoord, Set<Entity>> entityMap = new HashMap<>();
 	private static Map<Entity, TileCoord> entityMap2 =  new HashMap<>();
 
-	private Rectangle shadow;
 	private Map<String, FrameSet> frameSets;
 	private Map<String, FrameSet> freshFrameSets;
 	private List<LinkedEntityInfos> linkedEntityInfos;
-	private List<PassThrough> passThrough;
-	private double speed;
-	private double tempSpeed;
-	private Direction direction;
+	private Set<PassThrough> passThrough;
+	private Rectangle shadow;
 	private PushEntity pushEntity;
+	private Direction direction;
 	private Elevation elevation;
 	private Tags defaultTags;
 	private String currentFrameSetName;
@@ -50,21 +50,26 @@ public class Entity extends Position {
 	private Position linkedEntityOffset;
 	private TileCoord tileChangedCoord;
 	private TileCoord previewTileCoord;
+	private int invencibleFrames;
+	private int elapsedSteps;
+	private int elapsedFrames;
+	private int hitPoints;
+	private int blinkingFrames;	
+	private float shadowOpacity;
+	private double speed;
+	private double tempSpeed;
 	private boolean noMove;
 	private boolean isDisabled;
 	private boolean blockedMovement;
-	private float shadowOpacity;
-	private int elapsedSteps;
-	private int elapsedFrames;
 	private boolean tileWasChanged;
-	private boolean isVisible;
+	private boolean isVisible;	
 	
 	public Entity(Entity entity) {
 		super(entity.getPosition());
 		shadow = entity.shadow == null ? null : new Rectangle(entity.shadow);
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
-		passThrough = new ArrayList<>(entity.passThrough);
+		passThrough = new HashSet<>(entity.passThrough);
 		entity.frameSets.keySet().forEach(fSetName -> {
 			frameSets.put(fSetName, new FrameSet(entity.frameSets.get(fSetName), this));
 			freshFrameSets.put(fSetName, new FrameSet(entity.freshFrameSets.get(fSetName), this));
@@ -80,6 +85,7 @@ public class Entity extends Position {
 		elapsedSteps = entity.elapsedSteps;
 		elapsedFrames = entity.elapsedFrames;
 		isVisible = entity.isVisible;
+		blinkingFrames = entity.blinkingFrames;
 		defaultTags = entity.defaultTags == null ? null : new Tags(defaultTags);
 		pushEntity = entity.pushEntity == null ? null : new PushEntity(entity.pushEntity);
 		linkedEntityInfos = new LinkedList<>();
@@ -89,6 +95,8 @@ public class Entity extends Position {
 		tileWasChanged = false;
 		previewTileCoord = null;
 		tileChangedCoord = null;
+		invencibleFrames = 0;
+		hitPoints = entity.hitPoints;
 	}
 	
 	public Entity()
@@ -100,7 +108,7 @@ public class Entity extends Position {
 	public Entity(int x, int y, Direction direction) {
 		super(x, y);
 		currentFrameSetName = null;
-		passThrough = new ArrayList<>();
+		passThrough = new HashSet<>();
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
 		linkedEntityInfos = new ArrayList<>();
@@ -117,13 +125,16 @@ public class Entity extends Position {
 		shadowOpacity = 0;
 		elapsedSteps = 0;
 		elapsedFrames = 0;
+		hitPoints = 1;
 		noMove = false;
 		isVisible = true;
+		blinkingFrames = 0;
 		isDisabled = false;
 		blockedMovement = false;
 		tileWasChanged = false;
 		previewTileCoord = null;
 		tileChangedCoord = null;
+		invencibleFrames = 0;
 	}
 	
 	public Tags getDefaultTags()
@@ -131,6 +142,30 @@ public class Entity extends Position {
 
 	public void setDefaultTags(Tags tags)
 		{ defaultTags = new Tags(tags); }
+	
+	public int getHitPoints()
+		{ return hitPoints; }
+	
+	public void setHitPoints(int hitPoints)
+		{ this.hitPoints = hitPoints; }
+	
+	public void decHitPoints()
+		{ incHitPoints(-1); }
+	
+	public void incHitPoints()
+		{ incHitPoints(1); }
+	
+	public void incHitPoints(int value)
+		{ hitPoints += value; }
+	
+	public boolean isInvenible()
+		{ return invencibleFrames != 0; }
+	
+	public void setInvencibleFrames(int frames)
+		{ invencibleFrames = frames; }
+	
+	public void removeInvencibleFrames()
+		{ invencibleFrames = 0; }
 
 	public boolean isBlockedMovement()
 		{ return blockedMovement || pushEntity != null; }
@@ -138,7 +173,7 @@ public class Entity extends Position {
 	public void setBlockedMovement(boolean state)
 		{ blockedMovement = state; }
 	
-	public List<PassThrough> getPassThrough()
+	public Set<PassThrough> getPassThrough()
 		{ return passThrough; }
 
 	private void addPassThrough(PassThrough pass) {
@@ -154,6 +189,18 @@ public class Entity extends Position {
 	
 	public boolean isVisible()
 		{ return isVisible; }
+	
+	public int getBlinkingFrames()
+		{ return blinkingFrames; }
+	
+	public void setBlinkingFrames(int frames)
+		{ blinkingFrames = frames; }
+	
+	public boolean isBlinking()
+		{ return blinkingFrames != 0; }
+
+	public void clearPassThrough()
+		{ passThrough.clear(); }
 	
 	public void setPassThroughBrick(boolean state) {
 		if (state)
@@ -339,8 +386,10 @@ public class Entity extends Position {
 		freshFrameSets.remove(frameSetName);
 	}
 	
-	public boolean haveFrameSet(String frameSetName)
-		{ return frameSets.containsKey(frameSetName); }
+	public boolean haveFrameSet(String frameSetName) {
+		String frameSetNameWithDir = frameSetName + "." + getDirection().name();
+		return frameSets.containsKey(frameSetNameWithDir) || frameSets.containsKey(frameSetName);
+	}
 	
 	public PushEntity getPushEntity()
 		{ return pushEntity; }
@@ -373,6 +422,10 @@ public class Entity extends Position {
 		{ run(gc, false); }
 
 	public void run(GraphicsContext gc, boolean isPaused) {
+		if (blinkingFrames != 0)
+			blinkingFrames--;
+		if (invencibleFrames != 0)
+			invencibleFrames--;
 		if (previewTileCoord == null) {
 			previewTileCoord = getTileCoordFromCenter().getNewInstance();
 			tileChangedCoord = getTileCoordFromCenter().getNewInstance();
@@ -436,10 +489,17 @@ public class Entity extends Position {
 		int x = 0;
 		for (Position pos : getCornersPositions()) {
 			pos.incPositionByDirection(direction);
-			freeCorners[x++] = MapSet.tileIsFree(this, pos.getTileCoord(), passThrough);
+			freeCorners[x++] = tileIsFree(pos.getTileCoord());
 		}
 		return freeCorners;
 	}
+	
+	public boolean tileIsFree(TileCoord coord) {
+		return MapSet.tileIsFree(this, coord, passThrough);
+	}
+
+	public boolean tileIsFree(Direction direction)
+		{ return tileIsFree(getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction)); }
 
 	public Position[] getCornersPositions() {
 		Position[] cornersPositions = new Position[4];
@@ -485,37 +545,66 @@ public class Entity extends Position {
 			boolean[] freeCorners = getFreeCorners(direction);
 			int z = 10;
 			// Sistema para alinhar o personagem quando ele esta tentando ir em uma direcao onde um dos 2 cantos a frente do personagem é um tile livre mas o canto oposto a frente do personagem está bloqueado
+			int prevX = (int)getX() / Main.TILE_SIZE, prevY = (int)getY() / Main.TILE_SIZE;
 			if (direction == Direction.UP) {
-				if (freeCorners[0] && freeCorners[1])
+				if (freeCorners[0] && freeCorners[1]) {
 					incPositionByDirection(direction, speed);
-				else if (!freeCorners[0] && freeCorners[1] && (int)ru.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para cima, e o canto esquerdo superior estiver bloqueado, mas o canto direito superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
-					incPosition(speed, -speed / 2);
-				else if (freeCorners[0] && !freeCorners[1] && (int)lu.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para cima, e o canto direito superior estiver bloqueado, mas o canto esquerdo superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
-					incPosition(-speed, -speed / 2);
+					if (isPerfectlyBlockedDir(getDirection()))
+						centerToTile();
+				}
+				else {
+					if (!freeCorners[0] && freeCorners[1] && (int)ru.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para cima, e o canto esquerdo superior estiver bloqueado, mas o canto direito superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+						incPosition(speed, -speed / 2);
+					else if (freeCorners[0] && !freeCorners[1] && (int)lu.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para cima, e o canto direito superior estiver bloqueado, mas o canto esquerdo superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+						incPosition(-speed, -speed / 2);
+					if (prevX != (int)getX() / Main.TILE_SIZE)
+						centerXToTile();
+				}
 			}
 			else if (direction == Direction.DOWN) {
-				if (freeCorners[2] && freeCorners[3])
+				if (freeCorners[2] && freeCorners[3]) {
 					incPositionByDirection(direction, speed);
-				else if (!freeCorners[2] && freeCorners[3] && (int)rd.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para baixo, e o canto esquerdo inferior estiver bloqueado, mas o canto direito inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
-					incPosition(speed, speed / 2);
-				else if (freeCorners[2] && !freeCorners[3] && (int)ld.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para baixo, e o canto direito inferior estiver bloqueado, mas o canto esquerdo inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
-					incPosition(-speed, speed / 2);
+					if (isPerfectlyBlockedDir(getDirection()))
+						centerToTile();
+				}
+				else {
+					if (!freeCorners[2] && freeCorners[3] && (int)rd.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para baixo, e o canto esquerdo inferior estiver bloqueado, mas o canto direito inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+						incPosition(speed, speed / 2);
+					else if (freeCorners[2] && !freeCorners[3] && (int)ld.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para baixo, e o canto direito inferior estiver bloqueado, mas o canto esquerdo inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+						incPosition(-speed, speed / 2);
+					if (prevX != (int)getX() / Main.TILE_SIZE)
+						centerXToTile();
+				}
 			}
 			else if (direction == Direction.LEFT) {
-				if (freeCorners[0] && freeCorners[2])
+				if (freeCorners[0] && freeCorners[2]) {
 					incPositionByDirection(direction, speed);
-				else if (!freeCorners[0] && freeCorners[2] && (int)ld.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para esquerda, e o canto esquerdo superior estiver bloqueado, mas o canto esquerdo inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
-					incPosition(-speed / 2, speed);
-				else if (freeCorners[0] && !freeCorners[2] && (int)lu.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para esquerda, e o canto esquerdo inferior estiver bloqueado, mas o canto esquerdo superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
-					incPosition(-speed / 2, -speed);
+					if (isPerfectlyBlockedDir(getDirection()))
+						centerToTile();
+				}
+				else {
+					if (!freeCorners[0] && freeCorners[2] && (int)ld.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para esquerda, e o canto esquerdo superior estiver bloqueado, mas o canto esquerdo inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+						incPosition(-speed / 2, speed);
+					else if (freeCorners[0] && !freeCorners[2] && (int)lu.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para esquerda, e o canto esquerdo inferior estiver bloqueado, mas o canto esquerdo superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+						incPosition(-speed / 2, -speed);
+					if (prevY != (int)getY() / Main.TILE_SIZE)
+						centerYToTile();
+				}
 			}
 			else if (direction == Direction.RIGHT) {
-				if (freeCorners[1] && freeCorners[3])
+				if (freeCorners[1] && freeCorners[3]) {
 					incPositionByDirection(direction, speed);
-				else if (!freeCorners[1] && freeCorners[3] && (int)rd.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para direita, e o canto direita superior estiver bloqueado, mas o canto direita inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
-					incPosition(speed / 2, speed);
-				else if (freeCorners[1] && !freeCorners[3] && (int)ru.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para direita, e o canto direita inferior estiver bloqueado, mas o canto direita superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
-					incPosition(speed / 2, -speed);
+					if (isPerfectlyBlockedDir(getDirection()))
+						centerToTile();
+				}
+				else {
+					if (!freeCorners[1] && freeCorners[3] && (int)rd.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para direita, e o canto direita superior estiver bloqueado, mas o canto direita inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+						incPosition(speed / 2, speed);
+					else if (freeCorners[1] && !freeCorners[3] && (int)ru.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para direita, e o canto direita inferior estiver bloqueado, mas o canto direita superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
+						incPosition(speed / 2, -speed);
+					if (prevY != (int)getY() / Main.TILE_SIZE)
+						centerYToTile();
+				}
 			}
 			if (!getTileCoordFromCenter().equals(tileChangedCoord)) {
 				Position pos = getTileCoordFromCenter().getPosition();
@@ -525,8 +614,6 @@ public class Entity extends Position {
 						x <= xx + Main.TILE_SIZE / 4 && y <= yy + Main.TILE_SIZE / 4)
 							updatePreviewTileCoord();
 			}
-			//while (isPerfectlyBlockedDir(getDirection()) && !isPerfectTileCentred() && MapSet.tileIsFree(this, getTileCoord(), passThrough))
-				//incPositionByDirection(getDirection());
 			addEntityToList(getTileCoordFromCenter(), this);
 		}
 	}
@@ -686,6 +773,26 @@ public class Entity extends Position {
 	public void restartCurrentFrameSet()
 		{ setFrameSet(currentFrameSetName);	}
 	
+	public void takeDamage() {
+		if (!isInvenible()) {
+			if (--hitPoints == 0) {
+				setFrameSet("Dead");
+				if (this instanceof BomberMan)
+					((BomberMan)this).decLives();
+			}
+			else if (haveFrameSet("TakingDamage"))
+				setFrameSet("TakingDamage");
+			else if (this instanceof BomberMan) {
+				setInvencibleFrames(GameConfigs.PLAYER_INVENCIBLE_FRAMES_AFTER_TAKING_DAMAGE);
+				setBlinkingFrames(GameConfigs.PLAYER_INVENCIBLE_FRAMES_AFTER_TAKING_DAMAGE);
+			}
+			else {
+				setInvencibleFrames(GameConfigs.MONSTER_INVENCIBLE_FRAMES_AFTER_TAKING_DAMAGE);
+				setBlinkingFrames(GameConfigs.MONSTER_INVENCIBLE_FRAMES_AFTER_TAKING_DAMAGE);
+			}
+		}
+	}
+
 	public static Set<Entity> getEntityListFromCoord(TileCoord coord) {
 		if (entityMap.containsKey(coord))
 			return entityMap.get(coord);
@@ -722,7 +829,7 @@ public class Entity extends Position {
 	
 	public static boolean haveAnyEntityAtCoord(TileCoord coord)
 		{ return entityMap.containsKey(coord) && !entityMap.get(coord).isEmpty(); }
-
+	
 }
 
 class LinkedEntityInfos {

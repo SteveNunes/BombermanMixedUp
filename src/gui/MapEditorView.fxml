@@ -62,7 +62,7 @@
                         <VBox alignment="CENTER_LEFT" spacing="2.0">
                            <children>
                               <CheckBox fx:id="checkBoxShowBricks" maxWidth="100.0" minWidth="100.0" mnemonicParsing="false" prefWidth="100.0" text="Exibir tijolos" />
-                              <CheckBox fx:id="checkBoxShowItens" maxWidth="100.0" minWidth="100.0" mnemonicParsing="false" prefWidth="100.0" text="Exibir itens" />
+                              <CheckBox fx:id="checkBoxShowItems" maxWidth="100.0" minWidth="100.0" mnemonicParsing="false" prefWidth="100.0" text="Exibir itens" />
                            </children>
                         </VBox>
                      </children>

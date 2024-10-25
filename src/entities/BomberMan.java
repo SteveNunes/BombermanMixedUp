@@ -18,6 +18,7 @@ import javafx.scene.canvas.GraphicsContext;
 import maps.Item;
 import maps.MapSet;
 import objmoveutils.TileCoord;
+import tools.GameConfigs;
 import tools.IniFiles;
 import tools.Sound;
 
@@ -30,12 +31,15 @@ public class BomberMan extends Entity {
 	private int bomberIndex;
 	private int palleteIndex;
 	private String setBombSound;
-	private List<Item> gotItens;
+	private List<ItemType> gotItems;
 	private List<Bomb> bombs;
 	private List<Direction> pressedDirs;
 	private Set<GameInputs> holdedInputs;
 	private List<GameInputs> queuedInputs;
 	private int setBombCd;
+	private int score;
+	private int addedScore;
+	private int lives;
 
 	public BomberMan(int bomberIndex, int palleteIndex) {
 		super();
@@ -45,11 +49,15 @@ public class BomberMan extends Entity {
 		holdedInputs = new HashSet<>();
 		queuedInputs = new ArrayList<>();
 		bombs = new ArrayList<>();
-		gotItens = new ArrayList<>();
+		gotItems = new ArrayList<>();
 		setBombCd = 0;
+		score = 0;
+		addedScore = 0;
 		curseDuration = 0;
+		lives = GameConfigs.STARTING_LIVES;
+		setHitPoints(1);
 		String section = "" + bomberIndex;
-		updateStatusByItens();
+		updateStatusByItems();
 		if (IniFiles.characters.read(section, "DefaultTags") != null)
 			setDefaultTags(Tags.loadTagsFromString(IniFiles.characters.read(section, "DefaultTags")));
 		for (String item : IniFiles.characters.getItemList(section)) {
@@ -123,9 +131,8 @@ public class BomberMan extends Entity {
 				bombs.remove(n--);
 		if (curse != null && --curseDuration == 0)
 			removeCurse();
-		if (!currentFrameSetNameIsEqual("Dead") && 
-				MapSet.tileContainsProp(getTileCoordFromCenter(), TileProp.DAMAGE_PLAYER))
-					setFrameSet("Dead");
+		if (MapSet.tileContainsProp(getTileCoordFromCenter(), TileProp.DAMAGE_PLAYER))
+			takeDamage();
 		super.run(gc, isPaused);
 		if (!isBlockedMovement()) {
 			if (!queuedInputs.isEmpty()) {
@@ -147,12 +154,11 @@ public class BomberMan extends Entity {
 			if (tileWasChanged()) {
 				if (pressedDirs.size() > 1) {
 					Direction dir = pressedDirs.get(1);
-					if (isPerfectlyFreeDir(dir)) {
+					if (tileIsFree(dir)) {
 						dir = pressedDirs.get(0); 
 						pressedDirs.remove(0);
 						pressedDirs.add(dir);
 					}
-					setElapsedSteps(0);
 				}
 				MapSet.checkTileTrigger(this, getTileCoordFromCenter(), TileProp.TRIGGER_BY_PLAYER);
 				MapSet.checkTileTrigger(this, getPreviewTileCoord(), TileProp.TRIGGER_BY_PLAYER, true);
@@ -161,11 +167,14 @@ public class BomberMan extends Entity {
 			}
 		}
 	}
+	
+	public void addScore(int score)
+		{ addedScore = score; }
 
 	public void setBomb() {
 		if (setBombCd <= 0 && bombs.size() < maxBombs && MapSet.tileIsFree(getTileCoordFromCenter())) {
-			BombType type = !gotItens.isEmpty() && gotItens.get(0).getItemType().isBomb() ?
-											Bomb.getBombTypeFromItem(gotItens.get(0)) : BombType.NORMAL;
+			BombType type = !gotItems.isEmpty() && gotItems.get(0).isBomb() ?
+											ItemType.getBombTypeFromItemType(gotItems.get(0)) : BombType.NORMAL;
 			TileCoord coord = new TileCoord((int)(getX() + Main.TILE_SIZE / 2) / Main.TILE_SIZE, (int)(getY() + Main.TILE_SIZE / 2) / Main.TILE_SIZE);
 			bombs.add(Bomb.addBomb(this, coord, type, fireRange));
 			Sound.playWav(setBombSound);
@@ -175,57 +184,108 @@ public class BomberMan extends Entity {
 
 	public void pickItem(Item item) {
 		item.pick();
-		if (item.getItemType().isBomb() && !gotItens.isEmpty())
-			gotItens.add(0, item);
-		else
-			gotItens.add(item);
-		updateStatusByItens();
+		ItemType type = item.getItemType();
+		if (item.isCurse())
+			setCurse(item.getCurse());
+		else if (type == ItemType.ARMOR) {
+			setInvencibleFrames(3000);
+			setBlinkingFrames(3000);
+		}
+		else if (type == ItemType.EXTRA_LIVE)
+			incLives();
+		else if (type == ItemType.HEART_UP)
+			incHitPoints();
+		else {
+			if (item.getItemType().isBomb()) {
+				if (!gotItems.isEmpty()) {
+					if (gotItems.get(0).isBomb())
+						gotItems.set(0, type);
+					else
+						gotItems.add(0, type);
+				}
+				else
+					gotItems.add(type);
+			}
+			else
+				gotItems.add(type);
+		}
+		updateStatusByItems();
 	}
 
-	public void updateStatusByItens() {
-		fireRange = 2;
-		maxBombs = 1;
-		double speed = 0.75;
-		curse = null;
-		gotItens.forEach(item -> {
-			ItemType type = item.getItemType();
-			if (item.isCurse())
-				setCurse(item.getCurse());
-			else if (type == ItemType.BOMB_UP)
+	public void updateStatusByItems() {
+		fireRange = GameConfigs.STARTING_FIRE;
+		maxBombs = GameConfigs.STARTING_BOMBS;
+		double speed = GameConfigs.INITIAL_PLAYER_SPEED;
+		clearPassThrough();
+		for (ItemType type : gotItems) {
+			if (type == ItemType.BOMB_UP)
 				maxBombs++;
 			else if (type == ItemType.FIRE_MAX)
 				fireRange = 9;
+			else if (type == ItemType.SPEED_UP && (speed += 0.2f) > GameConfigs.MAX_PLAYER_SPEED)
+				speed = GameConfigs.MAX_PLAYER_SPEED;
+			else if (type == ItemType.SPEED_DOWN && (speed -= 0.2f) < GameConfigs.MIN_PLAYER_SPEED)
+				speed = GameConfigs.MIN_PLAYER_SPEED;
 			else if (type == ItemType.FIRE_UP && fireRange < 9)
 				fireRange++;
-		});
+			else if (type == ItemType.PASS_BOMB)
+				setPassThroughBomb(true);
+			else if (type == ItemType.PASS_BRICK)
+				setPassThroughBrick(true);
+		};
 		setSpeed(speed);
-		if (curse == null || curse != Curse.INVISIBLE)
-			setVisible(true);
+		setCurse();
 	}
 
 	public void removeCurse() {
+		if (curse == Curse.INVISIBLE)
+			setVisible(true);
 		curse = null;
-		updateStatusByItens();
+		updateStatusByItems();
 	}
 	
 	public Curse getCurse()
 		{ return curse; }
 	
+	public void setCurse()
+		{ setCurse(null); }
+	
 	public void setCurse(Curse curse) { // FALTA: Implementar BLINDNESS e SWAP_PLAYERS
-		this.curse = curse;
-		curseDuration = Curse.getDuration(curse);
-		if (curse == Curse.MIN_BOMB)
-			maxBombs = 1;
-		else if (curse == Curse.MIN_FIRE)
-			fireRange = 1;
-		else if (curse == Curse.INVISIBLE)
-			setVisible(false);
-		else if (curse == Curse.MIN_SPEED)
-			setSpeed(0.25);
-		else if (curse == Curse.NO_BOMB)
-			maxBombs = 0;
-		else if (curse == Curse.ULTRA_SPEED)
-			setSpeed(4);
+		if (curse != null) {
+			this.curse = curse;
+			curseDuration = Curse.getDuration(curse);
+		}
+		else if ((curse = getCurse()) != null) {
+			if (curse == Curse.MIN_BOMB)
+				maxBombs = 1;
+			else if (curse == Curse.MIN_FIRE)
+				fireRange = 1;
+			else if (curse == Curse.INVISIBLE)
+				setVisible(false);
+			else if (curse == Curse.MIN_SPEED)
+				setTempSpeed(0.25);
+			else if (curse == Curse.NO_BOMB)
+				maxBombs = 0;
+			else if (curse == Curse.ULTRA_SPEED)
+				setTempSpeed(GameConfigs.MAX_PLAYER_SPEED);
+			else if (curse == Curse.INVISIBLE)
+				setVisible(false);
+		}
 	}
+
+	public int getLives()
+		{ return lives; }
+	
+	public void setLives(int lives)
+		{ this.lives = lives; }
+	
+	public void decLives()
+		{ incLives(-1); }
+
+	public void incLives()
+		{ incLives(1); }
+	
+	public void incLives(int value)
+		{ lives += value; }
 
 }

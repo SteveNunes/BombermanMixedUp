@@ -24,7 +24,7 @@ public class Item extends Entity{
 
 	private static Map<TileCoord, Item> items = new HashMap<>();
 	private static RGBColor itemEdigeColor;
-	private static ItemType[] itemTypes = {ItemType.BOMB_UP, ItemType.FIRE_UP, ItemType.FIRE_MAX, ItemType.SPEED_UP, ItemType.KICK_BOMB, ItemType.CURSE_SKULL, ItemType.POWER_GLOVE, ItemType.PASS_BOMB, ItemType.PASS_WALL, ItemType.PUNCH_BOMB, ItemType.PUSH_POWER, ItemType.LINED_BOMBS};
+	private static ItemType[] itemTypes = {ItemType.BOMB_UP, ItemType.FIRE_UP, ItemType.FIRE_MAX, ItemType.SPEED_UP, ItemType.KICK_BOMB, ItemType.CURSE_SKULL, ItemType.POWER_GLOVE, ItemType.PASS_BOMB, ItemType.PASS_BRICK, ItemType.PUNCH_BOMB, ItemType.PUSH_POWER, ItemType.LINED_BOMBS};
 	private static String[] itemSoundNames = {"BombUp", "FireUp", "FireUp", "SpeedUp", "BombKick", "Curse", "PowerGlove", "Special", "Special", "Special", "Special", "Special"};
 	
 	private Curse curse;
@@ -80,11 +80,8 @@ public class Item extends Entity{
 						+ "|{SetSprIndex;1},{IncOutputSprY;1},,{IncOutputSprY;1}|{SetSprIndex;2}|{SetEntityShadow;0;0;18;4;0.8}|{SetSprIndex;0}|{Goto;-4;1}"
 						+ "|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{SetEntityShadow;0;0;18;4;0.65}|{SetSprIndex;0}|{Goto;-4;1}"
 						+ "|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{SetEntityShadow;0;0;16;3;0.5}|{SetSprIndex;0}|{Goto;-4;1}|{Goto;0}";
-		String itemPickUpFrameSet =
-							"{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{SetTicksPerFrame;3},{IncOutputSprY;-12}"
-						+ "|{SetSprIndex;-},{IncOutputSprY;-1}|{SetSprIndex;" + itemIndex + "},{IncOutputSprY;-2}|{Goto;-2;7}";
 		addNewFrameSetFromString("ItemStandFrameSet", itemStandFrameSet);
-		addNewFrameSetFromString("ItemPickedUpFrameSet", itemPickUpFrameSet);
+		setUpItemPickUpFrameSet();
 		setFrameSet("ItemStandFrameSet");
 		if (itemType == ItemType.CURSE_SKULL)
 			curse = Curse.getRandom();
@@ -92,6 +89,17 @@ public class Item extends Entity{
 			curse = null;
 	}
 	
+	private void setUpItemPickUpFrameSet() {
+		int itemIndex = itemType.getValue() - 1;
+		String itemPickUpFrameSet =
+				"{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{SetTicksPerFrame;3},{IncOutputSprY;-12}"
+			+ "|{SetSprIndex;-},{IncOutputSprY;-1}|{SetSprIndex;" + itemIndex + "},{IncOutputSprY;-2}|{Goto;-2;7}";
+		if (haveFrameSet("ItemPickedUpFrameSet"))
+			replaceFrameSetFromString("ItemPickedUpFrameSet", itemPickUpFrameSet);
+		else
+			addNewFrameSetFromString("ItemPickedUpFrameSet", itemPickUpFrameSet);
+	}
+
 	public boolean isCurse()
 		{ return curse != null; }
 	
@@ -186,6 +194,10 @@ public class Item extends Entity{
 	}
 	
 	public void pick() {
+		if (itemType == ItemType.RANDOM) {
+			itemType = ItemType.getRandom();
+			setUpItemPickUpFrameSet();
+		}
 		if (getCurrentFrameSetName().equals("ItemStandFrameSet")) {
 			setFrameSet("ItemPickedUpFrameSet");
 			Sound.playWav("ItemPickUp");

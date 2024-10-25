@@ -267,7 +267,7 @@
 265=26 GROUND 1!0 6!11 NONE 0 17!1 1.0 - 
 266=26 GROUND 1!0 6!10 NONE 0 17!1 1.0 - 
 267=26 GROUND 1!0 6!9 NONE 0 17!1 1.0 - 
-268=26 GROUND 1!0 8!9 NONE 0 1 1.0 - {CopySprFromCopyLayer;26;4;3;1;1;-:-}
+268=26 GROUND 1!0 8!9 NONE 0 1 1.0 -
 269=27 GROUND 10!2 0!1 NONE 0 12 1.0 - 
 270=27 GROUND 10!3 0!2 NONE 0 12 1.0 - 
 271=27 GROUND 11!2 1!1 NONE 0 12 1.0 - 
@@ -309,7 +309,7 @@ TileSet=Tile39
 PortalCriteria=ACTIVATING_SWITCHES KILLING_ALL_MOBS
 
 [FRAMESETS]
-Default={SetSprSource;Layer26;0;0;-;-;0;0;0;0;-;-},{SetTicksPerFrame;26},{SetSprIndex;0},,{SetSprSource;Layer51;0;0;-;-;0;0;0;0;-;-},{SetSprIndex;-}|{SetSprIndex;0},,{SetSprIndex;0}|{Goto;0}
+Default={SetSprSource;Layer26;0;0;-;-;0;0;0;0;-;-},{SetTicksPerFrame;26},{SetSprIndex;0},,{SetSprSource;Layer51;0;0;-;-;0;0;0;0;-;-},{SetSprIndex;-}|{},,{SetSprIndex;0}|{},,{SetSprIndex;-}|{Goto;1}
 
 [TAGS]
 SetMagnetA.UP={SetTileTags;26;PushBombFromTile@4@-@DOWN@4:10@-@BombSlam;4:8!4:9},{SetTileTags;26;SetBombStucked@true@-:-;4:10}

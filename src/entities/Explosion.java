@@ -3,6 +3,7 @@ package entities;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import application.Main;
 import enums.Direction;
@@ -69,7 +70,7 @@ public class Explosion {
 					if (ex.directions.contains(dir))
 						for (int n = 0; n < ex.tileRange; n++) {
 							coord.incCoordsByDirection(dir);
-							if (MapSet.tileIsFree(coord, ex.passThroughAllBricks ? Arrays.asList(PassThrough.BRICK) : null))
+							if (!MapSet.getTileProps(coord).contains(TileProp.GROUND_NO_FIRE) && MapSet.tileIsFree(coord, ex.passThroughAllBricks ? Set.of(PassThrough.BRICK) : null))
 								ex.fireDis[d]++;
 							else
 								break;
@@ -116,7 +117,7 @@ public class Explosion {
 							TileDamage.addTileDamage(owner, coord.getNewInstance(), 44).setDamageToAll();
 							MapSet.checkTileTrigger(owner, coord.getNewInstance(), TileProp.TRIGGER_BY_EXPLOSION);
 						}
-						if (x > 0 && (MapSet.getCurrentLayer().getTileProps(coord).contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord, passThroughAllBricks ? Arrays.asList(PassThrough.BRICK) : null)))
+						if (x > 0 && (MapSet.getCurrentLayer().getTileProps(coord).contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord, passThroughAllBricks ? Set.of(PassThrough.BRICK) : null)))
 							break;
 					}
 				}

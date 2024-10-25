@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import application.Main;
 import entities.Bomb;
@@ -301,7 +302,7 @@ public abstract class MapSet {
 		addBricks.sort((b1, b2) -> (int)b2.getY() - (int)b1.getY());
 		addBricks.forEach(brick -> Brick.addBrick(brick, false));
 		getLayer(26).buildLayer();
-		addItensToBricks();
+		addItemsToBricks();
 	}
 	
 	public static int getBricksRegenTimeInFrames()
@@ -312,7 +313,7 @@ public abstract class MapSet {
 		Brick.getBricks().forEach(brick -> brick.setRegenTime(bricksRegenTimeInSecs));
 	}
 
-	private static void addItensToBricks() {
+	private static void addItemsToBricks() {
 		if (IniFiles.stages.read(iniMapName, "Items") != null && !IniFiles.stages.read(iniMapName, "Items").equals("0")) {
 			String[] split = IniFiles.stages.read(iniMapName, "Items").split(" ");
 			try {
@@ -547,13 +548,13 @@ public abstract class MapSet {
 	public static boolean tileIsFree(TileCoord coord)
 		{ return tileIsFree(null, coord); }
 	
-	public static boolean tileIsFree(TileCoord coord, List<PassThrough> passThrough)
+	public static boolean tileIsFree(TileCoord coord, Set<PassThrough> passThrough)
 		{ return tileIsFree(null, coord, passThrough); }
 	
 	public static boolean tileIsFree(Entity entity, TileCoord coord)
 		{ return tileIsFree(entity, coord, null); }
 	
-	public static boolean tileIsFree(Entity entity, TileCoord coord, List<PassThrough> passThrough) {
+	public static boolean tileIsFree(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
 		if (!haveTilesOnCoord(coord))
 			return false;
 		if (getTileProps(coord) != null)
@@ -565,10 +566,10 @@ public abstract class MapSet {
 		return true;
 	}
 
-	public static boolean tileIsOccuped(TileCoord coord, List<PassThrough> passThrough)
+	public static boolean tileIsOccuped(TileCoord coord, Set<PassThrough> passThrough)
 		{ return tileIsOccuped(null, coord, passThrough); }
 	
-	public static boolean tileIsOccuped(Entity entity, TileCoord coord, List<PassThrough> passThrough) {
+	public static boolean tileIsOccuped(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
 		// NOTA: Implementar retornando se tem monstro ou player em cima
 		return !tileIsFree(entity, coord, passThrough) || Item.haveItemAt(coord);
 	}

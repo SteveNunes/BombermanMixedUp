@@ -351,6 +351,10 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new ClearTileTags(s));
 			else if (tag.equals("SetBombStucked"))
 				tags.addTag(newTag = new SetBombStucked(s));
+			else if (tag.equals("SetInvencibleFrames"))
+				tags.addTag(newTag = new SetInvencibleFrames(s));
+			else if (tag.equals("SetBlinkingFrames"))
+				tags.addTag(newTag = new SetBlinkingFrames(s));
 			if (delay > 0)
 				newTag.setTriggerDelay(delay);
 		}

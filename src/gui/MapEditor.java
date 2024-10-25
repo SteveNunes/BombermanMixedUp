@@ -23,6 +23,7 @@ import enums.Direction;
 import enums.GameInputs;
 import enums.Icons;
 import enums.ImageFlip;
+import enums.ItemType;
 import enums.SpriteLayerType;
 import enums.StageClearCriteria;
 import enums.TileProp;
@@ -141,7 +142,7 @@ public class MapEditor {
   @FXML
   private CheckBox checkBoxShowBricks;
   @FXML
-  private CheckBox checkBoxShowItens;
+  private CheckBox checkBoxShowItems;
   @FXML
 	private ListView<HBox> listViewLayers;
   @FXML
@@ -268,7 +269,7 @@ public class MapEditor {
 		});
 		buttonSaveToDisk.setOnAction(e -> saveCurrentMap());
 		checkBoxShowBricks.setSelected(true);
-		checkBoxShowItens.setSelected(true);
+		checkBoxShowItems.setSelected(true);
 		buttonAddLayer.setOnAction(e -> {
 			String str = Alerts.textPrompt("Prompt", "Adicionar camada", "Digite o indice da camada á ser adicionada");
 			if (str != null) {
@@ -295,7 +296,7 @@ public class MapEditor {
 				else
 					MapSet.setBricks();
 			}
-			checkBoxShowItens.setDisable(!checkBoxShowBricks.isSelected());
+			checkBoxShowItems.setDisable(!checkBoxShowBricks.isSelected());
 		});
 		buttonTileSetZoom1.setOnAction(e -> {
 			if (zoomTileSet < 3) {
@@ -934,7 +935,7 @@ public class MapEditor {
 		TileDamage.runTileDamages();
 		if (checkBoxShowBricks.isSelected() && MapSet.getCurrentLayerIndex() == 26) {
 			Brick.drawBricks();
-			if (checkBoxShowItens.isSelected() && Misc.blink(200))
+			if (checkBoxShowItems.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
 						Tools.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileCoord().getX() * Main.TILE_SIZE, brick.getTileCoord().getY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
@@ -1107,10 +1108,6 @@ public class MapEditor {
 	
 	void setContextMenu() {
 		contextMenu = new ContextMenu();
-		if (!editable) {
-			contextMenu.getItems().add(new MenuItem("Recarregue o mapa para editá-lo"));
-			return;
-		}
 		if (selection != null) {
 			Menu menuSelecao = new Menu(selection.getWidth() + selection.getHeight() > 2 ? "Tiles selecionados" : "Tile selecionado");
 			contextMenu.getItems().add(menuSelecao);
@@ -1139,9 +1136,21 @@ public class MapEditor {
 			MenuItem menuItem;
 			final TileCoord coord = canvasMouseDraw.tileCoord.getNewInstance();
 			if (getCurrentLayer().haveTilesOnCoord(coord)) {
+				Menu menu = new Menu("Criar item");
+				contextMenu.getItems().add(menu);
+				for (ItemType type : ItemType.values()) {
+					menuItem = new MenuItem(type.name());
+					menu.getItems().add(menuItem);
+					menuItem.setOnAction(e -> Item.addItem(coord, type));
+				}
+				if (!editable) {
+					contextMenu.getItems().add(new MenuItem("Recarregue o mapa para editá-lo"));
+					return;
+				}
+				contextMenu.getItems().add(new SeparatorMenuItem());
 				Menu mainMenu = new Menu("TileProps");
 				contextMenu.getItems().add(mainMenu);
-				Menu menu = new Menu("Adicionar");
+				menu = new Menu("Adicionar");
 				mainMenu.getItems().add(menu);
 				for (TileProp prop : TileProp.getList()) {
 					menuItem = new MenuItem(prop.name());
@@ -1364,6 +1373,8 @@ public class MapEditor {
 	    			color = Color.LIGHTGREEN;
 	    		else if (tileProps.contains(TileProp.FIXED_BRICK))
 	    			color = Color.GREEN;
+	    		else if (tileProps.contains(TileProp.FIXED_ITEM))
+	    			color = Color.CORAL;
 	    		else if (tileProps.contains(TileProp.MOVING_BLOCK))
 	    			color = Color.PALEVIOLETRED;
 	    		else if (tileProps.contains(TileProp.GROUND_HOLE))

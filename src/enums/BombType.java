@@ -50,4 +50,28 @@ public enum BombType {
 		return list[bombId];
 	}
 
+	public static BombType getBombTypeFromItemType(ItemType type) {
+		if (type == ItemType.FOLLOW_BOMB)
+			return BombType.FOLLOW;
+		if (type == ItemType.HEART_BOMB)
+			return BombType.HEART;
+		if (type == ItemType.MAGMA_BOMB)
+			return BombType.MAGMA;
+		if (type == ItemType.LAND_MINE_BOMB)
+			return BombType.LAND_MINE;
+		if (type == ItemType.MAGNET_BOMB)
+			return BombType.MAGNET;
+		if (type == ItemType.SPIKE_BOMB)
+			return BombType.SPIKED;
+		if (type == ItemType.REMOTE_BOMB)
+			return BombType.REMOTE;
+		if (type == ItemType.SPIKE_REMOTE_BOMB)
+			return BombType.SPIKED_REMOTE;
+		if (type == ItemType.RUBBER_BOMB)
+			return BombType.RUBBER;
+		if (type == ItemType.SENSOR_BOMB)
+			return BombType.SENSOR;
+		return BombType.NORMAL;
+	}
+	
 }

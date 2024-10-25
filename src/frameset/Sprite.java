@@ -23,6 +23,7 @@ import objmoveutils.TileCoord;
 import screen_pos_effects.WavingImage;
 import tools.Materials;
 import tools.Tools;
+import util.Misc;
 
 public class Sprite extends Position {
 
@@ -44,9 +45,9 @@ public class Sprite extends Position {
 	private double alpha;
 	private int rotation;
 	public int frontValue;
-	private boolean visibleSprite;
 	private SpriteLayerType layerType;
 	private WavingImage wavingImage;
+	private boolean isVisible;
 	
 	public Sprite(Sprite sprite)
 		{ this(sprite, sprite.getSourceFrameSet()); }
@@ -70,10 +71,10 @@ public class Sprite extends Position {
 		jumpMove = sprite.jumpMove == null ? null : new JumpMove(sprite.jumpMove);
 		gotoMove = sprite.gotoMove == null ? null : new GotoMove(sprite.gotoMove);
 		layerType = sprite.layerType;
-		visibleSprite = sprite.visibleSprite;
 		wavingImage = sprite.wavingImage == null ? null : new WavingImage(sprite.wavingImage);
 		spriteScroll = sprite.spriteScroll == null ? null : new Position(sprite.spriteScroll);
 		frontValue = sprite.frontValue;
+		isVisible = sprite.isVisible;
 		updateOutputDrawCoords();
 	}
 	
@@ -97,9 +98,9 @@ public class Sprite extends Position {
 		rectangleMove = null;
 		jumpMove = null;
 		gotoMove = null;
-		visibleSprite = true;
 		layerType = SpriteLayerType.SPRITE;
 		frontValue = 0;
+		isVisible = true;
 		updateOutputDrawCoords();
 	}
 
@@ -117,6 +118,12 @@ public class Sprite extends Position {
 	
 	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos)
 		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, new Rectangle(0, 0, (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()), 0, 0); }
+
+	public void setVisible(boolean state)
+		{ isVisible = state; }
+	
+	public boolean isVisible()
+		{ return isVisible; }
 
 	public WavingImage getWavingImage()
 		{ return wavingImage; }
@@ -159,12 +166,6 @@ public class Sprite extends Position {
 	public void setLayerType(SpriteLayerType layerType)
 		{ this.layerType = layerType; } 
 	
-	public boolean isVisibleSprite()
-		{ return visibleSprite; }
-	
-	public void setVisibleSprite(boolean state)
-		{ visibleSprite = state; }
-
 	@Override
 	public Position setX(double x) {
 		outputSpriteSizePos.setFrame(x, getY(), getOutputWidth(), getOutputHeight());
@@ -482,16 +483,19 @@ public class Sprite extends Position {
 		{ draw(null); }
 	
 	public void draw(GraphicsContext gc) {
-		if (visibleSprite) {
+		if (getSourceEntity().isVisible() && isVisible) {
 			updateOutputDrawCoords();
+			boolean blink = Misc.blink(getSourceEntity().getBlinkingFrames() > 600 ? 200 :
+																 getSourceEntity().getBlinkingFrames() > 180 ? 100 : 50);
+			double localAlpha = getSourceEntity().isBlinking() && blink ? alpha / 2 : alpha;
 			int[] in = getCurrentSpriteOriginCoords();
 			int sx = in[0], sy = in[1], tx = (int)absoluteOutputSpritePos.getX(), ty = (int)absoluteOutputSpritePos.getY();
 			if (gc != null)
 				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
-														 tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
+														 tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
 			else
 				Tools.addDrawQueue((int)getSourceEntity().getY() + frontValue, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
-																tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, alpha, spriteEffects);
+																tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
 		}
 		scrollSprite();
 	}

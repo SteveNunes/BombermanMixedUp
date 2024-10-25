@@ -201,29 +201,5 @@ public class Bomb extends Entity {
 	
 	public static Bomb getBombAt(TileCoord tileCoord)
 		{ return bombs.containsKey(tileCoord) && !bombs.get(tileCoord).isEmpty() ? bombs.get(tileCoord).get(0) : null; }
-	
-	public static BombType getBombTypeFromItem(Item item) {
-		if (item.getItemType() == ItemType.FOLLOW_BOMB)
-			return BombType.FOLLOW;
-		if (item.getItemType() == ItemType.HEART_BOMB)
-			return BombType.HEART;
-		if (item.getItemType() == ItemType.MAGMA_BOMB)
-			return BombType.MAGMA;
-		if (item.getItemType() == ItemType.LAND_MINE_BOMB)
-			return BombType.LAND_MINE;
-		if (item.getItemType() == ItemType.MAGNET_BOMB)
-			return BombType.MAGNET;
-		if (item.getItemType() == ItemType.SPIKE_BOMB)
-			return BombType.SPIKED;
-		if (item.getItemType() == ItemType.REMOTE_BOMB)
-			return BombType.REMOTE;
-		if (item.getItemType() == ItemType.SPIKE_REMOTE_BOMB)
-			return BombType.SPIKED_REMOTE;
-		if (item.getItemType() == ItemType.RUBBER_BOMB)
-			return BombType.RUBBER;
-		if (item.getItemType() == ItemType.SENSOR_BOMB)
-			return BombType.SENSOR;
-		return BombType.NORMAL;
-	}
 
 }

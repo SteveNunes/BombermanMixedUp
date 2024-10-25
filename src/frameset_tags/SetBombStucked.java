@@ -2,7 +2,6 @@ package frameset_tags;
 
 import entities.Bomb;
 import frameset.Sprite;
-import util.Misc;
 
 public class SetBombStucked extends FrameTag {
 	

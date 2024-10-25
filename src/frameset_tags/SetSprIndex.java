@@ -28,9 +28,9 @@ public class SetSprIndex extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		if (value == null)
-			sprite.setVisibleSprite(false);
+			sprite.setVisible(false);
 		else {
-			sprite.setVisibleSprite(true);
+			sprite.setVisible(true);
 			sprite.setSpriteIndex(value);
 		}
 	}
