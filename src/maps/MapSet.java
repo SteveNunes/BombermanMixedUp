@@ -12,6 +12,7 @@ import entities.Effect;
 import entities.Entity;
 import enums.Direction;
 import enums.Elevation;
+import enums.GameMode;
 import enums.ItemType;
 import enums.PassThrough;
 import enums.SpriteLayerType;
@@ -116,9 +117,11 @@ public abstract class MapSet {
 		groundWithWallShadow = Misc.notNull(getTilePositionFromIni(iniFileMap, "GroundWithWallShadow"), new Position(groundTile));
 		wallTile = getTilePositionFromIni(iniFileMap, "WallTile");
 		currentLayerIndex = 26;
-		setRandomWalls();
+		if (Main.GAME_MODE != GameMode.MAP_EDITOR || Main.mapEditor.playing)
+			setRandomWalls();
 		rebuildAllLayers();
-		setBricks();
+		if (Main.GAME_MODE != GameMode.MAP_EDITOR || Main.mapEditor.playing)
+			setBricks();
 		resetMapFrameSets();
 		iniFileMap.getItemList("TAGS").forEach(item -> {
 			FrameSet frameSet = new FrameSet();

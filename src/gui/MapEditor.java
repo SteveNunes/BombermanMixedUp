@@ -186,14 +186,14 @@ public class MapEditor {
 	private Font font;
 	private CanvasMouse canvasMouseDraw;
 	private CanvasMouse canvasMouseTileSet;
-	int zoomMain;
+	private int zoomMain;
 	private int zoomTileSet;
 	private int ctrlZPos;
 	private long resetBricks;
-	private boolean playing;
-	private boolean editable;
 	private BomberMan bomber;
 	private String defaultMap = "SBM2_1-1";
+	public boolean playing;
+	public boolean editable;
 	
 	public void init() {
 		canvasMouseDraw = new CanvasMouse();
@@ -206,9 +206,10 @@ public class MapEditor {
 		resetBricks = System.currentTimeMillis();
 		zoomMain = 3;
 		zoomTileSet = 1;
+		playing = false;
+		editable = true;
 		MapSet.setCurrentLayerIndex(26);
 		ctrlZPos = -1;
-		editable = true;
 		copyProps = null;
 		selection = null;
 		canvasMain.setWidth(320 * zoomMain - 16 * zoomMain * 3);
@@ -260,7 +261,11 @@ public class MapEditor {
 		buttonRenameFrameSet.setTooltip(new Tooltip("Renomear FrameSet"));
 		buttonEditFrameSet.setTooltip(new Tooltip("Editar FrameSet"));
 		buttonRemoveFrameSet.setTooltip(new Tooltip("Excluir FrameSet"));
-		buttonReloadFromDisk.setOnAction(e -> reloadCurrentMap());
+		buttonReloadFromDisk.setOnAction(e -> {
+			Brick.clearBricks();
+			setPlayButton();
+			reloadCurrentMap();
+		});
 		buttonSaveToDisk.setOnAction(e -> saveCurrentMap());
 		checkBoxShowBricks.setSelected(true);
 		checkBoxShowItens.setSelected(true);
@@ -284,10 +289,12 @@ public class MapEditor {
 			}
 		});
 		checkBoxShowBricks.setOnAction(e -> {
-			if (!checkBoxShowBricks.isSelected())
-				Brick.clearBricks();
-			else
-				MapSet.setBricks();
+			if (playing) {
+				if (!checkBoxShowBricks.isSelected())
+					Brick.clearBricks();
+				else
+					MapSet.setBricks();
+			}
 			checkBoxShowItens.setDisable(!checkBoxShowBricks.isSelected());
 		});
 		buttonTileSetZoom1.setOnAction(e -> {
@@ -346,7 +353,6 @@ public class MapEditor {
 		list.forEach(file -> comboBoxTileSets.getItems().add(file.getName().replace(".tiles", "")));
 		comboBoxTileSets.valueProperty().addListener((obs, oldV, newV) -> {
 			MapSet.setTileSet(newV);
-			MapSet.setBricks();
 			MapSet.rebuildAllLayers();
 			setSampleTiles();
 		});
@@ -354,9 +360,7 @@ public class MapEditor {
 			comboBoxTileType.getItems().add(type);
 		comboBoxTileType.getSelectionModel().select(0);
 		comboBoxMapList.getItems().addAll(IniFiles.stages.getSectionList());
-		comboBoxMapList.valueProperty().addListener((obs, oldV, newV) -> {
-			loadMap(newV);
-		});
+		comboBoxMapList.valueProperty().addListener((obs, oldV, newV) -> loadMap(newV));
 		comboBoxMapList.getSelectionModel().select(0);
 		for (ImageFlip flip : ImageFlip.values())
 			comboBoxTileFlip.getItems().add(flip);
@@ -385,8 +389,10 @@ public class MapEditor {
 		buttonPlay.setOnAction(e -> {
 			playing = !playing;
 			buttonPlay.setText(playing ? "■" : "►");
-			if (playing)
+			if (playing) {
 				MapSet.resetMapFrameSets();
+				reloadCurrentMap();
+			}
 			vBoxLayerList.setDisable(true);
 			hBoxFrameSetButtons.setDisable(true);
 			vBoxTileSet.setDisable(true);
@@ -437,7 +443,6 @@ public class MapEditor {
 				ctrlZPos = backupTiles.size() - 1;
 			getCurrentLayer().setTilesMap(backupTiles.get(ctrlZPos));
 			rebuildCurrentLayer(false);
-			MapSet.setBricks();
 		}
 	}
 	
@@ -449,7 +454,6 @@ public class MapEditor {
 				ctrlZPos = 0;
 			getCurrentLayer().setTilesMap(backupTiles.get(ctrlZPos));
 			rebuildCurrentLayer(false);
-			MapSet.setBricks();
 		}
 	}
 	
@@ -466,7 +470,6 @@ public class MapEditor {
 		{ MapSet.setCurrentLayerIndex(newValue); }
 
 	void loadMap(String mapName, boolean resetCurrentLayerIndex) {
-		setPlayButton();
 		if (mapName == null)
 			throw new RuntimeException("Unable to load map because 'mapName' is null");
 		if (defaultMap != null) {
