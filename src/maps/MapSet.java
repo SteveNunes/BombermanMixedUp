@@ -122,7 +122,6 @@ public abstract class MapSet {
 		rebuildAllLayers();
 		if (Main.GAME_MODE != GameMode.MAP_EDITOR || Main.mapEditor.playing)
 			setBricks();
-		resetMapFrameSets();
 		iniFileMap.getItemList("TAGS").forEach(item -> {
 			FrameSet frameSet = new FrameSet();
 			frameSet.loadFromString(iniFileMap.read("TAGS", item));
@@ -131,12 +130,8 @@ public abstract class MapSet {
 		iniFileMap.getItemList("EFFECTS").forEach(item -> {
 			Effect.addNewTempEffect(item, iniFileMap.read("EFFECTS", item));
 		});
+		resetMapFrameSets();
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
-		// NOTA: Remover o codigo abaixo quando tiver implementado corretamente os mobs
-		if (stageClearCriterias != null) {
-			leftStageClearCriterias.remove(StageClearCriteria.KILLING_ALL_MOBS);
-			stageClearCriterias.remove(StageClearCriteria.KILLING_ALL_MOBS);
-		}
 	}
 	
 	/* tileCoord - Coordenada do tile que disparou a tag (se for disparado de algum tile) 
@@ -233,7 +228,9 @@ public abstract class MapSet {
 	private static void removeStageClearCriteria(StageClearCriteria criteria) {
 		if (leftStageClearCriterias != null) {
 			leftStageClearCriterias.remove(criteria);
-			if (leftStageClearCriterias.isEmpty())
+			boolean temp = leftStageClearCriterias.size() == 1 &&
+					leftStageClearCriterias.get(1) == StageClearCriteria.KILLING_ALL_MOBS;
+			if (temp || leftStageClearCriterias.isEmpty()) // NOTA: remover temp quando os mobs tiverem sido implementados
 				setStageStatusToCleared();
 		}
 	}

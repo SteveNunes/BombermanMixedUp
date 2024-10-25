@@ -389,10 +389,8 @@ public class MapEditor {
 		buttonPlay.setOnAction(e -> {
 			playing = !playing;
 			buttonPlay.setText(playing ? "■" : "►");
-			if (playing) {
-				MapSet.resetMapFrameSets();
+			if (playing)
 				reloadCurrentMap();
-			}
 			vBoxLayerList.setDisable(true);
 			hBoxFrameSetButtons.setDisable(true);
 			vBoxTileSet.setDisable(true);
@@ -1190,7 +1188,7 @@ public class MapEditor {
 				});
 				menuItem = new MenuItem("Remover");
 				menu.getItems().add(menuItem);
-				menuItem.setOnAction(e -> tile.getTileTags().clearTags());
+				menuItem.setOnAction(e -> tile.clearTileTags());
 			}
 		}
 	}
