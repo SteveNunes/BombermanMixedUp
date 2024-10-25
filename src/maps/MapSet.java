@@ -230,7 +230,7 @@ public abstract class MapSet {
 		if (leftStageClearCriterias != null) {
 			leftStageClearCriterias.remove(criteria);
 			boolean temp = leftStageClearCriterias.size() == 1 &&
-					leftStageClearCriterias.get(1) == StageClearCriteria.KILLING_ALL_MOBS;
+					leftStageClearCriterias.get(0) == StageClearCriteria.KILLING_ALL_MOBS;
 			if (temp || leftStageClearCriterias.isEmpty()) // NOTA: remover temp quando os mobs tiverem sido implementados
 				setStageStatusToCleared();
 		}

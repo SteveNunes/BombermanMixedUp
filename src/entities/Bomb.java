@@ -97,7 +97,7 @@ public class Bomb extends Entity {
 		{ return addBomb(null, coord, type, fireDistance, checkTile); }
 
 	public static Bomb addBomb(Entity owner, TileCoord coord, BombType type, int fireDistance, boolean checkTile) {
-		if (!checkTile || MapSet.tileIsFree(coord)) {
+		if (!checkTile || (MapSet.tileIsFree(coord) && !MapSet.getTileProps(coord).contains(TileProp.GROUND_NO_BOMB))) {
 			Bomb bomb = new Bomb(owner, coord, type, fireDistance);
 			if (!bombs.containsKey(coord))
 				bombs.put(coord.getNewInstance(), new ArrayList<>());
@@ -151,13 +151,13 @@ public class Bomb extends Entity {
 						y <= yy - Main.TILE_SIZE / 2 || y >= yy + Main.TILE_SIZE / 2)
 							bomb.ownerIsOver = false;
 			}
-			if ((bomb.timer == -1 || --bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
+			if (!bomb.isStucked() && (bomb.timer == -1 || --bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
 				bomb.timer = 0;
 			if (bomb.timer == 0) {
+				bomb.isActive = false;
 				bombs.remove(bomb.getTileCoordFromCenter());
 				bomb.centerToTile();
 				bomb.unsetPushEntity();
-				bomb.isActive = false;
 				Sound.playWav("explosion/Explosion" + (bomb.nesBomb ? "" : bomb.fireDistance < 3 ? "1" : (int)(bomb.fireDistance / 3)));
 				Explosion.addExplosion(bomb, bomb.getTileCoordFromCenter(), bomb.fireDistance, bomb.type == BombType.SPIKED || bomb.type == BombType.SPIKED_REMOTE);
 				removeBombs.add(bomb);
@@ -170,22 +170,26 @@ public class Bomb extends Entity {
 
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
-		super.run(gc, isPaused);
-		TileCoord prevCoord = getPreviewTileCoord();
-		TileCoord coord = getTileCoordFromCenter();
-		if (tileWasChanged()) {
-			if (bombs.containsKey(prevCoord)) {
-				bombs.get(prevCoord).remove(this);
-				if (bombs.get(prevCoord).isEmpty())
-					bombs.remove(prevCoord);
-			}
-			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
-			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
+		TileCoord prevCoord = getTileCoordFromCenter().getNewInstance();
+		if (bombs.containsKey(prevCoord)) {
+			bombs.get(prevCoord).remove(this);
+			if (bombs.get(prevCoord).isEmpty())
+				bombs.remove(prevCoord);
 		}
-		if (isActive() && getSpeed() == 0 && getPushEntity() == null) {
+		super.run(gc, isPaused);
+		TileCoord coord = getTileCoordFromCenter();
+		if (isActive()) {
 			if (!bombs.containsKey(coord))
 				bombs.put(coord, new ArrayList<>());
 			bombs.get(coord).add(this);
+			if (tileWasChanged()) {
+				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
+				MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
+			}
+		}
+		if (isActive() && getSpeed() == 0 && getPushEntity() == null) {
+			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
+			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_STOPPED_BOMB, true);
 		}
 	}
 	

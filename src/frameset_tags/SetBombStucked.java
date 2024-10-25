@@ -36,7 +36,7 @@ public class SetBombStucked extends FrameTag {
 	public void process(Sprite sprite) { 
 		processTile(sprite.getTileCoord(), targetTile, coord -> {
 			Bomb bomb = Bomb.getBombAt(coord);
-			if (bomb != null)
+			if (bomb != null && bomb.isStucked() != state)
 				bomb.setStucked(state);
 		});
 	}

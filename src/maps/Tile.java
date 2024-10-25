@@ -171,6 +171,7 @@ public class Tile {
 		TileCoord oldCoord = getTileCoord().getNewInstance();
 		outX = coord.getX() * Main.TILE_SIZE;
 		outY = coord.getY() * Main.TILE_SIZE;
+		tileCoord.setCoords(coord);
 		if (getOriginLayer().tileHaveTags(oldCoord)) {
 			getOriginLayer().getTileTagsFrameSet(oldCoord).getSprite(0).setX(outX);
 			getOriginLayer().getTileTagsFrameSet(oldCoord).getSprite(0).setY(outY);

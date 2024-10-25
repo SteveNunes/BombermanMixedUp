@@ -996,6 +996,7 @@ public class MapEditor {
     drawTileSetCanvas();
 		if (checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
 	    Tile tile = MapSet.getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
+	    System.out.println(tile.getTileCoord() + " " + tile.getTileProps());
 	    if (tile != null) {
 	    	int x, y = tile.outY * zoomMain + (Main.TILE_SIZE * zoomMain) / 2 - 20 + deslocY();
 				gcMain.setFill(Color.LIGHTBLUE);

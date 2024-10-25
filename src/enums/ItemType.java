@@ -3,7 +3,6 @@ package enums;
 import java.util.HashMap;
 import java.util.Map;
 
-import util.CollectionUtils;
 import util.MyMath;
 
 public enum ItemType {
@@ -60,13 +59,13 @@ public enum ItemType {
 	APPLE_2(50);
 	
 	private int value;
-	private static ItemType[] list = {null, RANDOM, BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB, REMOTE_BOMB,
+	private static ItemType[] list = {null, BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB, REMOTE_BOMB,
 			P_BOMB, LAND_MINE_BOMB, RUBBER_BOMB, FOLLOW_BOMB, MAGNET_BOMB, MAGMA_BOMB, HEART_BOMB,
 			SENSOR_BOMB, SPIKE_REMOTE_BOMB, PASS_BOMB, PASS_BRICK, LINED_BOMBS, KICK_BOMB,
 			PUNCH_BOMB, POWER_GLOVE, PUSH_POWER, EXTRA_LIVE, HEART_UP, ARMOR, TIME_STOP,
 			ICECREAM, APPLE, ORANGE, BANANA, GOHAN, CAKE_SLICE, PICO_HAMMER, POPSILE,
 			SPIRAL_ICECREAM, SQUARED_CAKE_SLICE, FRENCH_FRIES, SPIRAL_COLORED_ICECREAM,
-			PUDDING, CANDY_CONE, BUTTER, CORN_DOG, OLIVES, EXTINGUISHER, FIRE_MAX,
+			PUDDING, CANDY_CONE, BUTTER, CORN_DOG, OLIVES, EXTINGUISHER, RANDOM, FIRE_MAX,
 			SPEED_DOWN, CURSE_SKULL, STRAWBERRY_ICECREAM, FIRE_IMMUNE, APPLE_2};
 	
 	@SuppressWarnings("serial")
@@ -143,8 +142,13 @@ public enum ItemType {
 		return list[i];
 	}
 	
-	public static ItemType getRandom()
-		{ return list[(int)MyMath.getRandom(2, list.length - 1)]; }
+	public static ItemType getRandom() {
+		ItemType type;
+		do
+			{ type = list[(int)MyMath.getRandom(1, list.length - 1)]; }
+		while (type == RANDOM);
+		return type;
+	}
 	
 	public static ItemType getItemById(int itemId) {
 		if (itemId < 1 || itemId >= list.length)
