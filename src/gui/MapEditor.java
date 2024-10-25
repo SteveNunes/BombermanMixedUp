@@ -27,6 +27,7 @@ import enums.ItemType;
 import enums.SpriteLayerType;
 import enums.StageClearCriteria;
 import enums.TileProp;
+import frameset.Tags;
 import gui.util.Alerts;
 import gui.util.ControllerUtils;
 import gui.util.ListenerHandle;
@@ -182,6 +183,7 @@ public class MapEditor {
 	private Tile[][] tileSelectionArray;
 	private List<KeyCode> holdedKeys;
 	private List<TileProp> copyProps;
+	private Tags copyTags;
 	private Map<TileCoord, List<Tile>> copiedTiles;
 	private List<Map<TileCoord, List<Tile>>> backupTiles;
 	private Font font;
@@ -213,6 +215,7 @@ public class MapEditor {
 		ctrlZPos = -1;
 		copyProps = null;
 		selection = null;
+		copyTags = null;
 		canvasMain.setWidth(320 * zoomMain - 16 * zoomMain * 3);
 		canvasMain.setHeight(240 * zoomMain - 16 * zoomMain);
 		listenerHandleComboBoxMapFrameSets = new ListenerHandle<>(comboBoxMapFrameSets.valueProperty(), (o, oldValue, newValue) ->
@@ -1137,6 +1140,7 @@ public class MapEditor {
 			final TileCoord coord = canvasMouseDraw.tileCoord.getNewInstance();
 			if (getCurrentLayer().haveTilesOnCoord(coord)) {
 				Menu menu = new Menu("Criar item");
+				menu.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord));
 				contextMenu.getItems().add(menu);
 				for (ItemType type : ItemType.values()) {
 					menuItem = new MenuItem(type.name());
@@ -1195,6 +1199,22 @@ public class MapEditor {
 						}
 					}
 				});
+				menuItem = new MenuItem("Copiar");
+				menu.getItems().add(menuItem);
+				menuItem.setOnAction(e -> copyTags = new Tags(MapSet.getTileTags(coord)));
+				menuItem = new MenuItem("Colar (Adicionar)");
+				menu.getItems().add(menuItem);
+				menuItem.setDisable(copyTags == null);
+				menuItem.setOnAction(e -> {
+					if (MapSet.tileHaveTags(coord))
+						MapSet.getTileTags(coord).getTags().addAll(copyTags.getTags());
+					else
+						MapSet.setTileTags(coord, new Tags(copyTags));
+				});
+				menuItem = new MenuItem("Colar (Substituir)");
+				menu.getItems().add(menuItem);
+				menuItem.setDisable(copyTags == null);
+				menuItem.setOnAction(e -> MapSet.setTileTags(coord, new Tags(copyTags)));
 				menuItem = new MenuItem("Remover");
 				menu.getItems().add(menuItem);
 				menuItem.setOnAction(e -> tile.clearTileTags());

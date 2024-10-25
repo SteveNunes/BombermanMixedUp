@@ -36,7 +36,7 @@ public class BomberMan extends Entity {
 	private List<Direction> pressedDirs;
 	private Set<GameInputs> holdedInputs;
 	private List<GameInputs> queuedInputs;
-	private int setBombCd;
+	private int bombCd;
 	private int score;
 	private int addedScore;
 	private int lives;
@@ -50,7 +50,7 @@ public class BomberMan extends Entity {
 		queuedInputs = new ArrayList<>();
 		bombs = new ArrayList<>();
 		gotItems = new ArrayList<>();
-		setBombCd = 0;
+		bombCd = 0;
 		score = 0;
 		addedScore = 0;
 		curseDuration = 0;
@@ -125,7 +125,7 @@ public class BomberMan extends Entity {
 	
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
-		setBombCd--;
+		bombCd--;
 		for (int n = 0; n < bombs.size(); n++)
 			if (!bombs.get(n).isActive())
 				bombs.remove(n--);
@@ -172,13 +172,16 @@ public class BomberMan extends Entity {
 		{ addedScore = score; }
 
 	public void setBomb() {
-		if (setBombCd <= 0 && bombs.size() < maxBombs && MapSet.tileIsFree(getTileCoordFromCenter())) {
+		if (bombCd <= 0 && bombs.size() < maxBombs) {
 			BombType type = !gotItems.isEmpty() && gotItems.get(0).isBomb() ?
 											ItemType.getBombTypeFromItemType(gotItems.get(0)) : BombType.NORMAL;
 			TileCoord coord = new TileCoord((int)(getX() + Main.TILE_SIZE / 2) / Main.TILE_SIZE, (int)(getY() + Main.TILE_SIZE / 2) / Main.TILE_SIZE);
-			bombs.add(Bomb.addBomb(this, coord, type, fireRange));
-			Sound.playWav(setBombSound);
-			setBombCd = 20;
+			Bomb bomb = Bomb.addBomb(this, coord, type, fireRange, true);
+			if (bomb != null) {
+				bombs.add(bomb);
+				Sound.playWav(setBombSound);
+				bombCd = 10;
+			}
 		}
 	}
 

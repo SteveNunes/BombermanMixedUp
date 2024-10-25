@@ -114,7 +114,7 @@ public class Explosion {
 						coord.incCoordsByDirection(dir);
 					if (x > 0 || directions.size() == 4) {
 						if (MapSet.haveTilesOnCoord(coord) && !remove) {
-							TileDamage.addTileDamage(owner, coord.getNewInstance(), 44).setDamageToAll();
+							TileDamage.addTileDamage(coord.getNewInstance(), 44).setDamageToAll();
 							MapSet.checkTileTrigger(owner, coord.getNewInstance(), TileProp.TRIGGER_BY_EXPLOSION);
 						}
 						if (x > 0 && (MapSet.getCurrentLayer().getTileProps(coord).contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord, passThroughAllBricks ? Set.of(PassThrough.BRICK) : null)))

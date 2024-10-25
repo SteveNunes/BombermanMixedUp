@@ -8,10 +8,8 @@ import java.util.Map;
 import application.Main;
 import enums.BombType;
 import enums.Curse;
-import enums.ItemType;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
-import maps.Item;
 import maps.MapSet;
 import objmoveutils.TileCoord;
 import tools.Sound;
@@ -99,10 +97,10 @@ public class Bomb extends Entity {
 		{ return addBomb(null, coord, type, fireDistance, checkTile); }
 
 	public static Bomb addBomb(Entity owner, TileCoord coord, BombType type, int fireDistance, boolean checkTile) {
-		if (!bombs.containsKey(coord))
-			bombs.put(coord.getNewInstance(), new ArrayList<>());
-		if (!checkTile || MapSet.tileIsFree(owner, coord)) {
+		if (!checkTile || MapSet.tileIsFree(coord)) {
 			Bomb bomb = new Bomb(owner, coord, type, fireDistance);
+			if (!bombs.containsKey(coord))
+				bombs.put(coord.getNewInstance(), new ArrayList<>());
 			bombs.get(coord).add(bomb);
 			bombList.add(bomb);
 			MapSet.checkTileTrigger(bomb, coord, TileProp.TRIGGER_BY_BOMB);
