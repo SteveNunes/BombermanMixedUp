@@ -24,8 +24,6 @@ public class Item extends Entity{
 
 	private static Map<TileCoord, Item> items = new HashMap<>();
 	private static RGBColor itemEdigeColor;
-	private static ItemType[] itemTypes = {ItemType.BOMB_UP, ItemType.FIRE_UP, ItemType.FIRE_MAX, ItemType.SPEED_UP, ItemType.KICK_BOMB, ItemType.CURSE_SKULL, ItemType.POWER_GLOVE, ItemType.PASS_BOMB, ItemType.PASS_BRICK, ItemType.PUNCH_BOMB, ItemType.PUSH_POWER, ItemType.LINED_BOMBS};
-	private static String[] itemSoundNames = {"BombUp", "FireUp", "FireUp", "SpeedUp", "BombKick", "Curse", "PowerGlove", "Special", "Special", "Special", "Special", "Special"};
 	
 	private Curse curse;
 	private ItemType itemType;
@@ -200,12 +198,10 @@ public class Item extends Entity{
 		}
 		if (getCurrentFrameSetName().equals("ItemStandFrameSet")) {
 			setFrameSet("ItemPickedUpFrameSet");
-			Sound.playWav("ItemPickUp");
-			for (int n = 0; n < itemTypes.length; n++)
-				if (itemType == itemTypes[n]) {
-					final String sound = itemSoundNames[n];
-					TimerFX.createTimer("ItemPickUp@" + hashCode(), 150, () -> Sound.playWav("voices/Item-" + sound));
-				}
+			if (itemType.getSound() == null || itemType.getSoundDelay() > 0)
+				Sound.playWav("ItemPickUp");
+			if (itemType.getSound() != null)
+				TimerFX.createTimer("ItemPickUp@" + hashCode(), itemType.getSoundDelay(), () -> Sound.playWav(itemType.getSound()));
 		}
 	}
 

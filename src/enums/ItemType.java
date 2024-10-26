@@ -1,6 +1,9 @@
 package enums;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import util.MyMath;
@@ -58,15 +61,24 @@ public enum ItemType {
 	FIRE_IMMUNE(49),
 	APPLE_2(50);
 	
+	static {
+		fullList = new ArrayList<>(Arrays.asList(null, BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB,
+				REMOTE_BOMB, P_BOMB, LAND_MINE_BOMB, RUBBER_BOMB, FOLLOW_BOMB, MAGNET_BOMB,
+				MAGMA_BOMB, HEART_BOMB, SENSOR_BOMB, SPIKE_REMOTE_BOMB, PASS_BOMB, PASS_BRICK,
+				LINED_BOMBS, KICK_BOMB, PUNCH_BOMB, POWER_GLOVE, PUSH_POWER, EXTRA_LIVE, HEART_UP,
+				ARMOR, TIME_STOP, ICECREAM, APPLE, ORANGE, BANANA, GOHAN, CAKE_SLICE, PICO_HAMMER,
+				POPSILE, SPIRAL_ICECREAM, SQUARED_CAKE_SLICE, FRENCH_FRIES, SPIRAL_COLORED_ICECREAM,
+				PUDDING, CANDY_CONE, BUTTER, CORN_DOG, OLIVES, EXTINGUISHER, RANDOM, FIRE_MAX,
+				SPEED_DOWN, CURSE_SKULL, STRAWBERRY_ICECREAM, FIRE_IMMUNE, APPLE_2));
+		bombs = new ArrayList<>(Arrays.asList(FOLLOW_BOMB, HEART_BOMB, MAGMA_BOMB, MAGNET_BOMB,
+				SENSOR_BOMB, LAND_MINE_BOMB, REMOTE_BOMB, RUBBER_BOMB, SPIKE_BOMB, SPIKE_REMOTE_BOMB));
+		foods = new ArrayList<>(Arrays.asList(ICECREAM, APPLE, ORANGE, BANANA, GOHAN, CAKE_SLICE,
+				POPSILE, APPLE_2, SPIRAL_ICECREAM, SQUARED_CAKE_SLICE, FRENCH_FRIES, OLIVES, BUTTER,
+				SPIRAL_COLORED_ICECREAM, PUDDING, CANDY_CONE, CORN_DOG, STRAWBERRY_ICECREAM));
+	}
+	
 	private int value;
-	private static ItemType[] list = {null, BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB, REMOTE_BOMB,
-			P_BOMB, LAND_MINE_BOMB, RUBBER_BOMB, FOLLOW_BOMB, MAGNET_BOMB, MAGMA_BOMB, HEART_BOMB,
-			SENSOR_BOMB, SPIKE_REMOTE_BOMB, PASS_BOMB, PASS_BRICK, LINED_BOMBS, KICK_BOMB,
-			PUNCH_BOMB, POWER_GLOVE, PUSH_POWER, EXTRA_LIVE, HEART_UP, ARMOR, TIME_STOP,
-			ICECREAM, APPLE, ORANGE, BANANA, GOHAN, CAKE_SLICE, PICO_HAMMER, POPSILE,
-			SPIRAL_ICECREAM, SQUARED_CAKE_SLICE, FRENCH_FRIES, SPIRAL_COLORED_ICECREAM,
-			PUDDING, CANDY_CONE, BUTTER, CORN_DOG, OLIVES, EXTINGUISHER, RANDOM, FIRE_MAX,
-			SPEED_DOWN, CURSE_SKULL, STRAWBERRY_ICECREAM, FIRE_IMMUNE, APPLE_2};
+	private static List<ItemType> fullList, bombs, foods;
 	
 	@SuppressWarnings("serial")
 	private static Map<ItemType, Integer> itemScore = new HashMap<>() {{
@@ -122,6 +134,22 @@ public enum ItemType {
 		put(APPLE_2, 1000);
 	}};
 	
+	@SuppressWarnings("serial")
+	private static Map<ItemType, Object[]> itemSound = new HashMap<>() {{
+		put(BOMB_UP, new Object[] {150, "/voices/Item-BombUp"});
+		put(FIRE_UP, new Object[] {150, "/voices/Item-FireUp"});
+		put(SPEED_UP, new Object[] {150, "/voices/Item-SpeedUp"});
+		put(PASS_BRICK, new Object[] {150, "/voices/Item-Special"});
+		put(LINED_BOMBS, new Object[] {150, "/voices/Item-Special"});
+		put(KICK_BOMB, new Object[] {150, "/voices/Item-BombKick"});
+		put(PUNCH_BOMB, new Object[] {150, "/voices/Item-Special"});
+		put(POWER_GLOVE, new Object[] {150, "/voices/Item-PowerGlove"});
+		put(PUSH_POWER, new Object[] {150, "/voices/Item-Special"});
+		put(EXTRA_LIVE, new Object[] {0, "LiveUp"});
+		put(FIRE_MAX, new Object[] {150, "/voices/Item-FireUp"});
+		put(CURSE_SKULL, new Object[] {0, "Curse"});
+	}};
+	
 	ItemType(int value)
 		{ this.value = value;	}
 	
@@ -130,40 +158,46 @@ public enum ItemType {
 	
 	public ItemType getNext() {
 		int i = value + 1;
-		if (i == list.length)
+		if (i == fullList.size())
 			i = 0;
-		return list[i];
+		return fullList.get(i);
 	}
 
 	public ItemType getPreview() {
 		int i = value - 1;
 		if (i == 0)
-			i = list.length - 1;
-		return list[i];
+			i = fullList.size() - 1;
+		return fullList.get(i);
 	}
 	
 	public static ItemType getRandom() {
 		ItemType type;
 		do
-			{ type = list[(int)MyMath.getRandom(1, list.length - 1)]; }
+			{ type = fullList.get((int)MyMath.getRandom(1, fullList.size() - 1)); }
 		while (type == RANDOM);
 		return type;
 	}
 	
 	public static ItemType getItemById(int itemId) {
-		if (itemId < 1 || itemId >= list.length)
+		if (itemId < 1 || itemId >= fullList.size())
 			throw new RuntimeException(itemId + " - Invalid item ID");
-		return list[itemId];
+		return fullList.get(itemId);
 	}
+	
+	public String getSound()
+		{ return !itemSound.containsKey(this) ? null : (String)itemSound.get(this)[1]; }
+	
+	public Integer getSoundDelay()
+		{ return !itemSound.containsKey(this) ? 0 : (Integer)itemSound.get(this)[0]; }
 	
 	public int getItemScore()
 		{ return itemScore.get(this); }
 	
-	public boolean isBomb() {
-		return this == FOLLOW_BOMB || this == HEART_BOMB || this == MAGMA_BOMB ||
-					 this == MAGNET_BOMB || this == LAND_MINE_BOMB || this == REMOTE_BOMB ||
-					 this == RUBBER_BOMB || this == SENSOR_BOMB || this == SPIKE_BOMB ||
-					 this == SPIKE_REMOTE_BOMB;	}
+	public boolean isBomb()
+		{ return bombs.contains(this); }
+	
+	public boolean isFood()
+		{ return foods.contains(this); }
 	
 	public static BombType getBombTypeFromItemType(ItemType type)
 		{	return BombType.getBombTypeFromItemType(type); }
