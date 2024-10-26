@@ -114,13 +114,20 @@ public abstract class Materials {
 		if (spriteName.length() > 10 && spriteName.substring(0, 10).equals("Character.")) {
 			try { 
 				int n = spriteName.indexOf(".") + 1;
-				int charId = Integer.parseInt(spriteName.substring(n, n + 1));
-				n = spriteName.lastIndexOf(".") + 1;
-				int palleteId = Integer.parseInt(spriteName.substring(n, n + 1));
+				int n2 = spriteName.lastIndexOf(".") + 1;
+				int charId, palleteId;
+				if (n == n2) {
+					charId = Integer.parseInt(spriteName.substring(n));
+					palleteId = 0;
+				}
+				else {
+					charId = Integer.parseInt(spriteName.substring(n, n2 - 1));
+					palleteId = Integer.parseInt(spriteName.substring(n2, spriteName.length()));
+				}
 				return (WritableImage)getCharacterSprite(charId, palleteId);
 			}
 			catch (Exception e)
-				{ e.printStackTrace(); return null; }
+				{ return null; }
 		}
 		if (loadedSprites.containsKey(spriteName))
 			return loadedSprites.get(spriteName);
