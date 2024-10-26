@@ -189,16 +189,21 @@ public class MapEditor {
 	private Font font;
 	private CanvasMouse canvasMouseDraw;
 	private CanvasMouse canvasMouseTileSet;
+	private ItemType itemType;
 	private int zoomMain;
 	private int zoomTileSet;
 	private int ctrlZPos;
 	private long resetBricks;
-	private BomberMan bomber;
+	private List<BomberMan> bombers;
 	private String defaultMap = "SBM2_1-1";
 	public boolean playing;
 	public boolean editable;
+	private boolean markEntities;
+	private boolean markBombs;
 	
 	public void init() {
+		markEntities = false;
+		markBombs = false;
 		canvasMouseDraw = new CanvasMouse();
 		canvasMouseTileSet = new CanvasMouse();
 		tileSelection = new Rectangle(0, 0, 1, 1);
@@ -216,6 +221,7 @@ public class MapEditor {
 		copyProps = null;
 		selection = null;
 		copyTags = null;
+		itemType = ItemType.BOMB_UP;
 		canvasMain.setWidth(320 * zoomMain - 16 * zoomMain * 3);
 		canvasMain.setHeight(240 * zoomMain - 16 * zoomMain);
 		listenerHandleComboBoxMapFrameSets = new ListenerHandle<>(comboBoxMapFrameSets.valueProperty(), (o, oldValue, newValue) ->
@@ -227,8 +233,11 @@ public class MapEditor {
 		setMainCanvasMouseEvents();
 		rebuildTileSetCanvas();
 		updateTileSelectionArray();
-		bomber = new BomberMan(1, 0);
-		bomber.setPosition(MapSet.getInitialPlayerPosition(0));
+		bombers = new ArrayList<>(); 
+		bombers.add(new BomberMan(1, 0));
+		bombers.get(0).setPosition(MapSet.getInitialPlayerPosition(0));
+		bombers.add(new BomberMan(1, 1));
+		bombers.get(1).setPosition(MapSet.getInitialPlayerPosition(1));
 		mainLoop();
   }
 	
@@ -572,7 +581,7 @@ public class MapEditor {
 		Main.sceneMain.setOnKeyPressed(e -> {
 			for (int n = 0; n < keysInputs.length; n++) {
 				if (e.getCode() == keysInputs[n])
-					bomber.keyPress(GameInputs.getList()[n]);
+					bombers.get(0).keyPress(GameInputs.getList()[n]);
 			}
 			if (!editable)
 				return;
@@ -666,6 +675,8 @@ public class MapEditor {
 					getCurrentLayer().buildLayer();
 				}
 			}
+			else if (e.getCode() == KeyCode.I && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord))
+				Item.addItem(canvasMouseDraw.tileCoord, itemType);
 			else if (e.getCode() == KeyCode.DELETE) {
 				if (selection == null) {
 					if (isShiftHold())
@@ -691,7 +702,7 @@ public class MapEditor {
 		Main.sceneMain.setOnKeyReleased(e -> {
 			for (int n = 0; n < keysInputs.length; n++) {
 				if (e.getCode() == keysInputs[n])
-					bomber.keyRelease(GameInputs.getList()[n]);
+					bombers.get(0).keyRelease(GameInputs.getList()[n]);
 			}
 		});
 	}
@@ -943,7 +954,7 @@ public class MapEditor {
 					if (brick.getItem() != null)
 						Tools.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileCoord().getX() * Main.TILE_SIZE, brick.getTileCoord().getY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
 		}
-		bomber.run();
+		bombers.forEach(bomber -> bomber.run());
 		updateTileSelectionArray();
 		if (editable) {
 			for (int y = 0; y < tileSelectionArray.length; y++)
@@ -970,8 +981,8 @@ public class MapEditor {
     Tools.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
 
     if (!Misc.alwaysTrue()) { // TEMP PARA EXIBIR QUADRADOS INDICANDO SE OS CANTOS DO TILE DO BOMBERMAN ESTAO LIVRES
-	    Position[] cornersPos = bomber.getCornersPositions();
-	    boolean[] corners = bomber.getFreeCorners();
+	    Position[] cornersPos = bombers.get(0).getCornersPositions();
+	    boolean[] corners = bombers.get(0).getFreeCorners();
 	    for (int x = 0; x < 4; x++) { 
 	    	int xx = (int)cornersPos[x].getX() * zoomMain,
 	    			yy = (int)cornersPos[x].getY() * zoomMain;
@@ -983,13 +994,17 @@ public class MapEditor {
 	    	gcMain.fillRect(xx, yy, 10, 10);
 	    }
     }
-  	gcMain.setLineWidth(4);
-  	gcMain.setStroke(Color.RED);
-    for (Entity entity : Entity.getEntityList())
-    	gcMain.strokeRect(entity.getX() * zoomMain, entity.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
-  	gcMain.setStroke(Color.ORANGE);
-    for (Bomb bomb : Bomb.getBombs())
-    	gcMain.strokeRect(bomb.getX() * zoomMain, bomb.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+    if (markEntities) {
+	  	gcMain.setLineWidth(4);
+	  	gcMain.setStroke(Color.RED);
+	    for (Entity entity : Entity.getEntityList())
+	    	gcMain.strokeRect(entity.getX() * zoomMain, entity.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+    }
+    if (markBombs) {
+	  	gcMain.setStroke(Color.ORANGE);
+	    for (Bomb bomb : Bomb.getBombs())
+	    	gcMain.strokeRect(bomb.getX() * zoomMain, bomb.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+    }
     drawBlockTypeMark();
     drawGridAndAim();
     drawTileTagsOverCursor();
@@ -1146,7 +1161,10 @@ public class MapEditor {
 				for (ItemType type : ItemType.values()) {
 					menuItem = new MenuItem(type.name());
 					menu.getItems().add(menuItem);
-					menuItem.setOnAction(e -> Item.addItem(coord, type));
+					menuItem.setOnAction(e -> {
+						Item.addItem(coord, type);
+						itemType = type;
+					});
 				}
 				if (!editable) {
 					contextMenu.getItems().add(new MenuItem("Recarregue o mapa para editá-lo"));

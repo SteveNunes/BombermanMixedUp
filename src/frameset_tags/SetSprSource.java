@@ -2,20 +2,23 @@ package frameset_tags;
 
 import java.awt.Rectangle;
 
+import entities.BomberMan;
 import frameset.Sprite;
 import javafx.scene.image.Image;
 import tools.Materials;
 
 public class SetSprSource extends FrameTag {
 	
+	public String originalSpriteSourceName;
 	public String spriteSourceName;
 	public Rectangle originSprSizePos;
 	public Rectangle outputSprSizePos;
 	public int spriteIndex;
 	public int spritesPerLine;
-	
+
 	public SetSprSource(String spriteSourceName, Rectangle originSprSizePos, Rectangle outputSprSizePos, int spriteIndex, int spritesPerLine) {
-		this.spriteSourceName = spriteSourceName;
+		originalSpriteSourceName = spriteSourceName;
+		spriteSourceName = null;
 		this.originSprSizePos = originSprSizePos;
 		this.outputSprSizePos = outputSprSizePos;
 		this.spritesPerLine = spritesPerLine;
@@ -43,7 +46,9 @@ public class SetSprSource extends FrameTag {
 
 	public SetSprSource(String tags) {
 		String[] params = validateStringTags(this, tags);
-		Image image = Materials.getImageFromSpriteName(spriteSourceName = params[0]);
+		originalSpriteSourceName = params[0];
+		spriteSourceName = null;
+		Image image = Materials.getImageFromSpriteName(originalSpriteSourceName);
 		if (image == null)
 			throw new RuntimeException(params[0] + " - Invalid sprite source name");
 		int n = 0, t = params.length;
@@ -67,10 +72,15 @@ public class SetSprSource extends FrameTag {
 
 	@Override
 	public SetSprSource getNewInstanceOfThis()
-		{ return new SetSprSource(spriteSourceName, originSprSizePos, outputSprSizePos, spriteIndex, spritesPerLine); }
+		{ return new SetSprSource(originalSpriteSourceName, originSprSizePos, outputSprSizePos, spriteIndex, spritesPerLine); }
 	
 	@Override
 	public void process(Sprite sprite) {
+		if (spriteSourceName == null) {
+			spriteSourceName = originalSpriteSourceName;
+			if (sprite.getSourceEntity() instanceof BomberMan && spriteSourceName.substring(0, 10).equals("Character."))
+				spriteSourceName += "." + ((BomberMan)sprite.getSourceEntity()).getPalleteIndex();
+		}
 		sprite.setSpriteSourceName(spriteSourceName);
 		sprite.setOriginSpritePos(originSprSizePos);
 		sprite.setOutputSpritePos(outputSprSizePos);

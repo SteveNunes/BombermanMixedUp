@@ -112,12 +112,15 @@ public abstract class Materials {
 	
 	public static WritableImage getImageFromSpriteName(String spriteName) {
 		if (spriteName.length() > 10 && spriteName.substring(0, 10).equals("Character.")) {
-			try {
-				int charId = Integer.parseInt(spriteName.substring(spriteName.indexOf(".") + 1));
-				return (WritableImage)getCharacterSprite(charId, 0);
+			try { 
+				int n = spriteName.indexOf(".") + 1;
+				int charId = Integer.parseInt(spriteName.substring(n, n + 1));
+				n = spriteName.lastIndexOf(".") + 1;
+				int palleteId = Integer.parseInt(spriteName.substring(n, n + 1));
+				return (WritableImage)getCharacterSprite(charId, palleteId);
 			}
 			catch (Exception e)
-				{ return null; }
+				{ e.printStackTrace(); return null; }
 		}
 		if (loadedSprites.containsKey(spriteName))
 			return loadedSprites.get(spriteName);

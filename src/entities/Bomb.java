@@ -48,6 +48,8 @@ public class Bomb extends Entity {
 		isActive = true;
 		isStucked = false;
 		nesBomb = owner instanceof BomberMan && ((BomberMan)owner).getBomberIndex() == 0;
+		// NORMAL, SPIKED
+		type = BombType.HEART;
 		this.type = type;
 		this.fireDistance = fireDistance;
 		this.owner = owner;
@@ -151,7 +153,7 @@ public class Bomb extends Entity {
 						y <= yy - Main.TILE_SIZE / 2 || y >= yy + Main.TILE_SIZE / 2)
 							bomb.ownerIsOver = false;
 			}
-			if (!bomb.isStucked() && (bomb.timer == -1 || --bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
+			if ((bomb.timer == -1 || --bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
 				bomb.timer = 0;
 			if (bomb.timer == 0) {
 				bomb.isActive = false;
