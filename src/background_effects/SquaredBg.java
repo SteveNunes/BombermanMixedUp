@@ -6,7 +6,7 @@ import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
-import tools.Tools;
+import tools.Draw;
 import util.MyMath;
 
 public class SquaredBg implements BackgroundEffect {
@@ -48,8 +48,8 @@ public class SquaredBg implements BackgroundEffect {
 		{ this(rgb, squareSize, 5, colorMinVal, colorMaxVal); }
 	
 	public SquaredBg(int[] rgb, int squareSize, int colorIncVal, int colorMinVal, int colorMaxVal) {
-		int w = (int)Tools.getTempCanvas().getWidth() / squareSize + 1, 
-				h = (int)Tools.getTempCanvas().getHeight() / squareSize + 1;
+		int w = (int)Draw.getTempCanvas().getWidth() / squareSize + 1, 
+				h = (int)Draw.getTempCanvas().getHeight() / squareSize + 1;
 		squaresBg = new int[h][w];
 		image = new WritableImage(w, h);
 		for (int y = 0; y < h; y++)

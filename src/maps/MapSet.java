@@ -9,8 +9,11 @@ import java.util.Set;
 
 import application.Main;
 import entities.Bomb;
+import entities.BomberMan;
 import entities.Effect;
 import entities.Entity;
+import entities.Monster;
+import enums.BombType;
 import enums.Direction;
 import enums.Elevation;
 import enums.GameMode;
@@ -557,11 +560,18 @@ public abstract class MapSet {
 	public static boolean tileIsFree(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
 		if (!haveTilesOnCoord(coord))
 			return false;
+		Entity en = Entity.haveAnyEntityAtCoord(coord) ? Entity.getFirstEntityFromCoord(coord) : null;
 		if (getTileProps(coord) != null)
 			for (TileProp prop : getTileProps(coord))
 				if (TileProp.getCantCrossList(Elevation.ON_GROUND).contains(prop) ||
+					 ((prop == TileProp.HOLE || prop == TileProp.GROUND_HOLE || prop == TileProp.DEEP_HOLE) && (passThrough == null || !passThrough.contains(PassThrough.HOLE))) ||
+					 ((prop == TileProp.WALL || prop == TileProp.HIGH_WALL) && (passThrough == null || !passThrough.contains(PassThrough.WALL))) ||
+					 ((prop == TileProp.WATER || prop == TileProp.DEEP_WATER) && (passThrough == null || !passThrough.contains(PassThrough.WATER))) ||
+					 (en != null && en instanceof BomberMan && passThrough != null && !passThrough.contains(PassThrough.PLAYER)) ||
+					 (en != null && en instanceof Monster && passThrough != null && !passThrough.contains(PassThrough.MONSTER)) ||
+					 (Item.haveItemAt(coord) && passThrough != null && !passThrough.contains(PassThrough.ITEM)) ||
 					 (Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
-					 (Bomb.haveBombAt(entity, coord) && (passThrough == null || !passThrough.contains(PassThrough.BOMB))))
+					 (Bomb.haveBombAt(entity, coord) && Bomb.getBombAt(coord).getBombType() != BombType.LAND_MINE && (passThrough == null || !passThrough.contains(PassThrough.BOMB))))
 							return false;
 		return true;
 	}

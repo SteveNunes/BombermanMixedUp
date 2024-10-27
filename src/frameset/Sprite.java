@@ -21,8 +21,8 @@ import objmoveutils.Position;
 import objmoveutils.RectangleMove;
 import objmoveutils.TileCoord;
 import screen_pos_effects.WavingImage;
+import tools.Draw;
 import tools.Materials;
-import tools.Tools;
 import util.Misc;
 
 public class Sprite extends Position {
@@ -494,7 +494,7 @@ public class Sprite extends Position {
 				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 														 tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
 			else
-				Tools.addDrawQueue((int)getSourceEntity().getY() + frontValue, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+				Draw.addDrawQueue((int)getSourceEntity().getY() + frontValue, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 																tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
 		}
 		scrollSprite();
@@ -523,7 +523,7 @@ public class Sprite extends Position {
 					gc.drawImage(i, -incX, 0, w - -incX, h, 0, 0, w - -incX, h);
 					gc.drawImage(i, 0, 0, -incX, h, w - -incX, 0, -incX, h);
 				}
-				i = Tools.getCanvasSnapshot(canvas, getSpriteSource());
+				i = Draw.getCanvasSnapshot(canvas, getSpriteSource());
 			}
 			if (incY != 0) {
 				gc.clearRect(0, 0, w, h);
@@ -535,7 +535,7 @@ public class Sprite extends Position {
 					gc.drawImage(i, 0, -incY, w, h - -incY, 0, 0, w, h - -incY);
 					gc.drawImage(i, 0, 0, w, -incY, 0, h - -incY, w, -incY);
 				}
-				Tools.getCanvasSnapshot(canvas, getSpriteSource());
+				Draw.getCanvasSnapshot(canvas, getSpriteSource());
 			}
 		}
 	}

@@ -20,6 +20,7 @@ import entities.Explosion;
 import entities.TileDamage;
 import enums.BombType;
 import enums.Direction;
+import enums.FindType;
 import enums.GameInputs;
 import enums.Icons;
 import enums.ImageFlip;
@@ -62,6 +63,7 @@ import maps.MapSet;
 import maps.Tile;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
+import tools.Draw;
 import tools.IniFiles;
 import tools.Materials;
 import tools.Tools;
@@ -190,6 +192,7 @@ public class MapEditor {
 	private CanvasMouse canvasMouseDraw;
 	private CanvasMouse canvasMouseTileSet;
 	private ItemType itemType;
+	private BombType bombType;
 	private int zoomMain;
 	private int zoomTileSet;
 	private int ctrlZPos;
@@ -224,11 +227,12 @@ public class MapEditor {
 		selection = null;
 		copyTags = null;
 		itemType = ItemType.BOMB_UP;
+		bombType = BombType.NORMAL;
 		canvasMain.setWidth(320 * zoomMain - 16 * zoomMain * 3);
 		canvasMain.setHeight(240 * zoomMain - 16 * zoomMain);
 		listenerHandleComboBoxMapFrameSets = new ListenerHandle<>(comboBoxMapFrameSets.valueProperty(), (o, oldValue, newValue) ->
 			MapSet.mapFrameSets.setFrameSet(comboBoxMapFrameSets.getSelectionModel().getSelectedItem()));
-		Tools.loadTools();
+		Tools.loadStuffs();
 		setAllCanvas();
 		defineControls();
 		setKeyboardEvents();
@@ -565,10 +569,10 @@ public class MapEditor {
 	}
 
 	Canvas getDrawCanvas()
-		{ return Tools.getTempCanvas(); }
+		{ return Draw.getTempCanvas(); }
 	
 	GraphicsContext getDrawGc()
-		{ return Tools.getTempGc(); }
+		{ return Draw.getTempGc(); }
 
 	void setSampleTiles() {
 		tilePosition = new Position[] {MapSet.getWallTile(), MapSet.getGroundTile(), MapSet.getGroundWithWallShadow(), MapSet.getGroundWithBrickShadow()};
@@ -679,6 +683,8 @@ public class MapEditor {
 			}
 			else if (e.getCode() == KeyCode.I && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord))
 				Item.addItem(canvasMouseDraw.tileCoord, itemType);
+			else if (e.getCode() == KeyCode.B && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !Bomb.haveBombAt(null, canvasMouseDraw.tileCoord))
+				Bomb.addBomb(canvasMouseDraw.tileCoord, bombType, 9);
 			else if (e.getCode() == KeyCode.Q || e.getCode() == KeyCode.E) {
 				if (e.getCode() == KeyCode.Q && --controlledBomberIndex == -1)
 					controlledBomberIndex = bombers.size() - 1;
@@ -950,7 +956,7 @@ public class MapEditor {
 		else {
 			if (MapSet.getLayersMap().containsKey(MapSet.getCurrentLayerIndex())) {
 				getDrawGc().fillRect(0, 0, getCurrentLayer().getWidth(), getCurrentLayer().getHeight());
-				Tools.addDrawQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
+				Draw.addDrawQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
 			}
 		}
 		Explosion.drawExplosions();
@@ -963,7 +969,7 @@ public class MapEditor {
 			if (checkBoxShowItems.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
-						Tools.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileCoord().getX() * Main.TILE_SIZE, brick.getTileCoord().getY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
+						Draw.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileCoord().getX() * Main.TILE_SIZE, brick.getTileCoord().getY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
 		}
 		bombers.forEach(bomber -> bomber.run());
 		updateTileSelectionArray();
@@ -972,7 +978,7 @@ public class MapEditor {
 				for (int x = 0; x < tileSelectionArray[0].length; x++) {
 					Tile tile = tileSelectionArray[y][x];
 					if (tile != null)
-						Tools.addDrawQueue(SpriteLayerType.GROUND, MapSet.getTileSetImage(),
+						Draw.addDrawQueue(SpriteLayerType.GROUND, MapSet.getTileSetImage(),
 								tile.spriteX, tile.spriteY,
 								Main.TILE_SIZE, Main.TILE_SIZE,
 								tile.outX, tile.outY,
@@ -989,7 +995,7 @@ public class MapEditor {
 		{ return canvasMouseDraw.movedY + canvasMouseDraw.dragY; }
 
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
-    Tools.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
+    Draw.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
 
     if (!Misc.alwaysTrue()) { // TEMP PARA EXIBIR QUADRADOS INDICANDO SE OS CANTOS DO TILE DO BOMBERMAN ESTAO LIVRES
 	    Position[] cornersPos = bombers.get(controlledBomberIndex).getCornersPositions();
@@ -1016,6 +1022,14 @@ public class MapEditor {
 	    for (Bomb bomb : Bomb.getBombs())
 	    	gcMain.strokeRect(bomb.getX() * zoomMain, bomb.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
     }
+    BomberMan bomber = bombers.get(controlledBomberIndex);
+    TileCoord c = Tools.findInRect(bomber.getTileCoordFromCenter(), bomber.getDirection(), FindType.BOMB);
+    if (c != null) {
+	  	gcMain.setLineWidth(4);
+	  	gcMain.setStroke(Color.PINK);
+    	gcMain.strokeRect(c.getX() * Main.TILE_SIZE * zoomMain, c.getY() * Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+    }
+    
     drawBlockTypeMark();
     drawGridAndAim();
     drawTileTagsOverCursor();
@@ -1182,6 +1196,18 @@ public class MapEditor {
 				menuItem.setDisable(bombers.size() == 17);
 				contextMenu.getItems().add(menuItem);
 				menuItem.setOnAction(e -> addPlayerAtCursor());
+				contextMenu.getItems().add(new SeparatorMenuItem());
+				menu = new Menu("Adicionar bomba");
+				menu.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord) || Bomb.haveBombAt(null, coord));
+				contextMenu.getItems().add(menu);
+				for (BombType type : BombType.values()) {
+					menuItem = new MenuItem(type.name());
+					menu.getItems().add(menuItem);
+					menuItem.setOnAction(e -> {
+						Bomb.addBomb(canvasMouseDraw.tileCoord, type, 5);
+						bombType = type;
+					});
+				}
 				if (!editable) {
 					contextMenu.getItems().add(new MenuItem("Recarregue o mapa para editá-lo"));
 					return;

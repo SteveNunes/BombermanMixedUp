@@ -4,7 +4,7 @@ import enums.FadeState;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import tools.Tools;
+import tools.Draw;
 
 public class PixelizingFade implements Fade {
 
@@ -30,7 +30,7 @@ public class PixelizingFade implements Fade {
 		setColor(color);
 		setSpeed(speed);
 		reset(FadeState.NONE);
-		backupSize = Tools.getOutputPixelSize();
+		backupSize = Draw.getOutputPixelSize();
 	}
 	
 	@Override
@@ -59,7 +59,7 @@ public class PixelizingFade implements Fade {
 	@Override
 	public void stopFade() {
 		fadeState = FadeState.NONE;
-		Tools.setOutputPixelSize(backupSize);
+		Draw.setOutputPixelSize(backupSize);
 	}
 
 	@Override
@@ -81,7 +81,7 @@ public class PixelizingFade implements Fade {
 		if (value != null) {
 			GraphicsContext gc = canvas.getGraphicsContext2D();
 			gc.save();
-			Tools.setOutputPixelSize(value.intValue());
+			Draw.setOutputPixelSize(value.intValue());
 			gc.setGlobalAlpha((double)value / 100);
 			gc.setFill(color);
 			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());

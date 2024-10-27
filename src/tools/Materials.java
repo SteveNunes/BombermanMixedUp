@@ -96,7 +96,7 @@ public abstract class Materials {
 								outY = d == 0 ? y * Main.TILE_SIZE : 240 + x * Main.TILE_SIZE;
 						ImageUtils.drawImage(gc, mainSprites, sprX, sprY, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
 					}
-			explosions[z] = Tools.getCanvasSnapshot(c);
+			explosions[z] = Draw.getCanvasSnapshot(c);
 		}
 	}
 

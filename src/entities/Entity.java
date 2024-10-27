@@ -27,8 +27,8 @@ import maps.Item;
 import maps.MapSet;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
+import tools.Draw;
 import tools.GameConfigs;
-import tools.Tools;
 
 public class Entity extends Position {
 	
@@ -473,11 +473,11 @@ public class Entity extends Position {
 
 	private void applyShadow() {
 		if (haveShadow()) {
-			Tools.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.SAVE);
-			Tools.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.SET_FILL, Color.BLACK);
-			Tools.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.SET_GLOBAL_ALPHA, shadowOpacity);
-			Tools.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.FILL_OVAL, getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight(), getShadowWidth(), getShadowHeight());
-			Tools.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.RESTORE);
+			Draw.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.SAVE);
+			Draw.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.SET_FILL, Color.BLACK);
+			Draw.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.SET_GLOBAL_ALPHA, shadowOpacity);
+			Draw.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.FILL_OVAL, getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight(), getShadowWidth(), getShadowHeight());
+			Draw.addDrawQueue((int)getY(), SpriteLayerType.SPRITE, DrawType.RESTORE);
 		}
 	}
 	

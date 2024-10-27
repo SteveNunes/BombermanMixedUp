@@ -12,6 +12,7 @@ import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
 import maps.MapSet;
 import objmoveutils.TileCoord;
+import tools.GameConfigs;
 import tools.Sound;
 
 public class Bomb extends Entity {
@@ -47,33 +48,44 @@ public class Bomb extends Entity {
 		super();
 		isActive = true;
 		isStucked = false;
-		nesBomb = owner instanceof BomberMan && ((BomberMan)owner).getBomberIndex() == 0;
-		// NORMAL, SPIKED
-		type = BombType.HEART;
+		nesBomb = type == BombType.NES || (owner instanceof BomberMan && ((BomberMan)owner).getBomberIndex() == 0);
+		if (type == BombType.P)
+			fireDistance = GameConfigs.MAX_EXPLOSION_DISTANCE;
 		this.type = type;
 		this.fireDistance = fireDistance;
 		this.owner = owner;
 		int y = nesBomb ? 32 : 32 + 16 * type.getValue();
 		timer = type == BombType.REMOTE || type == BombType.SPIKED_REMOTE ? -1 : 180;
-		int ticksPerFrame = 17;
+		int ticksPerFrame = type == BombType.LAND_MINE ? 3 : 16;
 		ownerIsOver = owner != null;
 		if (owner != null) {
 			if (owner instanceof BomberMan) {
 				if (((BomberMan)owner).getCurse() == Curse.SLOW_EXPLODE_BOMB) {
-					ticksPerFrame = 25;
+					ticksPerFrame *= 2;
 					if (timer != -1)
 						timer = 270;
 				}
 				else if (((BomberMan)owner).getCurse() == Curse.FAST_EXPLODE_BOMB) {
-					ticksPerFrame = 8;
+					ticksPerFrame /= 2;
 					if (timer != -1)
 						timer = 90;
 				}
 			}
 		}
-		String frameSet = "{SetSprSource;MainSprites;64;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}";
-		addNewFrameSetFromString("StandFrames", frameSet);
-		setFrameSet("StandFrames");
+		if (type == BombType.LAND_MINE) {
+			String frameSet = "{SetSprSource;MainSprites;64;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0},{PlayWav;Mine}|{SetSprIndex;-}|{SetSprIndex;1}|{SetSprIndex;-}|{SetSprIndex;2}|{SetSprIndex;-}|{SetSprIndex;3}|{SetSprIndex;-}|{SetSprIndex;0}|{Goto;1;1}|{SetFrameSet;LandedFrames}";
+			addNewFrameSetFromString("LandingFrames", frameSet);
+			setFrameSet("LandingFrames");
+			frameSet = "{SetSprSource;MainSprites;64;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;-}|{}|{Goto;-1}";
+			addNewFrameSetFromString("LandedFrames", frameSet);
+			frameSet = "{SetSprSource;MainSprites;64;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0},{PlayWav;Mine}|{SetSprIndex;-}|{SetSprIndex;1}|{SetSprIndex;-}|{SetSprIndex;2}|{SetSprIndex;-}|{SetSprIndex;3}|{SetSprIndex;-}|{SetSprIndex;0}|{Goto;1;1}|{ExplodeBomb}";
+			addNewFrameSetFromString("UnlandingFrames", frameSet);
+		}
+		else {
+			String frameSet = "{SetSprSource;MainSprites;64;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}";
+			addNewFrameSetFromString("StandFrames", frameSet);
+			setFrameSet("StandFrames");
+		}
 		setPosition(coord.getPosition());
 	}
 	
@@ -88,6 +100,9 @@ public class Bomb extends Entity {
 	
 	public boolean isActive()
 		{ return isActive; }
+	
+	public BombType getBombType()
+		{ return type; }
 
 	public static Bomb addBomb(TileCoord coord, BombType type, int fireDistance)
 		{ return addBomb(null, coord, type, fireDistance, false); }
@@ -144,8 +159,14 @@ public class Bomb extends Entity {
 		{ return bombList; }
 	
 	public static void drawBombs() {
-		List<Bomb> removeBombs = new ArrayList<>();
-		for (Bomb bomb : bombList) {
+		List<Bomb> bombs = new ArrayList<>(bombList);
+		for (Bomb bomb : bombs) {
+			if (bomb.type == BombType.LAND_MINE) {
+				bomb.run();
+				if (bomb.currentFrameSetNameIsEqual("LandedFrames") && Entity.haveAnyEntityAtCoord(bomb.getTileCoordFromCenter()))
+					bomb.setFrameSet("UnlandingFrames");
+				continue;
+			}
 			if (bomb.owner != null && bomb.ownerIsOver) {
 				int x = (int)bomb.owner.getX() + Main.TILE_SIZE / 2, y = (int)bomb.owner.getY() + Main.TILE_SIZE / 2,
 						xx = (int)bomb.getX() + Main.TILE_SIZE / 2, yy = (int)bomb.getY() + Main.TILE_SIZE / 2;
@@ -153,21 +174,24 @@ public class Bomb extends Entity {
 						y <= yy - Main.TILE_SIZE / 2 || y >= yy + Main.TILE_SIZE / 2)
 							bomb.ownerIsOver = false;
 			}
-			if ((bomb.timer == -1 || --bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
+			if (bomb.type != BombType.REMOTE && bomb.type != BombType.SPIKED_REMOTE)
+				bomb.timer--;
+			if ((bomb.timer == -1 || bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
 				bomb.timer = 0;
-			if (bomb.timer == 0) {
-				bomb.isActive = false;
-				bombs.remove(bomb.getTileCoordFromCenter());
-				bomb.centerToTile();
-				bomb.unsetPushEntity();
-				Sound.playWav("explosion/Explosion" + (bomb.nesBomb ? "" : bomb.fireDistance < 3 ? "1" : (int)(bomb.fireDistance / 3)));
-				Explosion.addExplosion(bomb, bomb.getTileCoordFromCenter(), bomb.fireDistance, bomb.type == BombType.SPIKED || bomb.type == BombType.SPIKED_REMOTE);
-				removeBombs.add(bomb);
-			}
+			if (bomb.timer == 0)
+				bomb.explode();
 			else
 				bomb.run();
 		}
-		removeBombs.forEach(bomb -> removeBomb(bomb));
+	}
+
+	public void explode() {
+		isActive = false;
+		centerToTile();
+		unsetPushEntity();
+		Sound.playWav("explosion/Explosion" + (nesBomb ? "" : fireDistance < 3 ? "1" : (int)(fireDistance / 3)));
+		Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, type == BombType.SPIKED || type == BombType.SPIKED_REMOTE);
+		removeBomb(this);
 	}
 
 	@Override

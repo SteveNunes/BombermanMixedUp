@@ -76,6 +76,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import maps.MapSet;
+import tools.Draw;
 import tools.IniFiles;
 import tools.Tools;
 import util.Misc;
@@ -162,8 +163,8 @@ public class FrameSetEditor {
 		setSpriteContextMenu();
 		setMouseEvents();
 		setKeyboardEvents(Main.sceneMain);
-		Tools.loadTools();
-		Tools.setBackgroundEffect(new SquaredBg(3, 3, 50, 255));
+		Tools.loadStuffs();
+		Draw.setBackgroundEffect(new SquaredBg(3, 3, 50, 255));
 		
 		for (int n = 0; n < 0; n++) { // NOTA: TEMP para desenhar multiplos FrameSets na tela para testar capacidade
 			Entity entity = new Entity(currentEntity);
@@ -675,9 +676,9 @@ public class FrameSetEditor {
 				if (++bgType == 3)
 					bgType = 0;
 				if (bgType == 2)
-					Tools.getBackgroundEffect().enable();
+					Draw.getBackgroundEffect().enable();
 				else
-					Tools.getBackgroundEffect().disable();
+					Draw.getBackgroundEffect().disable();
 			}
 			System.out.println("KeyCode: " + e.getCode());
 		});		
@@ -914,7 +915,7 @@ public class FrameSetEditor {
 	}
 	
 	void drawDrawCanvas() {
-		Map<SpriteLayerType, GraphicsContext> gcs = new HashMap<>();// = Tools.getGcMap();
+		Map<SpriteLayerType, GraphicsContext> gcs = new HashMap<>();// = Draw.getGcMap();
 		if (bgType == 0) {
 			gcs.get(SpriteLayerType.BACKGROUND).setFill(bgType == 0 ? Color.valueOf("#00FF00") : Color.BLACK);
 			gcs.get(SpriteLayerType.BACKGROUND).fillRect(0, 0, winW, winH);
@@ -966,7 +967,7 @@ public class FrameSetEditor {
 		gcMain.setFill(Color.BLACK);
 		gcMain.fillRect(0, 0, canvasMain.getWidth(), canvasMain.getHeight());
 		if (zoom <= 3)
-			Tools.applyAllDraws(canvasMain, zoom,
+			Draw.applyAllDraws(canvasMain, zoom,
 					(int)canvasMain.getWidth() / 2 - winW * zoom / 2,
 					(int)canvasMain.getHeight() / 2 - winH * zoom / 2);
 		if (zoom == 3) {
@@ -1037,8 +1038,8 @@ public class FrameSetEditor {
 			}
 		}
 		else if (zoom > 3) {
-			Tools.applyAllDrawsToTempCanvas();
-			Image i = Tools.getTempCanvasSnapshot();
+			Draw.applyAllDrawsToTempCanvas();
+			Image i = Draw.getTempCanvasSnapshot();
 			int w = (int)canvasMain.getWidth(), h = (int)canvasMain.getHeight(),
 					w2 = (int)i.getWidth(), h2 = (int)i.getHeight(), z = w / w2, zoom2 = zoom - 2;
 	    gcMain.drawImage(i, originalMouseX / z - w2 / 2 / zoom2, originalMouseY / z - h2 / 2 / zoom2, w2 / zoom2, h2 / zoom2, 0, 0, w, h); 

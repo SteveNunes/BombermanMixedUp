@@ -1,14 +1,13 @@
 package enums;
 
-public enum PassThrough {
-
+public enum FindType {
+	
 	PLAYER,
 	MONSTER,
 	BOMB,
-	BRICK,
 	ITEM,
+	BRICK,
 	WALL,
-	HOLE,
-	WATER;
+	EMPTY;
 
 }

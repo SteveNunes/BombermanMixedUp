@@ -12,6 +12,7 @@ import enums.Curse;
 import enums.Direction;
 import enums.GameInputs;
 import enums.ItemType;
+import enums.PassThrough;
 import enums.TileProp;
 import frameset.Tags;
 import javafx.scene.canvas.GraphicsContext;
@@ -173,8 +174,14 @@ public class BomberMan extends Entity {
 
 	public void setBomb() {
 		if (bombCd <= 0 && bombs.size() < maxBombs) {
+			if (!gotItems.isEmpty())
+				System.out.println(gotItems + " " + gotItems.get(0).isBomb() + " " + ItemType.getBombTypeFromItemType(gotItems.get(0)));
 			BombType type = !gotItems.isEmpty() && gotItems.get(0).isBomb() ?
 											ItemType.getBombTypeFromItemType(gotItems.get(0)) : BombType.NORMAL;
+			for (Bomb bomb : bombs) {
+				if (bomb.getBombType().isUnique())
+					type = BombType.NORMAL;
+			}
 			TileCoord coord = new TileCoord((int)(getX() + Main.TILE_SIZE / 2) / Main.TILE_SIZE, (int)(getY() + Main.TILE_SIZE / 2) / Main.TILE_SIZE);
 			Bomb bomb = Bomb.addBomb(this, coord, type, fireRange, true);
 			if (bomb != null) {
@@ -220,16 +227,17 @@ public class BomberMan extends Entity {
 		maxBombs = GameConfigs.STARTING_BOMBS;
 		double speed = GameConfigs.INITIAL_PLAYER_SPEED;
 		clearPassThrough();
+		getPassThrough().addAll(Arrays.asList(PassThrough.ITEM, PassThrough.MONSTER, PassThrough.PLAYER));
 		for (ItemType type : gotItems) {
 			if (type == ItemType.BOMB_UP)
 				maxBombs++;
 			else if (type == ItemType.FIRE_MAX)
-				fireRange = 9;
+				fireRange = GameConfigs.MAX_EXPLOSION_DISTANCE;
 			else if (type == ItemType.SPEED_UP && (speed += 0.2f) > GameConfigs.MAX_PLAYER_SPEED)
 				speed = GameConfigs.MAX_PLAYER_SPEED;
 			else if (type == ItemType.SPEED_DOWN && (speed -= 0.2f) < GameConfigs.MIN_PLAYER_SPEED)
 				speed = GameConfigs.MIN_PLAYER_SPEED;
-			else if (type == ItemType.FIRE_UP && fireRange < 9)
+			else if (type == ItemType.FIRE_UP && fireRange < GameConfigs.MAX_EXPLOSION_DISTANCE)
 				fireRange++;
 			else if (type == ItemType.PASS_BOMB)
 				setPassThroughBomb(true);

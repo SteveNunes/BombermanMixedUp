@@ -8,6 +8,7 @@ public abstract class GameConfigs {
 	public static double INITIAL_PLAYER_SPEED = 0.80;
 	public static double MIN_PLAYER_SPEED = 0.40;
 	public static double MAX_PLAYER_SPEED = 4;
+	public static int MAX_EXPLOSION_DISTANCE = 9;
 	public static int PLAYER_INVENCIBLE_FRAMES_AFTER_TAKING_DAMAGE = 240;
 	public static int MONSTER_INVENCIBLE_FRAMES_AFTER_TAKING_DAMAGE = 120;
 

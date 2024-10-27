@@ -49,6 +49,11 @@ public enum BombType {
 			throw new RuntimeException(bombId + " - Invalid bomb ID");
 		return list[bombId];
 	}
+	
+	public boolean isUnique() {
+		return this == P || this == LAND_MINE || this == FOLLOW ||
+				this == MAGNET || this == MAGMA || this == HEART || this == SENSOR;
+	}
 
 	public static BombType getBombTypeFromItemType(ItemType type) {
 		if (type == ItemType.FOLLOW_BOMB)
@@ -71,6 +76,8 @@ public enum BombType {
 			return BombType.RUBBER;
 		if (type == ItemType.SENSOR_BOMB)
 			return BombType.SENSOR;
+		if (type == ItemType.P_BOMB)
+			return BombType.P;
 		return BombType.NORMAL;
 	}
 	

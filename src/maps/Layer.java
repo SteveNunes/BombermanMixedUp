@@ -21,8 +21,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
+import tools.Draw;
 import tools.Materials;
-import tools.Tools;
 
 public class Layer {
 	
@@ -97,9 +97,9 @@ public class Layer {
 														 16, 16, tile.flip, tile.rotate, tile.opacity, tile.effects);
 		}));
 		if (getLayerImage() == null || (int)getLayerImage().getWidth() != width || (int)getLayerImage().getHeight() != height)
-			setLayerImage(Tools.getCanvasSnapshot(canvas));
+			setLayerImage(Draw.getCanvasSnapshot(canvas));
 		else
-			Tools.getCanvasSnapshot(canvas, getLayerImage());
+			Draw.getCanvasSnapshot(canvas, getLayerImage());
 	}
 	
 	public WritableImage getLayerImage()

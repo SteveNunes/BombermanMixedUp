@@ -24,7 +24,7 @@ public class Game {
 	private Font font;
 	
 	public void init(Scene scene) {
-		Tools.loadTools();
+		Tools.loadStuffs();
 		sceneMain = scene;
 		font = new Font("Lucida Console", 15);
 		canvasMain.setWidth(winW * 3);
