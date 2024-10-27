@@ -415,6 +415,8 @@ public class MapEditor {
 			vBoxTileSet.setDisable(true);
 			buttonSaveToDisk.setDisable(true);
 			editable = false;
+			if (playing)
+				MapSet.setShake(3d, -0.02, 0d);
 		});
 	}
 
@@ -683,8 +685,8 @@ public class MapEditor {
 			}
 			else if (e.getCode() == KeyCode.I && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord))
 				Item.addItem(canvasMouseDraw.tileCoord, itemType);
-			else if (e.getCode() == KeyCode.B && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !Bomb.haveBombAt(null, canvasMouseDraw.tileCoord))
-				Bomb.addBomb(canvasMouseDraw.tileCoord, bombType, 9);
+			else if (e.getCode() == KeyCode.B && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !Bomb.haveBombAt(null, canvasMouseDraw.tileCoord) && !MapSet.tileContainsProp(canvasMouseDraw.tileCoord, TileProp.GROUND_NO_BOMB))
+				Bomb.addBomb(canvasMouseDraw.tileCoord, bombType, 5);
 			else if (e.getCode() == KeyCode.Q || e.getCode() == KeyCode.E) {
 				if (e.getCode() == KeyCode.Q && --controlledBomberIndex == -1)
 					controlledBomberIndex = bombers.size() - 1;
@@ -1198,7 +1200,7 @@ public class MapEditor {
 				menuItem.setOnAction(e -> addPlayerAtCursor());
 				contextMenu.getItems().add(new SeparatorMenuItem());
 				menu = new Menu("Adicionar bomba");
-				menu.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord) || Bomb.haveBombAt(null, coord));
+				menu.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord) || Bomb.haveBombAt(null, coord) || MapSet.tileContainsProp(coord, TileProp.GROUND_NO_BOMB));
 				contextMenu.getItems().add(menu);
 				for (BombType type : BombType.values()) {
 					menuItem = new MenuItem(type.name());

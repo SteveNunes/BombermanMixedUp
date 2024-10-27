@@ -165,6 +165,8 @@ public class Bomb extends Entity {
 				bomb.run();
 				if (bomb.currentFrameSetNameIsEqual("LandedFrames") && Entity.haveAnyEntityAtCoord(bomb.getTileCoordFromCenter()))
 					bomb.setFrameSet("UnlandingFrames");
+				else if (MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
+					bomb.explode();
 				continue;
 			}
 			if (bomb.owner != null && bomb.ownerIsOver) {

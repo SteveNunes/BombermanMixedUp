@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
 import entities.Entity;
+import entities.Shake;
 import enums.ImageAlignment;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
@@ -14,6 +15,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import maps.MapSet;
 import objmoveutils.EliticMove;
 import objmoveutils.GotoMove;
 import objmoveutils.JumpMove;
@@ -38,6 +40,7 @@ public class Sprite extends Position {
 	private RectangleMove rectangleMove;
 	private JumpMove jumpMove;
 	private GotoMove gotoMove;
+	private Shake shake;
 	private ImageFlip flip;
 	private ImageAlignment alignment;
 	private int spritesPerLine;
@@ -70,6 +73,7 @@ public class Sprite extends Position {
 		rectangleMove = sprite.rectangleMove == null ? null : new RectangleMove(sprite.rectangleMove);
 		jumpMove = sprite.jumpMove == null ? null : new JumpMove(sprite.jumpMove);
 		gotoMove = sprite.gotoMove == null ? null : new GotoMove(sprite.gotoMove);
+		shake = sprite.shake == null ? null : new Shake(sprite.shake);
 		layerType = sprite.layerType;
 		wavingImage = sprite.wavingImage == null ? null : new WavingImage(sprite.wavingImage);
 		spriteScroll = sprite.spriteScroll == null ? null : new Position(sprite.spriteScroll);
@@ -88,6 +92,7 @@ public class Sprite extends Position {
 		this.outputSpriteSizePos = new Rectangle(outputSpriteSizePos);
 		spriteScroll = null;
 		wavingImage = null;
+		shake = null;
 		absoluteOutputSpritePos = new Position();
 		spriteEffects = new DrawImageEffects();
 		flip =ImageFlip.NONE;
@@ -118,6 +123,27 @@ public class Sprite extends Position {
 	
 	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos)
 		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, new Rectangle(0, 0, (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()), 0, 0); }
+
+	public void setShake(Double incStrength, Double finalStrength)
+		{ shake = new Shake(incStrength, incStrength, finalStrength, finalStrength);	}
+	
+	public void setShake(Double startStrength, Double incStrength, Double finalStrength)
+		{ shake = new Shake(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength); }
+	
+	public void setShake(Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY)
+		{ shake = new Shake(incStrengthX > 0 ? 0 : finalStrengthX, incStrengthY > 0 ? 0 : finalStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);	}
+	
+	public void setShake(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY)
+		{ shake = new Shake(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);	}
+	
+	public void stopShake()
+		{ shake.stop(); }
+	
+	public Shake getShake()
+		{ return shake; }
+
+	public void unsetShake()
+		{ shake = null; }
 
 	public void setVisible(boolean state)
 		{ isVisible = state; }
@@ -476,13 +502,28 @@ public class Sprite extends Position {
 			default:
 				break;
 		}
-		absoluteOutputSpritePos.setPosition(x, y);
+		Shake shake;
+		int shakeX = 0, shakeY = 0;
+		if ((shake = MapSet.getShake()) != null || (shake = getSourceEntity().getShake()) != null || (shake = this.shake) != null) {
+			if (this.shake != null)
+				shake.proccess();
+			shakeX = shake.getX();
+			shakeY = shake.getY();
+			if (!shake.isActive())
+				shake = null;
+		}
+		absoluteOutputSpritePos.setPosition(x + shakeX, y + shakeY);
 	}
 	
 	public void draw()
 		{ draw(null); }
 	
 	public void draw(GraphicsContext gc) {
+		if (shake != null) {
+			shake.proccess();
+			if (!shake.isActive())
+				shake = null;
+		}
 		if (getSourceEntity().isVisible() && isVisible) {
 			updateOutputDrawCoords();
 			boolean blink = Misc.blink(getSourceEntity().getBlinkingFrames() > 600 ? 200 :

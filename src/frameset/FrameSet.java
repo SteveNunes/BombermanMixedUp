@@ -36,26 +36,17 @@ public class FrameSet extends Position {
 		{ this(frameSet, position, new Entity()); }
 	
 	public FrameSet(FrameSet frameSet, Position position, Entity entity) {
-		super(position);
-		jumpMove = null;
-		sprites = new ArrayList<>();
-		frames = new ArrayList<>();
+		this(entity, position);
 		frameSet.sprites.forEach(sprite -> sprites.add(sprite = new Sprite(sprite, this)));
 		frameSet.frames.forEach(frame -> frames.add(frame = new Frame(frame, this)));
-		this.sourceEntity = entity;
-		framesPerTick = frameSet.framesPerTick;
-		changedIndex = false;
-		stop = false;
-		currentFrameIndex = 0;
-		ticks = 0;
 	}
 	
 	public FrameSet(Entity entity, Position position) {
 		super(position);
+		sprites = new ArrayList<>();
+		frames = new ArrayList<>();
 		this.sourceEntity = entity;
 		framesPerTick = 1;
-		frames = new ArrayList<>();
-		sprites = new ArrayList<>();
 		changedIndex = false;
 		stop = false;
 		currentFrameIndex = 0;
@@ -141,6 +132,11 @@ public class FrameSet extends Position {
 	
 	public void run(GraphicsContext gc, boolean isPaused) {
 		if (!stop && getTotalFrames() > 0 && currentFrameIndex >= 0 && currentFrameIndex < getTotalFrames()) {
+			if (getSourceEntity().getShake() != null) {
+				getSourceEntity().getShake().proccess();
+				if (!getSourceEntity().getShake().isActive())
+					getSourceEntity().unsetShake();
+			}
 			if (jumpMove != null) {
 				jumpMove.move();
 				if (jumpMove.jumpReachedFloorAgain())

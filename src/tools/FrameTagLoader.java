@@ -357,6 +357,10 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new SetBlinkingFrames(s));
 			else if (tag.equals("ExplodeBomb"))
 				tags.addTag(newTag = new ExplodeBomb(s));
+			else if (tag.equals("ShakeSprite"))
+				tags.addTag(newTag = new ShakeSprite(s));
+			else if (tag.equals("ShakeFrameSet"))
+				tags.addTag(newTag = new ShakeFrameSet(s));
 			if (delay > 0)
 				newTag.setTriggerDelay(delay);
 		}

@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import application.Main;
 import enums.Direction;
@@ -50,6 +51,7 @@ public class Entity extends Position {
 	private Position linkedEntityOffset;
 	private TileCoord tileChangedCoord;
 	private TileCoord previewTileCoord;
+	private Shake shake;
 	private int invencibleFrames;
 	private int elapsedSteps;
 	private int elapsedFrames;
@@ -62,8 +64,9 @@ public class Entity extends Position {
 	private boolean isDisabled;
 	private boolean blockedMovement;
 	private boolean tileWasChanged;
-	private boolean isVisible;	
-	
+	private boolean isVisible;
+	private int pushing;
+
 	public Entity(Entity entity) {
 		super(entity.getPosition());
 		shadow = entity.shadow == null ? null : new Rectangle(entity.shadow);
@@ -75,6 +78,7 @@ public class Entity extends Position {
 			freshFrameSets.put(fSetName, new FrameSet(entity.freshFrameSets.get(fSetName), this));
 		});
 		speed = entity.speed;
+		pushing = entity.pushing;
 		tempSpeed = entity.tempSpeed;
 		direction = entity.direction;
 		elevation = entity.elevation;
@@ -88,6 +92,7 @@ public class Entity extends Position {
 		blinkingFrames = entity.blinkingFrames;
 		defaultTags = entity.defaultTags == null ? null : new Tags(defaultTags);
 		pushEntity = entity.pushEntity == null ? null : new PushEntity(entity.pushEntity);
+		shake = entity.shake == null ? null : new Shake(entity.shake);
 		linkedEntityInfos = new LinkedList<>();
 		linkedEntityBack = null;
 		linkedEntityFront = null;
@@ -118,8 +123,10 @@ public class Entity extends Position {
 		defaultTags = null;
 		shadow = null;
 		pushEntity = null;
+		shake = null;
 		this.direction = direction;
 		speed = 0;
+		pushing = 0;
 		tempSpeed = -1;
 		elevation = Elevation.ON_GROUND;
 		shadowOpacity = 0;
@@ -136,7 +143,28 @@ public class Entity extends Position {
 		tileChangedCoord = null;
 		invencibleFrames = 0;
 	}
+
+	public void setShake(Double incStrength, Double finalStrength)
+		{ shake = new Shake(incStrength, incStrength, finalStrength, finalStrength);	}
 	
+	public void setShake(Double startStrength, Double incStrength, Double finalStrength)
+		{ shake = new Shake(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength); }
+	
+	public void setShake(Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY)
+		{ shake = new Shake(incStrengthX > 0 ? 0 : finalStrengthX, incStrengthY > 0 ? 0 : finalStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);	}
+	
+	public void setShake(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY)
+		{ shake = new Shake(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);	}
+	
+	public void stopShake()
+		{ shake.stop(); }
+	
+	public Shake getShake()
+		{ return shake; }
+	
+	public void unsetShake()
+		{ shake = null; }
+
 	public Tags getDefaultTags()
 		{ return defaultTags; }
 
@@ -394,6 +422,18 @@ public class Entity extends Position {
 	public PushEntity getPushEntity()
 		{ return pushEntity; }
 	
+	public void setPushEntity(Double strenght, Consumer<Entity> consumerWhenCollides)
+		{ pushEntity = new PushEntity(this, strenght, null, getDirection()).setOnColideEvent(consumerWhenCollides); }
+	
+	public void setPushEntity(Double strenght, Direction direction, Consumer<Entity> consumerWhenCollides)
+		{ pushEntity = new PushEntity(this, strenght, null, direction).setOnColideEvent(consumerWhenCollides); }
+	
+	public void setPushEntity(Double startStrenght, Double decStrenght, Consumer<Entity> consumerWhenCollides)
+		{ pushEntity = new PushEntity(this, startStrenght, decStrenght, getDirection()).setOnColideEvent(consumerWhenCollides); }
+	
+	public void setPushEntity(Double startStrenght, Double decStrenght, Direction direction, Consumer<Entity> consumerWhenCollides)
+		{ pushEntity = new PushEntity(this, startStrenght, decStrenght, direction).setOnColideEvent(consumerWhenCollides); }
+	
 	public void setPushEntity(Double strenght)
 		{ pushEntity = new PushEntity(this, strenght, null, getDirection()); }
 	
@@ -481,6 +521,9 @@ public class Entity extends Position {
 		}
 	}
 	
+	public int getPushingValue()
+		{ return pushing; }
+	
 	public boolean[] getFreeCorners()
 		{ return getFreeCorners(getDirection()); }
 	
@@ -551,12 +594,15 @@ public class Entity extends Position {
 					incPositionByDirection(direction, speed);
 					if (isPerfectlyBlockedDir(getDirection()))
 						centerToTile();
+					pushing = 0;
 				}
 				else {
 					if (!freeCorners[0] && freeCorners[1] && (int)ru.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para cima, e o canto esquerdo superior estiver bloqueado, mas o canto direito superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
 						incPosition(speed, -speed / 2);
 					else if (freeCorners[0] && !freeCorners[1] && (int)lu.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para cima, e o canto direito superior estiver bloqueado, mas o canto esquerdo superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
 						incPosition(-speed, -speed / 2);
+					else
+						pushing++;
 					if (prevX != (int)getX() / Main.TILE_SIZE)
 						centerXToTile();
 				}
@@ -566,12 +612,15 @@ public class Entity extends Position {
 					incPositionByDirection(direction, speed);
 					if (isPerfectlyBlockedDir(getDirection()))
 						centerToTile();
+					pushing = 0;
 				}
 				else {
 					if (!freeCorners[2] && freeCorners[3] && (int)rd.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para baixo, e o canto esquerdo inferior estiver bloqueado, mas o canto direito inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
 						incPosition(speed, speed / 2);
 					else if (freeCorners[2] && !freeCorners[3] && (int)ld.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para baixo, e o canto direito inferior estiver bloqueado, mas o canto esquerdo inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
 						incPosition(-speed, speed / 2);
+					else
+						pushing++;
 					if (prevX != (int)getX() / Main.TILE_SIZE)
 						centerXToTile();
 				}
@@ -581,12 +630,15 @@ public class Entity extends Position {
 					incPositionByDirection(direction, speed);
 					if (isPerfectlyBlockedDir(getDirection()))
 						centerToTile();
+					pushing = 0;
 				}
 				else {
 					if (!freeCorners[0] && freeCorners[2] && (int)ld.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para esquerda, e o canto esquerdo superior estiver bloqueado, mas o canto esquerdo inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
 						incPosition(-speed / 2, speed);
 					else if (freeCorners[0] && !freeCorners[2] && (int)lu.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para esquerda, e o canto esquerdo inferior estiver bloqueado, mas o canto esquerdo superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
 						incPosition(-speed / 2, -speed);
+					else
+						pushing++;
 					if (prevY != (int)getY() / Main.TILE_SIZE)
 						centerYToTile();
 				}
@@ -596,12 +648,15 @@ public class Entity extends Position {
 					incPositionByDirection(direction, speed);
 					if (isPerfectlyBlockedDir(getDirection()))
 						centerToTile();
+					pushing = 0;
 				}
 				else {
 					if (!freeCorners[1] && freeCorners[3] && (int)rd.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para direita, e o canto direita superior estiver bloqueado, mas o canto direita inferior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
 						incPosition(speed / 2, speed);
 					else if (freeCorners[1] && !freeCorners[3] && (int)ru.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para direita, e o canto direita inferior estiver bloqueado, mas o canto direita superior estiver livre, e esse canto livre for maior que metade do tile, anda na diagonal tentando alinhar
 						incPosition(speed / 2, -speed);
+					else
+						pushing++;
 					if (prevY != (int)getY() / Main.TILE_SIZE)
 						centerYToTile();
 				}
@@ -616,6 +671,8 @@ public class Entity extends Position {
 			}
 			addEntityToList(getTileCoordFromCenter(), this);
 		}
+		else
+			pushing = 0;
 	}
 	
 	public TileCoord getPreviewTileCoord()

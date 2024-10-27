@@ -13,6 +13,7 @@ import entities.BomberMan;
 import entities.Effect;
 import entities.Entity;
 import entities.Monster;
+import entities.Shake;
 import enums.BombType;
 import enums.Direction;
 import enums.Elevation;
@@ -43,6 +44,7 @@ public abstract class MapSet {
 	private static Map<Integer, Layer> layers;
 	private static Map<TileCoord, Integer> initialPlayerCoords;
 	private static Map<TileCoord, Integer> initialMonsterCoords;
+	private static Shake shake;
 	public static Entity mapFrameSets;
 	private static IniFile iniFileMap;
 	private static IniFile iniFileTileSet;
@@ -83,6 +85,7 @@ public abstract class MapSet {
 		mapMove = new Position();
 		mapName = IniFiles.stages.read(iniMapName, "File");
 		iniFileMap = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
+		shake = null;
 		if (iniFileMap == null)
 			throw new RuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
 		setTileSet(iniFileMap.read("SETUP", "TileSet"));
@@ -224,6 +227,24 @@ public abstract class MapSet {
 	public static List<StageClearCriteria> getLeftStageClearCriterias()
 		{ return leftStageClearCriterias; }
 	
+	public static void setShake(Double incStrength, Double finalStrength)
+		{ shake = new Shake(incStrength, incStrength, finalStrength, finalStrength);	}
+	
+	public static void setShake(Double startStrength, Double incStrength, Double finalStrength)
+		{ shake = new Shake(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength); }
+	
+	public static void setShake(Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY)
+		{ shake = new Shake(incStrengthX > 0 ? 0 : finalStrengthX, incStrengthY > 0 ? 0 : finalStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);	}
+	
+	public static void setShake(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY)
+		{ shake = new Shake(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);	}
+	
+	public static void stopShake()
+		{ shake.stop(); }
+	
+	public static Shake getShake()
+		{ return shake; }
+
 	private static void addStageClearCriteria(StageClearCriteria criteria) {
 		if (leftStageClearCriterias != null)
 			leftStageClearCriterias.add(criteria);
@@ -532,6 +553,11 @@ public abstract class MapSet {
 		{ return getCurrentLayer().haveTilesOnCoord(coord); }
 
 	public static void run() {
+		if (shake != null) {
+			shake.proccess();
+			if (!shake.isActive())
+				shake = null;
+		}
 		mapFrameSets.run();
 		if (!mapFrameSets.getCurrentFrameSet().isRunning()) {
 			if (mapFrameSets.getCurrentFrameSetName().equals("StageIntro"))
