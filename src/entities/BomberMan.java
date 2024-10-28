@@ -18,6 +18,7 @@ import frameset.Tags;
 import javafx.scene.canvas.GraphicsContext;
 import maps.Item;
 import maps.MapSet;
+import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import tools.GameConfigs;
 import tools.IniFiles;
@@ -104,13 +105,18 @@ public class BomberMan extends Entity {
 					return;
 				}
 		}
-		if (input == GameInputs.C) {
+		else if (input == GameInputs.C) {
 			bombs.sort((b1, b2) -> (int)(b1.getSetTime() - b2.getSetTime()));
 			for (Bomb bomb : bombs)
 				if (bomb.getPushEntity() != null) {
 					bomb.stopKick();
 					return;
 				}
+			TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(getDirection());
+			while (haveItem(ItemType.LINED_BOMBS) && MapSet.tileIsFree(coord) && !Item.haveItemAt(coord)) {
+				setBomb(true, coord);
+				coord.incCoordsByDirection(getDirection());
+			}
 		}
 		else {
 			Direction dir = input.getDirection();
@@ -168,8 +174,15 @@ public class BomberMan extends Entity {
 				setFrameSet("Moving");
 				setDirection(curse == Curse.REVERSED ? dir.getReverseDirection() : dir);
 			}
-			if (holdedInputs.contains(GameInputs.B))
-				setBomb();
+			if (holdedInputs.contains(GameInputs.B)) {
+				if (currentFrameSetNameIsEqual("Moving")) { // Definir a coordenada um pouco mais para as costas se ta soltando a bomba enquanto esta andando, pra evitar q a proxima bomba saia na sua frente
+					Position pos = new Position((int)getX() + Main.TILE_SIZE / 2, (int)getY() + Main.TILE_SIZE / 2);
+					pos.incPositionByDirection(getDirection().getReverseDirection(), Main.TILE_SIZE / 4);
+					setBomb(pos.getTileCoord());
+				}
+				else
+					setBomb();
+			}
 			if (tileWasChanged()) {
 				if (pressedDirs.size() > 1) {
 					Direction dir = pressedDirs.get(1);
@@ -185,30 +198,43 @@ public class BomberMan extends Entity {
 					pickItem(Item.getItemAt(getTileCoordFromCenter()));
 			}
 			TileCoord frontTile = getTileCoord().getNewInstance().incCoordsByDirection(getDirection());
-			if (getPushingValue() > 5 && gotItems.contains(ItemType.KICK_BOMB) && Bomb.haveBombAt(this, frontTile))
+			if (getPushingValue() > 5 && haveItem(ItemType.KICK_BOMB) && Bomb.haveBombAt(this, frontTile))
 				Bomb.getBombAt(frontTile).kick(getDirection(), 4);
 		}
 	}
 	
+	public boolean haveItem(ItemType itemType)
+		{ return gotItems.contains(itemType); }
+	
 	public void addScore(int score)
 		{ addedScore = score; }
 
-	public void setBomb() {
-		if (bombCd <= 0 && bombs.size() < maxBombs) {
+	public Bomb setBomb()
+		{ return setBomb(false, getTileCoordFromCenter()); }
+
+	public Bomb setBomb(boolean noCd)
+		{ return setBomb(false, getTileCoordFromCenter()); }
+
+	public Bomb setBomb(TileCoord coord)
+		{ return setBomb(false, coord); }
+	
+	public Bomb setBomb(boolean noCd, TileCoord coord) {
+		if ((noCd || bombCd <= 0) && bombs.size() < maxBombs) {
 			BombType type = !gotItems.isEmpty() && gotItems.get(0).isBomb() ?
 											ItemType.getBombTypeFromItemType(gotItems.get(0)) : BombType.NORMAL;
 			for (Bomb bomb : bombs) {
 				if (bomb.getBombType().isUnique())
 					type = BombType.NORMAL;
 			}
-			TileCoord coord = new TileCoord((int)(getX() + Main.TILE_SIZE / 2) / Main.TILE_SIZE, (int)(getY() + Main.TILE_SIZE / 2) / Main.TILE_SIZE);
 			Bomb bomb = Bomb.addBomb(this, coord, type, fireRange, true);
 			if (bomb != null) {
 				bombs.add(bomb);
 				Sound.playWav(setBombSound);
-				bombCd = 10;
+				bombCd = 5;
+				return bomb;
 			}
 		}
+		return null;
 	}
 
 	public void pickItem(Item item) {

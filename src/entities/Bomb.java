@@ -35,7 +35,7 @@ public class Bomb extends Entity {
 		super(bomb);
 		owner = bomb.owner;
 		type = bomb.type;
-		timer = bomb.timer;
+		timer = bomb.getTimer();
 		fireDistance = bomb.fireDistance;
 		ownerIsOver = bomb.ownerIsOver;
 		nesBomb = bomb.nesBomb;
@@ -181,16 +181,34 @@ public class Bomb extends Entity {
 							bomb.ownerIsOver = false;
 			}
 			if (bomb.type != BombType.REMOTE && bomb.type != BombType.SPIKED_REMOTE)
-				bomb.timer--;
-			if ((bomb.timer == -1 || bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
-				bomb.timer = 0;
-			if (bomb.timer == 0)
+				bomb.decTimer();
+			if ((bomb.getTimer() == -1 || bomb.getTimer() > 0) && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
+				bomb.setTimer(0);
+			if (bomb.getTimer() == 0)
 				bomb.detonate();
 			else
 				bomb.run();
 		}
 	}
 	
+	public int getTimer()
+		{ return timer; }
+	
+	public void setTimer(int timer)
+		{ this.timer = timer; }
+
+	public void incTimer()
+		{ incTimer(1); }
+	
+	public void incTimer(int value)
+		{ timer += value; }
+
+	public void decTimer()
+		{ decTimer(1); }
+	
+	public void decTimer(int value)
+		{ timer -= value; }
+
 	public long getSetTime()
 		{ return setTime; }
 
