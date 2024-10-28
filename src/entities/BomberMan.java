@@ -96,14 +96,24 @@ public class BomberMan extends Entity {
 			queuedInputs.add(input);
 			return;
 		}
-		Direction dir = input.getDirection();
-		if (dir != null && !pressedDirs.contains(dir)) {
-			if (!pressedDirs.isEmpty() && (isPerfectlyBlockedDir(getDirection()) || pressedDirs.get(0).getReverseDirection() == dir))
-				pressedDirs.add(0, dir);
-			else
-				pressedDirs.add(dir);
+		if (input == GameInputs.A) {
+			bombs.sort((b1, b2) -> (int)(b1.getSetTime() - b2.getSetTime()));
+			for (Bomb bomb : bombs)
+				if (bomb.getBombType() == BombType.REMOTE || bomb.getBombType() == BombType.SPIKED_REMOTE) {
+					bomb.detonate();
+					return;
+				}
 		}
-		holdedInputs.add(input);
+		else {
+			Direction dir = input.getDirection();
+			if (dir != null && !pressedDirs.contains(dir)) {
+				if (!pressedDirs.isEmpty() && (isPerfectlyBlockedDir(getDirection()) || pressedDirs.get(0).getReverseDirection() == dir))
+					pressedDirs.add(0, dir);
+				else
+					pressedDirs.add(dir);
+			}
+			holdedInputs.add(input);
+		}
 	}
 	
 	public void keyRelease(GameInputs input) {
@@ -174,8 +184,6 @@ public class BomberMan extends Entity {
 
 	public void setBomb() {
 		if (bombCd <= 0 && bombs.size() < maxBombs) {
-			if (!gotItems.isEmpty())
-				System.out.println(gotItems + " " + gotItems.get(0).isBomb() + " " + ItemType.getBombTypeFromItemType(gotItems.get(0)));
 			BombType type = !gotItems.isEmpty() && gotItems.get(0).isBomb() ?
 											ItemType.getBombTypeFromItemType(gotItems.get(0)) : BombType.NORMAL;
 			for (Bomb bomb : bombs) {

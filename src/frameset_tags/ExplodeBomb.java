@@ -38,7 +38,7 @@ public class ExplodeBomb extends FrameTag {
 	public void process(Sprite sprite) {
 		if (targetCoords == null) {
 			if (sprite.getSourceEntity() instanceof Bomb) {
-				((Bomb)sprite.getSourceEntity()).explode();
+				((Bomb)sprite.getSourceEntity()).detonate();
 				return;
 			}
 			else
@@ -46,7 +46,7 @@ public class ExplodeBomb extends FrameTag {
 		}
 		processTile(sprite.getTileCoord(), targetCoords, coord -> {
 			if (Bomb.haveBombAt(sprite.getSourceEntity(), coord))
-				Bomb.getBombAt(coord).explode();
+				Bomb.getBombAt(coord).detonate();
 		});
 	}
 

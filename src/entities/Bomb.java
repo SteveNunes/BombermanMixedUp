@@ -28,6 +28,7 @@ public class Bomb extends Entity {
 	private boolean ownerIsOver;
 	private boolean isActive;
 	private boolean isStucked;
+	private long setTime;
 	
 	public Bomb(Bomb bomb) {
 		super(bomb);
@@ -39,6 +40,7 @@ public class Bomb extends Entity {
 		nesBomb = bomb.nesBomb;
 		isActive = bomb.isActive;
 		isStucked = bomb.isStucked;
+		setTime = bomb.setTime;
 	}
 
 	public Bomb(TileCoord coord, BombType type, int fireDistance)
@@ -46,6 +48,7 @@ public class Bomb extends Entity {
 	
 	public Bomb(Entity owner, TileCoord coord, BombType type, int fireDistance) {
 		super();
+		setTime = System.currentTimeMillis();
 		isActive = true;
 		isStucked = false;
 		nesBomb = type == BombType.NES || (owner instanceof BomberMan && ((BomberMan)owner).getBomberIndex() == 0);
@@ -166,7 +169,7 @@ public class Bomb extends Entity {
 				if (bomb.currentFrameSetNameIsEqual("LandedFrames") && Entity.haveAnyEntityAtCoord(bomb.getTileCoordFromCenter()))
 					bomb.setFrameSet("UnlandingFrames");
 				else if (MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
-					bomb.explode();
+					bomb.detonate();
 				continue;
 			}
 			if (bomb.owner != null && bomb.ownerIsOver) {
@@ -181,13 +184,16 @@ public class Bomb extends Entity {
 			if ((bomb.timer == -1 || bomb.timer > 0) && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
 				bomb.timer = 0;
 			if (bomb.timer == 0)
-				bomb.explode();
+				bomb.detonate();
 			else
 				bomb.run();
 		}
 	}
+	
+	public long getSetTime()
+		{ return setTime; }
 
-	public void explode() {
+	public void detonate() {
 		isActive = false;
 		centerToTile();
 		unsetPushEntity();
