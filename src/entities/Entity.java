@@ -202,7 +202,7 @@ public class Entity extends Position {
 		{ invencibleFrames = 0; }
 
 	public boolean isBlockedMovement()
-		{ return blockedMovement || pushEntity != null; }
+		{ return blockedMovement || getPushEntity() != null || getCurrentFrameSet().getJumpMove() != null || getCurrentFrameSet().getGotoMove() != null; }
 	
 	public void setBlockedMovement(boolean state)
 		{ blockedMovement = state; }
@@ -608,7 +608,7 @@ public class Entity extends Position {
 			if (direction == Direction.UP) {
 				if (freeCorners[0] && freeCorners[1]) {
 					incPositionByDirection(direction, speed);
-					if (isPerfectlyBlockedDir(getDirection()))
+					if (isPerfectlyBlockedDir(direction))
 						centerToTile();
 					pushing = 0;
 				}
@@ -626,7 +626,7 @@ public class Entity extends Position {
 			else if (direction == Direction.DOWN) {
 				if (freeCorners[2] && freeCorners[3]) {
 					incPositionByDirection(direction, speed);
-					if (isPerfectlyBlockedDir(getDirection()))
+					if (isPerfectlyBlockedDir(direction))
 						centerToTile();
 					pushing = 0;
 				}
@@ -644,7 +644,7 @@ public class Entity extends Position {
 			else if (direction == Direction.LEFT) {
 				if (freeCorners[0] && freeCorners[2]) {
 					incPositionByDirection(direction, speed);
-					if (isPerfectlyBlockedDir(getDirection()))
+					if (isPerfectlyBlockedDir(direction))
 						centerToTile();
 					pushing = 0;
 				}
@@ -662,7 +662,7 @@ public class Entity extends Position {
 			else if (direction == Direction.RIGHT) {
 				if (freeCorners[1] && freeCorners[3]) {
 					incPositionByDirection(direction, speed);
-					if (isPerfectlyBlockedDir(getDirection()))
+					if (isPerfectlyBlockedDir(direction))
 						centerToTile();
 					pushing = 0;
 				}

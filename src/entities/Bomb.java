@@ -15,6 +15,7 @@ import maps.MapSet;
 import objmoveutils.TileCoord;
 import tools.GameConfigs;
 import tools.Sound;
+import tools.Tools;
 
 public class Bomb extends Entity {
 
@@ -237,12 +238,25 @@ public class Bomb extends Entity {
 			Sound.playWav(kickSound);
 			entities.PushEntity pushEntity = new entities.PushEntity(this, speed, direction);
 			pushEntity.setOnColideEvent(e -> {
-				Sound.playWav(slamSound);
-				setShake(2d, -0.05, 0d);
-				unsetGhosting();
+				if (getBombType() == BombType.RUBBER) {
+					Sound.playWav("BombBounce");
+					Direction dir = Tools.getRandomFreeDirection(this, getTileCoordFromCenter());
+					if (dir != null) {
+						PushEntity pe = new PushEntity(getPushEntity());
+						pe.setDirection(dir);
+						setPushEntity(pe);
+					}
+					else
+						unsetGhosting();
+				}
+				else {
+					Sound.playWav(slamSound);
+					setShake(2d, -0.05, 0d);
+					unsetGhosting();
+				}
 			});
-			this.setPushEntity(pushEntity);
-			this.setGhosting(2, 0.2);
+			setPushEntity(pushEntity);
+			setGhosting(2, 0.2);
 		}
 	}
 

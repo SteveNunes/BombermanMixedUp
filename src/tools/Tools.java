@@ -1,5 +1,7 @@
 package tools;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -18,6 +20,7 @@ import maps.Brick;
 import maps.Item;
 import maps.MapSet;
 import objmoveutils.TileCoord;
+import util.MyMath;
 
 public abstract class Tools {
 	
@@ -122,6 +125,35 @@ public abstract class Tools {
 									return c;
 			}
 		return null;
+	}
+	
+	public static TileCoord getRandomFreeTileCoordAround(Entity entity, TileCoord coord)
+		{ return getRandomFreeTileCoordAround(entity, coord, null); }
+	
+	public static TileCoord getRandomFreeTileCoordAround(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
+		Direction dir = getRandomFreeDirection(entity, coord, passThrough);
+		return dir == null ? null : coord.getNewInstance().incCoordsByDirection(dir);
+	}
+	
+	public static Direction getRandomFreeDirection(Entity entity, TileCoord coord)
+		{ return getRandomFreeDirection(entity, coord, null); }
+	
+	public static Direction getRandomFreeDirection(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
+		List<Direction> dirs = new ArrayList<>(Arrays.asList(Direction.LEFT, Direction.UP,	Direction.RIGHT, Direction.DOWN));
+		TileCoord coord2 = null;
+		Direction dir = null;
+		do {
+			int n = (int)MyMath.getRandom(0, dirs.size() - 1);
+			dir = dirs.get(n);
+			coord2 = coord.getNewInstance().incCoordsByDirection(dir);
+			if (dirs.isEmpty()) {
+				dir = null;
+				break;
+			}
+			dirs.remove(n);
+		}
+		while (!MapSet.tileIsFree(entity, coord2, passThrough));
+		return dir;
 	}
 	
 }

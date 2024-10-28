@@ -15,7 +15,7 @@ public class PushEntity {
 	private Direction direction;
 	private Consumer<Entity> consumerWhenHits;
 	private TileCoord targetTile;
-
+	
 	public PushEntity(Entity entity, Double strenght)
 		{ this(entity, strenght, null, null); }
 	
@@ -41,6 +41,13 @@ public class PushEntity {
 		decStrenght = pushEntity.decStrenght;
 		direction = pushEntity.direction;
 		strenght = startStrenght;
+		consumerWhenHits = pushEntity.consumerWhenHits;
+		targetTile = pushEntity.targetTile == null ? null : new TileCoord(pushEntity.targetTile);
+	}
+	
+	public PushEntity setDirection(Direction dir) {
+		direction = dir;
+		return this;
 	}
 	
 	public PushEntity setOnColideEvent(Consumer<Entity> consumer) {
@@ -95,5 +102,12 @@ public class PushEntity {
 
 	public void stop()
 		{ direction = null; }
+
+	@Override
+	public String toString() {
+		return "PushEntity [entity=" + entity + ", startStrenght=" + startStrenght + ", strenght=" + strenght + ", decStrenght=" + decStrenght + ", direction=" + direction + ", consumerWhenHits=" + consumerWhenHits + ", targetTile=" + targetTile + "]";
+	}
+
+	
 	
 }

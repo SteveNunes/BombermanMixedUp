@@ -230,7 +230,7 @@ public class BomberMan extends Entity {
 			if (bomb != null) {
 				bombs.add(bomb);
 				Sound.playWav(setBombSound);
-				bombCd = 5;
+				bombCd = (int)(10 / getSpeed());
 				return bomb;
 			}
 		}
@@ -271,6 +271,14 @@ public class BomberMan extends Entity {
 		fireRange = GameConfigs.STARTING_FIRE;
 		maxBombs = GameConfigs.STARTING_BOMBS;
 		double speed = GameConfigs.INITIAL_PLAYER_SPEED;
+		if (gotItems.isEmpty()) { // TEMP
+			gotItems.add(ItemType.RUBBER_BOMB);
+			gotItems.add(ItemType.KICK_BOMB);
+			for (int n = 0; n < 9; n++)
+				gotItems.add(ItemType.BOMB_UP);
+			for (int n = 0; n < 3; n++)
+				gotItems.add(ItemType.SPEED_UP);
+		}
 		clearPassThrough();
 		getPassThrough().addAll(Arrays.asList(PassThrough.ITEM, PassThrough.MONSTER, PassThrough.PLAYER));
 		for (ItemType type : gotItems) {
