@@ -92,5 +92,8 @@ public class PushEntity {
 	
 	public boolean isActive()
 		{ return direction != null; }
+
+	public void stop()
+		{ direction = null; }
 	
 }

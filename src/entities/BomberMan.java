@@ -104,6 +104,14 @@ public class BomberMan extends Entity {
 					return;
 				}
 		}
+		if (input == GameInputs.C) {
+			bombs.sort((b1, b2) -> (int)(b1.getSetTime() - b2.getSetTime()));
+			for (Bomb bomb : bombs)
+				if (bomb.getPushEntity() != null) {
+					bomb.stopKick();
+					return;
+				}
+		}
 		else {
 			Direction dir = input.getDirection();
 			if (dir != null && !pressedDirs.contains(dir)) {
@@ -176,6 +184,9 @@ public class BomberMan extends Entity {
 				if (Item.haveItemAt(getTileCoordFromCenter()))
 					pickItem(Item.getItemAt(getTileCoordFromCenter()));
 			}
+			TileCoord frontTile = getTileCoord().getNewInstance().incCoordsByDirection(getDirection());
+			if (getPushingValue() > 5 && gotItems.contains(ItemType.KICK_BOMB) && Bomb.haveBombAt(this, frontTile))
+				Bomb.getBombAt(frontTile).kick(getDirection(), 4);
 		}
 	}
 	

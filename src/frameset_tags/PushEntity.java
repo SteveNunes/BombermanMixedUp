@@ -65,14 +65,14 @@ public class PushEntity extends FrameTag {
 			if (soundWhenHits != null)
 				pushEntity.setOnColideEvent(e -> {
 					Sound.playWav(soundWhenHits);
-					sprite.getSourceEntity().setShake(2d, -0.02, 0d);
+					sprite.getSourceEntity().setShake(2d, -0.05, 0d);
 					entity.unsetGhosting();
 				});
 			pushEntity.setTargetTile(coord);
 			pushEntity.testIfPathIsFree();
 			if (pushEntity.isActive())
 				entity.setPushEntity(pushEntity);
-			entity.setGhosting(1, 0.1);
+			entity.setGhosting(2, 0.2);
 		});
 	}
 

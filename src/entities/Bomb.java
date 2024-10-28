@@ -8,6 +8,7 @@ import java.util.Map;
 import application.Main;
 import enums.BombType;
 import enums.Curse;
+import enums.Direction;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
 import maps.MapSet;
@@ -200,6 +201,31 @@ public class Bomb extends Entity {
 		Sound.playWav("explosion/Explosion" + (nesBomb ? "" : fireDistance < 3 ? "1" : (int)(fireDistance / 3)));
 		Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, type == BombType.SPIKED || type == BombType.SPIKED_REMOTE);
 		removeBomb(this);
+	}
+	
+	public void stopKick() {
+		if (getPushEntity() != null) {
+			getPushEntity().stop();
+			centerToTile();
+			unsetGhosting();
+		}
+	}
+
+	public void kick(Direction direction, double speed)
+		{ kick(direction, speed, "BombKick", "BombSlam"); }
+	
+	public void kick(Direction direction, double speed, String kickSound, String slamSound) {
+		if (getPushEntity() == null && MapSet.tileIsFree(getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction))) {
+			Sound.playWav(kickSound);
+			entities.PushEntity pushEntity = new entities.PushEntity(this, speed, direction);
+			pushEntity.setOnColideEvent(e -> {
+				Sound.playWav(slamSound);
+				setShake(2d, -0.05, 0d);
+				unsetGhosting();
+			});
+			this.setPushEntity(pushEntity);
+			this.setGhosting(2, 0.2);
+		}
 	}
 
 	@Override
