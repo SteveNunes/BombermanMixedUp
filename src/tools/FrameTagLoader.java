@@ -55,8 +55,8 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new DecSprAlign(s));
 			else if (tag.equals("DecSprFlip"))
 				tags.addTag(newTag = new DecSprFlip(s));
-			else if (tag.equals("DoJump"))
-				tags.addTag(newTag = new DoJump(s));
+			else if (tag.equals("SetJumpMove"))
+				tags.addTag(newTag = new SetJumpMove(s));
 			else if (tag.equals("Goto"))
 				tags.addTag(newTag = new Goto(s));
 			else if (tag.equals("IncEntityPos"))
@@ -361,6 +361,8 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new ShakeSprite(s));
 			else if (tag.equals("ShakeFrameSet"))
 				tags.addTag(newTag = new ShakeFrameSet(s));
+			else if (tag.equals("PunchBombInFront"))
+				tags.addTag(newTag = new PunchBombInFront(s));
 			if (delay > 0)
 				newTag.setTriggerDelay(delay);
 		}

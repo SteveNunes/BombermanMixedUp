@@ -9,8 +9,6 @@ import frameset_tags.FrameTag;
 import frameset_tags.Goto;
 import frameset_tags.RepeatLastFrame;
 import javafx.scene.canvas.GraphicsContext;
-import objmoveutils.GotoMove;
-import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import tools.FrameTagLoader;
 import tools.Tools;
@@ -25,8 +23,6 @@ public class FrameSet extends Position {
 	private int ticks;
 	private boolean changedIndex;
 	private boolean stop;
-	private JumpMove jumpMove;
-	private GotoMove gotoMove;
 
 	public FrameSet(FrameSet frameSet)
 		{ this(frameSet, new Entity()); }
@@ -53,8 +49,6 @@ public class FrameSet extends Position {
 		stop = false;
 		currentFrameIndex = 0;
 		ticks = 0;
-		jumpMove = null;
-		gotoMove = null;
 	}
 	
 	public FrameSet(Position position)
@@ -65,18 +59,6 @@ public class FrameSet extends Position {
 
 	public FrameSet()
 		{ this(new Entity(), new Position()); }
-
-	public JumpMove getJumpMove()
-		{ return jumpMove; }
-	
-	public void setJumpMove(double jumpStrenght, double strenghtMultipiler, int speedInFrames)
-		{ jumpMove = new JumpMove(getPosition(), new Position(), jumpStrenght, strenghtMultipiler, speedInFrames); }
-
-	public GotoMove getGotoMove()
-		{ return gotoMove; }
-	
-	public void setGotoMove(Position outputPosition, Position startPosition, Position endPosition, int speedInFrames, Boolean resetAfterFullCycle)
-		{ gotoMove = new GotoMove(getPosition(), new Position(), endPosition, speedInFrames, resetAfterFullCycle); }
 
 	public double getAbsoluteX() {
 		if (sourceEntity != null)
@@ -145,11 +127,6 @@ public class FrameSet extends Position {
 				getSourceEntity().getShake().proccess();
 				if (!getSourceEntity().getShake().isActive())
 					getSourceEntity().unsetShake();
-			}
-			if (jumpMove != null) {
-				jumpMove.move();
-				if (jumpMove.jumpReachedFloorAgain())
-					jumpMove = null;
 			}
 			if (ticks == 0) {
 				if (isPaused)
@@ -448,7 +425,7 @@ public class FrameSet extends Position {
 				for (int tagIndex = 0; tagIndex < getFrameSetTagsFrom(frameIndex, spriteIndex).size(); tagIndex++) {
 					FrameTag tag = getFrameSetTagsFrom(frameIndex, spriteIndex).get(tagIndex);
 					fSet += (spriteIndex > 0 && !added ? ",," : "") + (tagIndex > 0 ? "," : "") + tag;
-					added= true;
+					added = true;
 				}
 			}
 		}

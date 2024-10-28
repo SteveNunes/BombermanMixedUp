@@ -84,6 +84,10 @@ public class Tile {
 			split2 = split[++n].split("!");
 			outX = Integer.parseInt(split2[0]) * Main.TILE_SIZE;
 			outY = Integer.parseInt(split2[1]) * Main.TILE_SIZE;
+			if (outX > MapSet.getMapLimit().getX())
+				MapSet.getMapLimit().setX(outX);
+			if (outY > MapSet.getMapLimit().getY())
+				MapSet.getMapLimit().setY(outY);
 			tileCoord = new TileCoord(outX / Main.TILE_SIZE, outY / Main.TILE_SIZE);
 			flip = ImageFlip.valueOf(split[++n]);
 			rotate = Integer.parseInt(split[++n]);

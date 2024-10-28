@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import application.Main;
 import enums.BombType;
@@ -12,6 +13,7 @@ import enums.Direction;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
 import maps.MapSet;
+import objmoveutils.JumpMove;
 import objmoveutils.TileCoord;
 import tools.GameConfigs;
 import tools.Sound;
@@ -181,9 +183,9 @@ public class Bomb extends Entity {
 						y <= yy - Main.TILE_SIZE / 2 || y >= yy + Main.TILE_SIZE / 2)
 							bomb.ownerIsOver = false;
 			}
-			if (bomb.type != BombType.REMOTE && bomb.type != BombType.SPIKED_REMOTE)
+			if (bomb.type != BombType.REMOTE && bomb.type != BombType.SPIKED_REMOTE && !bomb.isBlockedMovement())
 				bomb.decTimer();
-			if ((bomb.getTimer() == -1 || bomb.getTimer() > 0) && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
+			if ((bomb.getTimer() == -1 || bomb.getTimer() > 0) && !bomb.isBlockedMovement() && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
 				bomb.setTimer(0);
 			if (bomb.getTimer() == 0)
 				bomb.detonate();
@@ -230,6 +232,42 @@ public class Bomb extends Entity {
 		}
 	}
 
+	@Override
+	public void run(GraphicsContext gc, boolean isPaused) {
+		TileCoord prevCoord = getTileCoordFromCenter().getNewInstance();
+		if (bombs.containsKey(prevCoord)) {
+			bombs.get(prevCoord).remove(this);
+			if (bombs.get(prevCoord).isEmpty())
+				bombs.remove(prevCoord);
+		}
+		super.run(gc, isPaused);
+		TileCoord coord = getTileCoordFromCenter();
+		if (isActive()) {
+			if (!bombs.containsKey(coord))
+				bombs.put(coord, new ArrayList<>());
+			bombs.get(coord).add(this);
+			if (tileWasChanged()) {
+				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
+				MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
+			}
+		}
+		if (isActive() && getSpeed() == 0 && getPushEntity() == null && getJumpMove() == null) {
+			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
+			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_STOPPED_BOMB, true);
+		}
+	}
+	
+	public static boolean haveBombAt(Entity entity, TileCoord coord) {
+		if (bombs.containsKey(coord)) {
+			Bomb bomb = getBombAt(coord);
+			return bomb.owner == null || entity == null || bomb.owner != entity || !bomb.ownerIsOver;
+		}
+		return false;
+	}
+	
+	public static Bomb getBombAt(TileCoord tileCoord)
+		{ return bombs.containsKey(tileCoord) && !bombs.get(tileCoord).isEmpty() ? bombs.get(tileCoord).get(0) : null; }
+
 	public void kick(Direction direction, double speed)
 		{ kick(direction, speed, "BombKick", "BombSlam"); }
 	
@@ -259,41 +297,23 @@ public class Bomb extends Entity {
 			setGhosting(2, 0.2);
 		}
 	}
-
-	@Override
-	public void run(GraphicsContext gc, boolean isPaused) {
-		TileCoord prevCoord = getTileCoordFromCenter().getNewInstance();
-		if (bombs.containsKey(prevCoord)) {
-			bombs.get(prevCoord).remove(this);
-			if (bombs.get(prevCoord).isEmpty())
-				bombs.remove(prevCoord);
-		}
-		super.run(gc, isPaused);
-		TileCoord coord = getTileCoordFromCenter();
-		if (isActive()) {
-			if (!bombs.containsKey(coord))
-				bombs.put(coord, new ArrayList<>());
-			bombs.get(coord).add(this);
-			if (tileWasChanged()) {
-				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
-				MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
+	
+	public Consumer<JumpMove> getOnBombFallEvent() {
+		return e -> {
+			centerToTile();
+			TileCoord coord2 = getTileCoordFromCenter();
+			Sound.playWav("TileSlam");
+			if (!MapSet.tileIsFree(coord2)) {
+				e.resetJump(4, 1.2, 14);
+				setGotoMove(coord2.incCoordsByDirection(getDirection()).getPosition(), e.getDurationFrames());
 			}
-		}
-		if (isActive() && getSpeed() == 0 && getPushEntity() == null) {
-			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
-			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_STOPPED_BOMB, true);
-		}
+		};
 	}
 	
-	public static boolean haveBombAt(Entity entity, TileCoord coord) {
-		if (bombs.containsKey(coord)) {
-			Bomb bomb = getBombAt(coord);
-			return bomb.owner == null || entity == null || bomb.owner != entity || !bomb.ownerIsOver;
-		}
-		return false;
+	public void punch(Direction direction, String punchSound) {
+		setDirection(direction);
+		TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction, 4);
+		jumpTo(coord.getNewInstance(), 4, 1.2, 20, punchSound, getOnBombFallEvent());
 	}
-	
-	public static Bomb getBombAt(TileCoord tileCoord)
-		{ return bombs.containsKey(tileCoord) && !bombs.get(tileCoord).isEmpty() ? bombs.get(tileCoord).get(0) : null; }
 
 }

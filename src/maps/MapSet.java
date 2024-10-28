@@ -59,6 +59,7 @@ public abstract class MapSet {
 	private static Position groundWithBrickShadow;
 	private static Position groundWithWallShadow;
 	private static Position mapMove;
+	private static Position mapLimit;
 	public static Map<String, FrameSet> runningStageTags;
 	private static Map<String, FrameSet> preLoadedStageTags;
 	private static int bricksRegenTimeInFrames;
@@ -83,6 +84,7 @@ public abstract class MapSet {
 		runningStageTags = new HashMap<>();
 		preLoadedStageTags = new HashMap<>();
 		mapMove = new Position();
+		mapLimit = new Position();
 		mapName = IniFiles.stages.read(iniMapName, "File");
 		iniFileMap = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
 		shake = null;
@@ -220,6 +222,12 @@ public abstract class MapSet {
 				addStageClearCriteria(StageClearCriteria.ACTIVATING_SWITCHES);
 		}
 	}
+	
+	public static Position getMapLimit()
+		{ return mapLimit; }
+	
+	public static void setMapLimit(int x, int y)
+		{ mapLimit.setPosition(x, y); }
 	
 	public static List<StageClearCriteria> getStageClearCriterias()
 		{ return stageClearCriterias; }

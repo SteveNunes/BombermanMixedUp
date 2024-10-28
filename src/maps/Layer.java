@@ -170,7 +170,7 @@ public class Layer {
 		int i = tilesMap.get(coord).size() - 1;
 		tileList.remove(tilesMap.get(coord).get(i));
 		if (tilesMap.get(coord).size() == 1)
-			tilesMap.remove(coord);
+			removeAllTilesFromCoord(coord);
 		else
 			tilesMap.get(coord).remove(i);
 	}
@@ -180,6 +180,9 @@ public class Layer {
 			throw new RuntimeException(coord + " - Invalid tile coordinate");
 		tileList.removeAll(tilesMap.get(coord));
 		tilesMap.remove(coord);
+		tilesProps.remove(coord);
+		tilesTags.remove(coord);
+		disabledTileTags.remove(coord);
 	}
 	
 	public int getLayer()

@@ -17,7 +17,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import maps.MapSet;
 import objmoveutils.EliticMove;
-import objmoveutils.GotoMove;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.RectangleMove;
@@ -40,7 +39,6 @@ public class Sprite extends Position {
 	private EliticMove eliticMove;
 	private RectangleMove rectangleMove;
 	private JumpMove jumpMove;
-	private GotoMove gotoMove;
 	private Shake shake;
 	private ImageFlip flip;
 	private ImageAlignment alignment;
@@ -77,7 +75,6 @@ public class Sprite extends Position {
 		eliticMove = sprite.eliticMove == null ? null : new EliticMove(sprite.eliticMove);
 		rectangleMove = sprite.rectangleMove == null ? null : new RectangleMove(sprite.rectangleMove);
 		jumpMove = sprite.jumpMove == null ? null : new JumpMove(sprite.jumpMove);
-		gotoMove = sprite.gotoMove == null ? null : new GotoMove(sprite.gotoMove);
 		shake = sprite.shake == null ? null : new Shake(sprite.shake);
 		layerType = sprite.layerType;
 		wavingImage = sprite.wavingImage == null ? null : new WavingImage(sprite.wavingImage);
@@ -107,7 +104,6 @@ public class Sprite extends Position {
 		eliticMove = null;
 		rectangleMove = null;
 		jumpMove = null;
-		gotoMove = null;
 		layerType = SpriteLayerType.SPRITE;
 		frontValue = 0;
 		isVisible = true;
@@ -453,11 +449,8 @@ public class Sprite extends Position {
 	public void setJumpMove(JumpMove jumpMove)
 		{ this.jumpMove = jumpMove; }
 
-	public GotoMove getGotoMove()
-		{ return gotoMove; }
-	
-	public void setGotoMove(GotoMove gotoMove)
-		{ this.gotoMove = gotoMove; }
+	public void unsetJumpMove()
+		{ jumpMove = null; }
 
 	public int[] getCurrentSpriteOriginCoords() {
 		if (spriteIndex == null)
@@ -519,17 +512,7 @@ public class Sprite extends Position {
 			default:
 				break;
 		}
-		Shake shake;
-		int shakeX = 0, shakeY = 0;
-		if ((shake = MapSet.getShake()) != null || (shake = getSourceEntity().getShake()) != null || (shake = this.shake) != null) {
-			if (this.shake != null)
-				shake.proccess();
-			shakeX = shake.getX();
-			shakeY = shake.getY();
-			if (!shake.isActive())
-				shake = null;
-		}
-		absoluteOutputSpritePos.setPosition(x + shakeX, y + shakeY);
+		absoluteOutputSpritePos.setPosition(x, y);
 	}
 	
 	public void draw()
@@ -548,6 +531,32 @@ public class Sprite extends Position {
 			double localAlpha = getSourceEntity().isBlinking() && blink ? alpha / 2 : alpha;
 			int[] in = getCurrentSpriteOriginCoords();
 			int sx = in[0], sy = in[1], tx = (int)absoluteOutputSpritePos.getX(), ty = (int)absoluteOutputSpritePos.getY();
+
+			Shake shake;
+			if ((shake = MapSet.getShake()) != null || (shake = getSourceEntity().getShake()) != null || (shake = this.shake) != null) {
+				if (this.shake != null)
+					shake.proccess();
+				tx += shake.getX();
+				ty += shake.getY();
+				if (!shake.isActive())
+					shake = null;
+			}
+			if (jumpMove != null) {
+				jumpMove.move();
+				if (jumpMove.jumpIsFinished())
+					unsetJumpMove();
+				else {
+					tx += jumpMove.getIncrements().getX();
+					ty += jumpMove.getIncrements().getY();
+				}					
+			}
+			if (getSourceEntity().getJumpMove() != null) {
+				tx += (int)getSourceEntity().getJumpMove().getIncrements().getX();
+				ty += (int)getSourceEntity().getJumpMove().getIncrements().getY();
+				System.out.println((int)getSourceEntity().getJumpMove().getIncrements().getX() + " " +
+													 (int)getSourceEntity().getJumpMove().getIncrements().getY());
+			}
+			
 			if (gc != null)
 				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 														 tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);

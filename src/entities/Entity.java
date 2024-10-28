@@ -26,10 +26,13 @@ import javafx.scene.paint.Color;
 import maps.Brick;
 import maps.Item;
 import maps.MapSet;
+import objmoveutils.GotoMove;
+import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import tools.Draw;
 import tools.GameConfigs;
+import tools.Sound;
 
 public class Entity extends Position {
 	
@@ -68,6 +71,8 @@ public class Entity extends Position {
 	private int pushing;
 	public int ghostingDistance;
 	public Double ghostingOpacityDec;
+	private JumpMove jumpMove;
+	private GotoMove gotoMove;
 
 	public Entity(Entity entity) {
 		super(entity.getPosition());
@@ -104,6 +109,8 @@ public class Entity extends Position {
 		tileWasChanged = false;
 		previewTileCoord = null;
 		tileChangedCoord = null;
+		jumpMove = null;
+		gotoMove = null;
 		invencibleFrames = 0;
 		hitPoints = entity.hitPoints;
 	}
@@ -128,6 +135,8 @@ public class Entity extends Position {
 		shadow = null;
 		pushEntity = null;
 		shake = null;
+		jumpMove = null;
+		gotoMove = null;
 		this.direction = direction;
 		speed = 0;
 		pushing = 0;
@@ -202,14 +211,51 @@ public class Entity extends Position {
 		{ invencibleFrames = 0; }
 
 	public boolean isBlockedMovement()
-		{ return blockedMovement || getPushEntity() != null || getCurrentFrameSet().getJumpMove() != null || getCurrentFrameSet().getGotoMove() != null; }
+		{ return blockedMovement || getPushEntity() != null || getJumpMove() != null || getGotoMove() != null; }
 	
 	public void setBlockedMovement(boolean state)
 		{ blockedMovement = state; }
 	
+	public JumpMove getJumpMove()
+		{ return jumpMove; }
+	
+	public JumpMove setJumpMove(double jumpStrenght, double strenghtMultipiler, int durationFrames)
+		{ return (jumpMove = new JumpMove(new Position(), getPosition(), jumpStrenght, strenghtMultipiler, durationFrames)); }
+	
+	public void unsetJumpMove()
+		{ jumpMove = null; }
+
+	public GotoMove getGotoMove()
+		{ return gotoMove; }
+
+	public GotoMove setGotoMove(Position endPosition, int durationFrames)
+		{ return setGotoMove(endPosition, durationFrames, false); }
+	
+	public GotoMove setGotoMove(Position endPosition, int durationFrames, Boolean resetAfterFullCycle)
+		{ return (gotoMove = new GotoMove(new Position(), getPosition(), endPosition, durationFrames, resetAfterFullCycle)); }
+	
+	public void unsetGotoMove()
+		{ gotoMove = null; }
+
+	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames)
+		{ jumpTo(coord, jumpStrenght, strenghtMultipiler, durationFrames, null, null); }
+	
+	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound)
+		{ jumpTo(coord, jumpStrenght, strenghtMultipiler, durationFrames, jumpSound, null); }
+
+	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, Consumer<JumpMove> onJumpEndEvent)
+		{ jumpTo(coord, jumpStrenght, strenghtMultipiler, durationFrames, null, onJumpEndEvent); }
+	
+	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound, Consumer<JumpMove> onJumpEndEvent) {
+		if (jumpSound != null)
+			Sound.playWav(jumpSound);
+		setJumpMove(jumpStrenght, strenghtMultipiler, durationFrames).setOnCycleCompleteEvent(onJumpEndEvent);
+		setGotoMove(coord.getPosition(), durationFrames - 1);
+	}
+
 	public Set<PassThrough> getPassThrough()
 		{ return passThrough; }
-
+	
 	private void addPassThrough(PassThrough pass) {
 		if (!passThrough.contains(pass))
 			passThrough.add(pass);
@@ -486,6 +532,18 @@ public class Entity extends Position {
 			previewTileCoord = getTileCoordFromCenter().getNewInstance();
 			tileChangedCoord = getTileCoordFromCenter().getNewInstance();
 			tileWasChanged = true;
+		}
+		if (jumpMove != null) {
+			jumpMove.move();
+			if (jumpMove.jumpIsFinished())
+				unsetJumpMove();
+		}
+		if (gotoMove != null) {
+			gotoMove.move();
+			if (gotoMove.isCycleCompleted())
+				unsetGotoMove();
+			else
+				incPosition(gotoMove.getIncrements());
 		}
 		if (pushEntity != null) {
 			pushEntity.process();

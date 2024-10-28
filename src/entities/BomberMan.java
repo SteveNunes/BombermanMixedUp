@@ -116,7 +116,12 @@ public class BomberMan extends Entity {
 			while (haveItem(ItemType.LINED_BOMBS) && MapSet.tileIsFree(coord) && !Item.haveItemAt(coord)) {
 				setBomb(true, coord);
 				coord.incCoordsByDirection(getDirection());
+				return;
 			}
+			if (haveItem(ItemType.PUNCH_BOMB) && Bomb.haveBombAt(this, coord) && haveFrameSet("PunchBomb"))
+				setFrameSet("PunchBomb");
+			else if (haveItem(ItemType.PUSH_POWER) && Bomb.haveBombAt(this, coord) && haveFrameSet("PushPower"))
+				setFrameSet("PushPower");
 		}
 		else {
 			Direction dir = input.getDirection();
@@ -165,7 +170,7 @@ public class BomberMan extends Entity {
 				queuedInputs.clear();
 				list.forEach(i -> keyPress(i));
 			}
-			if (pressedDirs.isEmpty()) {
+			if (pressedDirs.isEmpty() && !isBlockedMovement()) {
 				setElapsedSteps(0);
 				setFrameSet("Stand");
 			}
@@ -272,8 +277,7 @@ public class BomberMan extends Entity {
 		maxBombs = GameConfigs.STARTING_BOMBS;
 		double speed = GameConfigs.INITIAL_PLAYER_SPEED;
 		if (gotItems.isEmpty()) { // TEMP
-			gotItems.add(ItemType.RUBBER_BOMB);
-			gotItems.add(ItemType.KICK_BOMB);
+			gotItems.add(ItemType.PUNCH_BOMB);
 			for (int n = 0; n < 9; n++)
 				gotItems.add(ItemType.BOMB_UP);
 			for (int n = 0; n < 3; n++)

@@ -1356,8 +1356,6 @@ public class MapEditor {
 		{ removeTile(coord, true); }
 	
 	void removeTile(TileCoord coord, boolean rebuild) {
-		if (Brick.haveBrickAt(coord))
-			Brick.removeBrick(coord);
 		removeTileMaster(coord, false);
 		if (rebuild)
 			rebuildCurrentLayer();
@@ -1415,6 +1413,8 @@ public class MapEditor {
 	    				tileProps.contains(TileProp.DAMAGE_BRICK) ||
 	    				tileProps.contains(TileProp.DAMAGE_ITEM))
 	    					color = Color.INDIANRED;
+	    		else if (tileProps.contains(TileProp.MAX_SCREEN_TILE_LIMITER))
+	    			color = Color.LIGHTGRAY;
 	    		else if (tileProps.contains(TileProp.PLAYER_INITIAL_POSITION))
 	    			color = Color.DEEPPINK;
 	    		else if (tileProps.contains(TileProp.MOB_INITIAL_POSITION))
