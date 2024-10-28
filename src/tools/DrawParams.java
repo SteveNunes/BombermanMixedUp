@@ -73,39 +73,39 @@ public class DrawParams {
 		{ return frontValue; }
 	
 	public void draw(GraphicsContext gc) {
-		if (drawType == DrawType.IMAGE) {
-			if (ghostingDistance == null || --ghostingCount == 0)
+		if (ghostingDistance == null || --ghostingCount == 0) {
+			if (drawType == DrawType.IMAGE)
 				ImageUtils.drawImage(gc, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, opacity, effects);
-			if (ghostingDistance != null) {
-				if (ghostingCount == 0 && (opacity -= ghostingOpacityDec) <= 0)
-					ghostingDistance = null;
-				else if (ghostingCount == 0)
-					ghostingCount = ghostingDistance;
+			else {
+				if (drawType == DrawType.FILL_OVAL)
+					gc.fillOval(params[0], params[1], params[2], params[3]);
+				else if (drawType == DrawType.FILL_RECT)
+					gc.fillRect(params[0], params[1], params[2], params[3]);
+				else if (drawType == DrawType.STROKE_OVAL)
+					gc.strokeOval(params[0], params[1], params[2], params[3]);
+				else if (drawType == DrawType.STROKE_RECT)
+					gc.strokeRect(params[0], params[1], params[2], params[3]);
+				else if (drawType == DrawType.STROKE_LINE)
+					gc.strokeLine(params[0], params[1], params[2], params[3]);
+				else if (drawType == DrawType.SET_FILL)
+					gc.setFill(color);
+				else if (drawType == DrawType.SET_STROKE)
+					gc.setStroke(color);
+				else if (drawType == DrawType.SET_LINE_WIDTH)
+					gc.setLineWidth(params[0]);
+				else if (drawType == DrawType.SAVE)
+					gc.save();
+				else if (drawType == DrawType.RESTORE)
+					gc.restore();
+				else if (drawType == DrawType.SET_GLOBAL_ALPHA)
+					gc.setGlobalAlpha(params[0]);
 			}
 		}
-		else {
-			if (drawType == DrawType.FILL_OVAL)
-				gc.fillOval(params[0], params[1], params[2], params[3]);
-			else if (drawType == DrawType.FILL_RECT)
-				gc.fillRect(params[0], params[1], params[2], params[3]);
-			else if (drawType == DrawType.STROKE_OVAL)
-				gc.strokeOval(params[0], params[1], params[2], params[3]);
-			else if (drawType == DrawType.STROKE_RECT)
-				gc.strokeRect(params[0], params[1], params[2], params[3]);
-			else if (drawType == DrawType.STROKE_LINE)
-				gc.strokeLine(params[0], params[1], params[2], params[3]);
-			else if (drawType == DrawType.SET_FILL)
-				gc.setFill(color);
-			else if (drawType == DrawType.SET_STROKE)
-				gc.setStroke(color);
-			else if (drawType == DrawType.SET_LINE_WIDTH)
-				gc.setLineWidth(params[0]);
-			else if (drawType == DrawType.SAVE)
-				gc.save();
-			else if (drawType == DrawType.RESTORE)
-				gc.restore();
-			else if (drawType == DrawType.SET_GLOBAL_ALPHA)
-				gc.setGlobalAlpha(params[0]);
+		if (ghostingDistance != null) {
+			if (ghostingCount == 0 && (opacity -= ghostingOpacityDec) <= 0)
+				ghostingDistance = null;
+			else if (ghostingCount == 0)
+				ghostingCount = ghostingDistance;
 		}
 	}
 
