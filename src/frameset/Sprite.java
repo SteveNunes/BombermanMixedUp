@@ -24,6 +24,7 @@ import objmoveutils.RectangleMove;
 import objmoveutils.TileCoord;
 import screen_pos_effects.WavingImage;
 import tools.Draw;
+import tools.DrawParams;
 import tools.Materials;
 import util.Misc;
 
@@ -51,6 +52,8 @@ public class Sprite extends Position {
 	private SpriteLayerType layerType;
 	private WavingImage wavingImage;
 	private boolean isVisible;
+	private int ghostingDistance;
+	private Double ghostingOpacityDec;
 	
 	public Sprite(Sprite sprite)
 		{ this(sprite, sprite.getSourceFrameSet()); }
@@ -63,6 +66,8 @@ public class Sprite extends Position {
 		spriteEffects = new DrawImageEffects(sprite.spriteEffects);
 		absoluteOutputSpritePos = new Position();
 		spriteSourceName = sprite.spriteSourceName;
+		ghostingDistance = sprite.ghostingDistance;
+		ghostingOpacityDec = sprite.ghostingOpacityDec;
 		alpha = sprite.alpha;
 		flip = sprite.flip;
 		rotation = sprite.rotation;
@@ -106,6 +111,8 @@ public class Sprite extends Position {
 		layerType = SpriteLayerType.SPRITE;
 		frontValue = 0;
 		isVisible = true;
+		ghostingDistance = 0;
+		ghostingOpacityDec = null;
 		updateOutputDrawCoords();
 	}
 
@@ -144,6 +151,16 @@ public class Sprite extends Position {
 
 	public void unsetShake()
 		{ shake = null; }
+	
+	public void setGhosting(int ghostingDistance, double ghostingOpacityDec) {
+		this.ghostingDistance = ghostingDistance;
+		this.ghostingOpacityDec = ghostingOpacityDec;
+	}
+	
+	public void unsetGhosting() {
+		ghostingDistance = 0;
+		ghostingOpacityDec = null;
+	}
 
 	public void setVisible(boolean state)
 		{ isVisible = state; }
@@ -534,9 +551,14 @@ public class Sprite extends Position {
 			if (gc != null)
 				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 														 tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
-			else
-				Draw.addDrawQueue((int)getSourceEntity().getY() + frontValue, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+			else {
+				DrawParams drawParams = Draw.addDrawQueue((int)getSourceEntity().getY() + frontValue, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 																tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
+				if (getSourceEntity().ghostingOpacityDec != null)
+					drawParams.setGhosting(getSourceEntity().ghostingDistance, getSourceEntity().ghostingOpacityDec);
+				else if (ghostingOpacityDec != null)
+					drawParams.setGhosting(ghostingDistance, ghostingOpacityDec);
+			}
 		}
 		scrollSprite();
 	}

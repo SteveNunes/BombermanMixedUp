@@ -415,8 +415,6 @@ public class MapEditor {
 			vBoxTileSet.setDisable(true);
 			buttonSaveToDisk.setDisable(true);
 			editable = false;
-			if (playing)
-				MapSet.setShake(3d, -0.02, 0d);
 		});
 	}
 

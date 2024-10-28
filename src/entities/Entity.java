@@ -66,6 +66,8 @@ public class Entity extends Position {
 	private boolean tileWasChanged;
 	private boolean isVisible;
 	private int pushing;
+	public int ghostingDistance;
+	public Double ghostingOpacityDec;
 
 	public Entity(Entity entity) {
 		super(entity.getPosition());
@@ -77,6 +79,8 @@ public class Entity extends Position {
 			frameSets.put(fSetName, new FrameSet(entity.frameSets.get(fSetName), this));
 			freshFrameSets.put(fSetName, new FrameSet(entity.freshFrameSets.get(fSetName), this));
 		});
+		ghostingDistance = entity.ghostingDistance;
+		ghostingOpacityDec = entity.ghostingOpacityDec;
 		speed = entity.speed;
 		pushing = entity.pushing;
 		tempSpeed = entity.tempSpeed;
@@ -141,6 +145,8 @@ public class Entity extends Position {
 		tileWasChanged = false;
 		previewTileCoord = null;
 		tileChangedCoord = null;
+		ghostingDistance = 0;
+		ghostingOpacityDec = null;
 		invencibleFrames = 0;
 	}
 
@@ -218,6 +224,16 @@ public class Entity extends Position {
 	public boolean isVisible()
 		{ return isVisible; }
 	
+	public void setGhosting(int ghostingDistance, double ghostingOpacityDec) {
+		this.ghostingDistance = ghostingDistance;
+		this.ghostingOpacityDec = ghostingOpacityDec;
+	}
+	
+	public void unsetGhosting() {
+		ghostingDistance = 0;
+		ghostingOpacityDec = null;
+	}
+
 	public int getBlinkingFrames()
 		{ return blinkingFrames; }
 	

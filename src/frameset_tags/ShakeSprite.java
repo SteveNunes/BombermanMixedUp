@@ -6,8 +6,6 @@ public class ShakeSprite extends FrameTag {
 	
 	public Double startStrengthX;
 	public Double startStrengthY;
-	public Double strengthX;
-	public Double strengthY;
 	public Double incStrengthX;
 	public Double incStrengthY;
 	public Double finalStrengthX;
@@ -16,8 +14,6 @@ public class ShakeSprite extends FrameTag {
 	public ShakeSprite(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
 		this.startStrengthX = startStrengthX;
 		this.startStrengthY = startStrengthY;
-		this.strengthX = startStrengthX;
-		this.strengthY = startStrengthX;
 		this.incStrengthX = incStrengthX;
 		this.incStrengthY = incStrengthY;
 		this.finalStrengthX = finalStrengthX;

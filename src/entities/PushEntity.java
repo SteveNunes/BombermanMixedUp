@@ -82,7 +82,7 @@ public class PushEntity {
 						if (entity.isPerfectlyBlockedDir(direction) ||
 								(targetTile != null && targetTile.equals(entity.getTileCoord()))) {
 									entity.centerToTile();
-									if (consumerWhenHits != null)
+									if (entity.isPerfectlyBlockedDir(direction) && consumerWhenHits != null)
 										consumerWhenHits.accept(entity);
 						}
 						direction = null;
