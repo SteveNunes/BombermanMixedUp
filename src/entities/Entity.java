@@ -51,6 +51,10 @@ public class Entity extends Position {
 	private String currentFrameSetName;
 	private Entity linkedEntityFront;
 	private Entity linkedEntityBack;
+	private Entity holder; // Entity que está segurando o objeto
+	private Entity holding; // Objeto que a entity está segurando
+	private long holdingCTime; // Momento em que a entity segurou o objeto
+	private Position holderDesloc; // Deslocamento do sprite do objeto que está sendo segurado
 	private Position linkedEntityOffset;
 	private TileCoord tileChangedCoord;
 	private TileCoord previewTileCoord;
@@ -73,6 +77,7 @@ public class Entity extends Position {
 	public Double ghostingOpacityDec;
 	private JumpMove jumpMove;
 	private GotoMove gotoMove;
+	private Consumer<Entity> consumerWhenFrameSetEnds;
 
 	public Entity(Entity entity) {
 		super(entity.getPosition());
@@ -113,6 +118,9 @@ public class Entity extends Position {
 		gotoMove = null;
 		invencibleFrames = 0;
 		hitPoints = entity.hitPoints;
+		consumerWhenFrameSetEnds = entity.consumerWhenFrameSetEnds;
+		holder = null;
+		holderDesloc = null;
 	}
 	
 	public Entity()
@@ -131,6 +139,7 @@ public class Entity extends Position {
 		linkedEntityBack = null;
 		linkedEntityFront = null;
 		linkedEntityOffset = null;
+		consumerWhenFrameSetEnds = null;
 		defaultTags = null;
 		shadow = null;
 		pushEntity = null;
@@ -157,8 +166,13 @@ public class Entity extends Position {
 		ghostingDistance = 0;
 		ghostingOpacityDec = null;
 		invencibleFrames = 0;
+		holder = null;
+		holderDesloc = null;
 	}
-
+	
+	public void setOnFrameSetEndsEvent(Consumer<Entity> consumerWhenFrameSetEnds)
+		{ this.consumerWhenFrameSetEnds = consumerWhenFrameSetEnds; }
+	
 	public void setShake(Double incStrength, Double finalStrength)
 		{ shake = new Shake(incStrength, incStrength, finalStrength, finalStrength);	}
 	
@@ -211,7 +225,7 @@ public class Entity extends Position {
 		{ invencibleFrames = 0; }
 
 	public boolean isBlockedMovement()
-		{ return blockedMovement || getPushEntity() != null || getJumpMove() != null || getGotoMove() != null; }
+		{ return blockedMovement || getPushEntity() != null || getJumpMove() != null || getGotoMove() != null || getHolder() != null; }
 	
 	public void setBlockedMovement(boolean state)
 		{ blockedMovement = state; }
@@ -238,18 +252,24 @@ public class Entity extends Position {
 		{ gotoMove = null; }
 
 	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames)
-		{ jumpTo(coord, jumpStrenght, strenghtMultipiler, durationFrames, null, null); }
+		{ jumpTo(coord, jumpStrenght, strenghtMultipiler, durationFrames, null); }
 	
-	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound)
-		{ jumpTo(coord, jumpStrenght, strenghtMultipiler, durationFrames, jumpSound, null); }
-
-	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, Consumer<JumpMove> onJumpEndEvent)
-		{ jumpTo(coord, jumpStrenght, strenghtMultipiler, durationFrames, null, onJumpEndEvent); }
-	
-	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound, Consumer<JumpMove> onJumpEndEvent) {
+	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
 		if (jumpSound != null)
 			Sound.playWav(jumpSound);
-		setJumpMove(jumpStrenght, strenghtMultipiler, durationFrames).setOnCycleCompleteEvent(onJumpEndEvent);
+		setJumpMove(jumpStrenght, strenghtMultipiler, durationFrames).setOnCycleCompleteEvent(e -> {
+			TileCoord coord2 = getTileCoordFromCenter();
+			if (!MapSet.tileIsFree(coord2)) {
+				if (this instanceof BomberMan)
+					Sound.playVoice((BomberMan)this, "VOICETaunt");
+				else if (this instanceof Bomb)
+					Sound.playWav("TileSlam");
+				e.resetJump(4, 1.2, 14);
+				setGotoMove(coord2.incCoordsByDirection(getDirection()).getPosition(), e.getDurationFrames());
+			}
+			else if (consumerWhenFrameSetEnds != null)
+				consumerWhenFrameSetEnds.accept(this);
+		});
 		setGotoMove(coord.getPosition(), durationFrames - 1);
 	}
 
@@ -322,6 +342,9 @@ public class Entity extends Position {
 	public boolean canPassThroughMonster()
 		{ return passThrough.contains(PassThrough.MONSTER); }
 
+	public void setTileWasChange(boolean state)
+		{ tileWasChanged = state; }
+	
 	public boolean tileWasChanged()
 		{ return tileWasChanged; }
 
@@ -410,6 +433,51 @@ public class Entity extends Position {
 		linkedEntityOffset = null;
 		linkedEntityInfos.clear();
 	}
+	
+	public Entity getHolder()
+		{ return holder; }
+	
+	public void setHolder(Entity holder) {
+		this.holder = holder;
+		holderDesloc = new Position();
+		if (haveFrameSet("BeingHolded"))
+			setFrameSet("BeingHolded");
+	}
+	
+	public Position getHolderDesloc()
+		{ return holderDesloc; }
+	
+	public void setHolderDesloc(int x, int y)
+		{ holderDesloc.setPosition(x, y); }
+	
+	public void incHolderDesloc(int x, int y)
+		{ holderDesloc.incPosition(x, y); }
+
+	public void unsetHolder() { // Ajeitar aqui a distancia do arremesso baseado no tempo que o botao ficou pressionado
+		holder = null;
+		holderDesloc = null;
+		TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(getDirection(), 4);
+		jumpTo(coord, 6, 1.2, 20);
+	}
+
+	public Entity getHoldingEntity()
+		{ return holding; }
+	
+	public void setHoldingEntity(Entity entity) {
+		holdingCTime = System.currentTimeMillis();
+		if (entity.getHoldingEntity() != null)
+			entity.unsetHoldingEntity();
+		holding = entity;
+		entity.setHolder(this);
+	}
+	
+	public void unsetHoldingEntity() {
+		holding.unsetHolder();
+		holding = null;
+	}
+	
+	public long getHoldingCTime()
+		{ return holdingCTime; }
 
 	public Map<String, FrameSet> getFrameSetsMap()
 		{ return frameSets; }
@@ -552,6 +620,10 @@ public class Entity extends Position {
 				setBlockedMovement(false);
 			}
 		}
+		if (getHolder() != null) {
+			setPosition(getHolder().getPosition());
+			forceDirection(getHolder().getDirection());
+		}
 		if (!isDisabled) {
 			if (frameSets.isEmpty())
 				throw new RuntimeException("This entity have no FrameSets");
@@ -564,6 +636,8 @@ public class Entity extends Position {
 			}
 			elapsedFrames++;
 		}
+		if (!getCurrentFrameSet().isRunning() && consumerWhenFrameSetEnds != null)
+			consumerWhenFrameSetEnds.accept(this);
 	}
 	
 	private void processLinkedEntity() {
@@ -777,8 +851,14 @@ public class Entity extends Position {
 	public Direction getDirection()
 		{ return direction; }
 
-	public void setDirection(Direction direction) {
-		if (!isBlockedMovement() && this.direction != direction) {
+	public void setDirection(Direction direction)
+		{ setDirection(direction, false); }
+	
+	public void forceDirection(Direction direction)
+		{ setDirection(direction, true); }
+
+	private void setDirection(Direction direction, boolean force) {
+		if ((!isBlockedMovement() || force) && this.direction != direction) {
 			String name = currentFrameSetName;
 			int i = name.indexOf('.');
 			if (i > 1)

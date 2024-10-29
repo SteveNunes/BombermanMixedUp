@@ -363,6 +363,18 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new ShakeFrameSet(s));
 			else if (tag.equals("PunchBombInFront"))
 				tags.addTag(newTag = new PunchBombInFront(s));
+			else if (tag.equals("SetMultiSprIndexByDirection"))
+				tags.addTag(newTag = new SetMultiSprIndexByDirection(s));
+			else if (tag.equals("UnSetMultiSprIndexByDirection"))
+				tags.addTag(newTag = new UnSetMultiSprIndexByDirection(s));
+			else if (tag.equals("HoldEntity"))
+				tags.addTag(newTag = new HoldEntity(s));
+			else if (tag.equals("ReleaseEntity"))
+				tags.addTag(newTag = new ReleaseEntity(s));
+			else if (tag.equals("SetHoldingDesloc"))
+				tags.addTag(newTag = new SetHoldingDesloc(s));
+			else if (tag.equals("IncHoldingDesloc"))
+				tags.addTag(newTag = new IncHoldingDesloc(s));
 			if (delay > 0)
 				newTag.setTriggerDelay(delay);
 		}

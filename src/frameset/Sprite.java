@@ -52,6 +52,7 @@ public class Sprite extends Position {
 	private boolean isVisible;
 	private int ghostingDistance;
 	private Double ghostingOpacityDec;
+	private int[] multiFrameIndexByDirection;
 	
 	public Sprite(Sprite sprite)
 		{ this(sprite, sprite.getSourceFrameSet()); }
@@ -66,6 +67,7 @@ public class Sprite extends Position {
 		spriteSourceName = sprite.spriteSourceName;
 		ghostingDistance = sprite.ghostingDistance;
 		ghostingOpacityDec = sprite.ghostingOpacityDec;
+		multiFrameIndexByDirection = sprite.multiFrameIndexByDirection;
 		alpha = sprite.alpha;
 		flip = sprite.flip;
 		rotation = sprite.rotation;
@@ -109,6 +111,7 @@ public class Sprite extends Position {
 		isVisible = true;
 		ghostingDistance = 0;
 		ghostingOpacityDec = null;
+		multiFrameIndexByDirection = null;
 		updateOutputDrawCoords();
 	}
 
@@ -157,7 +160,13 @@ public class Sprite extends Position {
 		ghostingDistance = 0;
 		ghostingOpacityDec = null;
 	}
+	
+	public void setMultiFrameIndexByDirection(int up, int right, int down, int left) // Definir em cada indice o incremento de Indice de acordo com a direcao. Se o valor for negativo, aplica um flip horizontal na imagem.
+		{ multiFrameIndexByDirection = new int[] {up, right, down, left}; }
 
+	public void unsetMultiFrameIndexByDirection()
+		{ multiFrameIndexByDirection = null; }
+	
 	public void setVisible(boolean state)
 		{ isVisible = state; }
 	
@@ -181,7 +190,7 @@ public class Sprite extends Position {
 
 	public void setSpriteSourceName(String spriteSourceName)
 		{ this.spriteSourceName = spriteSourceName; }
-
+	
 	public WritableImage getSpriteSource() {
 		if (wavingImage != null) {
 			wavingImage.setBounds((int)originSpriteSizePos.getX(), (int)originSpriteSizePos.getY(), (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight());
@@ -455,10 +464,21 @@ public class Sprite extends Position {
 	public int[] getCurrentSpriteOriginCoords() {
 		if (spriteIndex == null)
 			return new int[] {0, 0};
-		int w = (int)getOriginSpriteWidth(),
+		int i = spriteIndex;
+		if (multiFrameIndexByDirection != null) {
+			i = multiFrameIndexByDirection[getSourceEntity().getDirection().get4DirValue()];
+			if (i < 0) {
+				flip = ImageFlip.HORIZONTAL;
+				i = Math.abs(i) - 1;
+			}
+			else
+				flip = ImageFlip.NONE;
+			i = spriteIndex + i * spritesPerLine;
+		}
+		int	w = (int)getOriginSpriteWidth(),
 				h = (int)getOriginSpriteHeight(),
-				x = (int)getOriginSpriteX() + w * (int)((getSpritesPerLine() == 0 ? spriteIndex : (spriteIndex % getSpritesPerLine()))),
-				y = (int)getOriginSpriteY() + h * (int)((getSpritesPerLine() == 0 ? 0 : (spriteIndex / getSpritesPerLine())));
+				x = (int)getOriginSpriteX() + w * (int)((getSpritesPerLine() == 0 ? i : (i % getSpritesPerLine()))),
+				y = (int)getOriginSpriteY() + h * (int)((getSpritesPerLine() == 0 ? 0 : (i / getSpritesPerLine())));
 		return new int[] {x, y};
 	}
 	
@@ -525,6 +545,7 @@ public class Sprite extends Position {
 				shake = null;
 		}
 		if (getSourceEntity().isVisible() && isVisible) {
+			int frontValue2 = frontValue;
 			updateOutputDrawCoords();
 			boolean blink = Misc.blink(getSourceEntity().getBlinkingFrames() > 600 ? 200 :
 																 getSourceEntity().getBlinkingFrames() > 180 ? 100 : 50);
@@ -532,6 +553,11 @@ public class Sprite extends Position {
 			int[] in = getCurrentSpriteOriginCoords();
 			int sx = in[0], sy = in[1], tx = (int)absoluteOutputSpritePos.getX(), ty = (int)absoluteOutputSpritePos.getY();
 
+			if (getSourceEntity().getHolder() != null) {
+				tx += getSourceEntity().getHolderDesloc().getX(); 
+				ty += getSourceEntity().getHolderDesloc().getY();
+				frontValue2++;
+			}
 			Shake shake;
 			if ((shake = MapSet.getShake()) != null || (shake = getSourceEntity().getShake()) != null || (shake = this.shake) != null) {
 				if (this.shake != null)
@@ -553,15 +579,13 @@ public class Sprite extends Position {
 			if (getSourceEntity().getJumpMove() != null) {
 				tx += (int)getSourceEntity().getJumpMove().getIncrements().getX();
 				ty += (int)getSourceEntity().getJumpMove().getIncrements().getY();
-				System.out.println((int)getSourceEntity().getJumpMove().getIncrements().getX() + " " +
-													 (int)getSourceEntity().getJumpMove().getIncrements().getY());
 			}
 			
 			if (gc != null)
 				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 														 tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
 			else {
-				DrawParams drawParams = Draw.addDrawQueue((int)getSourceEntity().getY() + frontValue, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
+				DrawParams drawParams = Draw.addDrawQueue((int)getSourceEntity().getY() + frontValue2, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
 																tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
 				if (getSourceEntity().ghostingOpacityDec != null)
 					drawParams.setGhosting(getSourceEntity().ghostingDistance, getSourceEntity().ghostingOpacityDec);

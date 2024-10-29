@@ -1,6 +1,7 @@
 package frameset_tags;
 
 import application.Main;
+import entities.BomberMan;
 import frameset.Sprite;
 import tools.Sound;
 
@@ -51,8 +52,12 @@ public class PlayWav extends FrameTag {
 	
 	@Override
 	public void process(Sprite sprite) {
-		if (!Main.frameSetEditorIsPaused())
-			Sound.playWav(partialSoundPath, rate, pan, balance, volume, stopCurrent);
+		if (!Main.frameSetEditorIsPaused()) {
+			if (sprite.getSourceEntity() instanceof BomberMan && partialSoundPath.length() > 5 && partialSoundPath.substring(0, 5).equals("VOICE"))
+				Sound.playVoice((BomberMan)sprite.getSourceEntity(), partialSoundPath, rate, pan, balance, volume, stopCurrent);
+			else
+				Sound.playWav(partialSoundPath, rate, pan, balance, volume, stopCurrent);
+		}
 	}
 
 }

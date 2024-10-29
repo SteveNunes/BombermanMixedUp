@@ -201,13 +201,16 @@ public class MapEditor {
 	private String defaultMap = "SBM2_1-1";
 	public boolean playing;
 	public boolean editable;
+	private boolean markCorners;
 	private boolean markEntities;
 	private boolean markBombs;
 	private int controlledBomberIndex;
 	
 	public void init() {
-		markEntities = false;
+		markCorners = false;
+		markEntities = true;
 		markBombs = false;
+		
 		canvasMouseDraw = new CanvasMouse();
 		canvasMouseTileSet = new CanvasMouse();
 		tileSelection = new Rectangle(0, 0, 1, 1);
@@ -997,7 +1000,7 @@ public class MapEditor {
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
     Draw.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
 
-    if (!Misc.alwaysTrue()) { // TEMP PARA EXIBIR QUADRADOS INDICANDO SE OS CANTOS DO TILE DO BOMBERMAN ESTAO LIVRES
+    if (markCorners) { // TEMP PARA EXIBIR QUADRADOS INDICANDO SE OS CANTOS DO TILE DO BOMBERMAN ESTAO LIVRES
 	    Position[] cornersPos = bombers.get(controlledBomberIndex).getCornersPositions();
 	    boolean[] corners = bombers.get(controlledBomberIndex).getFreeCorners();
 	    for (int x = 0; x < 4; x++) { 

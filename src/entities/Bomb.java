@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import application.Main;
 import enums.BombType;
@@ -13,7 +12,6 @@ import enums.Direction;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
 import maps.MapSet;
-import objmoveutils.JumpMove;
 import objmoveutils.TileCoord;
 import tools.GameConfigs;
 import tools.Sound;
@@ -242,20 +240,25 @@ public class Bomb extends Entity {
 		}
 		super.run(gc, isPaused);
 		TileCoord coord = getTileCoordFromCenter();
-		if (isActive()) {
-			if (!bombs.containsKey(coord))
-				bombs.put(coord, new ArrayList<>());
-			bombs.get(coord).add(this);
-			if (tileWasChanged()) {
-				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
-				MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
+		if (!isBlockedMovement()) {
+			if (isActive()) {
+				if (!bombs.containsKey(coord))
+					bombs.put(coord, new ArrayList<>());
+				bombs.get(coord).add(this);
+				if (tileWasChanged()) {
+					MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
+					MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
+				}
+			}
+			if (isActive() && getSpeed() == 0 && getPushEntity() == null && getJumpMove() == null) {
+				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
+				MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_STOPPED_BOMB, true);
 			}
 		}
-		if (isActive() && getSpeed() == 0 && getPushEntity() == null && getJumpMove() == null) {
-			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
-			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_STOPPED_BOMB, true);
-		}
 	}
+	
+	public static boolean haveBombAt(TileCoord coord)
+		{ return haveBombAt(null, coord); }
 	
 	public static boolean haveBombAt(Entity entity, TileCoord coord) {
 		if (bombs.containsKey(coord)) {
@@ -298,22 +301,10 @@ public class Bomb extends Entity {
 		}
 	}
 	
-	public Consumer<JumpMove> getOnBombFallEvent() {
-		return e -> {
-			centerToTile();
-			TileCoord coord2 = getTileCoordFromCenter();
-			Sound.playWav("TileSlam");
-			if (!MapSet.tileIsFree(coord2)) {
-				e.resetJump(4, 1.2, 14);
-				setGotoMove(coord2.incCoordsByDirection(getDirection()).getPosition(), e.getDurationFrames());
-			}
-		};
-	}
-	
 	public void punch(Direction direction, String punchSound) {
 		setDirection(direction);
 		TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction, 4);
-		jumpTo(coord.getNewInstance(), 4, 1.2, 20, punchSound, getOnBombFallEvent());
+		jumpTo(coord.getNewInstance(), 4, 1.2, 20, punchSound);
 	}
 
 }

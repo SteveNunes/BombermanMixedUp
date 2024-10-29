@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import entities.BomberMan;
 import javafx.concurrent.Task;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
@@ -87,6 +88,18 @@ public abstract class Sound {
 	public static AudioClip getLastPlayedAudioClip()
 		{ return lastPlayedAudioClip; }
 	
+	public static void playVoice(BomberMan bomber, String wavPath)
+		{ playVoice(bomber, wavPath, 1, 0, 0, 1, false); }
+	
+	public static void playVoice(BomberMan bomber, String wavPath, boolean stopCurrent)
+		{ playVoice(bomber, wavPath, 1, 0, 0, 1, stopCurrent); }
+	
+	public static void playVoice(BomberMan bomber, String wavPath, double rate, double pan, double balance, double volume)
+		{ playVoice(bomber, wavPath, rate, pan, balance, volume, false); }
+	
+	public static void playVoice(BomberMan bomber, String partialSoundPath, double rate, double pan, double balance, double volume, boolean stopCurrent)
+		{ playWav(bomber.getSoundByName(partialSoundPath.replace("VOICE", "")), rate, pan, balance, volume, stopCurrent); }
+
 	public static void playWav(String wavPath)
 		{ playWav(wavPath, 1, 0, 0, 1, false); }
 	
@@ -135,5 +148,5 @@ public abstract class Sound {
 	
 	public static void stopAllWaves()
 		{ waves.values().forEach(clip -> clip.stop()); }
-	
+
 }
