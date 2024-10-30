@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import application.Main;
 import enums.BombType;
@@ -218,8 +219,7 @@ public class Bomb extends Entity {
 		centerToTile();
 		unsetPushEntity();
 		Sound.playWav("explosion/Explosion" + (nesBomb ? "" : fireDistance < 3 ? "1" : (int)(fireDistance / 3)));
-		int index = nesBomb ? 0 : owner instanceof BomberMan ? ((BomberMan)owner).getPlayer() + 1 : 1;
-		Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, index, type == BombType.SPIKED || type == BombType.SPIKED_REMOTE);
+		Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, getBombType().getValue(), type == BombType.SPIKED || type == BombType.SPIKED_REMOTE);
 		removeBomb(this);
 	}
 	
@@ -235,6 +235,8 @@ public class Bomb extends Entity {
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
 		super.run(gc, isPaused);
+		if (getPushEntity() != null && bombs.containsKey(getTileCoordFromCenter()))
+			bombs.remove(getTileCoordFromCenter());
 		if (!isBlockedMovement() && tileWasChanged() && isActive()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();

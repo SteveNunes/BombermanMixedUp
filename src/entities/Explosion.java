@@ -39,7 +39,7 @@ public class Explosion {
 		fireDis = new int[] {0, 0, 0, 0};
 		count = 0;
 	}
-
+	
 	public static void addExplosion(TileCoord centerCoord, int tileRange, boolean passThroughAllBricks)
 		{ addExplosion(null, centerCoord, tileRange, new ArrayList<>(), 1, passThroughAllBricks); }
 	

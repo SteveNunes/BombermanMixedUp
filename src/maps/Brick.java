@@ -163,6 +163,8 @@ public class Brick extends Entity {
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
 		super.run(gc, isPaused);
+		if (getPushEntity() != null && bricks.containsKey(getTileCoordFromCenter()))
+			bricks.remove(getTileCoordFromCenter());
 		if (!isBlockedMovement() && tileWasChanged()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();

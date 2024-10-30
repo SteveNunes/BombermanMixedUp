@@ -11,6 +11,7 @@ import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import util.FindFile;
@@ -85,27 +86,80 @@ public abstract class Materials {
 		int sz = 320;
 		Canvas c = new Canvas(sz, sz);
 		GraphicsContext gc = c.getGraphicsContext2D();
-		Image exps = ImageUtils.removeBgColor(new Image("file:./appdata/sprites/Explosions.png"), Color.valueOf("#03E313"));
+		Image exp = ImageUtils.removeBgColor(new Image("file:./appdata/sprites/Explosion.png"), Color.valueOf("#03E313"));
 		gc.setImageSmoothing(false);
-		for (int ox = 0, oy = 0, z = 0; z < 18; z++) {
-			gc.clearRect(0, 0, sz, sz);
-			for (int d = 0; d < 2; d++) {
-				for (int x = 0; x < 5; x++) {
-					for (int y = 0; y < 15; y++) {
-						int sprX = y == 0 ? 48 : 32, sprY = 16 * x,
-								outX = d == 0 ? x * Main.TILE_SIZE : y * Main.TILE_SIZE,
-								outY = d == 0 ? y * Main.TILE_SIZE : 240 + x * Main.TILE_SIZE;
-						ImageUtils.drawImage(gc, exps, ox + sprX, oy + sprY, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
+		int repColors[][] = {
+				{1, 2, 3},
+				{1, 2, 3},
+				{1, 2, 2},
+				{2, 2, 3},
+				{2, 3, 3},
+				{3, 3, 2},
+				{3, 2, 1},
+				{3, 3, 3},
+				{3, 3, 1},
+				{1, 3, 3},
+				{1, 3, 2},
+				{2, 3, 1},
+				{3, 2, 3},
+				/* CORES SEM USO
+				{2, 1, 3},
+				{3, 1, 2},
+				{2, 1, 1},
+				{3, 1, 1},
+				{1, 2, 1},
+				{1, 3, 1},
+				{1, 1, 2},
+				{1, 1, 3},
+				{3, 2, 2},
+				{2, 1, 2},
+				{2, 3, 2},
+				{2, 2, 1},
+				{3, 1, 3},
+				{1, 1, 1},
+				{2, 2, 2},
+				*/
+		};
+		WritableImage exp3 = new WritableImage(256, repColors.length * 20 + 80);
+		PixelWriter pw2 = exp3.getPixelWriter();
+		for (int ox = 0, oy = 0, cc = 0; cc < repColors.length; cc++) {
+			WritableImage exp2 = new WritableImage(64, 80);
+			PixelWriter pw = exp2.getPixelWriter();
+			for (int y = 0; y < 80; y++)
+				for (int x = 0; x < 64; x++) {
+					int[] rgba = ImageUtils.getRgbaArray(exp.getPixelReader().getArgb(x + (cc == 0 ? 64 : 0), y));
+					int r = rgba[repColors[cc][0]],
+							g = rgba[repColors[cc][1]],
+							b = rgba[repColors[cc][2]];
+					if (r+g+b != 0) {
+						pw.setColor(x, y, ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b)));
+						if (x < 64)
+							pw2.setColor(ox + x, oy + y, ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b)));
 					}
-					ImageUtils.drawImage(gc, exps, ox + 16 * d, oy + x * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, 80 + x * Main.TILE_SIZE, 208 + 16 * d, Main.TILE_SIZE, Main.TILE_SIZE);
 				}
-			}
-			loadedSprites.put("Explosion" + z, Draw.getCanvasSnapshot(c));
 			if ((ox += 64) == 256) {
 				ox = 0;
 				oy += 80;
-			}				
+			}
+			for (int nes = 0; nes < 2; nes++) {
+				gc.clearRect(0, 0, sz, sz);
+				for (int d = 0; d < 2; d++) {
+					for (int x = 0; x < 5; x++) {
+						for (int y = 0; y < 15; y++) {
+							int sprX = y == 0 ? 48 : 32, sprY = 16 * x,
+									outX = d == 0 ? x * Main.TILE_SIZE : y * Main.TILE_SIZE,
+									outY = d == 0 ? y * Main.TILE_SIZE : 240 + x * Main.TILE_SIZE;
+							if (nes == 0)
+								sprX += 64;
+							ImageUtils.drawImage(gc, exp2, sprX, sprY, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
+						}
+						ImageUtils.drawImage(gc, exp2, 16 * d + (nes == 0 ? 64 : 0), x * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, 80 + x * Main.TILE_SIZE, 208 + 16 * d, Main.TILE_SIZE, Main.TILE_SIZE);
+					}
+				}
+				loadedSprites.put((nes == 0 ? "NesExplosion" : "Explosion") + cc, Draw.getCanvasSnapshot(c));
+			}
 		}
+		//ImageUtils.saveImageToFile(exp3, "D:\\Java\\Bomberman - Mixed Up!\\appdata\\sprites\\Explosions2.png");
 	}
 
 	public static WritableImage loadImage(String imagePartialPath, Color removeColor) throws RuntimeException { // Informe apenas o nome do arquivo (com pasta ou nao) a partir da pasta sprites, sem o .png

@@ -187,6 +187,8 @@ public class Item extends Entity{
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
 		super.run(gc, isPaused);
+		if (getPushEntity() != null && items.containsKey(getTileCoordFromCenter()))
+			items.remove(getTileCoordFromCenter());
 		if (!isBlockedMovement() && tileWasChanged()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
