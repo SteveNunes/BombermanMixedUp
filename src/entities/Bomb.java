@@ -12,14 +12,16 @@ import enums.Direction;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
 import maps.MapSet;
+import objmoveutils.JumpMove;
 import objmoveutils.TileCoord;
 import tools.GameConfigs;
 import tools.Sound;
 import tools.Tools;
+import util.MyMath;
 
 public class Bomb extends Entity {
 
-	private static Map<TileCoord, List<Bomb>> bombs = new HashMap<>();
+	private static Map<TileCoord, Bomb> bombs = new HashMap<>();
 	private static List<Bomb> bombList = new ArrayList<>();
 	
 	private boolean nesBomb;
@@ -62,7 +64,7 @@ public class Bomb extends Entity {
 		int y = nesBomb ? 32 : 32 + 16 * type.getValue();
 		timer = type == BombType.REMOTE || type == BombType.SPIKED_REMOTE ? -1 : 180;
 		int ticksPerFrame = type == BombType.LAND_MINE ? 3 : 16;
-		ownerIsOver = owner != null;
+		ownerIsOver = owner != null && owner.getTileCoordFromCenter().equals(coord);
 		if (owner != null) {
 			if (owner instanceof BomberMan) {
 				if (((BomberMan)owner).getCurse() == Curse.SLOW_EXPLODE_BOMB) {
@@ -119,11 +121,10 @@ public class Bomb extends Entity {
 		{ return addBomb(null, coord, type, fireDistance, checkTile); }
 
 	public static Bomb addBomb(Entity owner, TileCoord coord, BombType type, int fireDistance, boolean checkTile) {
+		coord = coord.getNewInstance();
 		if (!checkTile || (MapSet.tileIsFree(coord) && !MapSet.getTileProps(coord).contains(TileProp.GROUND_NO_BOMB))) {
 			Bomb bomb = new Bomb(owner, coord, type, fireDistance);
-			if (!bombs.containsKey(coord))
-				bombs.put(coord.getNewInstance(), new ArrayList<>());
-			bombs.get(coord).add(bomb);
+			bombs.put(coord, bomb);
 			bombList.add(bomb);
 			MapSet.checkTileTrigger(bomb, coord, TileProp.TRIGGER_BY_BOMB);
 			MapSet.checkTileTrigger(bomb, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
@@ -139,16 +140,12 @@ public class Bomb extends Entity {
 		{ addBomb(bomb.owner, bomb.getTileCoordFromCenter(), bomb.type, bomb.fireDistance, checkTile); }
 
 	public static void removeBomb(Bomb bomb) {
-		if (bombs.containsKey(bomb.getTileCoordFromCenter())) {
-			bombs.get(bomb.getTileCoordFromCenter()).remove(bomb);
-			if (bombs.get(bomb.getTileCoordFromCenter()).isEmpty())
-				bombs.remove(bomb.getTileCoordFromCenter());
-		}
+		bombs.remove(bomb.getTileCoordFromCenter());
 		bombList.remove(bomb);
 	}
 	
 	public static void removeBomb(TileCoord coord) {
-		bombList.removeAll(bombs.get(coord));
+		bombList.remove(bombs.get(coord));
 		bombs.remove(coord);
 	}
 	
@@ -163,6 +160,9 @@ public class Bomb extends Entity {
 	public static List<Bomb> getBombs()
 		{ return bombList; }
 	
+	public static Map<TileCoord, Bomb> getBombMap()
+		{ return bombs; }
+
 	public static void drawBombs() {
 		List<Bomb> bombs = new ArrayList<>(bombList);
 		for (Bomb bomb : bombs) {
@@ -227,30 +227,21 @@ public class Bomb extends Entity {
 			getPushEntity().stop();
 			centerToTile();
 			unsetGhosting();
+			bombs.put(getTileCoordFromCenter(), this);
 		}
 	}
 
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
-		TileCoord prevCoord = getTileCoordFromCenter().getNewInstance();
-		if (bombs.containsKey(prevCoord)) {
-			bombs.get(prevCoord).remove(this);
-			if (bombs.get(prevCoord).isEmpty())
-				bombs.remove(prevCoord);
-		}
 		super.run(gc, isPaused);
-		TileCoord coord = getTileCoordFromCenter();
-		if (!isBlockedMovement()) {
-			if (isActive()) {
-				if (!bombs.containsKey(coord))
-					bombs.put(coord, new ArrayList<>());
-				bombs.get(coord).add(this);
-				if (tileWasChanged()) {
-					MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
-					MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
-				}
-			}
-			if (isActive() && getSpeed() == 0 && getPushEntity() == null && getJumpMove() == null) {
+		if (!isBlockedMovement() && tileWasChanged() && isActive()) {
+			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
+			TileCoord coord = getTileCoordFromCenter().getNewInstance();
+			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
+			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
+			bombs.remove(prevCoord);
+			bombs.put(coord, this);
+			if (getSpeed() == 0) {
 				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
 				MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_STOPPED_BOMB, true);
 			}
@@ -269,13 +260,14 @@ public class Bomb extends Entity {
 	}
 	
 	public static Bomb getBombAt(TileCoord tileCoord)
-		{ return bombs.containsKey(tileCoord) && !bombs.get(tileCoord).isEmpty() ? bombs.get(tileCoord).get(0) : null; }
+		{ return bombs.containsKey(tileCoord) ? bombs.get(tileCoord) : null; }
 
 	public void kick(Direction direction, double speed)
 		{ kick(direction, speed, "BombKick", "BombSlam"); }
 	
 	public void kick(Direction direction, double speed, String kickSound, String slamSound) {
 		if (getPushEntity() == null && MapSet.tileIsFree(getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction))) {
+			bombs.remove(getTileCoordFromCenter());
 			Sound.playWav(kickSound);
 			entities.PushEntity pushEntity = new entities.PushEntity(this, speed, direction);
 			pushEntity.setOnColideEvent(e -> {
@@ -294,6 +286,7 @@ public class Bomb extends Entity {
 					Sound.playWav(slamSound);
 					setShake(2d, -0.05, 0d);
 					unsetGhosting();
+					bombs.put(getTileCoordFromCenter(), this);
 				}
 			});
 			setPushEntity(pushEntity);
@@ -304,7 +297,32 @@ public class Bomb extends Entity {
 	public void punch(Direction direction, String punchSound) {
 		setDirection(direction);
 		TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction, 4);
-		jumpTo(coord.getNewInstance(), 4, 1.2, 20, punchSound);
+		jumpTo(this, coord.getNewInstance(), 4, 1.2, 20, punchSound);
+	}
+
+	@Override
+	public void onBeingHoldEvent(Entity holder)
+		{ bombs.remove(holder.getTileCoordFromCenter()); }
+
+	@Override
+	public void onJumpStartEvent(TileCoord coord, JumpMove jumpMove)
+		{ bombs.remove(coord); }
+	
+	@Override
+	public void onJumpFallAtFreeTileEvent(TileCoord coord, JumpMove jumpMove) {
+		Sound.playWav(getBombType() == BombType.RUBBER ? "BombBounce" : "TileSlam");
+		bombs.put(coord, this);
+		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
+		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
+	}
+
+	@Override
+	public void onJumpFallAtOccupedTileEvent(TileCoord coord, JumpMove jumpMove) {
+		if (getBombType() == BombType.RUBBER)
+			forceDirection(Direction.get8DirectionFromValue((int)MyMath.getRandom(0, 7)));
+		Sound.playWav(getBombType() == BombType.RUBBER ? "BombBounce" : "TileSlam");
+		jumpMove.resetJump(4, 1.2, 14);
+		setGotoMove(coord.incCoordsByDirection(getDirection()).getPosition(), jumpMove.getDurationFrames());
 	}
 
 }

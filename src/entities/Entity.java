@@ -118,7 +118,6 @@ public class Entity extends Position {
 		gotoMove = null;
 		invencibleFrames = 0;
 		hitPoints = entity.hitPoints;
-		consumerWhenFrameSetEnds = entity.consumerWhenFrameSetEnds;
 		holder = null;
 		holderDesloc = null;
 	}
@@ -139,7 +138,6 @@ public class Entity extends Position {
 		linkedEntityBack = null;
 		linkedEntityFront = null;
 		linkedEntityOffset = null;
-		consumerWhenFrameSetEnds = null;
 		defaultTags = null;
 		shadow = null;
 		pushEntity = null;
@@ -172,7 +170,7 @@ public class Entity extends Position {
 	
 	public void setOnFrameSetEndsEvent(Consumer<Entity> consumerWhenFrameSetEnds)
 		{ this.consumerWhenFrameSetEnds = consumerWhenFrameSetEnds; }
-	
+
 	public void setShake(Double incStrength, Double finalStrength)
 		{ shake = new Shake(incStrength, incStrength, finalStrength, finalStrength);	}
 	
@@ -251,26 +249,34 @@ public class Entity extends Position {
 	public void unsetGotoMove()
 		{ gotoMove = null; }
 
-	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames)
-		{ jumpTo(coord, jumpStrenght, strenghtMultipiler, durationFrames, null); }
+	public void jumpTo(Entity entity, TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames)
+		{ jumpTo(entity, coord, jumpStrenght, strenghtMultipiler, durationFrames, null); }
 	
-	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
+	public void jumpTo(Entity entity, TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
 		if (jumpSound != null)
-			Sound.playWav(jumpSound);
-		setJumpMove(jumpStrenght, strenghtMultipiler, durationFrames).setOnCycleCompleteEvent(e -> {
+			Sound.playWav(entity, jumpSound);
+		final JumpMove jumpMove = setJumpMove(jumpStrenght, strenghtMultipiler, durationFrames);
+		onJumpStartEvent(getTileCoordFromCenter(), jumpMove);
+		jumpMove.setOnCycleCompleteEvent(e -> {
 			TileCoord coord2 = getTileCoordFromCenter();
-			if (!MapSet.tileIsFree(coord2)) {
-				if (this instanceof BomberMan)
-					Sound.playVoice((BomberMan)this, "VOICETaunt");
-				else if (this instanceof Bomb)
-					Sound.playWav("TileSlam");
-				e.resetJump(4, 1.2, 14);
-				setGotoMove(coord2.incCoordsByDirection(getDirection()).getPosition(), e.getDurationFrames());
-			}
-			else if (consumerWhenFrameSetEnds != null)
-				consumerWhenFrameSetEnds.accept(this);
+			if (!MapSet.tileIsFree(coord2))
+				onJumpFallAtOccupedTileEvent(coord, jumpMove);
+			else
+				onJumpFallAtFreeTileEvent(coord, jumpMove);
 		});
 		setGotoMove(coord.getPosition(), durationFrames - 1);
+	}
+	
+	public void onBeingHoldEvent(Entity holder) {}
+
+	public void onJumpStartEvent(TileCoord coord, JumpMove jumpMove) {}
+	
+	public void onJumpFallAtFreeTileEvent(TileCoord coord, JumpMove jumpMove) {}
+
+	public void onJumpFallAtOccupedTileEvent(TileCoord coord, JumpMove jumpMove) {
+		Sound.playWav("TileSlam");
+		jumpMove.resetJump(4, 1.2, 14);
+		setGotoMove(coord.incCoordsByDirection(getDirection()).getPosition(), jumpMove.getDurationFrames());
 	}
 
 	public Set<PassThrough> getPassThrough()
@@ -342,7 +348,7 @@ public class Entity extends Position {
 	public boolean canPassThroughMonster()
 		{ return passThrough.contains(PassThrough.MONSTER); }
 
-	public void setTileWasChange(boolean state)
+	public void setTileWasChanged(boolean state)
 		{ tileWasChanged = state; }
 	
 	public boolean tileWasChanged()
@@ -457,9 +463,9 @@ public class Entity extends Position {
 		holder = null;
 		holderDesloc = null;
 		TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(getDirection(), 4);
-		jumpTo(coord, 6, 1.2, 20);
+		jumpTo(this, coord, 6, 1.2, 20);
 	}
-
+	
 	public Entity getHoldingEntity()
 		{ return holding; }
 	
@@ -469,6 +475,7 @@ public class Entity extends Position {
 			entity.unsetHoldingEntity();
 		holding = entity;
 		entity.setHolder(this);
+		entity.onBeingHoldEvent(this);
 	}
 	
 	public void unsetHoldingEntity() {

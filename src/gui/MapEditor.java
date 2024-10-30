@@ -204,12 +204,16 @@ public class MapEditor {
 	private boolean markCorners;
 	private boolean markEntities;
 	private boolean markBombs;
+	private boolean markBricks;
+	private boolean markItems;
 	private int controlledBomberIndex;
 	
 	public void init() {
 		markCorners = false;
-		markEntities = true;
+		markEntities = false;
 		markBombs = false;
+		markBricks = true;
+		markItems = false;
 		
 		canvasMouseDraw = new CanvasMouse();
 		canvasMouseTileSet = new CanvasMouse();
@@ -433,7 +437,7 @@ public class MapEditor {
 							+ "     " + canvasMouseDraw.tileCoord
 							+ "     " + canvasMouseDraw.tileCoord.getPosition()
 							+ "     (Sprites: " + (getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord) == null ? "0" : getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord).size()) + ","
-							+ "     " + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BLOCKED") + ")"
+							+ "     " + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BRICKED") + ")"
 							+ "     Zoom: x" + zoomMain
 							+ "     Tileset Zoom: x" + zoomTileSet
 							+ "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
@@ -1022,8 +1026,18 @@ public class MapEditor {
     }
     if (markBombs) {
 	  	gcMain.setStroke(Color.ORANGE);
-	    for (Bomb bomb : Bomb.getBombs())
+	    for (Bomb bomb : Bomb.getBombMap().values())
 	    	gcMain.strokeRect(bomb.getX() * zoomMain, bomb.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+    }
+    if (markBricks) {
+	  	gcMain.setStroke(Color.GREENYELLOW);
+	    for (Brick brick : Brick.getBrickMap().values())
+	    	gcMain.strokeRect(brick.getX() * zoomMain, brick.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+    }
+    if (markItems) {
+	  	gcMain.setStroke(Color.ALICEBLUE);
+	    for (Item item : Item.getItemMap().values())
+	    	gcMain.strokeRect(item.getX() * zoomMain, item.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
     }
     BomberMan bomber = bombers.get(controlledBomberIndex);
     TileCoord c = Tools.findInRect(bomber.getTileCoordFromCenter(), bomber.getDirection(), FindType.BOMB);
@@ -1446,7 +1460,7 @@ public class MapEditor {
 	    						 tileProps.contains(TileProp.GROUND_NO_BOMB) ||
 	    						 tileProps.contains(TileProp.GROUND_NO_FIRE))
 	    							 color = Color.LIGHTGOLDENRODYELLOW;
-	    		else if (tileProps.contains(TileProp.TRIGGER_BY_BLOCK) ||
+	    		else if (tileProps.contains(TileProp.TRIGGER_BY_BRICK) ||
 	    						 tileProps.contains(TileProp.TRIGGER_BY_BOMB) ||
 	    						 tileProps.contains(TileProp.TRIGGER_BY_EXPLOSION) ||
 	    						 tileProps.contains(TileProp.TRIGGER_BY_ITEM) ||
@@ -1467,7 +1481,7 @@ public class MapEditor {
 	    			color = Color.GREEN;
 	    		else if (tileProps.contains(TileProp.FIXED_ITEM))
 	    			color = Color.CORAL;
-	    		else if (tileProps.contains(TileProp.MOVING_BLOCK))
+	    		else if (tileProps.contains(TileProp.MOVING_BRICK))
 	    			color = Color.PALEVIOLETRED;
 	    		else if (tileProps.contains(TileProp.GROUND_HOLE))
 	    			color = Color.ALICEBLUE;

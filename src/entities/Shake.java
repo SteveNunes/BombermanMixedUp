@@ -44,7 +44,6 @@ public class Shake {
 		this.incStrengthY = incStrengthY;
 		this.finalStrengthX = finalStrengthX;
 		this.finalStrengthY = finalStrengthY;
-		System.out.println(this.startStrengthX + " " + this.startStrengthX + " " + this.incStrengthX + " " + this.incStrengthY + " " + this.finalStrengthX + " " + this.finalStrengthY);
 		updateVals();
 	}
 	

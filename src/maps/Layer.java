@@ -241,7 +241,7 @@ public class Layer {
 	}
 	
 	public void clearTileProps(TileCoord coord)
-		{ tilesProps.put(coord, new ArrayList<>(Arrays.asList(TileProp.NOTHING))); }
+		{	tilesProps.put(coord, new ArrayList<>(Arrays.asList(TileProp.NOTHING))); }
 	
 	// ================ Metodos relacionados a TileTags ==============
 	

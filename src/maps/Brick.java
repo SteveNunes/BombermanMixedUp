@@ -7,14 +7,18 @@ import java.util.List;
 import java.util.Map;
 
 import entities.Entity;
+import enums.Direction;
 import enums.ItemType;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
+import objmoveutils.JumpMove;
 import objmoveutils.TileCoord;
+import tools.Sound;
 
 public class Brick extends Entity {
 
 	private static Map<TileCoord, Brick> bricks = new HashMap<>();
+	private static List<Brick> brickList = new ArrayList<>();
 	private ItemType item;
 	private int regenTimeInFrames;
 	
@@ -74,8 +78,9 @@ public class Brick extends Entity {
 		if (!haveBrickAt(coord, false)) {
 			brick.setPosition(coord.getPosition());
 			bricks.put(coord, brick);
+			brickList.add(brick);
 			brick.setBrickShadow();
-			MapSet.checkTileTrigger(brick, coord, TileProp.TRIGGER_BY_BLOCK);
+			MapSet.checkTileTrigger(brick, coord, TileProp.TRIGGER_BY_BRICK);
 		}
 	}
 	
@@ -99,13 +104,14 @@ public class Brick extends Entity {
 
 	public static void removeBrick(TileCoord coord, boolean updateLayer) {
 		if (haveBrickAt(coord, false)) {
+			brickList.remove(bricks.get(coord));
 			bricks.get(coord).unsetBrickShadow();
 			bricks.remove(coord);
 		}
 	}
 	
 	public static void clearBricks() {
-		List<Brick> list = new ArrayList<>(bricks.values());
+		List<Brick> list = new ArrayList<>(brickList);
 		list.forEach(brick -> removeBrick(brick.getTileCoordFromCenter()));
 	}
 	
@@ -113,11 +119,14 @@ public class Brick extends Entity {
 		{ return bricks.size(); }
 
 	public static List<Brick> getBricks()
-		{ return new ArrayList<>(bricks.values()); }
+		{ return brickList; }
 	
+	public static Map<TileCoord, Brick> getBrickMap()
+		{ return bricks; }
+
 	public static void drawBricks() {
-		List<Brick> removeBricks = new ArrayList<>();
-		for (Brick brick : bricks.values()) {
+		List<Brick> tempBricks = new ArrayList<>(brickList);
+		for (Brick brick : tempBricks) {
 			String cFSet = brick.getCurrentFrameSetName();
 			if (!cFSet.equals("BrickBreakFrameSet")) {
 				if (MapSet.tileContainsProp(brick.getTileCoordFromCenter(), TileProp.DAMAGE_BRICK))
@@ -140,7 +149,7 @@ public class Brick extends Entity {
 			if (brick.isBreaked() && brick.regenTimeInFrames == 0) {
 				brick.unsetBrickShadow();
 				if (MapSet.getBricksRegenTimeInFrames() == 0)
-					removeBricks.add(brick);
+					removeBrick(brick.getTileCoordFromCenter());
 				else
 					brick.regenTimeInFrames = MapSet.getBricksRegenTimeInFrames();
 				if (brick.getItem() != null) {
@@ -149,22 +158,17 @@ public class Brick extends Entity {
 				}
 			}
 		}
-		removeBricks.forEach(brick -> removeBrick(brick));
 	}
 	
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
 		super.run(gc, isPaused);
-		if (tileWasChanged()) {
+		if (!isBlockedMovement() && tileWasChanged()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
-			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BLOCK);
-			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BLOCK, true);
-			for (TileCoord t : bricks.keySet())
-				if (bricks.get(t) == this) {
-					bricks.remove(t);
-					break;
-				}
+			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BRICK);
+			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BRICK, true);
+			bricks.remove(prevCoord);
 			bricks.put(coord, this);
 		}
 	}
@@ -188,5 +192,30 @@ public class Brick extends Entity {
 
 	public void setRegenTime(int bricksRegenTimeInSecs)
 		{ regenTimeInFrames = bricksRegenTimeInSecs * 60; }
+
+	@Override
+	public void onBeingHoldEvent(Entity holder) {
+		bricks.remove(getTileCoordFromCenter());
+		Tile.removeTileShadow(getTileCoordFromCenter().getNewInstance().incCoordsByDirection(Direction.DOWN));
+	}
 	
+	@Override
+	public void onJumpStartEvent(TileCoord coord, JumpMove jumpMove)
+		{ bricks.remove(coord); }
+	
+	@Override
+	public void onJumpFallAtFreeTileEvent(TileCoord coord, JumpMove jumpMove) {
+		Sound.playWav("TileSlam");
+		bricks.put(coord, this);
+		Tile.addTileShadow(getTileCoordFromCenter().getNewInstance().incCoordsByDirection(Direction.DOWN), MapSet.getGroundWithBrickShadow(), true);
+		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BRICK);
+	}
+
+	@Override
+	public void onJumpFallAtOccupedTileEvent(TileCoord coord, JumpMove jumpMove) {
+		Sound.playWav("TileSlam");
+		jumpMove.resetJump(4, 1.2, 14);
+		setGotoMove(coord.incCoordsByDirection(getDirection()).getPosition(), jumpMove.getDurationFrames());
+	}
+
 }

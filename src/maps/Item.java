@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import entities.Bomb;
 import entities.Effect;
 import entities.Entity;
 import enums.Curse;
@@ -13,6 +14,7 @@ import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import tools.Materials;
@@ -23,6 +25,7 @@ import util.TimerFX;
 public class Item extends Entity{
 
 	private static Map<TileCoord, Item> items = new HashMap<>();
+	private static List<Item> itemList = new ArrayList<>();
 	private static RGBColor itemEdigeColor;
 	
 	private Curse curse;
@@ -122,6 +125,7 @@ public class Item extends Entity{
 	public static void addItem(Item item) {
 		if (!haveItemAt(item.coord)) {
 			items.put(item.coord.getNewInstance(), item);
+			itemList.add(item);
 			if (!MapSet.tileIsFree(item.coord)) {
 				// FALTA: implementar frameset do item pulando para um tile aleatorio se ele for inserido num tile não-vago
 			}
@@ -134,21 +138,28 @@ public class Item extends Entity{
 		{ removeItem(item.coord); }
 	
 	public static void removeItem(TileCoord coord) {
-		if (haveItemAt(coord))
+		if (haveItemAt(coord)) {
+			itemList.remove(items.get(coord));
 			items.remove(coord);
+		}
 	}
 	
-	public static void clearItems()
-		{ items.clear(); }
+	public static void clearItems() {
+		items.clear();
+		itemList.clear();
+	}
 	
 	public static int totalItems()
-		{ return items.size(); }
+		{ return itemList.size(); }
 
 	public static List<Item> getItems()
-		{ return new ArrayList<>(items.values()); }
+		{ return itemList; }
 	
+	public static Map<TileCoord, Item> getItemMap()
+		{ return items; }
+
 	public static void drawItems() {
-		List<Item> removeItems = new ArrayList<>();
+		List<Item> tempItems = new ArrayList<>(itemList);
 		WritableImage i = Materials.loadedSprites.get("ItemEdge");
 		Color c = itemEdigeColor.getColor();
 		for (int y = 0; y < 18; y++) {
@@ -160,33 +171,28 @@ public class Item extends Entity{
 			i.getPixelWriter().setColor(x, 17, c);
 		}
 			
-		for (Item item : items.values()) {
+		for (Item item : tempItems) {
 			if (--item.startInvFrames <= 0 && item.getCurrentFrameSetName().equals("ItemStandFrameSet") &&
 					MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM)) {
-				removeItems.add(item);
-				Effect.runEffect(item.getPosition(), "FIRE_SKULL_EXPLOSION");
+						removeItem(item);
+						Effect.runEffect(item.getPosition(), "FIRE_SKULL_EXPLOSION");
 			}
 			else if (!item.getCurrentFrameSetName().equals("ItemStandFrameSet") && !item.getCurrentFrameSet().isRunning())
-				removeItems.add(item);
+				removeItem(item);
 			else
 				item.run();
 		}
-		removeItems.forEach(item -> removeItem(item));
 	}
 	
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
 		super.run(gc, isPaused);
-		if (tileWasChanged()) {
+		if (!isBlockedMovement() && tileWasChanged()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
 			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
 			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_ITEM, true);
-			for (TileCoord t : items.keySet())
-				if (items.get(t) == this) {
-					items.remove(t);
-					break;
-				}
+			items.remove(prevCoord);
 			items.put(coord, this);
 		}
 	}
@@ -210,5 +216,26 @@ public class Item extends Entity{
 
 	public static Item getItemAt(TileCoord tileCoord)
 		{ return haveItemAt(tileCoord) ? items.get(tileCoord) : null; }
+
+	@Override
+	public void onBeingHoldEvent(Entity holder)
+		{ items.remove(holder.getTileCoordFromCenter()); }
+	
+	@Override
+	public void onJumpStartEvent(TileCoord coord, JumpMove jumpMove)
+		{ items.remove(coord); }
+	
+	@Override
+	public void onJumpFallAtFreeTileEvent(TileCoord coord, JumpMove jumpMove) {
+		items.put(coord, this);
+		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
+	}
+
+	@Override
+	public void onJumpFallAtOccupedTileEvent(TileCoord coord, JumpMove jumpMove) {
+		Sound.playWav("TileSlam");
+		jumpMove.resetJump(4, 1.2, 14);
+		setGotoMove(coord.incCoordsByDirection(getDirection()).getPosition(), jumpMove.getDurationFrames());
+	}
 
 }

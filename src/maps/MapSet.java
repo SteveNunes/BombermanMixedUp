@@ -545,7 +545,7 @@ public abstract class MapSet {
 	
 	public static void checkTileTrigger(Entity entity, TileCoord coord, TileProp triggerProp, boolean isTileStepOut) {
 		Tile tile = getFirstBottomTileFromCoord(coord);
-		boolean stepTrigger = triggerProp == TileProp.TRIGGER_BY_BLOCK || triggerProp == TileProp.TRIGGER_BY_BOMB || 
+		boolean stepTrigger = triggerProp == TileProp.TRIGGER_BY_BRICK || triggerProp == TileProp.TRIGGER_BY_BOMB || 
 				triggerProp == TileProp.TRIGGER_BY_ITEM || triggerProp == TileProp.TRIGGER_BY_MOB || 
 				triggerProp == TileProp.TRIGGER_BY_PLAYER ||	triggerProp == TileProp.TRIGGER_BY_UNRIDE_PLAYER;
 		boolean containsStepOut = tile.getTileProps().contains(TileProp.TRIGGER_WHEN_STEP_OUT);

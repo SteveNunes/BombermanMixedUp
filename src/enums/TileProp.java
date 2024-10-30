@@ -17,7 +17,7 @@ public enum TileProp {
 	GROUND_NO_BOMB(7), // Chão normal, que não pode por bomba
 	GROUND_NO_FIRE(8), // Chão normal, que não passa explosão
 	GROUND_NO_ITEM(9), // Chão normal, que não para item que estiver kikando e cair nesse tile
-	GROUND_NO_BLOCK(10), // Chão normal, que não para bloco que estiver kikando e cair nesse tile
+	GROUND_NO_BRICK(10), // Chão normal, que não para bloco que estiver kikando e cair nesse tile
 	JUMP_OVER(11), // O personagem pula por cima desse bloco ao andar na direção dele
 	WALL(12), // Parede (Não dá para passar nem pulando)
 	HIGH_WALL(13), // Parede (Não dá para passar nem pulando)
@@ -52,7 +52,7 @@ public enum TileProp {
 	TELEPORT_FROM_FLOATING_PLATFORM(45), // Tile especial que deve ficar ao redor de plataformas flutuantes, que teleporta a bomba ou o player para o tile correspondente como se ele tivesse pulado para fora da plataforma
 	MAP_EDGE(46), // Borda do mapa que dá para cair (Personagem fica se equilibrando)
 	STAGE_CLEAR(47), // Tile de Stage Clear
-	MOVING_BLOCK(48), // Tile do tipo parede, que se move 1 bloco quando recebe uma explosão
+	MOVING_BRICK(48), // Tile do tipo parede, que se move 1 bloco quando recebe uma explosão
 	RAIL_UL(52), // Trilho de curva de cima para a direita do BomberKart
 	RAIL_UR(53), // Trilho de curva BomberKart
 	RAIL_DL(54), // Trilho de curva BomberKart
@@ -71,7 +71,7 @@ public enum TileProp {
 	TRIGGER_BY_EXPLOSION(70), // As Tags de tile só são disparadas se uma explosão acertar o tile
 	TRIGGER_BY_MOB(71), // As Tags de tile só são disparadas se um mob passar pelo tile
 	TRIGGER_BY_ITEM(72), // As Tags de tile só são disparadas se um item cair no tile
-	TRIGGER_BY_BLOCK(73), // As Tags de tile só são disparadas se um bloco cair no tile
+	TRIGGER_BY_BRICK(73), // As Tags de tile só são disparadas se um bloco cair no tile
 	NO_TRIGGER_WHILE_HAVE_PLAYER(74), // As Tags de tile só são disparadas se não houver player no bloco atual
 	NO_TRIGGER_WHILE_HAVE_MOB(75), // As Tags de tile só são disparadas se não houver mob no bloco atual
 	NO_TRIGGER_WHILE_HAVE_BRICK(76), // As Tags de tile só são disparadas se não houver tijolo no bloco atual
@@ -95,12 +95,12 @@ public enum TileProp {
 				WATER,
 				DEEP_WATER,
 				MAP_EDGE,
-				MOVING_BLOCK));
+				MOVING_BRICK));
 		put(Elevation.FLYING, Arrays.asList(
 				JUMP_OVER,
 				WALL,
 				HIGH_WALL,
-				MOVING_BLOCK));
+				MOVING_BRICK));
 		put(Elevation.HIGH_FLYING, Arrays.asList(HIGH_WALL));
 	}};
 	
@@ -117,7 +117,7 @@ public enum TileProp {
 		put(7, GROUND_NO_BOMB);
 		put(8, GROUND_NO_FIRE);
 		put(9, GROUND_NO_ITEM);
-		put(10, GROUND_NO_BLOCK);
+		put(10, GROUND_NO_BRICK);
 		put(11, JUMP_OVER);
 		put(12, WALL);
 		put(13, HIGH_WALL);
@@ -152,7 +152,7 @@ public enum TileProp {
 		put(45, TELEPORT_FROM_FLOATING_PLATFORM);
 		put(46, MAP_EDGE);
 		put(47, STAGE_CLEAR);
-		put(48, MOVING_BLOCK);
+		put(48, MOVING_BRICK);
 		put(52, RAIL_UL);
 		put(53, RAIL_UR);
 		put(54, RAIL_DL);
@@ -171,7 +171,7 @@ public enum TileProp {
 		put(70, TRIGGER_BY_EXPLOSION);
 		put(71, TRIGGER_BY_MOB);
 		put(72, TRIGGER_BY_ITEM);
-		put(73, TRIGGER_BY_BLOCK);
+		put(73, TRIGGER_BY_BRICK);
 		put(74, NO_TRIGGER_WHILE_HAVE_PLAYER);
 		put(75, NO_TRIGGER_WHILE_HAVE_MOB);
 		put(76, NO_TRIGGER_WHILE_HAVE_BRICK);

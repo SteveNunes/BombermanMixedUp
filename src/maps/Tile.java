@@ -46,6 +46,8 @@ public class Tile {
 		effects = tile.effects == null ? null : new DrawImageEffects(tile.effects);
 		stringTileTags = tile.stringTileTags;
 		tileCoord = tile.tileCoord.getNewInstance();
+		setCoord(tile.getTileCoord());
+		setTileProps(tile.getTileProps());
 	}
 	
 	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY)
@@ -123,6 +125,8 @@ public class Tile {
 			if (tile != null)
 				MapSet.getCurrentLayer().removeFirstTileFromCoord(coord);
 			tile = new Tile(MapSet.getCurrentLayer(), (int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition().getX(), (int)coord.getPosition().getY());
+			if (!MapSet.getCurrentLayer().haveTilesOnCoord(coord))
+				MapSet.getCurrentLayer().addTileProp(coord, TileProp.GROUND);
 			MapSet.getCurrentLayer().addTile(tile);
 			if (updateLayer)
 				MapSet.getCurrentLayer().buildLayer();
@@ -142,6 +146,8 @@ public class Tile {
 					if (tile != null)
 						MapSet.getCurrentLayer().removeFirstTileFromCoord(coord);
 					tile = new Tile(MapSet.getCurrentLayer(), (int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition().getX(), (int)coord.getPosition().getY());
+					if (!MapSet.getCurrentLayer().haveTilesOnCoord(coord))
+						MapSet.getCurrentLayer().addTileProp(coord, TileProp.GROUND);
 					MapSet.getCurrentLayer().addTile(tile);
 					if (updateLayer)
 						MapSet.getCurrentLayer().buildLayer();
@@ -175,11 +181,14 @@ public class Tile {
 		TileCoord oldCoord = getTileCoord().getNewInstance();
 		outX = coord.getX() * Main.TILE_SIZE;
 		outY = coord.getY() * Main.TILE_SIZE;
+		List<TileProp> props = getTileProps();
 		tileCoord.setCoords(coord);
 		if (getOriginLayer().tileHaveTags(oldCoord)) {
 			getOriginLayer().getTileTagsFrameSet(oldCoord).getSprite(0).setX(outX);
 			getOriginLayer().getTileTagsFrameSet(oldCoord).getSprite(0).setY(outY);
 		}
+		if (props != null && (!getOriginLayer().haveTilesOnCoord(coord) || !getOriginLayer().tileHaveProps(coord)))
+			getOriginLayer().addTileProp(coord, props.toArray(new TileProp[props.size()]));
 	}
 	
 	// ================ Metodos relacionados a TileProps ==============

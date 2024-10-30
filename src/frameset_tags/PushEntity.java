@@ -60,11 +60,11 @@ public class PushEntity extends FrameTag {
 	public void set(Sprite sprite, Entity entity) {
 		processTile(sprite.getTileCoord(), targetTile, coord -> {
 			if (triggerSound != null)
-				Sound.playWav(triggerSound);
+				Sound.playWav(sprite.getSourceEntity(), triggerSound);
 			entities.PushEntity pushEntity = new entities.PushEntity(entity, startStrenght, decStrenght, direction);
 			if (soundWhenHits != null)
 				pushEntity.setOnColideEvent(e -> {
-					Sound.playWav(soundWhenHits);
+					Sound.playWav(sprite.getSourceEntity(), soundWhenHits);
 					sprite.getSourceEntity().setShake(2d, -0.05, 0d);
 					entity.unsetGhosting();
 				});

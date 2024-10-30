@@ -16,8 +16,10 @@ import enums.PassThrough;
 import enums.TileProp;
 import frameset.Tags;
 import javafx.scene.canvas.GraphicsContext;
+import maps.Brick;
 import maps.Item;
 import maps.MapSet;
+import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import tools.GameConfigs;
@@ -62,6 +64,8 @@ public class BomberMan extends Entity {
 		String section = "" + bomberIndex;
 		updateStatusByItems();
 		nameSound = IniFiles.characters.read(section, "NameSound");
+		if (nameSound != null && nameSound.equals("-"))
+			nameSound = null;
 		if (IniFiles.characters.read(section, "DefaultTags") != null)
 			setDefaultTags(Tags.loadTagsFromString(IniFiles.characters.read(section, "DefaultTags")));
 		for (String item : IniFiles.characters.getItemList(section)) {
@@ -79,6 +83,9 @@ public class BomberMan extends Entity {
 		}
 		setOnFrameSetEndsEvent(e -> changeToStandFrameSet());
 	}
+	
+	public String getNameSound()
+		{ return nameSound; }
 	
 	public String getSoundByName(String soundName)
 		{ return "/voices/" + nameSound + soundName; }
@@ -120,6 +127,8 @@ public class BomberMan extends Entity {
 						setFrameSet("HoldingStart");
 				if (getHoldingEntity() == null && Bomb.haveBombAt(getTileCoordFromCenter()))
 						setFrameSet("HoldingStart");
+				if (getHoldingEntity() == null && Brick.haveBrickAt(getTileCoordFromCenter()))
+					setFrameSet("HoldingStart");
 			}
 		}
 		else if (input == GameInputs.C) {
@@ -130,9 +139,11 @@ public class BomberMan extends Entity {
 					return;
 				}
 			TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(getDirection());
-			while (haveItem(ItemType.LINED_BOMBS) && MapSet.tileIsFree(coord) && !Item.haveItemAt(coord)) {
-				setBomb(true, coord);
-				coord.incCoordsByDirection(getDirection());
+			if (haveItem(ItemType.LINED_BOMBS) && MapSet.tileIsFree(coord) && !Item.haveItemAt(coord)) {
+				while (MapSet.tileIsFree(coord) && !Item.haveItemAt(coord)) {
+					setBomb(true, coord);
+					coord.incCoordsByDirection(getDirection());
+				}
 				return;
 			}
 			if (haveItem(ItemType.PUNCH_BOMB) && Bomb.haveBombAt(this, coord) && haveFrameSet("PunchBomb"))
@@ -187,7 +198,7 @@ public class BomberMan extends Entity {
 				queuedInputs.clear();
 				list.forEach(i -> keyPress(i));
 			}
-			if (pressedDirs.isEmpty() && !isBlockedMovement()) {
+			if (pressedDirs.isEmpty()) {
 				setElapsedSteps(0);
 				changeToStandFrameSet();
 			}
@@ -230,26 +241,36 @@ public class BomberMan extends Entity {
 		
 	}
 	
+	private String getDefaultStandFrameSet() {
+		if (getHoldingEntity() != null)
+			return "HoldingStand";
+		else if (getHolder() != null)
+			return "BeingHolded";
+		else
+			return "Stand";
+	}
+	
 	private void changeToStandFrameSet() {
 		setBlockedMovement(false);
+		setFrameSet(getDefaultStandFrameSet());
+		if (tileWasChanged())
+			setTileWasChanged(true);
+	}
+	
+	private String getDefaultMovingFrameSet() {
 		if (getHoldingEntity() != null)
-			setFrameSet("HoldingStand");
+			return "HoldingMoving";
 		else if (getHolder() != null)
-			setFrameSet("BeingHolded");
+			return "BeingHolded";
 		else
-			setFrameSet("Stand");
-		setTileWasChange(true);
+			return "Moving";
 	}
 	
 	private void changeToMovingFrameSet() {
 		setBlockedMovement(false);
-		if (getHoldingEntity() != null)
-			setFrameSet("HoldingMoving");
-		else if (getHolder() != null)
-			setFrameSet("BeingHolded");
-		else
-			setFrameSet("Moving");
-		setTileWasChange(true);
+		setFrameSet(getDefaultMovingFrameSet());
+		if (tileWasChanged())
+			setTileWasChanged(true);
 	}
 	
 	public boolean haveItem(ItemType itemType)
@@ -278,7 +299,7 @@ public class BomberMan extends Entity {
 			Bomb bomb = Bomb.addBomb(this, coord, type, fireRange, true);
 			if (bomb != null) {
 				bombs.add(bomb);
-				Sound.playWav(setBombSound);
+				Sound.playWav(this, setBombSound);
 				bombCd = (int)(10 / getSpeed());
 				return bomb;
 			}
@@ -325,6 +346,8 @@ public class BomberMan extends Entity {
 			gotItems.add(ItemType.PUSH_POWER);
 			gotItems.add(ItemType.KICK_BOMB);
 			gotItems.add(ItemType.PUNCH_BOMB);
+			gotItems.add(ItemType.PASS_BRICK);
+			gotItems.add(ItemType.LINED_BOMBS);
 			for (int n = 0; n < 9; n++)
 				gotItems.add(ItemType.BOMB_UP);
 			for (int n = 0; n < 3; n++)
@@ -402,5 +425,18 @@ public class BomberMan extends Entity {
 	
 	public void incLives(int value)
 		{ lives += value; }
+
+	@Override
+	public void onJumpFallAtFreeTileEvent(TileCoord coord, JumpMove jumpMove) {
+		changeToStandFrameSet();
+		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_PLAYER);
+	}
+
+	@Override
+	public void onJumpFallAtOccupedTileEvent(TileCoord coord, JumpMove jumpMove) {
+		Sound.playWav(this, "VOICETaunt");
+		jumpMove.resetJump(4, 1.2, 14);
+		setGotoMove(coord.incCoordsByDirection(getDirection()).getPosition(), jumpMove.getDurationFrames());
+	}
 
 }

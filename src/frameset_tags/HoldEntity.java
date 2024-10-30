@@ -2,7 +2,10 @@ package frameset_tags;
 
 import entities.Bomb;
 import entities.Entity;
+import enums.Direction;
 import frameset.Sprite;
+import maps.Brick;
+import maps.Tile;
 
 public class HoldEntity extends FrameTag {
 	
@@ -27,8 +30,12 @@ public class HoldEntity extends FrameTag {
 				entity.setHoldingEntity(en);
 				return;
 			}
-		if (Bomb.haveBombAt(entity.getTileCoordFromCenter()))
+		if (Bomb.haveBombAt(entity.getTileCoordFromCenter())) {
 			entity.setHoldingEntity(Bomb.getBombAt(entity.getTileCoordFromCenter()));
+			return;
+		}
+		if (Brick.haveBrickAt(entity.getTileCoordFromCenter()))
+			entity.setHoldingEntity(Brick.getBrickAt(entity.getTileCoordFromCenter()));
 	}
 
 }

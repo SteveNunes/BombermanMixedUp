@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import entities.BomberMan;
+import entities.Entity;
 import javafx.concurrent.Task;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
@@ -88,28 +89,30 @@ public abstract class Sound {
 	public static AudioClip getLastPlayedAudioClip()
 		{ return lastPlayedAudioClip; }
 	
-	public static void playVoice(BomberMan bomber, String wavPath)
-		{ playVoice(bomber, wavPath, 1, 0, 0, 1, false); }
-	
-	public static void playVoice(BomberMan bomber, String wavPath, boolean stopCurrent)
-		{ playVoice(bomber, wavPath, 1, 0, 0, 1, stopCurrent); }
-	
-	public static void playVoice(BomberMan bomber, String wavPath, double rate, double pan, double balance, double volume)
-		{ playVoice(bomber, wavPath, rate, pan, balance, volume, false); }
-	
-	public static void playVoice(BomberMan bomber, String partialSoundPath, double rate, double pan, double balance, double volume, boolean stopCurrent)
-		{ playWav(bomber.getSoundByName(partialSoundPath.replace("VOICE", "")), rate, pan, balance, volume, stopCurrent); }
-
 	public static void playWav(String wavPath)
-		{ playWav(wavPath, 1, 0, 0, 1, false); }
+		{ playWav(null, wavPath, 1, 0, 0, 1, false); }
 	
 	public static void playWav(String wavPath, boolean stopCurrent)
-		{ playWav(wavPath, 1, 0, 0, 1, stopCurrent); }
+		{ playWav(null, wavPath, 1, 0, 0, 1, stopCurrent); }
 	
 	public static void playWav(final String wavPath, double rate, double pan, double balance, double volume)
-		{ playWav(wavPath, rate, pan, balance, volume, false); }
+		{ playWav(null, wavPath, rate, pan, balance, volume, false); }
 	
-	public static void playWav(String wavPath, double rate, double pan, double balance, double volume, boolean stopCurrent) {
+	public static void playWav(String wavPath, double rate, double pan, double balance, double volume, boolean stopCurrent)
+		{ playWav(null, wavPath, rate, pan, balance, volume, false); }
+
+	public static void playWav(Entity entity, String wavPath)
+		{ playWav(entity, wavPath, 1, 0, 0, 1, false); }
+	
+	public static void playWav(Entity entity, String wavPath, boolean stopCurrent)
+		{ playWav(entity, wavPath, 1, 0, 0, 1, stopCurrent); }
+	
+	public static void playWav(Entity entity, final String wavPath, double rate, double pan, double balance, double volume)
+		{ playWav(entity, wavPath, rate, pan, balance, volume, false); }
+	
+	public static void playWav(Entity entity, String wavPath, double rate, double pan, double balance, double volume, boolean stopCurrent) {
+		if (wavPath.length() > 5 && entity != null && entity instanceof BomberMan && ((BomberMan)entity).getNameSound() != null && wavPath.substring(0, 5).equals("VOICE"))
+			wavPath = ((BomberMan)entity).getSoundByName(wavPath.replace("VOICE", ""));
 		String wavPath2 = wavPath + ".wav";
 		if (stopCurrent && waves.containsKey(wavPath2))
 			waves.get(wavPath2).stop();
