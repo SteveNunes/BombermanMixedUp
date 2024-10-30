@@ -61,7 +61,6 @@ public class Bomb extends Entity {
 		this.type = type;
 		this.fireDistance = fireDistance;
 		this.owner = owner;
-		int y = nesBomb ? 32 : 32 + 16 * type.getValue();
 		timer = type == BombType.REMOTE || type == BombType.SPIKED_REMOTE ? -1 : 180;
 		int ticksPerFrame = type == BombType.LAND_MINE ? 3 : 16;
 		ownerIsOver = owner != null && owner.getTileCoordFromCenter().equals(coord);
@@ -79,17 +78,18 @@ public class Bomb extends Entity {
 				}
 			}
 		}
+		int y = 16 * type.getValue();
 		if (type == BombType.LAND_MINE) {
-			String frameSet = "{SetSprSource;MainSprites;64;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0},{PlayWav;Mine}|{SetSprIndex;-}|{SetSprIndex;1}|{SetSprIndex;-}|{SetSprIndex;2}|{SetSprIndex;-}|{SetSprIndex;3}|{SetSprIndex;-}|{SetSprIndex;0}|{Goto;1;1}|{SetFrameSet;LandedFrames}";
+			String frameSet = "{SetSprSource;Bombs;0;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0},{PlayWav;Mine}|{SetSprIndex;-}|{SetSprIndex;1}|{SetSprIndex;-}|{SetSprIndex;2}|{SetSprIndex;-}|{SetSprIndex;3}|{SetSprIndex;-}|{SetSprIndex;0}|{Goto;1;1}|{SetFrameSet;LandedFrames}";
 			addNewFrameSetFromString("LandingFrames", frameSet);
 			setFrameSet("LandingFrames");
-			frameSet = "{SetSprSource;MainSprites;64;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;-}|{}|{Goto;-1}";
+			frameSet = "{SetSprSource;Bombs;0;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;-}|{}|{Goto;-1}";
 			addNewFrameSetFromString("LandedFrames", frameSet);
-			frameSet = "{SetSprSource;MainSprites;64;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0},{PlayWav;Mine}|{SetSprIndex;-}|{SetSprIndex;1}|{SetSprIndex;-}|{SetSprIndex;2}|{SetSprIndex;-}|{SetSprIndex;3}|{SetSprIndex;-}|{SetSprIndex;0}|{Goto;1;1}|{ExplodeBomb}";
+			frameSet = "{SetSprSource;Bombs;0;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0},{PlayWav;Mine}|{SetSprIndex;-}|{SetSprIndex;1}|{SetSprIndex;-}|{SetSprIndex;2}|{SetSprIndex;-}|{SetSprIndex;3}|{SetSprIndex;-}|{SetSprIndex;0}|{Goto;1;1}|{ExplodeBomb}";
 			addNewFrameSetFromString("UnlandingFrames", frameSet);
 		}
 		else {
-			String frameSet = "{SetSprSource;MainSprites;64;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}";
+			String frameSet = "{SetSprSource;Bombs;0;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}";
 			addNewFrameSetFromString("StandFrames", frameSet);
 			setFrameSet("StandFrames");
 		}
@@ -218,7 +218,8 @@ public class Bomb extends Entity {
 		centerToTile();
 		unsetPushEntity();
 		Sound.playWav("explosion/Explosion" + (nesBomb ? "" : fireDistance < 3 ? "1" : (int)(fireDistance / 3)));
-		Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, type == BombType.SPIKED || type == BombType.SPIKED_REMOTE);
+		int index = nesBomb ? 0 : owner instanceof BomberMan ? ((BomberMan)owner).getPlayer() + 1 : 1;
+		Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, index, type == BombType.SPIKED || type == BombType.SPIKED_REMOTE);
 		removeBomb(this);
 	}
 	

@@ -21,7 +21,7 @@ public abstract class Materials {
 	public static WritableImage frames;
 	public static WritableImage auras;
 	public static WritableImage thunders;
-	public static WritableImage[] explosions;
+	public static WritableImage bombs;
 	public static WritableImage blankImage;
 	public static List<Image> characters;
 	public static List<Image> rides;
@@ -36,7 +36,6 @@ public abstract class Materials {
 		loadedSprites = new HashMap<>();
 		tempSprites = new HashMap<>();
 		rides = new ArrayList<>();
-		explosions = new WritableImage[2];
 		tileSets = new HashMap<>();
 		bomberSpriteIndex = new HashMap<>();
 		blankImage = new WritableImage(320, 240);
@@ -70,6 +69,7 @@ public abstract class Materials {
 			}
 		}
 		
+		bombs = loadImage("Bombs", Color.valueOf("#03E313"));
 		mainSprites = loadImage("MainSprites", Color.valueOf("#03E313"));
 		frames = loadImage("HUD", Color.valueOf("#03E313"));
 		auras = loadImage("Auras", Color.valueOf("#03E313"));
@@ -85,18 +85,26 @@ public abstract class Materials {
 		int sz = 320;
 		Canvas c = new Canvas(sz, sz);
 		GraphicsContext gc = c.getGraphicsContext2D();
+		Image exps = ImageUtils.removeBgColor(new Image("file:./appdata/sprites/Explosions.png"), Color.valueOf("#03E313"));
 		gc.setImageSmoothing(false);
-		for (int z = 0; z < 2; z++) {
+		for (int ox = 0, oy = 0, z = 0; z < 18; z++) {
 			gc.clearRect(0, 0, sz, sz);
-			for (int d = 0; d < 2; d++)
-				for (int x = 0; x < 5 - z; x++)
+			for (int d = 0; d < 2; d++) {
+				for (int x = 0; x < 5; x++) {
 					for (int y = 0; y < 15; y++) {
-						int sprX = y == 0 ? 48 : 32, sprY = 32 + 16 * x + 80 * z,
+						int sprX = y == 0 ? 48 : 32, sprY = 16 * x,
 								outX = d == 0 ? x * Main.TILE_SIZE : y * Main.TILE_SIZE,
 								outY = d == 0 ? y * Main.TILE_SIZE : 240 + x * Main.TILE_SIZE;
-						ImageUtils.drawImage(gc, mainSprites, sprX, sprY, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
+						ImageUtils.drawImage(gc, exps, ox + sprX, oy + sprY, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
 					}
-			explosions[z] = Draw.getCanvasSnapshot(c);
+					ImageUtils.drawImage(gc, exps, ox + 16 * d, oy + x * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, 80 + x * Main.TILE_SIZE, 208 + 16 * d, Main.TILE_SIZE, Main.TILE_SIZE);
+				}
+			}
+			loadedSprites.put("Explosion" + z, Draw.getCanvasSnapshot(c));
+			if ((ox += 64) == 256) {
+				ox = 0;
+				oy += 80;
+			}				
 		}
 	}
 

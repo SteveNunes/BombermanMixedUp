@@ -247,9 +247,9 @@ public class MapEditor {
 		rebuildTileSetCanvas();
 		updateTileSelectionArray();
 		bombers = new ArrayList<>(); 
-		bombers.add(new BomberMan(1, 0));
+		bombers.add(new BomberMan(0, 1, 0));
 		bombers.get(0).setPosition(MapSet.getInitialPlayerPosition(0));
-		bombers.add(new BomberMan(1, 1));
+		bombers.add(new BomberMan(1, 1, 1));
 		bombers.get(1).setPosition(MapSet.getInitialPlayerPosition(1));
 		mainLoop();
   }
@@ -1302,7 +1302,7 @@ public class MapEditor {
 	
 	private void addPlayerAtCursor() {
 		if (bombers.size() < 17) {
-			BomberMan bomber = new BomberMan(1, bombers.size());
+			BomberMan bomber = new BomberMan(bombers.size(), 1, bombers.size());
 			bomber.setPosition(canvasMouseDraw.tileCoord.getPosition());
 			bombers.add(bomber);
 		}

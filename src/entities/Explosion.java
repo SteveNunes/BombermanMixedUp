@@ -10,6 +10,7 @@ import enums.Direction;
 import enums.PassThrough;
 import enums.SpriteLayerType;
 import enums.TileProp;
+import javafx.scene.image.WritableImage;
 import maps.MapSet;
 import objmoveutils.TileCoord;
 import tools.Draw;
@@ -24,44 +25,64 @@ public class Explosion {
 	private Entity owner;
 	private int count;
 	private int[] fireDis;
+	private int explosionIndex;
 
 	private static List<Explosion> explosions = new ArrayList<>();
 	
-	private Explosion(Entity owner, TileCoord centerCoord, int tileRange, List<Direction> directions, boolean passThroughAllBricks) {
+	private Explosion(Entity owner, TileCoord centerCoord, int tileRange, List<Direction> directions, int explosionIndex, boolean passThroughAllBricks) {
 		this.directions = new ArrayList<>(directions);
 		this.tileRange = tileRange;
 		this.passThroughAllBricks = passThroughAllBricks;
 		this.centerCoord = centerCoord.getNewInstance();
 		this.owner = owner;
+		this.explosionIndex = explosionIndex;
 		fireDis = new int[] {0, 0, 0, 0};
 		count = 0;
 	}
 
 	public static void addExplosion(TileCoord centerCoord, int tileRange, boolean passThroughAllBricks)
-		{ addExplosion(null, centerCoord, tileRange, new ArrayList<>(), passThroughAllBricks); }
+		{ addExplosion(null, centerCoord, tileRange, new ArrayList<>(), 1, passThroughAllBricks); }
 	
 	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, boolean passThroughAllBricks)
-		{ addExplosion(owner, centerCoord, tileRange, new ArrayList<>(), passThroughAllBricks); }
-
-	public static void addExplosion(TileCoord centerCoord, int tileRange, Direction direction, boolean passThroughAllBricks)
-		{ addExplosion(null, centerCoord, tileRange, Arrays.asList(direction), passThroughAllBricks); }
-
-	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, Direction direction, boolean passThroughAllBricks)
-		{ addExplosion(owner, centerCoord, tileRange, Arrays.asList(direction), passThroughAllBricks); }
-
-	public static void addExplosion(TileCoord centerCoord, int tileRange, List<Direction> directions, boolean passThroughAllBricks)
-		{ addExplosion(null, centerCoord, tileRange, directions, passThroughAllBricks); }
+		{ addExplosion(owner, centerCoord, tileRange, new ArrayList<>(), 1, passThroughAllBricks); }
 	
-	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, List<Direction> directions, boolean passThroughAllBricks) {
+	public static void addExplosion(TileCoord centerCoord, int tileRange, Direction direction, boolean passThroughAllBricks)
+		{ addExplosion(null, centerCoord, tileRange, Arrays.asList(direction), 1, passThroughAllBricks); }
+	
+	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, Direction direction, boolean passThroughAllBricks)
+		{ addExplosion(owner, centerCoord, tileRange, Arrays.asList(direction), 1, passThroughAllBricks); }
+	
+	public static void addExplosion(TileCoord centerCoord, int tileRange, List<Direction> directions, boolean passThroughAllBricks)
+		{ addExplosion(null, centerCoord, tileRange, directions, 1, passThroughAllBricks); }
+	
+	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, List<Direction> directions, boolean passThroughAllBricks)
+		{ addExplosion(owner, centerCoord, tileRange, directions, 1, passThroughAllBricks); }
+
+	public static void addExplosion(TileCoord centerCoord, int tileRange, int explosionIndex, boolean passThroughAllBricks)
+		{ addExplosion(null, centerCoord, tileRange, new ArrayList<>(), explosionIndex, passThroughAllBricks); }
+	
+	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, int explosionIndex, boolean passThroughAllBricks)
+		{ addExplosion(owner, centerCoord, tileRange, new ArrayList<>(), explosionIndex, passThroughAllBricks); }
+
+	public static void addExplosion(TileCoord centerCoord, int tileRange, Direction direction, int explosionIndex, boolean passThroughAllBricks)
+		{ addExplosion(null, centerCoord, tileRange, Arrays.asList(direction), explosionIndex, passThroughAllBricks); }
+
+	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, Direction direction, int explosionIndex, boolean passThroughAllBricks)
+		{ addExplosion(owner, centerCoord, tileRange, Arrays.asList(direction), explosionIndex, passThroughAllBricks); }
+
+	public static void addExplosion(TileCoord centerCoord, int tileRange, List<Direction> directions, int explosionIndex, boolean passThroughAllBricks)
+		{ addExplosion(null, centerCoord, tileRange, directions, explosionIndex, passThroughAllBricks); }
+	
+	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, List<Direction> directions, int explosionIndex, boolean passThroughAllBricks) {
 		if (directions.isEmpty())
 			directions.addAll(Arrays.asList(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT));
-		explosions.add(new Explosion(owner, centerCoord, tileRange, directions, passThroughAllBricks));
+		explosions.add(new Explosion(owner, centerCoord, tileRange, directions, explosionIndex, passThroughAllBricks));
 	}
 	
 	public static void drawExplosions() {
 		for (int p = explosions.size() - 1; p >= 0; p--) {
 			Explosion ex = explosions.get(p);
-			boolean nes = ((Bomb)ex.owner).isNesBomb();
+			WritableImage sprite = Materials.loadedSprites.get("Explosion" + ex.explosionIndex);
 			if (++ex.count == 1) {
 				Direction dir = Direction.UP;
 				ex.fireDis = new int[] {0, 0, 0, 0};
@@ -80,8 +101,8 @@ public class Explosion {
 			}
 			else if (ex.count == 6)
 				ex.markTiles(false);
-			int z = ex.count / (nes ? 4 : 5);
-			z = z < (nes ? 4 : 5) ? z : (nes ? 7 : 8) - z;
+			int z = ex.count / 5;
+			z = z < 5 ? z : 8 - z;
 			if (z == -1) {
 				ex.markTiles(true);
 				explosions.remove(p--);
@@ -90,15 +111,15 @@ public class Explosion {
 				int x = ex.centerCoord.getX() * Main.TILE_SIZE,
 						y = ex.centerCoord.getY() * Main.TILE_SIZE;
 				if (ex.directions.size() == 4)
-					Draw.addDrawQueue(SpriteLayerType.SPRITE, Materials.mainSprites, 16, (nes ? 112 : 32) + z * 16, 16, 16, x, y, Main.TILE_SIZE, Main.TILE_SIZE); // Explosão central
+					Draw.addDrawQueue(SpriteLayerType.SPRITE, sprite, 80 + z * 16, 224, 16, 16, x, y, Main.TILE_SIZE, Main.TILE_SIZE); // Explosão central
 				if (ex.directions.contains(Direction.UP))
-					Draw.addDrawQueue(SpriteLayerType.SPRITE, Materials.explosions[nes ? 1 : 0], z * 16, ex.fireDis[0] == ex.tileRange ? 0 : 16, 16, ex.fireDis[0] * 16, x, y - ex.fireDis[0] * Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[0] * Main.TILE_SIZE);
+					Draw.addDrawQueue(SpriteLayerType.SPRITE, sprite, z * 16, ex.fireDis[0] == ex.tileRange ? 0 : 16, 16, ex.fireDis[0] * 16, x, y - ex.fireDis[0] * Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[0] * Main.TILE_SIZE);
 				if (ex.directions.contains(Direction.RIGHT))
-					Draw.addDrawQueue(SpriteLayerType.SPRITE, Materials.explosions[nes ? 1 : 0], ex.fireDis[1] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[1] * 16, 16, x + Main.TILE_SIZE, y, ex.fireDis[1] * Main.TILE_SIZE, Main.TILE_SIZE, 180);
+					Draw.addDrawQueue(SpriteLayerType.SPRITE, sprite, ex.fireDis[1] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[1] * 16, 16, x + Main.TILE_SIZE, y, ex.fireDis[1] * Main.TILE_SIZE, Main.TILE_SIZE, 180);
 				if (ex.directions.contains(Direction.DOWN))
-					Draw.addDrawQueue(SpriteLayerType.SPRITE, Materials.explosions[nes ? 1 : 0], z * 16, ex.fireDis[2] == ex.tileRange ? 0 : 16, 16, ex.fireDis[2] * 16, x, y + Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[2] * Main.TILE_SIZE, 180);
+					Draw.addDrawQueue(SpriteLayerType.SPRITE, sprite, z * 16, ex.fireDis[2] == ex.tileRange ? 0 : 16, 16, ex.fireDis[2] * 16, x, y + Main.TILE_SIZE, Main.TILE_SIZE, ex.fireDis[2] * Main.TILE_SIZE, 180);
 				if (ex.directions.contains(Direction.LEFT))
-					Draw.addDrawQueue(SpriteLayerType.SPRITE, Materials.explosions[nes ? 1 : 0], ex.fireDis[3] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[3] * 16, 16, x - ex.fireDis[3] * Main.TILE_SIZE, y, ex.fireDis[3] * Main.TILE_SIZE, Main.TILE_SIZE);
+					Draw.addDrawQueue(SpriteLayerType.SPRITE, sprite, ex.fireDis[3] == ex.tileRange ? 0 : 16, 240 + z * 16, ex.fireDis[3] * 16, 16, x - ex.fireDis[3] * Main.TILE_SIZE, y, ex.fireDis[3] * Main.TILE_SIZE, Main.TILE_SIZE);
 			}
 		}
 	}

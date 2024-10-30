@@ -44,12 +44,14 @@ public class BomberMan extends Entity {
 	private int score;
 	private int addedScore;
 	private int lives;
+	private int player;
 	private String nameSound;
 
-	public BomberMan(int bomberIndex, int palleteIndex) {
+	public BomberMan(int player, int bomberIndex, int palleteIndex) {
 		super();
 		this.bomberIndex = bomberIndex;
 		this.palleteIndex = palleteIndex;
+		this.player = player;
 		pressedDirs = new ArrayList<>();
 		holdedInputs = new HashSet<>();
 		queuedInputs = new ArrayList<>();
@@ -83,6 +85,9 @@ public class BomberMan extends Entity {
 		}
 		setOnFrameSetEndsEvent(e -> changeToStandFrameSet());
 	}
+	
+	public int getPlayer()
+		{ return player; }
 	
 	public String getNameSound()
 		{ return nameSound; }
