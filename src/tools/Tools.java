@@ -69,115 +69,117 @@ public abstract class Tools {
 		return "-";
 	}
 	
-	public static TileCoord findInLine(TileCoord coord, Direction direction, FindType type)
-		{ return findInLine(null, coord, Set.of(direction), Set.of(type), null); }
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Direction direction, FindType type)
+		{ return findInLine(null, ignoreEntity, coord, Set.of(direction), Set.of(type), null); }
 	
-	public static TileCoord findInLine(TileCoord coord, Direction direction, Set<FindType> types)
-		{ return findInLine(null, coord, Set.of(direction), types, null); }
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Direction direction, Set<FindType> types)
+		{ return findInLine(null, ignoreEntity, coord, Set.of(direction), types, null); }
 	
-	public static TileCoord findInLine(TileCoord coord, Set<Direction> directions, FindType type)
-		{ return findInLine(null, coord, directions, Set.of(type), null); }
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Set<Direction> directions, FindType type)
+		{ return findInLine(null, ignoreEntity, coord, directions, Set.of(type), null); }
 	
-	public static TileCoord findInLine(TileCoord coord, Set<Direction> directions, Set<FindType> types)
-		{ return findInLine(null, coord, directions, types, null); }
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Set<Direction> directions, Set<FindType> types)
+		{ return findInLine(null, ignoreEntity, coord, directions, types, null); }
 	
-	public static TileCoord findInLine(TileCoord coord, Direction direction, FindType type, Set<PassThrough> ignores)
-		{ return findInLine(null, coord, Set.of(direction), Set.of(type), ignores); }
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Direction direction, FindType type, Set<PassThrough> ignores)
+		{ return findInLine(null, ignoreEntity, coord, Set.of(direction), Set.of(type), ignores); }
 	
-	public static TileCoord findInLine(TileCoord coord, Direction direction, Set<FindType> types, Set<PassThrough> ignores)
-		{ return findInLine(null, coord, Set.of(direction), types, ignores); }
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Direction direction, Set<FindType> types, Set<PassThrough> ignores)
+		{ return findInLine(null, ignoreEntity, coord, Set.of(direction), types, ignores); }
 	
-	public static TileCoord findInLine(TileCoord coord, Set<Direction> directions, FindType type, Set<PassThrough> ignores)
-		{ return findInLine(null, coord, directions, Set.of(type), ignores); }
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Set<Direction> directions, FindType type, Set<PassThrough> ignores)
+		{ return findInLine(null, ignoreEntity, coord, directions, Set.of(type), ignores); }
 	
-	public static TileCoord findInLine(TileCoord coord, Set<Direction> directions, Set<FindType> types, Set<PassThrough> ignores)
-		{ return findInLine(null, coord, directions, types, ignores); }
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Set<Direction> directions, Set<FindType> types, Set<PassThrough> ignores)
+		{ return findInLine(null, ignoreEntity, coord, directions, types, ignores); }
 	
-	public static TileCoord findInLine(Entity entity, TileCoord coord, Direction direction, FindType type)
-		{ return findInLine(entity, coord, Set.of(direction), Set.of(type), null); }
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Direction direction, FindType type)
+		{ return findInLine(entity, ignoreEntity, coord, Set.of(direction), Set.of(type), null); }
 	
-	public static TileCoord findInLine(Entity entity, TileCoord coord, Direction direction, Set<FindType> types)
-		{ return findInLine(entity, coord, Set.of(direction), types, null); }
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Direction direction, Set<FindType> types)
+		{ return findInLine(entity, ignoreEntity, coord, Set.of(direction), types, null); }
 	
-	public static TileCoord findInLine(Entity entity, TileCoord coord, Set<Direction> directions, FindType type)
-		{ return findInLine(entity, coord, directions, Set.of(type), null); }
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Set<Direction> directions, FindType type)
+		{ return findInLine(entity, ignoreEntity, coord, directions, Set.of(type), null); }
 	
-	public static TileCoord findInLine(Entity entity, TileCoord coord, Set<Direction> directions, Set<FindType> types)
-		{ return findInLine(entity, coord, directions, types, null); }
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Set<Direction> directions, Set<FindType> types)
+		{ return findInLine(entity, ignoreEntity, coord, directions, types, null); }
 
-	public static TileCoord findInLine(Entity entity, TileCoord coord, Direction direction, FindType type, Set<PassThrough> ignores)
-		{ return findInLine(entity, coord, Set.of(direction), Set.of(type), ignores); }
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Direction direction, FindType type, Set<PassThrough> ignores)
+		{ return findInLine(entity, ignoreEntity, coord, Set.of(direction), Set.of(type), ignores); }
 
-	public static TileCoord findInLine(Entity entity, TileCoord coord, Direction direction, Set<FindType> types, Set<PassThrough> ignores)
-		{ return findInLine(entity, coord, Set.of(direction), types, ignores); }
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Direction direction, Set<FindType> types, Set<PassThrough> ignores)
+		{ return findInLine(entity, ignoreEntity, coord, Set.of(direction), types, ignores); }
 
-	public static TileCoord findInLine(Entity entity, TileCoord coord, Set<Direction> directions, FindType type, Set<PassThrough> ignores)
-		{ return findInLine(entity, coord, directions, Set.of(type), ignores); }
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Set<Direction> directions, FindType type, Set<PassThrough> ignores)
+		{ return findInLine(entity, ignoreEntity, coord, directions, Set.of(type), ignores); }
 	
-	public static TileCoord findInLine(Entity entity, TileCoord coord, Set<Direction> directions, Set<FindType> types, Set<PassThrough> ignores) {
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Set<Direction> directions, Set<FindType> types, Set<PassThrough> ignores) {
 		for (Direction dir : directions)
 			for (TileCoord c = coord.getNewInstance().incCoordsByDirection(dir); MapSet.haveTilesOnCoord(c); c.incCoordsByDirection(dir)) {
 				if (!MapSet.tileIsFree(c, ignores)) {
 					if ((types.contains(FindType.BOMB) && Bomb.haveBombAt(entity, c)) ||
 							(types.contains(FindType.BRICK) && Brick.haveBrickAt(c)) ||
 							(types.contains(FindType.ITEM) && Item.haveItemAt(c)) ||
-							(types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c) && Entity.getEntityListFromCoord(c) instanceof Monster) ||
-							(types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c) && Entity.getEntityListFromCoord(c) instanceof BomberMan))
+							(types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, Monster.class)) ||
+							(types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, BomberMan.class)))
 					return c;
 					return null;
 				}
-				else if (types.contains(FindType.EMPTY))
-					return c;
+				else if (types.contains(FindType.EMPTY) ||
+						(types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof Monster) ||
+						(types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof BomberMan))
+							return c;
 			}
 		return null;
 	}
 
-	public static TileCoord findInRect(TileCoord coord, int radiusInTiles, FindType type)
-		{ return findInRect(null, coord, null, radiusInTiles, Set.of(type), null); }
+	public static TileCoord findInRect(TileCoord coord, Entity ignoreEntity, int radiusInTiles, FindType type)
+		{ return findInRect(null, coord, ignoreEntity, null, radiusInTiles, Set.of(type), null); }
 		
-	public static TileCoord findInRect(Entity entity, TileCoord coord, int radiusInTiles, FindType type)
-		{ return findInRect(entity, coord, null, radiusInTiles, Set.of(type), null); }
+	public static TileCoord findInRect(Entity entity, TileCoord coord, Entity ignoreEntity, int radiusInTiles, FindType type)
+		{ return findInRect(entity, coord, ignoreEntity, null, radiusInTiles, Set.of(type), null); }
 	
-	public static TileCoord findInRect(TileCoord coord, int radiusInTiles, FindType type, Set<PassThrough> ignores)
-		{ return findInRect(null, coord, null, radiusInTiles, Set.of(type), ignores); }
+	public static TileCoord findInRect(TileCoord coord, Entity ignoreEntity, int radiusInTiles, FindType type, Set<PassThrough> ignores)
+		{ return findInRect(null, coord, ignoreEntity, null, radiusInTiles, Set.of(type), ignores); }
 	
-	public static TileCoord findInRect(Entity entity, TileCoord coord, int radiusInTiles, FindType type, Set<PassThrough> ignores)
-		{ return findInRect(entity, coord, null, radiusInTiles, Set.of(type), ignores); }
+	public static TileCoord findInRect(Entity entity, TileCoord coord, Entity ignoreEntity, int radiusInTiles, FindType type, Set<PassThrough> ignores)
+		{ return findInRect(entity, coord, ignoreEntity, null, radiusInTiles, Set.of(type), ignores); }
 	
-	public static TileCoord findInRect(TileCoord coord, int radiusInTiles, Set<FindType> types)
-		{ return findInRect(null, coord, null, radiusInTiles, types, null); }
+	public static TileCoord findInRect(TileCoord coord, Entity ignoreEntity, int radiusInTiles, Set<FindType> types)
+		{ return findInRect(null, coord, ignoreEntity, null, radiusInTiles, types, null); }
 		
-	public static TileCoord findInRect(Entity entity, TileCoord coord, int radiusInTiles, Set<FindType> types)
-		{ return findInRect(entity, coord, null, radiusInTiles, types, null); }
+	public static TileCoord findInRect(Entity entity, TileCoord coord, Entity ignoreEntity, int radiusInTiles, Set<FindType> types)
+		{ return findInRect(entity, coord, ignoreEntity, null, radiusInTiles, types, null); }
 	
-	public static TileCoord findInRect(TileCoord coord, int radiusInTiles, Set<FindType> types, Set<PassThrough> ignores)
-		{ return findInRect(null, coord, null, radiusInTiles, types, ignores); }
+	public static TileCoord findInRect(TileCoord coord, Entity ignoreEntity, int radiusInTiles, Set<FindType> types, Set<PassThrough> ignores)
+		{ return findInRect(null, coord, ignoreEntity, null, radiusInTiles, types, ignores); }
 	
-	public static TileCoord findInRect(Entity entity, TileCoord coord, int radiusInTiles, Set<FindType> types, Set<PassThrough> ignores)
-		{ return findInRect(entity, coord, null, radiusInTiles, types, ignores); }
+	public static TileCoord findInRect(Entity entity, TileCoord coord, Entity ignoreEntity, int radiusInTiles, Set<FindType> types, Set<PassThrough> ignores)
+		{ return findInRect(entity, coord, ignoreEntity, null, radiusInTiles, types, ignores); }
 	
-	public static TileCoord findInRect(TileCoord coord, FindInRectType findType, int radiusInTiles, FindType type)
-		{ return findInRect(null, coord, findType, radiusInTiles, Set.of(type), null); }
+	public static TileCoord findInRect(TileCoord coord, Entity ignoreEntity, FindInRectType findType, int radiusInTiles, FindType type)
+		{ return findInRect(null, coord, ignoreEntity, findType, radiusInTiles, Set.of(type), null); }
 		
-	public static TileCoord findInRect(Entity entity, TileCoord coord, FindInRectType findType, int radiusInTiles, FindType type)
-		{ return findInRect(entity, coord, findType, radiusInTiles, Set.of(type), null); }
+	public static TileCoord findInRect(Entity entity, TileCoord coord, Entity ignoreEntity, FindInRectType findType, int radiusInTiles, FindType type)
+		{ return findInRect(entity, coord, ignoreEntity, findType, radiusInTiles, Set.of(type), null); }
 	
-	public static TileCoord findInRect(TileCoord coord, FindInRectType findType, int radiusInTiles, FindType type, Set<PassThrough> ignores)
-		{ return findInRect(null, coord, findType, radiusInTiles, Set.of(type), ignores); }
+	public static TileCoord findInRect(TileCoord coord, Entity ignoreEntity, FindInRectType findType, int radiusInTiles, FindType type, Set<PassThrough> ignores)
+		{ return findInRect(null, coord, ignoreEntity, findType, radiusInTiles, Set.of(type), ignores); }
 	
-	public static TileCoord findInRect(Entity entity, TileCoord coord, FindInRectType findType, int radiusInTiles, FindType type, Set<PassThrough> ignores)
-		{ return findInRect(entity, coord, findType, radiusInTiles, Set.of(type), ignores); }
+	public static TileCoord findInRect(Entity entity, TileCoord coord, Entity ignoreEntity, FindInRectType findType, int radiusInTiles, FindType type, Set<PassThrough> ignores)
+		{ return findInRect(entity, coord, ignoreEntity, findType, radiusInTiles, Set.of(type), ignores); }
 
-	public static TileCoord findInRect(TileCoord coord, FindInRectType findType, int radiusInTiles, Set<FindType> types)
-		{ return findInRect(null, coord, findType, radiusInTiles, types, null); }
+	public static TileCoord findInRect(TileCoord coord, Entity ignoreEntity, FindInRectType findType, int radiusInTiles, Set<FindType> types)
+		{ return findInRect(null, coord, ignoreEntity, findType, radiusInTiles, types, null); }
 		
-	public static TileCoord findInRect(Entity entity, TileCoord coord, FindInRectType findType, int radiusInTiles, Set<FindType> types)
-		{ return findInRect(entity, coord, findType, radiusInTiles, types, null); }
+	public static TileCoord findInRect(Entity entity, TileCoord coord, Entity ignoreEntity, FindInRectType findType, int radiusInTiles, Set<FindType> types)
+		{ return findInRect(entity, coord, ignoreEntity, findType, radiusInTiles, types, null); }
 
-	public static TileCoord findInRect(TileCoord coord, FindInRectType findType, int radiusInTiles, Set<FindType> types, Set<PassThrough> ignores)
-		{ return findInRect(null, coord, findType, radiusInTiles, types, ignores); }
+	public static TileCoord findInRect(TileCoord coord, Entity ignoreEntity, FindInRectType findType, int radiusInTiles, Set<FindType> types, Set<PassThrough> ignores)
+		{ return findInRect(null, coord, ignoreEntity, findType, radiusInTiles, types, ignores); }
 	
-	public static TileCoord findInRect(Entity entity, TileCoord coord, FindInRectType findType, int radiusInTiles, Set<FindType> types, Set<PassThrough> ignores) {
+	public static TileCoord findInRect(Entity entity, TileCoord coord, Entity ignoreEntity, FindInRectType findType, int radiusInTiles, Set<FindType> types, Set<PassThrough> ignores) {
 		radiusInTiles--;
 		TileCoord coord2 = new TileCoord();
 		for (int y = coord.getY() - radiusInTiles; y <= coord.getY() + radiusInTiles; y++)
@@ -191,15 +193,17 @@ public abstract class Tools {
 						if ((types.contains(FindType.BOMB) && Bomb.haveBombAt(entity, coord2)) ||
 								(types.contains(FindType.BRICK) && Brick.haveBrickAt(coord2)) ||
 								(types.contains(FindType.ITEM) && Item.haveItemAt(coord2)) ||
-								(types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2) && Entity.getEntityListFromCoord(coord2) instanceof Monster) ||
-								(types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2) && Entity.getEntityListFromCoord(coord2) instanceof BomberMan))
+								(types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, Monster.class)) ||
+								(types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, BomberMan.class)))
 									found = true;
 					}
-					else if (types.contains(FindType.EMPTY))
-							found = true;
+					else if (types.contains(FindType.EMPTY) ||
+									(types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof Monster) ||
+									(types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof BomberMan))
+										found = true;
 					if (found) {
 						Function<TileCoord, Boolean> tileIsFree = t ->
-							{ return MapSet.tileIsFree(t) || t.equals(coord2); };
+							{ return MapSet.tileIsFree(t, ignores) || t.equals(coord) || t.equals(coord2); };
 						PathFinder pf = new PathFinder(coord, coord2, Direction.DOWN, tileIsFree);
 						if (pf.pathWasFound())
 							return coord2;

@@ -4,16 +4,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 import application.Main;
 import enums.BombType;
 import enums.Curse;
 import enums.Direction;
+import enums.FindType;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
 import maps.MapSet;
 import objmoveutils.JumpMove;
 import objmoveutils.TileCoord;
+import pathfinder.PathFinder;
+import pathfinder.PathFinderOptmize;
 import tools.GameConfigs;
 import tools.Sound;
 import tools.Tools;
@@ -174,7 +179,7 @@ public class Bomb extends Entity {
 					bomb.detonate();
 				continue;
 			}
-			if (bomb.owner != null && bomb.ownerIsOver) {
+			if (bomb.ownerIsOver(bomb.owner)) {
 				int x = (int)bomb.owner.getX() + Main.TILE_SIZE / 2, y = (int)bomb.owner.getY() + Main.TILE_SIZE / 2,
 						xx = (int)bomb.getX() + Main.TILE_SIZE / 2, yy = (int)bomb.getY() + Main.TILE_SIZE / 2;
 				if (x <= xx - Main.TILE_SIZE / 2 || x >= xx + Main.TILE_SIZE / 2 ||
@@ -191,6 +196,9 @@ public class Bomb extends Entity {
 				bomb.run();
 		}
 	}
+	
+	public boolean ownerIsOver(Entity entity)
+		{ return entity != null && owner == entity && ownerIsOver; }
 	
 	public int getTimer()
 		{ return timer; }
@@ -232,23 +240,41 @@ public class Bomb extends Entity {
 	}
 	
 	@Override
+	public void setPathFinder(PathFinder pathFinder) {
+		super.setPathFinder(pathFinder);
+		if (pathFinder == null || !pathFinder.pathWasFound())
+  		setSpeed(0);
+	}
+	
+	@Override
 	public boolean isBlockedMovement()
 		{ return getJumpMove() != null || getHolder() != null; }
 
-
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
+		if (getBombType() == BombType.FOLLOW && !isBlockedMovement() && getPathFinder() == null) {
+	    TileCoord coord = Tools.findInRect(this, getTileCoordFromCenter(), owner, 4, FindType.PLAYER);
+	    if (coord != null) {
+				Function<TileCoord, Boolean> tileIsFree = t ->
+					{ return MapSet.tileIsFree(t) || t.equals(coord) || t.equals(getTileCoordFromCenter()); };
+	    	setPathFinder(new PathFinder(getTileCoordFromCenter(), coord, getDirection(), PathFinderOptmize.OPTIMIZED, tileIsFree));
+	    	if (!getPathFinder().pathWasFound())
+	    		setPathFinder(null);
+	    	else {
+	  			bombs.remove(getTileCoordFromCenter());
+	    		setSpeed(0.5);
+	    	}
+	    }
+		}
 		super.run(gc, isPaused);
-		if (getPushEntity() != null && bombs.containsKey(getTileCoordFromCenter()))
-			bombs.remove(getTileCoordFromCenter());
 		if (!isBlockedMovement() && tileWasChanged() && isActive()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
+			bombs.remove(prevCoord);
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
 			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
 			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
-			bombs.remove(prevCoord);
-			bombs.put(coord, this);
-			if (getSpeed() == 0) {
+			if (!isMoving()) {
+				bombs.put(coord, this);
 				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
 				MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_STOPPED_BOMB, true);
 			}
@@ -261,7 +287,7 @@ public class Bomb extends Entity {
 	public static boolean haveBombAt(Entity entity, TileCoord coord) {
 		if (bombs.containsKey(coord)) {
 			Bomb bomb = getBombAt(coord);
-			return bomb.owner == null || entity == null || bomb.owner != entity || !bomb.ownerIsOver;
+			return bomb.owner == null || entity == null || !bomb.ownerIsOver(entity);
 		}
 		return false;
 	}
@@ -280,7 +306,7 @@ public class Bomb extends Entity {
 			pushEntity.setOnColideEvent(e -> {
 				if (getBombType() == BombType.RUBBER) {
 					Sound.playWav("BombBounce");
-					Direction dir = Tools.getRandomFreeDirection(this, getTileCoordFromCenter());
+					Direction dir = Tools.getRandomFreeDirection(this, getTileCoordFromCenter(), Set.of());
 					if (dir != null) {
 						PushEntity pe = new PushEntity(getPushEntity());
 						pe.setDirection(dir);

@@ -217,7 +217,7 @@ public class MapEditor {
 		markCorners = false;
 		markEntities = false;
 		markBombs = false;
-		markBricks = true;
+		markBricks = false;
 		markItems = false;
 		
 		canvasMouseDraw = new CanvasMouse();
@@ -257,6 +257,10 @@ public class MapEditor {
 		bombers.get(0).setPosition(MapSet.getInitialPlayerPosition(0));
 		bombers.add(new BomberMan(1, 1, 1));
 		bombers.get(1).setPosition(MapSet.getInitialPlayerPosition(1));
+		for (int n = 2; n < 0; n++) { // TESTE DE SOBRECARGA
+			bombers.add(new BomberMan(n, 1, 1));
+			bombers.get(n).setPosition(MapSet.getInitialPlayerPosition(1));
+		}
 		mainLoop();
   }
 	
@@ -1064,7 +1068,7 @@ public class MapEditor {
 	    	gcMain.strokeRect(item.getX() * zoomMain, item.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
     }
     BomberMan bomber = bombers.get(controlledBomberIndex);
-    TileCoord c = Tools.findInRect(bomber,  bomber.getTileCoordFromCenter(), FindInRectType.CIRCLE_AREA, 3, FindType.BOMB);
+    TileCoord c = Tools.findInRect(bomber,  bomber.getTileCoordFromCenter(), null, FindInRectType.CIRCLE_AREA, 3, FindType.BOMB);
     if (c != null) {
 	  	gcMain.setLineWidth(4);
 	  	gcMain.setStroke(Color.PINK);

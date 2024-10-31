@@ -375,6 +375,8 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new SetHoldingDesloc(s));
 			else if (tag.equals("IncHoldingDesloc"))
 				tags.addTag(newTag = new IncHoldingDesloc(s));
+			else if (tag.equals("SetEntityElevation"))
+				tags.addTag(newTag = new SetEntityElevation(s));
 			if (delay > 0)
 				newTag.setTriggerDelay(delay);
 		}

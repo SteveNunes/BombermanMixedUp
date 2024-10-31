@@ -305,7 +305,7 @@ public class BomberMan extends Entity {
 			if (bomb != null) {
 				bombs.add(bomb);
 				Sound.playWav(this, setBombSound);
-				bombCd = (int)(10 / getSpeed());
+				bombCd = type == BombType.FOLLOW || type == BombType.MAGNET ? 15 : (int)(10 / getSpeed());
 				return bomb;
 			}
 		}
@@ -347,6 +347,7 @@ public class BomberMan extends Entity {
 		maxBombs = GameConfigs.STARTING_BOMBS;
 		double speed = GameConfigs.INITIAL_PLAYER_SPEED;
 		if (gotItems.isEmpty()) { // TEMP
+			gotItems.add(ItemType.FOLLOW_BOMB);
 			gotItems.add(ItemType.POWER_GLOVE);
 			gotItems.add(ItemType.PUSH_POWER);
 			gotItems.add(ItemType.KICK_BOMB);
