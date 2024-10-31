@@ -46,7 +46,7 @@ public class Tile {
 		effects = tile.effects == null ? null : new DrawImageEffects(tile.effects);
 		stringTileTags = tile.stringTileTags;
 		tileCoord = tile.tileCoord.getNewInstance();
-		setCoord(tile.getTileCoord());
+		setCoords(tile.getTileCoord());
 		setTileProps(tile.getTileProps());
 	}
 	
@@ -177,7 +177,7 @@ public class Tile {
 		}		
 	}
 
-	public void setCoord(TileCoord coord) {
+	public void setCoords(TileCoord coord) {
 		TileCoord oldCoord = getTileCoord().getNewInstance();
 		outX = coord.getX() * Main.TILE_SIZE;
 		outY = coord.getY() * Main.TILE_SIZE;

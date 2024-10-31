@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import application.Main;
 import enums.BombType;
@@ -231,6 +230,11 @@ public class Bomb extends Entity {
 			bombs.put(getTileCoordFromCenter(), this);
 		}
 	}
+	
+	@Override
+	public boolean isBlockedMovement()
+		{ return getJumpMove() != null || getHolder() != null; }
+
 
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {

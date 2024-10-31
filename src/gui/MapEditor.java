@@ -20,6 +20,7 @@ import entities.Explosion;
 import entities.TileDamage;
 import enums.BombType;
 import enums.Direction;
+import enums.FindInRectType;
 import enums.FindType;
 import enums.GameInputs;
 import enums.Icons;
@@ -56,6 +57,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.util.Pair;
 import maps.Brick;
 import maps.Item;
 import maps.Layer;
@@ -63,6 +65,8 @@ import maps.MapSet;
 import maps.Tile;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
+import pathfinder.PathFinder;
+import pathfinder.PathFinderOptmize;
 import tools.Draw;
 import tools.IniFiles;
 import tools.Materials;
@@ -183,6 +187,7 @@ public class MapEditor {
 	private Position[] tilePosition;
 	private Canvas[] canvasList;
 	private Tile[][] tileSelectionArray;
+	private PathFinder pathFinder;
 	private List<KeyCode> holdedKeys;
 	private List<TileProp> copyProps;
 	private Tags copyTags;
@@ -228,6 +233,7 @@ public class MapEditor {
 		controlledBomberIndex = 0;
 		playing = false;
 		editable = true;
+		pathFinder = null;
 		MapSet.setCurrentLayerIndex(26);
 		ctrlZPos = -1;
 		copyProps = null;
@@ -644,7 +650,7 @@ public class MapEditor {
 							TileCoord tileCoord = coord.getNewInstance();
 							tileCoord.incCoordsByDirection(dir);
 							for (Tile tile : tiles)
-								tile.setCoord(tileCoord);
+								tile.setCoords(tileCoord);
 							tilesMap.put(new TileCoord(tileCoord), new ArrayList<>(tiles));
 						}
 						List<Brick> bricks = Brick.getBricks();
@@ -701,6 +707,12 @@ public class MapEditor {
 			}
 			else if (e.getCode() == KeyCode.P && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Entity.haveAnyEntityAtCoord(canvasMouseDraw.tileCoord))
 				addPlayerAtCursor();
+			else if (e.getCode() == KeyCode.F) {
+				if (pathFinder == null)
+					pathFinder = new PathFinder(bombers.get(controlledBomberIndex).getTileCoordFromCenter(), canvasMouseDraw.tileCoord, bombers.get(controlledBomberIndex).getDirection(), PathFinderOptmize.OPTIMIZED, t -> MapSet.tileIsFree(t));
+				else
+					pathFinder = null;
+			}
 			else if (e.getCode() == KeyCode.DELETE) {
 				if (selection == null) {
 					if (isShiftHold())
@@ -928,7 +940,7 @@ public class MapEditor {
 				if (tile != null) {
 					boolean vf = tile.flip == ImageFlip.VERTICAL || tile.flip == ImageFlip.BOTH,
 									hf = tile.flip == ImageFlip.HORIZONTAL || tile.flip == ImageFlip.BOTH;
-					tile.setCoord(new TileCoord(canvasMouseDraw.getCoordX() + (hf ? w - 1 - x : x), canvasMouseDraw.getCoordY() + (vf ? h - 1 - y : y)));
+					tile.setCoords(new TileCoord(canvasMouseDraw.getCoordX() + (hf ? w - 1 - x : x), canvasMouseDraw.getCoordY() + (vf ? h - 1 - y : y)));
 					if (fixTilesOnLayer) {
 						getCurrentLayer().addTile(tile);
 						if (!MapSet.tileHaveProps(tile.getTileCoord()))
@@ -1018,6 +1030,18 @@ public class MapEditor {
 	    	gcMain.fillRect(xx, yy, 10, 10);
 	    }
     }
+    if (pathFinder != null) {
+			pathFinder.recalculatePath(bombers.get(controlledBomberIndex).getTileCoordFromCenter(), canvasMouseDraw.tileCoord, bombers.get(controlledBomberIndex).getDirection());
+    	if (pathFinder.getCurrentPath() != null)
+		  	for (Pair<TileCoord, Direction> path : pathFinder.getCurrentPath()) {
+		  		Direction dir = path.getValue();
+	    		int x = (int)path.getKey().getPosition().getX(),
+	    				y = (int)path.getKey().getPosition().getY();
+	    		gcMain.drawImage(Materials.hud, 1025 + dir.get4DirValue() * 16, 760, 16, 16,
+							    				 x * zoomMain, y * zoomMain,
+							    				 Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+		  	}
+    }
     if (markEntities) {
 	  	gcMain.setLineWidth(4);
 	  	gcMain.setStroke(Color.RED);
@@ -1040,7 +1064,7 @@ public class MapEditor {
 	    	gcMain.strokeRect(item.getX() * zoomMain, item.getY() * zoomMain, Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
     }
     BomberMan bomber = bombers.get(controlledBomberIndex);
-    TileCoord c = Tools.findInRect(bomber.getTileCoordFromCenter(), bomber.getDirection(), FindType.BOMB);
+    TileCoord c = Tools.findInRect(bomber,  bomber.getTileCoordFromCenter(), FindInRectType.CIRCLE_AREA, 3, FindType.BOMB);
     if (c != null) {
 	  	gcMain.setLineWidth(4);
 	  	gcMain.setStroke(Color.PINK);

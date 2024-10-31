@@ -2,10 +2,8 @@ package frameset_tags;
 
 import entities.Bomb;
 import entities.Entity;
-import enums.Direction;
 import frameset.Sprite;
 import maps.Brick;
-import maps.Tile;
 
 public class HoldEntity extends FrameTag {
 	

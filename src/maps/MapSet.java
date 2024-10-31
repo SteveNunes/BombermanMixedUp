@@ -31,7 +31,6 @@ import javafx.scene.image.WritableImage;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import pathfinder.PathFinder;
-import pathfinder.PathFinderTileCoord;
 import tools.IniFiles;
 import tools.Materials;
 import tools.Sound;
@@ -76,7 +75,7 @@ public abstract class MapSet {
 		Effect.clearTempEffects();
 		Materials.tempSprites.clear();
 		MapSet.iniMapName = iniMapName;
-		bricksRegenTimeInFrames = -1;
+		bricksRegenTimeInFrames = 0;
 		layers = new HashMap<>();
 		switches = new HashMap<>();
 		initialPlayerCoords = new HashMap<>();
@@ -407,19 +406,19 @@ public abstract class MapSet {
 	}
 	
 	private static boolean testCoordForInsertFixedBlock(TileCoord coord) {
-		PathFinderTileCoord coord1 = new PathFinderTileCoord(),
-												coord2 = new PathFinderTileCoord(),
-												coord3 = new PathFinderTileCoord(coord.getX(), coord.getY());
+		TileCoord coord1 = new TileCoord(),
+												coord2 = new TileCoord(),
+												coord3 = new TileCoord(coord.getX(), coord.getY());
 		Direction dir1 = Direction.LEFT;
 		for (int n = 0; n < 4; n++) {
 			dir1 = dir1.getNext4WayClockwiseDirection();
-			coord1.setCoord(coord3);
+			coord1.setCoords(coord3);
 			coord1.incCoordsByDirection(dir1);
 			Direction dir2 = Direction.LEFT;
 			if (tileIsFree(new TileCoord(coord1.getX(), coord1.getY())))
 				for (int n2 = 0; n2 < 4; n2++) {
 					dir2 = dir2.getNext4WayClockwiseDirection();
-					coord2.setCoord(coord3);
+					coord2.setCoords(coord3);
 					coord2.incCoordsByDirection(dir2);
 					if (dir1 != dir2 && tileIsFree(new TileCoord(coord2.getX(), coord2.getY()))) {
 						PathFinder pf = new PathFinder(coord1, coord2, dir1, t -> tileIsFree(new TileCoord(t.getX(), t.getY())));

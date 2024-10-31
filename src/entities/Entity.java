@@ -599,6 +599,7 @@ public class Entity extends Position {
 		{ run(gc, false); }
 
 	public void run(GraphicsContext gc, boolean isPaused) {
+		removeEntityFromList(getTileCoordFromCenter(), this);
 		if (blinkingFrames != 0)
 			blinkingFrames--;
 		if (invencibleFrames != 0)
@@ -645,6 +646,7 @@ public class Entity extends Position {
 		}
 		if (!getCurrentFrameSet().isRunning() && consumerWhenFrameSetEnds != null)
 			consumerWhenFrameSetEnds.accept(this);
+		addEntityToList(getTileCoordFromCenter(), this);
 	}
 	
 	private void processLinkedEntity() {
@@ -737,7 +739,6 @@ public class Entity extends Position {
 		tileWasChanged = false;
 		getFreeCorners(direction);
 		if (speed != 0) {
-			removeEntityFromList(getTileCoordFromCenter(), this);
 			Position[] cornersPositions = getCornersPositions();
 			Position lu = cornersPositions [0], ru = cornersPositions[1], ld = cornersPositions[2], rd = cornersPositions[3];
 			boolean[] freeCorners = getFreeCorners(direction);
@@ -824,7 +825,6 @@ public class Entity extends Position {
 						x <= xx + Main.TILE_SIZE / 4 && y <= yy + Main.TILE_SIZE / 4)
 							updatePreviewTileCoord();
 			}
-			addEntityToList(getTileCoordFromCenter(), this);
 		}
 		else
 			pushing = 0;

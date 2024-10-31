@@ -1,7 +1,6 @@
 package frameset_tags;
 
 import application.Main;
-import entities.BomberMan;
 import frameset.Sprite;
 import tools.Sound;
 

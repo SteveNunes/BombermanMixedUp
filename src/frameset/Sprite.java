@@ -575,10 +575,12 @@ public class Sprite extends Position {
 					tx += jumpMove.getIncrements().getX();
 					ty += jumpMove.getIncrements().getY();
 				}					
+				frontValue2++;
 			}
 			if (getSourceEntity().getJumpMove() != null) {
 				tx += (int)getSourceEntity().getJumpMove().getIncrements().getX();
 				ty += (int)getSourceEntity().getJumpMove().getIncrements().getY();
+				frontValue2++;
 			}
 			
 			if (gc != null)

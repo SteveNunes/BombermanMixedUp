@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import entities.Bomb;
 import entities.Effect;
 import entities.Entity;
 import enums.Curse;

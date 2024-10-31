@@ -23,6 +23,7 @@ public abstract class Materials {
 	public static WritableImage auras;
 	public static WritableImage thunders;
 	public static WritableImage bombs;
+	public static WritableImage hud;
 	public static WritableImage blankImage;
 	public static List<Image> characters;
 	public static List<Image> rides;
@@ -75,6 +76,7 @@ public abstract class Materials {
 		frames = loadImage("HUD", Color.valueOf("#03E313"));
 		auras = loadImage("Auras", Color.valueOf("#03E313"));
 		thunders = loadImage("Thunders", Color.valueOf("#03E313"));
+		hud = loadImage("HUD", Color.valueOf("#03E313"));
 		generateExplosionImage(); 
 		Effect.loadEffects();
 		FindFile.findFile("./appdata/sprites/tileset", "Tile*.png").forEach(file ->

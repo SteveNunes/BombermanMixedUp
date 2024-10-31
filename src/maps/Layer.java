@@ -132,7 +132,7 @@ public class Layer {
 			tilesMap.put(coord, new ArrayList<>());
 		tilesMap.get(coord).add(tile);
 		tileList.add(tile);
-		tile.setCoord(coord);
+		tile.setCoords(coord);
 	}
 	
 	public boolean haveTilesOnCoord(TileCoord coord)
