@@ -8,11 +8,11 @@ import frameset.Sprite;
 import maps.MapSet;
 
 public class RemoveTileProp extends FrameTag {
-	
+
 	public List<TileProp> tileProps;
 	public List<TileCoord2> targetCoords;
 	int targetLayer;
-	
+
 	public RemoveTileProp(int layer, List<TileCoord2> targetCoords, List<TileProp> tileProps) {
 		this.tileProps = new ArrayList<>(tileProps);
 		this.targetCoords = new ArrayList<>(targetCoords);
@@ -45,18 +45,20 @@ public class RemoveTileProp extends FrameTag {
 				tileProps.add(TileProp.valueOf(s));
 			targetCoords = stringToTileCoord2List((n = 2) >= params.length ? null : params[n]);
 		}
-		catch (Exception e)
-			{ e.printStackTrace(); throw new RuntimeException(params[n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(params[n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public RemoveTileProp getNewInstanceOfThis()
-		{ return new RemoveTileProp(targetLayer, targetCoords, tileProps); }
-	
+	public RemoveTileProp getNewInstanceOfThis() {
+		return new RemoveTileProp(targetLayer, targetCoords, tileProps);
+	}
+
 	@Override
 	public void process(Sprite sprite) {
-		processTile(sprite.getTileCoord(), targetCoords, coord ->
-			tileProps.forEach(p -> MapSet.getLayer(targetLayer).removeTileProp(coord, p)));
+		processTile(sprite.getTileCoord(), targetCoords, coord -> tileProps.forEach(p -> MapSet.getLayer(targetLayer).removeTileProp(coord, p)));
 	}
 
 }

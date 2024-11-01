@@ -3,33 +3,36 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class SetSprMotionBlurRadius extends FrameTag {
-	
+
 	public double value;
-	
-	public SetSprMotionBlurRadius(double value)
-		{ this.value = value; }
 
-	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + value + "}"; }
-
-	public SetSprMotionBlurRadius(String tags) {
-		String[] params = validateStringTags(this, tags, 1);
-		try
-			{ value = Double.parseDouble(params[0]); }
-		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+	public SetSprMotionBlurRadius(double value) {
+		this.value = value;
 	}
 
 	@Override
-	public SetSprMotionBlurRadius getNewInstanceOfThis()
-		{ return new SetSprMotionBlurRadius(value); }
-	
+	public String toString() {
+		return "{" + getClassName(this) + ";" + value + "}";
+	}
+
+	public SetSprMotionBlurRadius(String tags) {
+		String[] params = validateStringTags(this, tags, 1);
+		try {
+			value = Double.parseDouble(params[0]);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(params[0] + " - Invalid parameter");
+		}
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.getEffects().getMotionBlur().setRadius(value); }
+	public SetSprMotionBlurRadius getNewInstanceOfThis() {
+		return new SetSprMotionBlurRadius(value);
+	}
+
+	@Override
+	public void process(Sprite sprite) {
+		sprite.getEffects().getMotionBlur().setRadius(value);
+	}
 
 }
-
-
-

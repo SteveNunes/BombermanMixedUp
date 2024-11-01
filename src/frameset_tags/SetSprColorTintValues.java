@@ -4,13 +4,13 @@ import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprColorTintValues extends FrameTag {
-	
+
 	public double red;
 	public double green;
 	public double blue;
 	public double alpha;
 	public BlendMode blendMode;
-	
+
 	public SetSprColorTintValues(double red, double green, double blue, double alpha, BlendMode blendMode) {
 		this.red = red;
 		this.green = green;
@@ -19,18 +19,22 @@ public class SetSprColorTintValues extends FrameTag {
 		this.blendMode = blendMode;
 	}
 
-	public SetSprColorTintValues(double red, double green, double blue, BlendMode blendMode)
-		{ this(red, green, blue, 1, blendMode); }
+	public SetSprColorTintValues(double red, double green, double blue, BlendMode blendMode) {
+		this(red, green, blue, 1, blendMode);
+	}
 
-	public SetSprColorTintValues(double red, double green, double blue, double alpha)
-		{ this(red, green, blue, 1, BlendMode.SRC_ATOP); }
-	
-	public SetSprColorTintValues(double red, double green, double blue)
-		{ this(red, green, blue, 1, BlendMode.SRC_ATOP); }
+	public SetSprColorTintValues(double red, double green, double blue, double alpha) {
+		this(red, green, blue, 1, BlendMode.SRC_ATOP);
+	}
+
+	public SetSprColorTintValues(double red, double green, double blue) {
+		this(red, green, blue, 1, BlendMode.SRC_ATOP);
+	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + red + ";" + green + ";" + blue + ";" + alpha + ";" + blendMode.name() + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + red + ";" + green + ";" + blue + ";" + alpha + ";" + blendMode.name() + "}";
+	}
 
 	public SetSprColorTintValues(String tags) {
 		String[] params = validateStringTags(this, tags, 5);
@@ -42,31 +46,19 @@ public class SetSprColorTintValues extends FrameTag {
 			alpha = Double.parseDouble(params[n++]);
 			blendMode = BlendMode.valueOf(params[n++]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public SetSprColorTintValues getNewInstanceOfThis()
-		{ return new SetSprColorTintValues(red, green, blue, alpha, blendMode); }
-	
+	public SetSprColorTintValues getNewInstanceOfThis() {
+		return new SetSprColorTintValues(red, green, blue, alpha, blendMode);
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.getEffects().setColorTint(red, green, blue, alpha); }
+	public void process(Sprite sprite) {
+		sprite.getEffects().setColorTint(red, green, blue, alpha);
+	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

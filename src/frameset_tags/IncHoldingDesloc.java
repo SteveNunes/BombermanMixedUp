@@ -3,18 +3,19 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class IncHoldingDesloc extends FrameTag {
-	
+
 	public int incrementX;
 	public int incrementY;
-	
+
 	public IncHoldingDesloc(int incrementX, int incrementY) {
 		this.incrementX = incrementX;
 		this.incrementY = incrementY;
 	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + incrementX + ";" + incrementY + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + incrementX + ";" + incrementY + "}";
+	}
 
 	public IncHoldingDesloc(String tags) {
 		String[] params = validateStringTags(this, tags, 2);
@@ -23,13 +24,15 @@ public class IncHoldingDesloc extends FrameTag {
 			incrementX = Integer.parseInt(params[n++]);
 			incrementY = Integer.parseInt(params[n++]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public IncHoldingDesloc getNewInstanceOfThis()
-		{ return new IncHoldingDesloc(incrementX, incrementY); }
+	public IncHoldingDesloc getNewInstanceOfThis() {
+		return new IncHoldingDesloc(incrementX, incrementY);
+	}
 
 	@Override
 	public void process(Sprite sprite) {

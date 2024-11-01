@@ -4,33 +4,36 @@ import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprSepiaToneBlendMode extends FrameTag {
-	
+
 	public BlendMode blendMode;
-	
-	public SetSprSepiaToneBlendMode(BlendMode blendMode)
-		{ this.blendMode = blendMode; }
 
-	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + blendMode.name() + "}"; }
-
-	public SetSprSepiaToneBlendMode(String tags) {
-		String[] params = validateStringTags(this, tags, 1);
-		try
-			{ blendMode = BlendMode.valueOf(params[0]); }
-		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+	public SetSprSepiaToneBlendMode(BlendMode blendMode) {
+		this.blendMode = blendMode;
 	}
 
 	@Override
-	public SetSprSepiaToneBlendMode getNewInstanceOfThis()
-		{ return new SetSprSepiaToneBlendMode(blendMode); }
-	
+	public String toString() {
+		return "{" + getClassName(this) + ";" + blendMode.name() + "}";
+	}
+
+	public SetSprSepiaToneBlendMode(String tags) {
+		String[] params = validateStringTags(this, tags, 1);
+		try {
+			blendMode = BlendMode.valueOf(params[0]);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(params[0] + " - Invalid parameter");
+		}
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.getEffects().getSepiaTone().setBlendMode(blendMode); }
+	public SetSprSepiaToneBlendMode getNewInstanceOfThis() {
+		return new SetSprSepiaToneBlendMode(blendMode);
+	}
+
+	@Override
+	public void process(Sprite sprite) {
+		sprite.getEffects().getSepiaTone().setBlendMode(blendMode);
+	}
 
 }
-
-
-

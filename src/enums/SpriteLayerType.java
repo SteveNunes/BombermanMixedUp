@@ -1,15 +1,12 @@
 package enums;
 
 public enum SpriteLayerType {
-  BACKGROUND,
-  GROUND,
-	SPRITE,
-  CEIL,
-  CLOUD;
+	BACKGROUND, GROUND, SPRITE, CEIL, CLOUD;
 
-	private static SpriteLayerType[] list = {BACKGROUND, GROUND, SPRITE, CEIL, CLOUD};
-	
-	public static SpriteLayerType[] getList()
-		{ return list; }
-	
+	private static SpriteLayerType[] list = { BACKGROUND, GROUND, SPRITE, CEIL, CLOUD };
+
+	public static SpriteLayerType[] getList() {
+		return list;
+	}
+
 }

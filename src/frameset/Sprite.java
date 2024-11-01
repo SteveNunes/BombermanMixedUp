@@ -47,16 +47,18 @@ public class Sprite extends Position {
 	private double alpha;
 	private int rotation;
 	public int frontValue;
+	public int extraFrontValue;
 	private SpriteLayerType layerType;
 	private WavingImage wavingImage;
 	private boolean isVisible;
 	private int ghostingDistance;
 	private Double ghostingOpacityDec;
 	private int[] multiFrameIndexByDirection;
-	
-	public Sprite(Sprite sprite)
-		{ this(sprite, sprite.getSourceFrameSet()); }
-	
+
+	public Sprite(Sprite sprite) {
+		this(sprite, sprite.getSourceFrameSet());
+	}
+
 	public Sprite(Sprite sprite, FrameSet mainFrameSet) {
 		super(sprite);
 		this.sourceFrameSet = mainFrameSet;
@@ -83,9 +85,10 @@ public class Sprite extends Position {
 		spriteScroll = sprite.spriteScroll == null ? null : new Position(sprite.spriteScroll);
 		frontValue = sprite.frontValue;
 		isVisible = sprite.isVisible;
+		extraFrontValue = sprite.extraFrontValue;
 		updateOutputDrawCoords();
 	}
-	
+
 	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spriteIndex, int spritesPerLine) {
 		super(originSpriteSizePos.getX(), originSpriteSizePos.getY());
 		this.spriteSourceName = spriteSourceName;
@@ -99,7 +102,7 @@ public class Sprite extends Position {
 		shake = null;
 		absoluteOutputSpritePos = new Position();
 		spriteEffects = new DrawImageEffects();
-		flip =ImageFlip.NONE;
+		flip = ImageFlip.NONE;
 		alignment = ImageAlignment.NONE;
 		rotation = 0;
 		alpha = 1;
@@ -108,6 +111,7 @@ public class Sprite extends Position {
 		jumpMove = null;
 		layerType = SpriteLayerType.SPRITE;
 		frontValue = 0;
+		extraFrontValue = 0;
 		isVisible = true;
 		ghostingDistance = 0;
 		ghostingOpacityDec = null;
@@ -115,105 +119,134 @@ public class Sprite extends Position {
 		updateOutputDrawCoords();
 	}
 
-	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, int spriteIndex, int spritesPerLine)
-		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, new Rectangle(0, 0, (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()), spriteIndex, spritesPerLine); }
-	
-	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spritesPerLine)
-		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, outputSpriteSizePos, spritesPerLine, 0); }
+	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, int spriteIndex, int spritesPerLine) {
+		this(mainFrameSet, spriteSourceName, originSpriteSizePos, new Rectangle(0, 0, (int) originSpriteSizePos.getWidth(), (int) originSpriteSizePos.getHeight()), spriteIndex, spritesPerLine);
+	}
 
-	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos)
-		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, outputSpriteSizePos, 0, 0); }
+	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos, int spritesPerLine) {
+		this(mainFrameSet, spriteSourceName, originSpriteSizePos, outputSpriteSizePos, spritesPerLine, 0);
+	}
 
-	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, int spritesPerLine)
-		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, new Rectangle(0, 0, (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()), spritesPerLine, 0); }
-	
-	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos)
-		{ this(mainFrameSet, spriteSourceName, originSpriteSizePos, new Rectangle(0, 0, (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()), 0, 0); }
+	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, Rectangle outputSpriteSizePos) {
+		this(mainFrameSet, spriteSourceName, originSpriteSizePos, outputSpriteSizePos, 0, 0);
+	}
 
-	public void setShake(Double incStrength, Double finalStrength)
-		{ shake = new Shake(incStrength, incStrength, finalStrength, finalStrength);	}
-	
-	public void setShake(Double startStrength, Double incStrength, Double finalStrength)
-		{ shake = new Shake(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength); }
-	
-	public void setShake(Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY)
-		{ shake = new Shake(incStrengthX > 0 ? 0 : finalStrengthX, incStrengthY > 0 ? 0 : finalStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);	}
-	
-	public void setShake(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY)
-		{ shake = new Shake(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);	}
-	
-	public void stopShake()
-		{ shake.stop(); }
-	
-	public Shake getShake()
-		{ return shake; }
+	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos, int spritesPerLine) {
+		this(mainFrameSet, spriteSourceName, originSpriteSizePos, new Rectangle(0, 0, (int) originSpriteSizePos.getWidth(), (int) originSpriteSizePos.getHeight()), spritesPerLine, 0);
+	}
 
-	public void unsetShake()
-		{ shake = null; }
-	
+	public Sprite(FrameSet mainFrameSet, String spriteSourceName, Rectangle originSpriteSizePos) {
+		this(mainFrameSet, spriteSourceName, originSpriteSizePos, new Rectangle(0, 0, (int) originSpriteSizePos.getWidth(), (int) originSpriteSizePos.getHeight()), 0, 0);
+	}
+
+	public void setShake(Double incStrength, Double finalStrength) {
+		shake = new Shake(incStrength, incStrength, finalStrength, finalStrength);
+	}
+
+	public void setShake(Double startStrength, Double incStrength, Double finalStrength) {
+		shake = new Shake(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength);
+	}
+
+	public void setShake(Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
+		shake = new Shake(incStrengthX > 0 ? 0 : finalStrengthX, incStrengthY > 0 ? 0 : finalStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
+	}
+
+	public void setShake(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
+		shake = new Shake(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
+	}
+
+	public void stopShake() {
+		shake.stop();
+	}
+
+	public Shake getShake() {
+		return shake;
+	}
+
+	public void unsetShake() {
+		shake = null;
+	}
+
 	public void setGhosting(int ghostingDistance, double ghostingOpacityDec) {
 		this.ghostingDistance = ghostingDistance;
 		this.ghostingOpacityDec = ghostingOpacityDec;
 	}
-	
+
 	public void unsetGhosting() {
 		ghostingDistance = 0;
 		ghostingOpacityDec = null;
 	}
-	
-	public void setMultiFrameIndexByDirection(int up, int right, int down, int left) // Definir em cada indice o incremento de Indice de acordo com a direcao. Se o valor for negativo, aplica um flip horizontal na imagem.
-		{ multiFrameIndexByDirection = new int[] {up, right, down, left}; }
 
-	public void unsetMultiFrameIndexByDirection()
-		{ multiFrameIndexByDirection = null; }
-	
-	public void setVisible(boolean state)
-		{ isVisible = state; }
-	
-	public boolean isVisible()
-		{ return isVisible; }
+	public void setMultiFrameIndexByDirection(int up, int right, int down, int left) // Definir em cada indice o incremento de Indice de acordo com a direcao. Se o
+	                                                                                 // valor for negativo, aplica um flip horizontal na imagem.
+	{
+		multiFrameIndexByDirection = new int[] { up, right, down, left };
+	}
 
-	public WavingImage getWavingImage()
-		{ return wavingImage; }
-	
-	public void setWavingImage()
-		{ setWavingImage(1, null); }
-	
-	public void setWavingImage(int speed)
-		{ setWavingImage(speed, null); }
-	
-	public void setWavingImage(int[] wavingPattern)
-		{ setWavingImage(1, wavingPattern); }
-	
-	public void setWavingImage(int speed, int[] wavingPattern)
-		{	wavingImage = new WavingImage(speed, wavingPattern); }
+	public void unsetMultiFrameIndexByDirection() {
+		multiFrameIndexByDirection = null;
+	}
 
-	public void setSpriteSourceName(String spriteSourceName)
-		{ this.spriteSourceName = spriteSourceName; }
-	
+	public void setVisible(boolean state) {
+		isVisible = state;
+	}
+
+	public boolean isVisible() {
+		return isVisible;
+	}
+
+	public WavingImage getWavingImage() {
+		return wavingImage;
+	}
+
+	public void setWavingImage() {
+		setWavingImage(1, null);
+	}
+
+	public void setWavingImage(int speed) {
+		setWavingImage(speed, null);
+	}
+
+	public void setWavingImage(int[] wavingPattern) {
+		setWavingImage(1, wavingPattern);
+	}
+
+	public void setWavingImage(int speed, int[] wavingPattern) {
+		wavingImage = new WavingImage(speed, wavingPattern);
+	}
+
+	public void setSpriteSourceName(String spriteSourceName) {
+		this.spriteSourceName = spriteSourceName;
+	}
+
 	public WritableImage getSpriteSource() {
 		if (wavingImage != null) {
-			wavingImage.setBounds((int)originSpriteSizePos.getX(), (int)originSpriteSizePos.getY(), (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight());
+			wavingImage.setBounds((int) originSpriteSizePos.getX(), (int) originSpriteSizePos.getY(), (int) originSpriteSizePos.getWidth(), (int) originSpriteSizePos.getHeight());
 			return wavingImage.apply(Materials.getImageFromSpriteName(spriteSourceName));
 		}
 		return Materials.getImageFromSpriteName(spriteSourceName);
 	}
-	
-	public String getSpriteSourceName()
-		{ return spriteSourceName; }
 
-	public ImageAlignment getAlignment()
-		{ return alignment; }
-	
-	public void setAlignment(ImageAlignment alignment)
-		{ this.alignment = alignment; }
-	
-	public SpriteLayerType getLayerType()
-		{ return layerType; }
+	public String getSpriteSourceName() {
+		return spriteSourceName;
+	}
 
-	public void setLayerType(SpriteLayerType layerType)
-		{ this.layerType = layerType; } 
-	
+	public ImageAlignment getAlignment() {
+		return alignment;
+	}
+
+	public void setAlignment(ImageAlignment alignment) {
+		this.alignment = alignment;
+	}
+
+	public SpriteLayerType getLayerType() {
+		return layerType;
+	}
+
+	public void setLayerType(SpriteLayerType layerType) {
+		this.layerType = layerType;
+	}
+
 	@Override
 	public Position setX(double x) {
 		outputSpriteSizePos.setFrame(x, getY(), getOutputWidth(), getOutputHeight());
@@ -221,7 +254,7 @@ public class Sprite extends Position {
 		updateOutputDrawCoords();
 		return this;
 	}
-	
+
 	@Override
 	public Position setY(double y) {
 		outputSpriteSizePos.setFrame(getX(), y, getOutputWidth(), getOutputHeight());
@@ -229,14 +262,14 @@ public class Sprite extends Position {
 		updateOutputDrawCoords();
 		return this;
 	}
-	
+
 	@Override
 	public Position setPosition(double x, double y) {
 		setX(x);
 		setY(y);
 		return this;
 	}
-	
+
 	@Override
 	public Position setPosition(Position position) {
 		setX(position.getX());
@@ -249,7 +282,7 @@ public class Sprite extends Position {
 		setX(getX() + incX);
 		return this;
 	}
-	
+
 	@Override
 	public Position incY(double incY) {
 		setY(getY() + incY);
@@ -267,9 +300,10 @@ public class Sprite extends Position {
 			return sourceFrameSet.getAbsoluteY() + getY();
 		return getY();
 	}
-	
-	public Position getAbsolutePosition()
-		{ return new Position(getAbsoluteX(), getAbsoluteY()); }
+
+	public Position getAbsolutePosition() {
+		return new Position(getAbsoluteX(), getAbsoluteY());
+	}
 
 	public void setAbsoluteX(double x) {
 		if (sourceFrameSet != null)
@@ -277,193 +311,251 @@ public class Sprite extends Position {
 		else
 			setX(x);
 	}
-	
+
 	public void setAbsoluteY(double y) {
 		if (sourceFrameSet != null)
 			setY(y - sourceFrameSet.getAbsoluteY());
 		else
 			setY(y);
 	}
-	
+
 	public void setAbsolutePosition(int x, int y) {
 		setAbsoluteX(x);
 		setAbsoluteY(y);
 	}
-	
+
 	public void setAbsolutePosition(Position position) {
 		setAbsoluteX(position.getX());
 		setAbsoluteY(position.getY());
 	}
-	
-	public double getAlpha()
-		{ return alpha; }
 
-	public void setAlpha(double alpha)
-		{ this.alpha = alpha; }
+	public double getAlpha() {
+		return alpha;
+	}
 
-	public void incAlpha(double value)
-		{ alpha += value; }
+	public void setAlpha(double alpha) {
+		this.alpha = alpha;
+	}
 
-	public ImageFlip getFlip()
-		{ return flip; }
+	public void incAlpha(double value) {
+		alpha += value;
+	}
 
-	public void setFlip(ImageFlip flip)
-		{ this.flip = flip; }
+	public ImageFlip getFlip() {
+		return flip;
+	}
 
-	public float getRotation()
-		{ return rotation; }
+	public void setFlip(ImageFlip flip) {
+		this.flip = flip;
+	}
 
-	public void setRotation(int rotation)
-		{ this.rotation = rotation; }	
-	
-	public void incRotation(float value)
-		{ rotation += value; }	
+	public float getRotation() {
+		return rotation;
+	}
 
-	public int getSpriteIndex()
-		{ return spriteIndex; }
+	public void setRotation(int rotation) {
+		this.rotation = rotation;
+	}
 
-	public void setSpriteIndex(int spriteIndex)
-		{ this.spriteIndex = spriteIndex; }
+	public void incRotation(float value) {
+		rotation += value;
+	}
 
-	public void incSpriteIndex()
-		{ incSpriteIndex(1); }
+	public int getSpriteIndex() {
+		return spriteIndex;
+	}
 
-	public void incSpriteIndex(int value)
-		{ spriteIndex += value; }
-	
-	public void decSpriteIndex()
-		{ decSpriteIndex(1); }
+	public void setSpriteIndex(int spriteIndex) {
+		this.spriteIndex = spriteIndex;
+	}
+
+	public void incSpriteIndex() {
+		incSpriteIndex(1);
+	}
+
+	public void incSpriteIndex(int value) {
+		spriteIndex += value;
+	}
+
+	public void decSpriteIndex() {
+		decSpriteIndex(1);
+	}
 
 	public void decSpriteIndex(int value) {
 		if (spriteIndex - value >= 0)
 			spriteIndex -= value;
 	}
 
-	public Rectangle getOriginSpritePos()
-		{ return originSpriteSizePos; }
-	
-	public void setOriginSpritePos(int x, int y, int w, int h)
-		{ originSpriteSizePos.setBounds(x, y, w, h); }
-	
+	public Rectangle getOriginSpritePos() {
+		return originSpriteSizePos;
+	}
+
+	public void setOriginSpritePos(int x, int y, int w, int h) {
+		originSpriteSizePos.setBounds(x, y, w, h);
+	}
+
 	public void setOutputSpritePos(Rectangle outputSpriteSizePos) {
-		this.outputSpriteSizePos.setBounds((int)outputSpriteSizePos.getX(), (int)outputSpriteSizePos.getY(), (int)outputSpriteSizePos.getWidth(), (int)outputSpriteSizePos.getHeight());
+		this.outputSpriteSizePos.setBounds((int) outputSpriteSizePos.getX(), (int) outputSpriteSizePos.getY(), (int) outputSpriteSizePos.getWidth(), (int) outputSpriteSizePos.getHeight());
 		setPosition(outputSpriteSizePos.getX(), outputSpriteSizePos.getY());
 		updateOutputDrawCoords();
 	}
-	
-	public int getOriginSpriteX()
-		{ return (int)originSpriteSizePos.getX(); }
-	
-	public void setOriginSpriteX(int x)
-		{ originSpriteSizePos.setLocation(x, getOriginSpriteY()); }
-	
-	public void incOriginSpriteX(int value)
-		{ setOriginSpriteX(getOriginSpriteX() + value); }
-	
-	public int getOriginSpriteY()
-		{ return (int)originSpriteSizePos.getY(); }
-	
-	public void setOriginSpriteY(int y)
-		{ originSpriteSizePos.setLocation(getOriginSpriteX(), y); }
-	
-	public void incOriginSpriteY(int value)
-		{ setOriginSpriteY(getOriginSpriteY() + value); }
-	
-	public double getOriginSpriteWidth()
-		{ return originSpriteSizePos.getWidth(); }
-	
-	public void setOriginSpriteWidth(int x)
-		{ originSpriteSizePos.setSize(x, (int)originSpriteSizePos.getHeight()); }
-	
-	public void incOriginSpriteWidth(int value)
-		{ setOriginSpriteWidth((int)originSpriteSizePos.getWidth() + value); }
-	
-	public double getOriginSpriteHeight()
-		{ return originSpriteSizePos.getHeight(); }
-	
-	public void setOriginSpriteHeight(int h)
-		{ originSpriteSizePos.setSize((int)originSpriteSizePos.getWidth(), h); }
-	
-	public void incOriginSpriteHeight(int value)
-		{ setOriginSpriteHeight((int)originSpriteSizePos.getHeight() + value); }
-	
-	public Dimension getOutputSize()
-		{ return outputSpriteSizePos.getSize(); }
-	
-	public void setOriginSpritePos(Rectangle originSpriteSizePos)
-		{ this.originSpriteSizePos.setBounds((int)originSpriteSizePos.getX(), (int)originSpriteSizePos.getY(), (int)originSpriteSizePos.getWidth(), (int)originSpriteSizePos.getHeight()); }
 
-	public int getOutputWidth()
-		{ return (int)outputSpriteSizePos.getWidth(); }
-	
-	public int getOutputHeight()
-		{ return (int)outputSpriteSizePos.getHeight(); }
+	public int getOriginSpriteX() {
+		return (int) originSpriteSizePos.getX();
+	}
+
+	public void setOriginSpriteX(int x) {
+		originSpriteSizePos.setLocation(x, getOriginSpriteY());
+	}
+
+	public void incOriginSpriteX(int value) {
+		setOriginSpriteX(getOriginSpriteX() + value);
+	}
+
+	public int getOriginSpriteY() {
+		return (int) originSpriteSizePos.getY();
+	}
+
+	public void setOriginSpriteY(int y) {
+		originSpriteSizePos.setLocation(getOriginSpriteX(), y);
+	}
+
+	public void incOriginSpriteY(int value) {
+		setOriginSpriteY(getOriginSpriteY() + value);
+	}
+
+	public double getOriginSpriteWidth() {
+		return originSpriteSizePos.getWidth();
+	}
+
+	public void setOriginSpriteWidth(int x) {
+		originSpriteSizePos.setSize(x, (int) originSpriteSizePos.getHeight());
+	}
+
+	public void incOriginSpriteWidth(int value) {
+		setOriginSpriteWidth((int) originSpriteSizePos.getWidth() + value);
+	}
+
+	public double getOriginSpriteHeight() {
+		return originSpriteSizePos.getHeight();
+	}
+
+	public void setOriginSpriteHeight(int h) {
+		originSpriteSizePos.setSize((int) originSpriteSizePos.getWidth(), h);
+	}
+
+	public void incOriginSpriteHeight(int value) {
+		setOriginSpriteHeight((int) originSpriteSizePos.getHeight() + value);
+	}
+
+	public Dimension getOutputSize() {
+		return outputSpriteSizePos.getSize();
+	}
+
+	public void setOriginSpritePos(Rectangle originSpriteSizePos) {
+		this.originSpriteSizePos.setBounds((int) originSpriteSizePos.getX(), (int) originSpriteSizePos.getY(), (int) originSpriteSizePos.getWidth(), (int) originSpriteSizePos.getHeight());
+	}
+
+	public int getOutputWidth() {
+		return (int) outputSpriteSizePos.getWidth();
+	}
+
+	public int getOutputHeight() {
+		return (int) outputSpriteSizePos.getHeight();
+	}
 
 	public void setOutputSize(int w, int h) {
 		outputSpriteSizePos.setSize(w, h);
 		updateOutputDrawCoords();
 	}
+
+	public void setOutputWidth(int w) {
+		setOutputSize(w, (int) outputSpriteSizePos.getHeight());
+	}
+
+	public void setOutputHeight(int h) {
+		setOutputSize((int) outputSpriteSizePos.getWidth(), h);
+	}
+
+	public void incOutputSize(int wInc, int hInc) {
+		setOutputSize((int) outputSpriteSizePos.getWidth() + wInc, (int) outputSpriteSizePos.getHeight() + hInc);
+	}
+
+	public void incOutputWidth(int wInc) {
+		setOutputSize((int) outputSpriteSizePos.getWidth() + wInc, (int) outputSpriteSizePos.getHeight());
+	}
+
+	public void incOutputHeight(int hInc) {
+		setOutputSize((int) outputSpriteSizePos.getWidth(), (int) outputSpriteSizePos.getHeight() + hInc);
+	}
+
+	public int getSpritesPerLine() {
+		return spritesPerLine;
+	}
+
+	public void setSpritesPerLine(int value) {
+		spritesPerLine = value;
+	}
+
+	public void incSpritesPerLine(int value) {
+		spritesPerLine += value;
+	}
+
+	public Entity getSourceEntity() {
+		return sourceFrameSet.getSourceEntity();
+	}
+
+	public FrameSet getSourceFrameSet() {
+		return sourceFrameSet;
+	}
+
+	public void setMainFrameSet(FrameSet frameSet) {
+		sourceFrameSet = frameSet;
+	}
+
+	public DrawImageEffects getEffects() {
+		return spriteEffects;
+	}
+
+	public EliticMove getEliticMove() {
+		return eliticMove;
+	}
+
+	public void setEliticMove(EliticMove eliticMove) {
+		this.eliticMove = eliticMove;
+	}
+
+	public RectangleMove getRectangleMove() {
+		return rectangleMove;
+	}
+
+	public void setRectangleMove(RectangleMove rectangleMove) {
+		this.rectangleMove = rectangleMove;
+	}
+
+	public JumpMove getJumpMove() {
+		return jumpMove;
+	}
+
+	public void setJumpMove(JumpMove jumpMove) {
+		this.jumpMove = jumpMove;
+	}
+
+	public void unsetJumpMove() {
+		jumpMove = null;
+	}
 	
-	public void setOutputWidth(int w)
-		{ setOutputSize(w, (int)outputSpriteSizePos.getHeight()); }
+	public int getFrontValue() {
+		return frontValue + extraFrontValue;
+	}
 	
-	public void setOutputHeight(int h)
-		{ setOutputSize((int)outputSpriteSizePos.getWidth(), h); }
-
-	public void incOutputSize(int wInc, int hInc)
-		{ setOutputSize((int)outputSpriteSizePos.getWidth() + wInc, (int)outputSpriteSizePos.getHeight() + hInc); }
-	
-	public void incOutputWidth(int wInc)
-		{ setOutputSize((int)outputSpriteSizePos.getWidth() + wInc, (int)outputSpriteSizePos.getHeight()); }
-	
-	public void incOutputHeight(int hInc)
-		{ setOutputSize((int)outputSpriteSizePos.getWidth(), (int)outputSpriteSizePos.getHeight() + hInc); }
-
-	public int getSpritesPerLine()
-		{ return spritesPerLine; }
-	
-	public void setSpritesPerLine(int value)
-		{ spritesPerLine = value; }
-
-	public void incSpritesPerLine(int value)
-		{ spritesPerLine += value; }
-	
-	public Entity getSourceEntity()
-		{ return sourceFrameSet.getSourceEntity(); }
-	
-	public FrameSet getSourceFrameSet()
-		{ return sourceFrameSet; }
-
-	public void setMainFrameSet(FrameSet frameSet)
-		{ sourceFrameSet = frameSet; }
-	
-	public DrawImageEffects getEffects()
-		{ return spriteEffects; }
-
-	public EliticMove getEliticMove()
-		{ return eliticMove; }
-
-	public void setEliticMove(EliticMove eliticMove)
-		{ this.eliticMove = eliticMove; }
-
-	public RectangleMove getRectangleMove()
-		{ return rectangleMove; }
-
-	public void setRectangleMove(RectangleMove rectangleMove)
-	 { this.rectangleMove = rectangleMove; }
-
-	public JumpMove getJumpMove()
-		{ return jumpMove; }
-	
-	public void setJumpMove(JumpMove jumpMove)
-		{ this.jumpMove = jumpMove; }
-
-	public void unsetJumpMove()
-		{ jumpMove = null; }
+	public void incFrontValue(int value) {
+		extraFrontValue += value;
+	}
 
 	public int[] getCurrentSpriteOriginCoords() {
 		if (spriteIndex == null)
-			return new int[] {0, 0};
+			return new int[] { 0, 0 };
 		int i = spriteIndex;
 		if (multiFrameIndexByDirection != null) {
 			i = multiFrameIndexByDirection[getSourceEntity().getDirection().get4DirValue()];
@@ -475,29 +567,20 @@ public class Sprite extends Position {
 				flip = ImageFlip.NONE;
 			i = spriteIndex + i * spritesPerLine;
 		}
-		int	w = (int)getOriginSpriteWidth(),
-				h = (int)getOriginSpriteHeight(),
-				x = (int)getOriginSpriteX() + w * (int)((getSpritesPerLine() == 0 ? i : (i % getSpritesPerLine()))),
-				y = (int)getOriginSpriteY() + h * (int)((getSpritesPerLine() == 0 ? 0 : (i / getSpritesPerLine())));
-		return new int[] {x, y};
+		int w = (int) getOriginSpriteWidth(), h = (int) getOriginSpriteHeight(), x = (int) getOriginSpriteX() + w * (int) ((getSpritesPerLine() == 0 ? i : (i % getSpritesPerLine()))), y = (int) getOriginSpriteY() + h * (int) ((getSpritesPerLine() == 0 ? 0 : (i / getSpritesPerLine())));
+		return new int[] { x, y };
 	}
-	
-	public Position getAbsoluteOutputPosition()
-		{ return absoluteOutputSpritePos; }
-	
-	public Position getSpritePosition()
-		{ return this; }
+
+	public Position getAbsoluteOutputPosition() {
+		return absoluteOutputSpritePos;
+	}
+
+	public Position getSpritePosition() {
+		return this;
+	}
 
 	public void updateOutputDrawCoords() {
-		int x = (int)getAbsoluteX(),
-				y = (int)getAbsoluteY(),
-				w = (int)getOutputWidth(),
-				h = (int)getOutputHeight();
-		if (eliticMove != null) {
-			x += eliticMove.getPosition().getX();
-			y += eliticMove.getPosition().getY();
-			eliticMove.move();
-		}
+		int x = (int) getAbsoluteX(), y = (int) getAbsoluteY(), w = (int) getOutputWidth(), h = (int) getOutputHeight();
 		switch (alignment) {
 			case TOP:
 				x += Main.TILE_SIZE / 2 - w / 2;
@@ -534,10 +617,11 @@ public class Sprite extends Position {
 		}
 		absoluteOutputSpritePos.setPosition(x, y);
 	}
-	
-	public void draw()
-		{ draw(null); }
-	
+
+	public void draw() {
+		draw(null);
+	}
+
 	public void draw(GraphicsContext gc) {
 		if (shake != null) {
 			shake.proccess();
@@ -545,16 +629,21 @@ public class Sprite extends Position {
 				shake = null;
 		}
 		if (getSourceEntity().isVisible() && isVisible) {
-			int frontValue2 = frontValue;
+			int frontValue2 = getFrontValue();
 			updateOutputDrawCoords();
-			boolean blink = Misc.blink(getSourceEntity().getBlinkingFrames() > 600 ? 200 :
-																 getSourceEntity().getBlinkingFrames() > 180 ? 100 : 50);
+			boolean blink = Misc.blink(getSourceEntity().getBlinkingFrames() > 600 ? 200 : getSourceEntity().getBlinkingFrames() > 180 ? 100 : 50);
 			double localAlpha = getSourceEntity().isBlinking() && blink ? alpha / 2 : alpha;
 			int[] in = getCurrentSpriteOriginCoords();
-			int sx = in[0], sy = in[1], tx = (int)absoluteOutputSpritePos.getX(), ty = (int)absoluteOutputSpritePos.getY();
+			int sx = in[0], sy = in[1], tx = (int) absoluteOutputSpritePos.getX(), ty = (int) absoluteOutputSpritePos.getY();
 
+			if (getEliticMove() != null) {
+				tx += getEliticMove().getIncrements().getX();
+				ty += getEliticMove().getIncrements().getY();
+				getEliticMove().move();
+				frontValue2++;
+			}
 			if (getSourceEntity().getHolder() != null) {
-				tx += getSourceEntity().getHolderDesloc().getX(); 
+				tx += getSourceEntity().getHolderDesloc().getX();
 				ty += getSourceEntity().getHolderDesloc().getY();
 				frontValue2++;
 			}
@@ -574,21 +663,22 @@ public class Sprite extends Position {
 				else {
 					tx += jumpMove.getIncrements().getX();
 					ty += jumpMove.getIncrements().getY();
-				}					
-				frontValue2++;
+					frontValue2++;
+					System.out.println(tx + " " + ty);
+				}
 			}
 			if (getSourceEntity().getJumpMove() != null) {
-				tx += (int)getSourceEntity().getJumpMove().getIncrements().getX();
-				ty += (int)getSourceEntity().getJumpMove().getIncrements().getY();
+				tx += (int) getSourceEntity().getJumpMove().getIncrements().getX();
+				ty += (int) getSourceEntity().getJumpMove().getIncrements().getY();
 				frontValue2++;
 			}
 			
+			getSourceEntity().setHeight((int)(ty - getAbsoluteY()));
+
 			if (gc != null)
-				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
-														 tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
+				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int) getOriginSpriteWidth(), (int) getOriginSpriteHeight(), tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
 			else {
-				DrawParams drawParams = Draw.addDrawQueue((int)getSourceEntity().getY() + frontValue2, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int)getOriginSpriteWidth(), (int)getOriginSpriteHeight(),
-																tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
+				DrawParams drawParams = Draw.addDrawQueue((int) getSourceEntity().getY() + frontValue2, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int) getOriginSpriteWidth(), (int) getOriginSpriteHeight(), tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
 				if (getSourceEntity().ghostingOpacityDec != null)
 					drawParams.setGhosting(getSourceEntity().ghostingDistance, getSourceEntity().ghostingOpacityDec);
 				else if (ghostingOpacityDec != null)
@@ -597,17 +687,19 @@ public class Sprite extends Position {
 		}
 		scrollSprite();
 	}
-	
-	public void setSpriteScroll(double scrollX, double scrollY)
-		{ spriteScroll = new Position(scrollX, scrollY); }
-	
-	public void stopSpriteScroll()
-		{ spriteScroll = null; }
+
+	public void setSpriteScroll(double scrollX, double scrollY) {
+		spriteScroll = new Position(scrollX, scrollY);
+	}
+
+	public void stopSpriteScroll() {
+		spriteScroll = null;
+	}
 
 	public void scrollSprite() {
 		if (spriteScroll != null) {
 			Image i = getSpriteSource();
-			int w = (int)i.getWidth(), h = (int)i.getHeight();
+			int w = (int) i.getWidth(), h = (int) i.getHeight();
 			double incX = spriteScroll.getX(), incY = spriteScroll.getX();
 			Canvas canvas = new Canvas(w, h);
 			GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -639,11 +731,13 @@ public class Sprite extends Position {
 	}
 
 	@Override
-	public TileCoord getTileCoord()
-		{ return new TileCoord((int)absoluteOutputSpritePos.getX() / Main.TILE_SIZE, (int)absoluteOutputSpritePos.getY() / Main.TILE_SIZE); }
+	public TileCoord getTileCoord() {
+		return new TileCoord((int) absoluteOutputSpritePos.getX() / Main.TILE_SIZE, (int) absoluteOutputSpritePos.getY() / Main.TILE_SIZE);
+	}
 
 	@Override
-	public TileCoord getTileCoordFromCenter()
-		{ return new TileCoord((int)(absoluteOutputSpritePos.getX() + getOutputWidth() / 2) / Main.TILE_SIZE, (int)(absoluteOutputSpritePos.getY() + getOutputHeight() / 2) / Main.TILE_SIZE); }
+	public TileCoord getTileCoordFromCenter() {
+		return new TileCoord((int) (absoluteOutputSpritePos.getX() + getOutputWidth() / 2) / Main.TILE_SIZE, (int) (absoluteOutputSpritePos.getY() + getOutputHeight() / 2) / Main.TILE_SIZE);
+	}
 
 }

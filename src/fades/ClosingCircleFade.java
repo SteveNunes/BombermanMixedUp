@@ -19,28 +19,35 @@ public class ClosingCircleFade implements Fade {
 	private Double speed;
 	private Double valueInc;
 	private Color color;
-  private WritableImage mask;
-	
-	public ClosingCircleFade(int centerX, int centerY)
-		{ this(Color.BLACK, centerX, centerY); }
-	
-	public ClosingCircleFade(Color color, int centerX, int centerY)
-		{ this(color, centerX, centerY, 1); }
-	
-	public ClosingCircleFade(int centerX, int centerY, double speed)
-		{ this(Color.BLACK, centerX, centerY, speed); }
-	
-	public ClosingCircleFade(Color color, int centerX, int centerY, double speed)
-		{ this(color, new Position(centerX, centerY), speed); }
+	private WritableImage mask;
 
-	public ClosingCircleFade(Position center)
-		{ this(Color.BLACK, center); }
+	public ClosingCircleFade(int centerX, int centerY) {
+		this(Color.BLACK, centerX, centerY);
+	}
 
-	public ClosingCircleFade(Color color, Position center)
-		{ this(color, center, 1); }
-	
-	public ClosingCircleFade(Position center, double speed)
-		{ this(Color.BLACK, center, speed); }
+	public ClosingCircleFade(Color color, int centerX, int centerY) {
+		this(color, centerX, centerY, 1);
+	}
+
+	public ClosingCircleFade(int centerX, int centerY, double speed) {
+		this(Color.BLACK, centerX, centerY, speed);
+	}
+
+	public ClosingCircleFade(Color color, int centerX, int centerY, double speed) {
+		this(color, new Position(centerX, centerY), speed);
+	}
+
+	public ClosingCircleFade(Position center) {
+		this(Color.BLACK, center);
+	}
+
+	public ClosingCircleFade(Color color, Position center) {
+		this(color, center, 1);
+	}
+
+	public ClosingCircleFade(Position center, double speed) {
+		this(Color.BLACK, center, speed);
+	}
 
 	public ClosingCircleFade(Color color, Position center, double speed) {
 		setColor(color);
@@ -49,13 +56,15 @@ public class ClosingCircleFade implements Fade {
 		reset(FadeState.NONE);
 		closingFadeShape = ClosingFadeShape.SQUARE;
 	}
-	
-	private void setPosition(Position center)
-		{ this.center = center; }
-	
-	public ClosingFadeShape getClosingFadeShape()
-		{ return closingFadeShape; }
-	
+
+	private void setPosition(Position center) {
+		this.center = center;
+	}
+
+	public ClosingFadeShape getClosingFadeShape() {
+		return closingFadeShape;
+	}
+
 	public ClosingCircleFade setStyle(ClosingFadeShape closingFadeShape) {
 		this.closingFadeShape = closingFadeShape;
 		return this;
@@ -66,7 +75,7 @@ public class ClosingCircleFade implements Fade {
 		reset(FadeState.FADE_IN);
 		return this;
 	}
-	
+
 	@Override
 	public ClosingCircleFade fadeOut() {
 		reset(FadeState.FADE_OUT);
@@ -88,28 +97,31 @@ public class ClosingCircleFade implements Fade {
 	}
 
 	@Override
-	public boolean isFadeDone()
-		{ return fadeState == FadeState.DONE; }
+	public boolean isFadeDone() {
+		return fadeState == FadeState.DONE;
+	}
 
 	@Override
-	public void stopFade()
-		{ fadeState = FadeState.NONE; }
-	
-	@Override
-	public FadeState getInitialFadeState()
-		{ return fadeInitialState; }
+	public void stopFade() {
+		fadeState = FadeState.NONE;
+	}
 
 	@Override
-	public FadeState getCurrentFadeState()
-		{ return fadeState; }
-	
+	public FadeState getInitialFadeState() {
+		return fadeInitialState;
+	}
+
+	@Override
+	public FadeState getCurrentFadeState() {
+		return fadeState;
+	}
+
 	private double getMaxRadius(Canvas canvas) {
-    int w = (int)canvas.getWidth() / 3, h = (int)canvas.getHeight() / 3,
-    		cx = (int)center.getX(), cy = (int)center.getY();
-  	double rMax = 1, vInc = speed;
-  	if (closingFadeShape == ClosingFadeShape.CIRCLE) {
- 			for (boolean ok = false; !ok; rMax += vInc) {
- 				ok = true;
+		int w = (int) canvas.getWidth() / 3, h = (int) canvas.getHeight() / 3, cx = (int) center.getX(), cy = (int) center.getY();
+		double rMax = 1, vInc = speed;
+		if (closingFadeShape == ClosingFadeShape.CIRCLE) {
+			for (boolean ok = false; !ok; rMax += vInc) {
+				ok = true;
 				for (int y = 0; ok && y < h; y++)
 					for (int x = 0; ok && x < w; x++) {
 						double dx = x - cx, dy = y - cy, distance = Math.sqrt(dx * dx + dy * dy);
@@ -118,51 +130,47 @@ public class ClosingCircleFade implements Fade {
 					}
 				valueInc *= 1.005;
 			}
-  	}
-  	else {
- 			for (boolean ok = false; !ok; rMax += vInc) {
- 				ok = true;
-        if (cx - rMax / 2 > 0 || cx + rMax < w || cy - rMax / 2 > 0 || cy + rMax < h) {
-        	ok = false;
-        	valueInc *= 1.005;
-        }
- 			}
- 			rMax -= vInc * 2;
-  	}
-  	return rMax;
+		}
+		else {
+			for (boolean ok = false; !ok; rMax += vInc) {
+				ok = true;
+				if (cx - rMax / 2 > 0 || cx + rMax < w || cy - rMax / 2 > 0 || cy + rMax < h) {
+					ok = false;
+					valueInc *= 1.005;
+				}
+			}
+			rMax -= vInc * 2;
+		}
+		return rMax;
 	}
 
 	@Override
 	public void apply(Canvas canvas) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		if (fadeState != FadeState.NONE) {
-      int w = (int)canvas.getWidth() / 3, h = (int)canvas.getHeight() / 3,
-      		cx = (int)center.getX(), cy = (int)center.getY();
-      if (mask == null) {
-     		mask = new WritableImage(w, h);
+			int w = (int) canvas.getWidth() / 3, h = (int) canvas.getHeight() / 3, cx = (int) center.getX(), cy = (int) center.getY();
+			if (mask == null) {
+				mask = new WritableImage(w, h);
 				radius = fadeState == FadeState.FADE_IN ? 0 : getMaxRadius(canvas);
-      }
-      boolean done = true;
+			}
+			boolean done = true;
 			for (int y = 0; y < h; y++)
 				for (int x = 0; x < w; x++) {
 					double dx = x - cx, dy = y - cy, distance = Math.sqrt(dx * dx + dy * dy);
-					
-					boolean b = (fadeState == FadeState.DONE && fadeInitialState == FadeState.FADE_IN) ||
-											(fadeState != FadeState.DONE &&
-											((closingFadeShape == ClosingFadeShape.CIRCLE && radius > 0 && distance <= radius) ||
-											(closingFadeShape == ClosingFadeShape.SQUARE && radius > 0 && x >= cx - radius / 2 && x <= cx + radius / 2 && y >= cy - radius / 2 && y <= cy + radius / 2)));
+
+					boolean b = (fadeState == FadeState.DONE && fadeInitialState == FadeState.FADE_IN) || (fadeState != FadeState.DONE && ((closingFadeShape == ClosingFadeShape.CIRCLE && radius > 0 && distance <= radius) || (closingFadeShape == ClosingFadeShape.SQUARE && radius > 0 && x >= cx - radius / 2 && x <= cx + radius / 2 && y >= cy - radius / 2 && y <= cy + radius / 2)));
 					if ((fadeState == FadeState.FADE_IN && !b) || (fadeState == FadeState.FADE_OUT && (radius > 0 || b)))
 						done = false;
 					mask.getPixelWriter().setColor(x, y, b ? Color.TRANSPARENT : color);
 				}
-      gc.drawImage(mask, 0, 0, w, h, 0, 0, w * 3, h * 3);			
+			gc.drawImage(mask, 0, 0, w, h, 0, 0, w * 3, h * 3);
 			if (fadeState != FadeState.DONE) {
 				radius += valueInc;
 				if (fadeState == FadeState.FADE_IN)
 					valueInc *= 1.01;
-				else 
+				else
 					valueInc /= 1.01;
-					
+
 				if (done) {
 					radius = fadeState == FadeState.FADE_IN ? radius : 0d;
 					valueInc = 0d;
@@ -180,7 +188,7 @@ public class ClosingCircleFade implements Fade {
 		this.speed = speed;
 		reset(fadeInitialState);
 	}
-	
+
 	public void setColor(Color color) {
 		if (color == null)
 			throw new RuntimeException("color is null");

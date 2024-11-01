@@ -4,10 +4,10 @@ import frameset.Sprite;
 import maps.MapSet;
 
 public class IncSwitchValue extends FrameTag {
-	
+
 	public String switchName;
 	public int incValue;
-	
+
 	public IncSwitchValue(String switchName, Integer incValue) {
 		this.switchName = switchName;
 		this.incValue = incValue;
@@ -15,8 +15,9 @@ public class IncSwitchValue extends FrameTag {
 	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + switchName + ";" + incValue + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + switchName + ";" + incValue + "}";
+	}
 
 	public IncSwitchValue(String tags) {
 		String[] params = validateStringTags(this, tags);
@@ -29,19 +30,19 @@ public class IncSwitchValue extends FrameTag {
 			switchName = params[n++];
 			incValue = params.length == 1 ? 1 : Integer.parseInt(params[n]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public IncSwitchValue getNewInstanceOfThis()
-		{ return new IncSwitchValue(switchName, incValue); }
-	
+	public IncSwitchValue getNewInstanceOfThis() {
+		return new IncSwitchValue(switchName, incValue);
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ MapSet.incSwitchValue(switchName, incValue); }
+	public void process(Sprite sprite) {
+		MapSet.incSwitchValue(switchName, incValue);
+	}
 
 }
-
-
-

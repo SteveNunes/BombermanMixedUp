@@ -6,14 +6,14 @@ import frameset.Sprite;
 import tools.Sound;
 
 public class PushEntity extends FrameTag {
-	
+
 	public Double startStrenght;
 	public Double decStrenght;
 	public Direction direction;
 	public TileCoord2 targetTile;
 	public String triggerSound;
 	public String soundWhenHits;
-	
+
 	public PushEntity(Double startStrenght, Double decStrenght, Direction direction, TileCoord2 targetTile, String triggerSound, String soundWhenHits) {
 		this.targetTile = targetTile;
 		this.startStrenght = startStrenght;
@@ -24,8 +24,9 @@ public class PushEntity extends FrameTag {
 	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + startStrenght + ";" + (decStrenght == null ? "-" : decStrenght) + ";" + direction + ";" + targetTile.getOriginalTag() + ";" + triggerSound + ";" + soundWhenHits + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + startStrenght + ";" + (decStrenght == null ? "-" : decStrenght) + ";" + direction + ";" + targetTile.getOriginalTag() + ";" + triggerSound + ";" + soundWhenHits + "}";
+	}
 
 	public PushEntity(String tags) {
 		String[] params = validateStringTags(this, tags);
@@ -36,19 +37,23 @@ public class PushEntity extends FrameTag {
 		int n = 0;
 		try {
 			startStrenght = Double.parseDouble(params[n++]);
-			decStrenght = params[n].equals("-") ? null : Double.parseDouble(params[n]); n++;
+			decStrenght = params[n].equals("-") ? null : Double.parseDouble(params[n]);
+			n++;
 			direction = params[n].equals("-") ? null : Direction.valueOf(params[n]);
 			targetTile = stringToTileCoord2(params[++n]);
 			triggerSound = ++n >= params.length || params[n].equals("-") ? null : params[n];
 			soundWhenHits = ++n >= params.length || params[n].equals("-") ? null : params[n];
 		}
-		catch (Exception e)
-			{ e.printStackTrace(); throw new RuntimeException(params[n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(params[n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public PushEntity getNewInstanceOfThis()
-		{ return new PushEntity(startStrenght, decStrenght, direction, targetTile, triggerSound, soundWhenHits); }
+	public PushEntity getNewInstanceOfThis() {
+		return new PushEntity(startStrenght, decStrenght, direction, targetTile, triggerSound, soundWhenHits);
+	}
 
 	@Override
 	public void process(Sprite sprite) {
@@ -56,7 +61,7 @@ public class PushEntity extends FrameTag {
 		if (entity.getPushEntity() != null)
 			set(sprite, entity);
 	}
-	
+
 	public void set(Sprite sprite, Entity entity) {
 		processTile(sprite.getTileCoord(), targetTile, coord -> {
 			if (triggerSound != null)

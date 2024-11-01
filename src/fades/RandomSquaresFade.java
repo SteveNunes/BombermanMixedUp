@@ -20,18 +20,22 @@ public class RandomSquaresFade implements Fade {
 	private WritableImage image;
 	private Integer count;
 	private Integer total;
-	
-	public RandomSquaresFade()
-		{ this(Color.BLACK); }
-	
-	public RandomSquaresFade(Integer squareSize) 
-		{ this(Color.BLACK, squareSize); }
 
-	public RandomSquaresFade(Color color)
-		{ this(color, 20); }
+	public RandomSquaresFade() {
+		this(Color.BLACK);
+	}
 
-	public RandomSquaresFade(Color color, Integer squareSize)
-		{ this(color, 1, squareSize); }
+	public RandomSquaresFade(Integer squareSize) {
+		this(Color.BLACK, squareSize);
+	}
+
+	public RandomSquaresFade(Color color) {
+		this(color, 20);
+	}
+
+	public RandomSquaresFade(Color color, Integer squareSize) {
+		this(color, 1, squareSize);
+	}
 
 	public RandomSquaresFade(Color color, Integer speed, Integer squareSize) {
 		setColor(color);
@@ -39,7 +43,7 @@ public class RandomSquaresFade implements Fade {
 		reset(FadeState.NONE);
 		this.squareSize = squareSize;
 	}
-	
+
 	private void reset(FadeState state) {
 		fadeState = state;
 		fadeInitialState = state;
@@ -62,13 +66,15 @@ public class RandomSquaresFade implements Fade {
 	}
 
 	@Override
-	public boolean isFadeDone()
-		{ return fadeState == FadeState.DONE; }
+	public boolean isFadeDone() {
+		return fadeState == FadeState.DONE;
+	}
 
 	@Override
-	public void stopFade()
-		{ fadeState = FadeState.NONE; }
-	
+	public void stopFade() {
+		fadeState = FadeState.NONE;
+	}
+
 	@Override
 	public RandomSquaresFade setOnFadeDoneEvent(Runnable runnable) {
 		onFadeDoneEvent = runnable;
@@ -76,17 +82,19 @@ public class RandomSquaresFade implements Fade {
 	}
 
 	@Override
-	public FadeState getInitialFadeState()
-		{ return fadeInitialState; }
+	public FadeState getInitialFadeState() {
+		return fadeInitialState;
+	}
 
 	@Override
-	public FadeState getCurrentFadeState()
-		{ return fadeState; }
+	public FadeState getCurrentFadeState() {
+		return fadeState;
+	}
 
 	@Override
 	public void apply(Canvas canvas) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
-		int w = (int)canvas.getWidth() / 3, h = (int)canvas.getHeight() / 3;
+		int w = (int) canvas.getWidth() / 3, h = (int) canvas.getHeight() / 3;
 		if (fadeState != FadeState.DONE && tick == 0) {
 			if (squares == null) {
 				image = new WritableImage(w, h);
@@ -98,8 +106,7 @@ public class RandomSquaresFade implements Fade {
 							image.getPixelWriter().setColor(x, y, color);
 			}
 			if (count < total) {
-				int x = (int)MyMath.getRandom(0, squares[0].length - 1),
-						y = (int)MyMath.getRandom(0, squares.length - 1);
+				int x = (int) MyMath.getRandom(0, squares[0].length - 1), y = (int) MyMath.getRandom(0, squares.length - 1);
 				while (squares[y][x] == 1) {
 					if (++x == squares[0].length) {
 						x = 0;
@@ -130,7 +137,7 @@ public class RandomSquaresFade implements Fade {
 		this.speed = speed;
 		reset(fadeInitialState);
 	}
-	
+
 	public void setColor(Color color) {
 		if (color == null)
 			throw new RuntimeException("color is null");

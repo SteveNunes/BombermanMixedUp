@@ -1,7 +1,7 @@
 package tools;
 
 public abstract class GameConfigs {
-	
+
 	public static int STARTING_LIVES = 2;
 	public static int STARTING_BOMBS = 1;
 	public static int STARTING_FIRE = 2;

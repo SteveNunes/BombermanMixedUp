@@ -4,7 +4,7 @@ import frameset.Tags;
 import frameset_tags.*;
 
 public abstract class FrameTagLoader {
-	
+
 	public static void loadToTags(String stringWithTags, Tags tags) {
 		String[] frameTags = stringWithTags.split("\\,"); // Divisor das FrameTags de cada Sprite
 		for (int n = 0; n < frameTags.length; n++) {
@@ -31,8 +31,9 @@ public abstract class FrameTagLoader {
 					for (int z = 0; z < 2; z++)
 						s = (z == 1 ? "{" : "") + s.substring(s.indexOf(';') + 1);
 				}
-				catch (Exception e)
-					{ throw new RuntimeException(s + " - Invalid numeric value for Delay param"); }
+				catch (Exception e) {
+					throw new RuntimeException(s + " - Invalid numeric value for Delay param");
+				}
 			}
 			FrameTag newTag = null;
 			if (tag.equals("AddColoredLightSpot"))
@@ -363,6 +364,8 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new ShakeFrameSet(s));
 			else if (tag.equals("PunchBombInFront"))
 				tags.addTag(newTag = new PunchBombInFront(s));
+			else if (tag.equals("PunchBrickInFront"))
+				tags.addTag(newTag = new PunchBrickInFront(s));
 			else if (tag.equals("SetMultiSprIndexByDirection"))
 				tags.addTag(newTag = new SetMultiSprIndexByDirection(s));
 			else if (tag.equals("UnSetMultiSprIndexByDirection"))
@@ -377,6 +380,12 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new IncHoldingDesloc(s));
 			else if (tag.equals("SetEntityElevation"))
 				tags.addTag(newTag = new SetEntityElevation(s));
+			else if (tag.equals("SetEliticMove"))
+				tags.addTag(newTag = new SetEliticMove(s));
+			else if (tag.equals("SetSprFrontValue"))
+				tags.addTag(newTag = new SetSprFrontValue(s));
+			else if (tag.equals("IncSprFrontValue"))
+				tags.addTag(newTag = new IncSprFrontValue(s));
 			if (delay > 0)
 				newTag.setTriggerDelay(delay);
 		}

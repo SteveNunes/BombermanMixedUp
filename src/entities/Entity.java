@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import application.Main;
+import enums.Curse;
 import enums.Direction;
 import enums.DrawType;
 import enums.Elevation;
@@ -40,6 +41,8 @@ public class Entity extends Position {
 	private static Map<TileCoord, Set<Entity>> entityMap = new HashMap<>();
 	private static Map<Entity, TileCoord> entityMap2 = new HashMap<>();
 
+	private Curse curse;
+	private int curseDuration = Curse.getDuration(curse);
 	private Map<String, FrameSet> frameSets;
 	private Map<String, FrameSet> freshFrameSets;
 	private List<LinkedEntityInfos> linkedEntityInfos;
@@ -58,6 +61,7 @@ public class Entity extends Position {
 	private Position holderDesloc; // Deslocamento do sprite do objeto que está sendo segurado
 	private Position linkedEntityOffset;
 	private TileCoord tileChangedCoord;
+	private int currentHeight;
 	private TileCoord previewTileCoord;
 	private PathFinder pathFinder;
 	private Shake shake;
@@ -66,6 +70,8 @@ public class Entity extends Position {
 	private int elapsedFrames;
 	private int hitPoints;
 	private int blinkingFrames;
+	private int pushing;
+	public int ghostingDistance;
 	private float shadowOpacity;
 	private double speed;
 	private double tempSpeed;
@@ -74,8 +80,6 @@ public class Entity extends Position {
 	private boolean blockedMovement;
 	private boolean tileWasChanged;
 	private boolean isVisible;
-	private int pushing;
-	public int ghostingDistance;
 	public Double ghostingOpacityDec;
 	private JumpMove jumpMove;
 	private GotoMove gotoMove;
@@ -123,6 +127,8 @@ public class Entity extends Position {
 		holder = null;
 		holderDesloc = null;
 		pathFinder = null;
+		curseDuration = 0;
+		currentHeight = 0;
 	}
 
 	public Entity() {
@@ -157,6 +163,7 @@ public class Entity extends Position {
 		shadowOpacity = 0;
 		elapsedSteps = 0;
 		elapsedFrames = 0;
+		curseDuration = 0;
 		hitPoints = 1;
 		noMove = false;
 		isVisible = true;
@@ -169,9 +176,18 @@ public class Entity extends Position {
 		ghostingDistance = 0;
 		ghostingOpacityDec = null;
 		invencibleFrames = 0;
+		currentHeight = 0;
 		holder = null;
 		holderDesloc = null;
 		pathFinder = null;
+	}
+	
+	public void setHeight(int height) {
+		currentHeight = height;
+	}
+	
+	public int getHeight() {
+		return currentHeight;
 	}
 
 	public PathFinder getPathFinder() {
@@ -239,7 +255,14 @@ public class Entity extends Position {
 	}
 
 	public void incHitPoints(int value) {
-		hitPoints += value;
+		if (hitPoints + value >= 0)
+			hitPoints += value;
+		else
+			hitPoints = 0;
+	}
+
+	public boolean isDead() {
+		return hitPoints == 0;
 	}
 
 	public boolean isInvenible() {
@@ -255,7 +278,9 @@ public class Entity extends Position {
 	}
 
 	public boolean isBlockedMovement() {
-		return blockedMovement || getPathFinder() != null || getPushEntity() != null || getJumpMove() != null || getGotoMove() != null || getHolder() != null;
+		return blockedMovement || isDead() || getPathFinder() != null ||
+				getPushEntity() != null || getJumpMove() != null || getGotoMove() != null ||
+				getHolder() != null || getCurse() == Curse.STUNNED;
 	}
 
 	public void setBlockedMovement(boolean state) {
@@ -271,6 +296,8 @@ public class Entity extends Position {
 	}
 
 	public void unsetJumpMove() {
+		if (jumpMove != null)
+			checkOutScreenCoords();
 		jumpMove = null;
 	}
 
@@ -302,9 +329,9 @@ public class Entity extends Position {
 		jumpMove.setOnCycleCompleteEvent(e -> {
 			TileCoord coord2 = getTileCoordFromCenter();
 			if (!MapSet.tileIsFree(coord2))
-				onJumpFallAtOccupedTileEvent(coord, jumpMove);
+				onJumpFallAtOccupedTileEvent(jumpMove);
 			else
-				onJumpFallAtFreeTileEvent(coord, jumpMove);
+				onJumpFallAtFreeTileEvent(jumpMove);
 		});
 		setGotoMove(coord.getPosition(), durationFrames - 1);
 	}
@@ -313,11 +340,15 @@ public class Entity extends Position {
 
 	public void onJumpStartEvent(TileCoord coord, JumpMove jumpMove) {}
 
-	public void onJumpFallAtFreeTileEvent(TileCoord coord, JumpMove jumpMove) {}
+	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {
+		checkOutScreenCoords();
+	}
 
-	public void onJumpFallAtOccupedTileEvent(TileCoord coord, JumpMove jumpMove) {
+	public void onJumpFallAtOccupedTileEvent(JumpMove jumpMove) {
 		Sound.playWav("TileSlam");
 		jumpMove.resetJump(4, 1.2, 14);
+		checkOutScreenCoords();
+		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		setGotoMove(coord.incCoordsByDirection(getDirection()).getPosition(), jumpMove.getDurationFrames());
 	}
 
@@ -368,25 +399,48 @@ public class Entity extends Position {
 		passThrough.clear();
 	}
 
-	public void setPassThroughBrick(boolean state) {
+	private void setPassThrough(PassThrough passThrough, boolean state) {
 		if (state)
-			addPassThrough(PassThrough.BRICK);
+			addPassThrough(passThrough);
 		else
-			removePassThrough(PassThrough.BRICK);
+			removePassThrough(passThrough);
+	}
+
+	public void setPassThroughs(boolean state, PassThrough... passThroughs) {
+		for (PassThrough passThrough : passThroughs)
+			setPassThrough(passThrough, state);
+	}
+
+	public void setPassThroughBrick(boolean state) {
+		setPassThrough(PassThrough.BRICK, state);
 	}
 
 	public void setPassThroughBomb(boolean state) {
-		if (state)
-			addPassThrough(PassThrough.BOMB);
-		else
-			removePassThrough(PassThrough.BOMB);
+		setPassThrough(PassThrough.BOMB, state);
+	}
+
+	public void setPassThroughPlayer(boolean state) {
+		setPassThrough(PassThrough.PLAYER, state);
 	}
 
 	public void setPassThroughMonster(boolean state) {
-		if (state)
-			addPassThrough(PassThrough.MONSTER);
-		else
-			removePassThrough(PassThrough.MONSTER);
+		setPassThrough(PassThrough.MONSTER, state);
+	}
+
+	public void setPassThroughItem(boolean state) {
+		setPassThrough(PassThrough.ITEM, state);
+	}
+
+	public void setPassThroughWall(boolean state) {
+		setPassThrough(PassThrough.WALL, state);
+	}
+
+	public void setPassThroughHole(boolean state) {
+		setPassThrough(PassThrough.HOLE, state);
+	}
+
+	public void setPassThroughWater(boolean state) {
+		setPassThrough(PassThrough.WATER, state);
 	}
 
 	public boolean canPassThroughBrick() {
@@ -399,6 +453,26 @@ public class Entity extends Position {
 
 	public boolean canPassThroughMonster() {
 		return passThrough.contains(PassThrough.MONSTER);
+	}
+
+	public boolean canPassThroughPlayer() {
+		return passThrough.contains(PassThrough.PLAYER);
+	}
+
+	public boolean canPassThroughHole() {
+		return passThrough.contains(PassThrough.HOLE);
+	}
+
+	public boolean canPassThroughItem() {
+		return passThrough.contains(PassThrough.ITEM);
+	}
+
+	public boolean canPassThroughWall() {
+		return passThrough.contains(PassThrough.WALL);
+	}
+
+	public boolean canPassThroughWater() {
+		return passThrough.contains(PassThrough.WATER);
 	}
 
 	public void setTileWasChanged(boolean state) {
@@ -673,6 +747,46 @@ public class Entity extends Position {
 		pushEntity = null;
 	}
 
+	public void removeCurse() {
+		if (curse == Curse.INVISIBLE)
+			setVisible(true);
+		curse = null;
+	}
+
+	public Curse getCurse() {
+		return curse;
+	}
+	
+	public int getCurseDuration() {
+		return curseDuration;
+	}
+	
+	public void setCurseDuration(int duration) {
+		curseDuration = duration;
+	}
+
+	public void setCurse(Curse curse) { // FALTA: Implementar BLINDNESS e SWAP_PLAYERS
+		if (curse != null) {
+			removeCurse();
+			this.curse = curse;
+			curseDuration = Curse.getDuration(curse);
+			if (curse == Curse.INVISIBLE)
+				setVisible(false);
+			else if (curse == Curse.MIN_SPEED)
+				setTempSpeed(0.25);
+			else if (curse == Curse.ULTRA_SPEED)
+				setTempSpeed(GameConfigs.MAX_PLAYER_SPEED);
+			else if (curse == Curse.INVISIBLE)
+				setVisible(false);
+			else if (curse == Curse.STUNNED) { System.out.println("BBB");
+				Effect.runEffect(MapSet.getInitialPlayerPosition(0), "STUN")
+					.setClosingPredicate(this, e -> e.isDead() || e.getCurse() != Curse.STUNNED)
+					.linkTo(this, 0, getHeight());
+
+			}
+		}
+	}
+	
 	public void run() {
 		run(null, false);
 	}
@@ -686,7 +800,10 @@ public class Entity extends Position {
 	}
 
 	public void run(GraphicsContext gc, boolean isPaused) {
-		removeEntityFromList(getTileCoordFromCenter(), this);
+		if (!(this instanceof Effect))
+			removeEntityFromList(getTileCoordFromCenter(), this);
+		if (curse != null && --curseDuration == 0)
+			removeCurse();
 		if (blinkingFrames != 0)
 			blinkingFrames--;
 		if (invencibleFrames != 0)
@@ -712,8 +829,10 @@ public class Entity extends Position {
 		}
 		if (gotoMove != null) {
 			gotoMove.move();
-			if (gotoMove.isCycleCompleted())
+			if (gotoMove.isCycleCompleted()) {
 				unsetGotoMove();
+				checkOutScreenCoords();
+			}
 			else
 				incPosition(gotoMove.getIncrements());
 		}
@@ -722,6 +841,7 @@ public class Entity extends Position {
 			if (!pushEntity.isActive()) {
 				pushEntity = null;
 				setBlockedMovement(false);
+				checkOutScreenCoords();
 			}
 		}
 		if (getHolder() != null) {
@@ -742,7 +862,8 @@ public class Entity extends Position {
 		}
 		if (!getCurrentFrameSet().isRunning() && consumerWhenFrameSetEnds != null)
 			consumerWhenFrameSetEnds.accept(this);
-		addEntityToList(getTileCoordFromCenter(), this);
+		if (!(this instanceof Effect))
+			addEntityToList(getTileCoordFromCenter(), this);
 	}
 
 	private void processLinkedEntity() {
@@ -772,8 +893,9 @@ public class Entity extends Position {
 		}
 	}
 
-	public boolean isMoving()
-		{ return getSpeed() != 0 || getPushEntity() != null || getPathFinder() != null; }
+	public boolean isMoving() {
+		return getSpeed() != 0 || getPushEntity() != null || getPathFinder() != null;
+	}
 
 	public int getPushingValue() {
 		return pushing;
@@ -791,16 +913,14 @@ public class Entity extends Position {
 			freeCorners[++z] = tileIsFree(pos.getTileCoord());
 			for (int n = 0; freeCorners[z] && n < 3; n++)
 				for (Entity entity : n == 0 ? Brick.getBricks() : n == 1 ? Bomb.getBombs() : Monster.getMonsters())
-					if (entity != this && (n != 0 || !canPassThroughBrick()) &&
-							(n != 1 || (!((Bomb)entity).ownerIsOver(this) && !canPassThroughBomb())) &&
-							(n != 2 || !canPassThroughMonster())) {
-								int x = (int)pos.getX(), y = (int)pos.getY();
-								int xx = (int)entity.getX(), yy = (int)entity.getY();
-								if (x >= xx && y >= yy && x <= xx + Main.TILE_SIZE && y <= yy + Main.TILE_SIZE) {
-									freeCorners[z] = false;
-									break;
+					if (entity != this && (n != 0 || !canPassThroughBrick()) && (n != 1 || (!((Bomb) entity).ownerIsOver(this) && !canPassThroughBomb())) && (n != 2 || !canPassThroughMonster())) {
+						int x = (int) pos.getX(), y = (int) pos.getY();
+						int xx = (int) entity.getX(), yy = (int) entity.getY();
+						if (x >= xx && y >= yy && x <= xx + Main.TILE_SIZE && y <= yy + Main.TILE_SIZE) {
+							freeCorners[z] = false;
+							break;
 						}
-			}
+					}
 		}
 		return freeCorners;
 	}
@@ -851,11 +971,7 @@ public class Entity extends Position {
 			Position[] cornersPositions = getCornersPositions();
 			Position lu = cornersPositions[0], ru = cornersPositions[1], ld = cornersPositions[2], rd = cornersPositions[3];
 			boolean[] freeCorners = getFreeCorners(direction);
-			int z = 10;
-			// Sistema para alinhar o personagem quando ele esta tentando ir em uma direcao
-			// onde um dos 2 cantos a frente do personagem é um tile livre mas o canto
-			// oposto a frente do personagem está bloqueado
-			int prevX = (int) getX() / Main.TILE_SIZE, prevY = (int) getY() / Main.TILE_SIZE;
+			int z = 10, prevX = (int) getX() / Main.TILE_SIZE, prevY = (int) getY() / Main.TILE_SIZE;
 			if (direction == Direction.UP) {
 				if (freeCorners[0] && freeCorners[1]) {
 					incPositionByDirection(direction, speed);
@@ -944,15 +1060,31 @@ public class Entity extends Position {
 						centerYToTile();
 				}
 			}
+			checkOutScreenCoords();
 			if (!getTileCoordFromCenter().equals(tileChangedCoord)) {
 				Position pos = getTileCoordFromCenter().getPosition();
 				int x = (int) getX() + Main.TILE_SIZE / 2, y = (int) getY() + Main.TILE_SIZE / 2, xx = (int) pos.getX() + Main.TILE_SIZE / 2, yy = (int) pos.getY() + Main.TILE_SIZE / 2;
 				if (x >= xx - Main.TILE_SIZE / 4 && y >= yy - Main.TILE_SIZE / 4 && x <= xx + Main.TILE_SIZE / 4 && y <= yy + Main.TILE_SIZE / 4)
 					updatePreviewTileCoord();
 			}
+			if ((this instanceof Bomb || this instanceof Brick) && Item.haveItemAt(getTileCoordFromCenter()))
+				Item.getItemAt(getTileCoordFromCenter()).destroy();
 		}
 		else
 			pushing = 0;
+	}
+	
+	public void checkOutScreenCoords() {
+		if (getX() < Main.TILE_SIZE / 2)
+			setX(MapSet.getMapLimit().getX() + Main.TILE_SIZE / 2);
+		else if (getX() > MapSet.getMapLimit().getX() + Main.TILE_SIZE / 2) {
+			setX(Main.TILE_SIZE / 2);
+		}
+		if (getY() < Main.TILE_SIZE + Main.TILE_SIZE / 2)
+			setY(MapSet.getMapLimit().getY() + Main.TILE_SIZE + Main.TILE_SIZE / 2);
+		else if (getY() > MapSet.getMapLimit().getY() + Main.TILE_SIZE + Main.TILE_SIZE / 2) {
+			setY(Main.TILE_SIZE + Main.TILE_SIZE / 2);
+		}
 	}
 
 	public TileCoord getPreviewTileCoord() {
@@ -991,7 +1123,9 @@ public class Entity extends Position {
 	}
 
 	public void setDirection(Direction direction) {
-		setDirection(direction, false);
+		if ((direction.isVertical() && getX() >= 0 && getX() <= MapSet.getMapLimit().getX()) ||
+				(direction.isHorizontal() && getY() >= 0 && getY() <= MapSet.getMapLimit().getY()))
+					setDirection(direction, false);
 	}
 
 	public void forceDirection(Direction direction) {
@@ -1149,7 +1283,9 @@ public class Entity extends Position {
 	}
 
 	public void takeDamage() {
-		if (!isInvenible()) {
+		if (!isInvenible() && !isDead() && !(this instanceof Effect)) {
+			if (getHoldingEntity() != null)
+				unsetHoldingEntity();
 			if (--hitPoints == 0) {
 				setFrameSet("Dead");
 				if (this instanceof BomberMan)
@@ -1209,14 +1345,17 @@ public class Entity extends Position {
 		}
 	}
 
-	public static boolean entityIsAtCoord(Entity entity, TileCoord coord)
-		{ return entityMap.containsKey(coord) && entityMap.get(coord).contains(entity); }
+	public static boolean entityIsAtCoord(Entity entity, TileCoord coord) {
+		return entityMap.containsKey(coord) && entityMap.get(coord).contains(entity);
+	}
 
-	public static boolean haveAnyEntityAtCoord(TileCoord coord)
-		{ return haveAnyEntityAtCoord(coord, null); }
-	
-	public static boolean haveAnyEntityAtCoord(TileCoord coord, Entity ignoreEntity)
-		{ return entityMap.containsKey(coord) && (entityMap.get(coord).size() > 1 || !entityMap.get(coord).contains(ignoreEntity)); }
+	public static boolean haveAnyEntityAtCoord(TileCoord coord) {
+		return haveAnyEntityAtCoord(coord, null);
+	}
+
+	public static boolean haveAnyEntityAtCoord(TileCoord coord, Entity ignoreEntity) {
+		return entityMap.containsKey(coord) && (entityMap.get(coord).size() > 1 || !entityMap.get(coord).contains(ignoreEntity));
+	}
 
 }
 

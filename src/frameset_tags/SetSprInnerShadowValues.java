@@ -4,23 +4,25 @@ import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprInnerShadowValues extends FrameTag {
-	
+
 	public double offsetX;
 	public double offsetY;
 	public BlendMode blendMode;
-	
+
 	public SetSprInnerShadowValues(double offsetX, double offsetY, BlendMode blendMode) {
 		this.offsetX = offsetX;
 		this.offsetY = offsetY;
 		this.blendMode = blendMode;
 	}
 
-	public SetSprInnerShadowValues(double offsetX, double offsetY)
-		{ this(offsetX, offsetY, BlendMode.SRC_ATOP); }
+	public SetSprInnerShadowValues(double offsetX, double offsetY) {
+		this(offsetX, offsetY, BlendMode.SRC_ATOP);
+	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + offsetX + ";" + offsetY + ";" + blendMode.name() + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + offsetX + ";" + offsetY + ";" + blendMode.name() + "}";
+	}
 
 	public SetSprInnerShadowValues(String tags) {
 		String[] params = validateStringTags(this, tags, 3);
@@ -30,25 +32,19 @@ public class SetSprInnerShadowValues extends FrameTag {
 			offsetY = Double.parseDouble(params[n++]);
 			blendMode = BlendMode.valueOf(params[n++]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public SetSprInnerShadowValues getNewInstanceOfThis()
-		{ return new SetSprInnerShadowValues(offsetX, offsetY, blendMode); }
-	
+	public SetSprInnerShadowValues getNewInstanceOfThis() {
+		return new SetSprInnerShadowValues(offsetX, offsetY, blendMode);
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.getEffects().setInnerShadow(offsetX, offsetY, blendMode); }
+	public void process(Sprite sprite) {
+		sprite.getEffects().setInnerShadow(offsetX, offsetY, blendMode);
+	}
 
 }
-
-
-
-
-
-
-
-
-

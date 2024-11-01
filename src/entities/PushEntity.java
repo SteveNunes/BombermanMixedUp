@@ -7,7 +7,7 @@ import maps.MapSet;
 import objmoveutils.TileCoord;
 
 public class PushEntity {
-	
+
 	private Entity entity;
 	private Double startStrenght;
 	private Double strenght;
@@ -15,16 +15,19 @@ public class PushEntity {
 	private Direction direction;
 	private Consumer<Entity> consumerWhenHits;
 	private TileCoord targetTile;
-	
-	public PushEntity(Entity entity, Double strenght)
-		{ this(entity, strenght, null, null); }
-	
-	public PushEntity(Entity entity, Double strenght, Direction direction)
-		{ this(entity, strenght, null, direction); }
-	
-	public PushEntity(Entity entity, Double startStrenght, Double decStrenght)
-		{ this(entity, startStrenght, decStrenght, null); }
-	
+
+	public PushEntity(Entity entity, Double strenght) {
+		this(entity, strenght, null, null);
+	}
+
+	public PushEntity(Entity entity, Double strenght, Direction direction) {
+		this(entity, strenght, null, direction);
+	}
+
+	public PushEntity(Entity entity, Double startStrenght, Double decStrenght) {
+		this(entity, startStrenght, decStrenght, null);
+	}
+
 	public PushEntity(Entity entity, Double startStrenght, Double decStrenght, Direction direction) {
 		this.entity = entity;
 		this.startStrenght = startStrenght;
@@ -34,7 +37,7 @@ public class PushEntity {
 		targetTile = null;
 		strenght = startStrenght;
 	}
-	
+
 	public PushEntity(PushEntity pushEntity) {
 		entity = pushEntity.entity;
 		startStrenght = pushEntity.startStrenght;
@@ -44,19 +47,20 @@ public class PushEntity {
 		consumerWhenHits = pushEntity.consumerWhenHits;
 		targetTile = pushEntity.targetTile == null ? null : new TileCoord(pushEntity.targetTile);
 	}
-	
+
 	public PushEntity setDirection(Direction dir) {
 		direction = dir;
 		return this;
 	}
-	
+
 	public PushEntity setOnColideEvent(Consumer<Entity> consumer) {
 		consumerWhenHits = consumer;
 		return this;
 	}
-	
-	public TileCoord getTargetTile()
-		{ return targetTile; }
+
+	public TileCoord getTargetTile() {
+		return targetTile;
+	}
 
 	public PushEntity setTargetTile(TileCoord coord) {
 		targetTile = coord.getNewInstance();
@@ -83,31 +87,28 @@ public class PushEntity {
 				return;
 			}
 			entity.moveEntity(direction, strenght);
-			if ((targetTile != null && targetTile.equals(entity.getTileCoord()) ||
-					(decStrenght == null && entity.isPerfectlyBlockedDir(direction)) ||
-					(decStrenght != null && (strenght -= decStrenght) <= 0))) {
-						if (entity.isPerfectlyBlockedDir(direction) ||
-								(targetTile != null && targetTile.equals(entity.getTileCoord()))) {
-									entity.centerToTile();
-									if (entity.isPerfectlyBlockedDir(direction) && consumerWhenHits != null)
-										consumerWhenHits.accept(entity);
-						}
-						direction = null;
+			if ((targetTile != null && targetTile.equals(entity.getTileCoord()) || (decStrenght == null && entity.isPerfectlyBlockedDir(direction)) || (decStrenght != null && (strenght -= decStrenght) <= 0))) {
+				if (entity.isPerfectlyBlockedDir(direction) || (targetTile != null && targetTile.equals(entity.getTileCoord()))) {
+					entity.centerToTile();
+					if (entity.isPerfectlyBlockedDir(direction) && consumerWhenHits != null)
+						consumerWhenHits.accept(entity);
+				}
+				direction = null;
 			}
 		}
 	}
-	
-	public boolean isActive()
-		{ return direction != null; }
 
-	public void stop()
-		{ direction = null; }
+	public boolean isActive() {
+		return direction != null;
+	}
+
+	public void stop() {
+		direction = null;
+	}
 
 	@Override
 	public String toString() {
 		return "PushEntity [entity=" + entity + ", startStrenght=" + startStrenght + ", strenght=" + strenght + ", decStrenght=" + decStrenght + ", direction=" + direction + ", consumerWhenHits=" + consumerWhenHits + ", targetTile=" + targetTile + "]";
 	}
 
-	
-	
 }

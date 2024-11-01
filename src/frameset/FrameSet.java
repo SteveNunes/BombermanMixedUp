@@ -14,7 +14,7 @@ import tools.FrameTagLoader;
 import tools.Tools;
 
 public class FrameSet extends Position {
-	
+
 	private Entity sourceEntity;
 	private List<Sprite> sprites;
 	private List<Frame> frames;
@@ -24,21 +24,24 @@ public class FrameSet extends Position {
 	private boolean changedIndex;
 	private boolean stop;
 
-	public FrameSet(FrameSet frameSet)
-		{ this(frameSet, new Entity()); }
+	public FrameSet(FrameSet frameSet) {
+		this(frameSet, new Entity());
+	}
 
-	public FrameSet(FrameSet frameSet, Entity entity)
-		{ this(frameSet, new Position(), entity); }
-	
-	public FrameSet(FrameSet frameSet, Position position)
-		{ this(frameSet, position, new Entity()); }
-	
+	public FrameSet(FrameSet frameSet, Entity entity) {
+		this(frameSet, new Position(), entity);
+	}
+
+	public FrameSet(FrameSet frameSet, Position position) {
+		this(frameSet, position, new Entity());
+	}
+
 	public FrameSet(FrameSet frameSet, Position position, Entity entity) {
 		this(entity, position);
 		frameSet.sprites.forEach(sprite -> sprites.add(sprite = new Sprite(sprite, this)));
 		frameSet.frames.forEach(frame -> frames.add(frame = new Frame(frame, this)));
 	}
-	
+
 	public FrameSet(Entity entity, Position position) {
 		super(position);
 		sprites = new ArrayList<>();
@@ -50,15 +53,18 @@ public class FrameSet extends Position {
 		currentFrameIndex = 0;
 		ticks = 0;
 	}
-	
-	public FrameSet(Position position)
-		{ this(new Entity(), position); }
-	
-	public FrameSet(Entity entity)
-		{ this(entity, new Position()); }
 
-	public FrameSet()
-		{ this(new Entity(), new Position()); }
+	public FrameSet(Position position) {
+		this(new Entity(), position);
+	}
+
+	public FrameSet(Entity entity) {
+		this(entity, new Position());
+	}
+
+	public FrameSet() {
+		this(new Entity(), new Position());
+	}
 
 	public double getAbsoluteX() {
 		if (sourceEntity != null)
@@ -71,56 +77,66 @@ public class FrameSet extends Position {
 			return sourceEntity.getY() + getY();
 		return getY();
 	}
-	
-	public Position getAbsolutePosition()
-		{ return new Position(getAbsoluteX(), getAbsoluteY()); }
+
+	public Position getAbsolutePosition() {
+		return new Position(getAbsoluteX(), getAbsoluteY());
+	}
 
 	public void setAbsoluteX(int x) {
 		if (sourceEntity != null)
-			setX(x - (int)sourceEntity.getX());
+			setX(x - (int) sourceEntity.getX());
 		else
 			setX(x);
 	}
-	
+
 	public void setAbsoluteY(int y) {
 		if (sourceEntity != null)
-			setY(y - (int)sourceEntity.getY());
+			setY(y - (int) sourceEntity.getY());
 		else
 			setY(y);
 	}
-	
+
 	public void setAbsolutePosition(int x, int y) {
 		setAbsoluteX(x);
 		setAbsoluteX(y);
 	}
-	
-	public Entity getSourceEntity()
-		{ return sourceEntity; }
-	
-	public void setEntity(Entity entity)
-		{ this.sourceEntity = entity; }
-	
-	public void stop()
-		{ stop = true; }
-	
-	public void resume()
-		{ stop = false; }
-	
-	public boolean isStopped()
-		{ return stop; }
 
-	public List<Sprite> getSprites()
-		{ return sprites; }
+	public Entity getSourceEntity() {
+		return sourceEntity;
+	}
 
-	public void run()
-		{ run(null, false); }
-	
-	public void run(boolean isPaused)
-		{ run(null, isPaused); }
+	public void setEntity(Entity entity) {
+		this.sourceEntity = entity;
+	}
 
-	public void run(GraphicsContext gc)
-		{ run(gc, false); }
-	
+	public void stop() {
+		stop = true;
+	}
+
+	public void resume() {
+		stop = false;
+	}
+
+	public boolean isStopped() {
+		return stop;
+	}
+
+	public List<Sprite> getSprites() {
+		return sprites;
+	}
+
+	public void run() {
+		run(null, false);
+	}
+
+	public void run(boolean isPaused) {
+		run(null, isPaused);
+	}
+
+	public void run(GraphicsContext gc) {
+		run(gc, false);
+	}
+
 	public void run(GraphicsContext gc, boolean isPaused) {
 		if (!stop && getTotalFrames() > 0 && currentFrameIndex >= 0 && currentFrameIndex < getTotalFrames()) {
 			if (getSourceEntity().getShake() != null) {
@@ -154,24 +170,30 @@ public class FrameSet extends Position {
 			}
 		}
 	}
-	
-	public boolean isRunning()
-		{ return getCurrentFrame() != null; }
-	
-	public List<Frame> getFrames()
-		{ return frames; }
-	
-	public void addFrameTagToSpriteFromString(Sprite sprite, String tags)
-		{ FrameTagLoader.loadToTags(tags, getFrameSetTagsFrom(sprite)); }
-	
-	public Tags getFrameSetTagsFrom(int frameIndex, int spriteIndex)
-		{ return frames.get(frameIndex).getFrameSetTagsList().get(spriteIndex); }
 
-	public Tags getFrameSetTagsFrom(int spriteIndex)
-		{ return getFrameSetTagsFrom(currentFrameIndex, spriteIndex); }
+	public boolean isRunning() {
+		return getCurrentFrame() != null;
+	}
 
-	public Tags getFrameSetTagsFrom(Sprite sprite)
-		{ return getFrameSetTagsFrom(currentFrameIndex, sprite); }
+	public List<Frame> getFrames() {
+		return frames;
+	}
+
+	public void addFrameTagToSpriteFromString(Sprite sprite, String tags) {
+		FrameTagLoader.loadToTags(tags, getFrameSetTagsFrom(sprite));
+	}
+
+	public Tags getFrameSetTagsFrom(int frameIndex, int spriteIndex) {
+		return frames.get(frameIndex).getFrameSetTagsList().get(spriteIndex);
+	}
+
+	public Tags getFrameSetTagsFrom(int spriteIndex) {
+		return getFrameSetTagsFrom(currentFrameIndex, spriteIndex);
+	}
+
+	public Tags getFrameSetTagsFrom(Sprite sprite) {
+		return getFrameSetTagsFrom(currentFrameIndex, sprite);
+	}
 
 	public Tags getFrameSetTagsFrom(int frameIndex, Sprite sprite) {
 		if (!getSprites().contains(sprite))
@@ -195,17 +217,19 @@ public class FrameSet extends Position {
 		int frameIndex = getFrames().indexOf(frame);
 		return getFrameSetTagsFrom(frameIndex, spriteIndex);
 	}
-	
-	public Tags getFrameSetTagsFromFirstSprite()
-		{ return getSprites().isEmpty() ? null : getCurrentFrame().getFrameSetTagsList().get(0); }
 
-	public Tags getFrameSetTagsFromFirstSprite(Frame frame)
-		{ return getSprites().isEmpty() ? null : frame.getFrameSetTagsList().get(0); }
+	public Tags getFrameSetTagsFromFirstSprite() {
+		return getSprites().isEmpty() ? null : getCurrentFrame().getFrameSetTagsList().get(0);
+	}
+
+	public Tags getFrameSetTagsFromFirstSprite(Frame frame) {
+		return getSprites().isEmpty() ? null : frame.getFrameSetTagsList().get(0);
+	}
 
 	public void addFrameAt(int index, Frame cloneFrame) {
 		if (cloneFrame == null && getTotalFrames() > 0 && index > 0)
 			cloneFrame = new Frame(frames.get(index - 1), this);
-		if(getTotalFrames() == 0)
+		if (getTotalFrames() == 0)
 			frames.add(cloneFrame = (cloneFrame == null ? new Frame(this) : cloneFrame));
 		else
 			frames.add(index, cloneFrame = (cloneFrame == null ? new Frame(this) : cloneFrame));
@@ -214,32 +238,41 @@ public class FrameSet extends Position {
 			cloneFrame.addFrameTagsList(new Tags(sprites.get(n2)));
 	}
 
-	public void addFrameAt(int index)
-		{ addFrameAt(index, null); }
-	
-	public void addFrameAtStart(Frame cloneFrame)
-		{ addFrameAt(0, cloneFrame); }
-		
-	public void addFrameAtStart()
-		{ addFrameAtStart(null); }
+	public void addFrameAt(int index) {
+		addFrameAt(index, null);
+	}
 
-	public void addFrameAfterCurrentIndex(Frame cloneFrame)
-		{ addFrameAt(currentFrameIndex, cloneFrame); }
+	public void addFrameAtStart(Frame cloneFrame) {
+		addFrameAt(0, cloneFrame);
+	}
 
-	public void addFrameAfterCurrentIndex()
-		{ addFrameAfterCurrentIndex(null); }
+	public void addFrameAtStart() {
+		addFrameAtStart(null);
+	}
 
-	public void addFrameAtEnd(Frame cloneFrame)
-		{ addFrameAt(getTotalFrames() == 0 ? 0 : getTotalFrames(), cloneFrame); }
-	
-	public void addFrameAtEnd()
-		{ addFrameAtEnd(null); }
+	public void addFrameAfterCurrentIndex(Frame cloneFrame) {
+		addFrameAt(currentFrameIndex, cloneFrame);
+	}
 
-	public Frame getFrame(int frameIndex)
-		{ return frames.get(frameIndex); }
-	
-	public void setFrame(int index, Frame frame)
-		{ frames.set(index, frame); }
+	public void addFrameAfterCurrentIndex() {
+		addFrameAfterCurrentIndex(null);
+	}
+
+	public void addFrameAtEnd(Frame cloneFrame) {
+		addFrameAt(getTotalFrames() == 0 ? 0 : getTotalFrames(), cloneFrame);
+	}
+
+	public void addFrameAtEnd() {
+		addFrameAtEnd(null);
+	}
+
+	public Frame getFrame(int frameIndex) {
+		return frames.get(frameIndex);
+	}
+
+	public void setFrame(int index, Frame frame) {
+		frames.set(index, frame);
+	}
 
 	public void removeFrame(int frameIndex) {
 		frames.remove(frameIndex);
@@ -247,64 +280,72 @@ public class FrameSet extends Position {
 			currentFrameIndex = getTotalFrames() == 0 ? 0 : getTotalFrames() - 1;
 		refreshFramesTags();
 	}
-	
+
 	public void removeFrame(Frame frame) {
 		if (frames.contains(frame))
 			removeFrame(frames.indexOf(frame));
 	}
 
-	public int getFramesPerTick() 
-		{ return framesPerTick; }
+	public int getFramesPerTick() {
+		return framesPerTick;
+	}
 
-	public void setFramesPerTick(int framesPerTick)
-		{ this.framesPerTick = framesPerTick; }
+	public void setFramesPerTick(int framesPerTick) {
+		this.framesPerTick = framesPerTick;
+	}
 
-	public void incFramesPerTick(int value)
-		{ framesPerTick += value; }
+	public void incFramesPerTick(int value) {
+		framesPerTick += value;
+	}
 
-	public Frame getCurrentFrame()
-		{ return currentFrameIndex < 0 || currentFrameIndex >= getTotalFrames() ? null : frames.get(currentFrameIndex); }
+	public Frame getCurrentFrame() {
+		return currentFrameIndex < 0 || currentFrameIndex >= getTotalFrames() ? null : frames.get(currentFrameIndex);
+	}
 
-	public int getCurrentFrameIndex()
-		{ return currentFrameIndex; }
+	public int getCurrentFrameIndex() {
+		return currentFrameIndex;
+	}
 
-	public int getCurrentTicks()
-		{ return ticks; }
+	public int getCurrentTicks() {
+		return ticks;
+	}
 
-	public void setTicks(int ticks)
-		{ this.ticks = ticks; }
+	public void setTicks(int ticks) {
+		this.ticks = ticks;
+	}
 
-	public int getTotalFrames()
-		{ return frames.size(); }
+	public int getTotalFrames() {
+		return frames.size();
+	}
 
 	public void setCurrentFrameIndex(int index) {
 		currentFrameIndex = index;
 		ticks = 0;
 		changedIndex = true;
 	}
-	
+
 	public void incFrameIndex() {
 		if (++currentFrameIndex < getTotalFrames())
 			setCurrentFrameIndex(currentFrameIndex);
 	}
-	
+
 	public void decFrameIndex() {
 		if (--currentFrameIndex >= 0)
 			setCurrentFrameIndex(currentFrameIndex);
 	}
-	
+
 	public void refreshFramesTags() {
 		if (currentFrameIndex >= 0 && currentFrameIndex < getTotalFrames())
 			for (int i = 0; i < currentFrameIndex; i++)
 				frames.get(i).run();
 	}
-	
+
 	public void moveFrameToEnd(Frame currentFrame) {
 		Tools.moveItemTo(frames, currentFrame, getTotalFrames());
 		refreshFramesTags();
 	}
 
-	public void moveFrameToStart(Frame currentFrame) { 
+	public void moveFrameToStart(Frame currentFrame) {
 		Tools.moveItemTo(frames, currentFrame, 0);
 		refreshFramesTags();
 	}
@@ -334,15 +375,18 @@ public class FrameSet extends Position {
 		sprite.frontValue = index;
 	}
 
-	public void addSpriteAtTop(Sprite sprite)
-		{ addSpriteAt(0, sprite); }
+	public void addSpriteAtTop(Sprite sprite) {
+		addSpriteAt(0, sprite);
+	}
 
-	public void addSpriteAtEnd(Sprite sprite)
-		{ addSpriteAt(getTotalSprites() == 0 ? 0 : getTotalSprites(), sprite); }
+	public void addSpriteAtEnd(Sprite sprite) {
+		addSpriteAt(getTotalSprites() == 0 ? 0 : getTotalSprites(), sprite);
+	}
 
-	public Sprite getSprite(int spriteIndex)
-		{ return sprites.get(spriteIndex); }
-	
+	public Sprite getSprite(int spriteIndex) {
+		return sprites.get(spriteIndex);
+	}
+
 	public void setSprite(int index, Sprite sprite) {
 		sprites.set(index, sprite);
 		sprite.frontValue = index;
@@ -354,39 +398,46 @@ public class FrameSet extends Position {
 		sprites.remove(index);
 		frames.forEach(frame -> frame.getFrameSetTagsList().remove(index));
 	}
-	
+
 	public void removeSprite(Sprite sprite) {
 		if (sprites.contains(sprite))
 			removeSprite(sprites.indexOf(sprite));
 	}
-	
+
 	private void moveSpriteTo(Sprite sprite, int index) {
 		int i = sprites.indexOf(sprite);
 		Tools.moveItemTo(sprites, sprite, index);
 		frames.forEach(frame -> Tools.moveItemTo(frame.getFrameSetTagsList(), frame.getFrameSetTagsList().get(i), index));
 		sprite.frontValue = index;
 	}
-	
-	public void moveSpriteToBack(Sprite sprite)
-		{ moveSpriteTo(sprite, sprites.indexOf(sprite) + 1); }
 
-	public void moveSpriteToFront(Sprite sprite)
-		{ moveSpriteTo(sprite, sprites.indexOf(sprite) - 1); }
+	public void moveSpriteToBack(Sprite sprite) {
+		moveSpriteTo(sprite, sprites.indexOf(sprite) + 1);
+	}
 
-	public void moveSpriteToStart(Sprite sprite)
-		{ moveSpriteTo(sprite, getTotalSprites() - 1); }
-	
-	public void moveSpriteToEnd(Sprite sprite)
-		{ moveSpriteTo(sprite, 0); }
-	
-	public int getTotalSprites()
-		{ return sprites.size(); }
+	public void moveSpriteToFront(Sprite sprite) {
+		moveSpriteTo(sprite, sprites.indexOf(sprite) - 1);
+	}
 
-	public boolean isEmptySprites()
-		{ return sprites.isEmpty(); }
+	public void moveSpriteToStart(Sprite sprite) {
+		moveSpriteTo(sprite, getTotalSprites() - 1);
+	}
 
-	public boolean isEmptyFrames()
-		{ return frames.isEmpty(); }
+	public void moveSpriteToEnd(Sprite sprite) {
+		moveSpriteTo(sprite, 0);
+	}
+
+	public int getTotalSprites() {
+		return sprites.size();
+	}
+
+	public boolean isEmptySprites() {
+		return sprites.isEmpty();
+	}
+
+	public boolean isEmptyFrames() {
+		return frames.isEmpty();
+	}
 
 	public void loadFromString(String tags) {
 		if (tags == null)
@@ -412,7 +463,7 @@ public class FrameSet extends Position {
 			for (String s2 : sprites)
 				FrameTagLoader.loadToTags(s2, frame.getFrameSetTagsList().get(n++));
 		}
-		
+
 	}
 
 	public String getStringFromFrameSetTags() {
@@ -437,9 +488,9 @@ public class FrameSet extends Position {
 			for (Tags tags : frame.getFrameSetTagsList())
 				for (FrameTag tag : tags.getTags()) {
 					if (tag instanceof Goto)
-						((Goto)tag).resetCycles();
+						((Goto) tag).resetCycles();
 					else if (tag instanceof RepeatLastFrame)
-						((RepeatLastFrame)tag).resetCycles();
+						((RepeatLastFrame) tag).resetCycles();
 				}
 		});
 	}

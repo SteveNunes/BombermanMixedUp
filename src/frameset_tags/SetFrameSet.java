@@ -3,15 +3,17 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class SetFrameSet extends FrameTag {
-	
+
 	public String value;
-	
-	public SetFrameSet()
-		{ value = ""; }
+
+	public SetFrameSet() {
+		value = "";
+	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + value + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + value + "}";
+	}
 
 	public SetFrameSet(String tags) {
 		String[] params = validateStringTags(this, tags, 1);
@@ -24,13 +26,10 @@ public class SetFrameSet extends FrameTag {
 		s.value = value;
 		return s;
 	}
-	
+
 	@Override
 	public void process(Sprite sprite) {
 		sprite.getSourceEntity().setFrameSet(value);
 	}
 
 }
-
-
-

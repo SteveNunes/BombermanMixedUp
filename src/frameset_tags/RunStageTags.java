@@ -4,13 +4,14 @@ import frameset.Sprite;
 import maps.MapSet;
 
 public class RunStageTags extends FrameTag {
-	
+
 	public String stageTagsName;
 	public String tags;
-	
+
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + stageTagsName + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + stageTagsName + "}";
+	}
 
 	public RunStageTags(String tags) {
 		this.tags = tags;
@@ -19,11 +20,13 @@ public class RunStageTags extends FrameTag {
 	}
 
 	@Override
-	public RunStageTags getNewInstanceOfThis()
-		{ return new RunStageTags(tags); }
+	public RunStageTags getNewInstanceOfThis() {
+		return new RunStageTags(tags);
+	}
 
 	@Override
-	public void process(Sprite sprite)
-		{ MapSet.runStageTag(stageTagsName); }
+	public void process(Sprite sprite) {
+		MapSet.runStageTag(stageTagsName);
+	}
 
 }

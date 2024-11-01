@@ -3,18 +3,19 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class SetObjPos extends FrameTag {
-	
+
 	public int x;
 	public int y;
-	
+
 	public SetObjPos(int x, int y) {
 		this.x = x;
 		this.y = y;
 	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + x + ";" + y + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + x + ";" + y + "}";
+	}
 
 	public SetObjPos(String tags) {
 		String[] params = validateStringTags(this, tags, 2);
@@ -23,22 +24,19 @@ public class SetObjPos extends FrameTag {
 			x = Integer.parseInt(params[n++]);
 			y = Integer.parseInt(params[n++]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public SetObjPos getNewInstanceOfThis()
-		{ return new SetObjPos(x, y); }
+	public SetObjPos getNewInstanceOfThis() {
+		return new SetObjPos(x, y);
+	}
 
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.getSourceFrameSet().setPosition(x, y); }
+	public void process(Sprite sprite) {
+		sprite.getSourceFrameSet().setPosition(x, y);
+	}
 
 }
-
-
-
-
-
-

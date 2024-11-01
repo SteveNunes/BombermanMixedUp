@@ -3,33 +3,36 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class IncOriginSprHeight extends FrameTag {
-	
+
 	public int increment;
-	
-	public IncOriginSprHeight(int increment)
-		{ this.increment = increment; }
 
-	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + increment + "}"; }
-
-	public IncOriginSprHeight(String tags) {
-		String[] params = validateStringTags(this, tags, 1);
-		try
-			{ increment = Integer.parseInt(params[0]); }
-		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+	public IncOriginSprHeight(int increment) {
+		this.increment = increment;
 	}
 
 	@Override
-	public IncOriginSprHeight getNewInstanceOfThis()
-		{ return new IncOriginSprHeight(increment); }
-	
+	public String toString() {
+		return "{" + getClassName(this) + ";" + increment + "}";
+	}
+
+	public IncOriginSprHeight(String tags) {
+		String[] params = validateStringTags(this, tags, 1);
+		try {
+			increment = Integer.parseInt(params[0]);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(params[0] + " - Invalid parameter");
+		}
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.incOriginSpriteHeight(increment); }
+	public IncOriginSprHeight getNewInstanceOfThis() {
+		return new IncOriginSprHeight(increment);
+	}
+
+	@Override
+	public void process(Sprite sprite) {
+		sprite.incOriginSpriteHeight(increment);
+	}
 
 }
-
-
-

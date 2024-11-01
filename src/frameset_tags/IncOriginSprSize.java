@@ -3,19 +3,20 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class IncOriginSprSize extends FrameTag {
-	
+
 	public int incrementWidth;
 	public int incrementHeight;
-	
+
 	public IncOriginSprSize(int incrementWidth, int incrementHeight) {
 		this.incrementWidth = incrementWidth;
 		this.incrementHeight = incrementHeight;
 	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + incrementWidth + ";" + incrementHeight + "}"; }
-	
+	public String toString() {
+		return "{" + getClassName(this) + ";" + incrementWidth + ";" + incrementHeight + "}";
+	}
+
 	public IncOriginSprSize(String tags) {
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
@@ -23,14 +24,16 @@ public class IncOriginSprSize extends FrameTag {
 			incrementWidth = Integer.parseInt(params[n++]);
 			incrementHeight = Integer.parseInt(params[n++]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public IncOriginSprSize getNewInstanceOfThis()
-		{ return new IncOriginSprSize(incrementWidth, incrementHeight); }
-	
+	public IncOriginSprSize getNewInstanceOfThis() {
+		return new IncOriginSprSize(incrementWidth, incrementHeight);
+	}
+
 	@Override
 	public void process(Sprite sprite) {
 		sprite.incOriginSpriteWidth(incrementWidth);
@@ -38,9 +41,3 @@ public class IncOriginSprSize extends FrameTag {
 	}
 
 }
-
-
-
-
-
-

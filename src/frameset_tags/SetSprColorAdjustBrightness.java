@@ -3,33 +3,36 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class SetSprColorAdjustBrightness extends FrameTag {
-	
+
 	public double value;
-	
-	public SetSprColorAdjustBrightness(double value)
-		{ this.value = value; }
 
-	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + value + "}"; }
-
-	public SetSprColorAdjustBrightness(String tags) {
-		String[] params = validateStringTags(this, tags, 1);
-		try
-			{ value = Double.parseDouble(params[0]); }
-		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+	public SetSprColorAdjustBrightness(double value) {
+		this.value = value;
 	}
 
 	@Override
-	public SetSprColorAdjustBrightness getNewInstanceOfThis()
-		{ return new SetSprColorAdjustBrightness(value); }
-	
+	public String toString() {
+		return "{" + getClassName(this) + ";" + value + "}";
+	}
+
+	public SetSprColorAdjustBrightness(String tags) {
+		String[] params = validateStringTags(this, tags, 1);
+		try {
+			value = Double.parseDouble(params[0]);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(params[0] + " - Invalid parameter");
+		}
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.getEffects().getColorAdjust().setBrightness(value); }
+	public SetSprColorAdjustBrightness getNewInstanceOfThis() {
+		return new SetSprColorAdjustBrightness(value);
+	}
+
+	@Override
+	public void process(Sprite sprite) {
+		sprite.getEffects().getColorAdjust().setBrightness(value);
+	}
 
 }
-
-
-

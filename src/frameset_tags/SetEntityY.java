@@ -3,34 +3,36 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class SetEntityY extends FrameTag {
-	
+
 	public int value;
-	
-	public SetEntityY(int value)
-		{ this.value = value; }
 
-	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + value + "}"; }
-
-	public SetEntityY(String tags) {
-		String[] params = validateStringTags(this, tags, 1);
-		try
-			{ value = Integer.parseInt(params[0]); }
-		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+	public SetEntityY(int value) {
+		this.value = value;
 	}
 
 	@Override
-	public SetEntityY getNewInstanceOfThis()
-		{ return new SetEntityY(value); }
-	
+	public String toString() {
+		return "{" + getClassName(this) + ";" + value + "}";
+	}
+
+	public SetEntityY(String tags) {
+		String[] params = validateStringTags(this, tags, 1);
+		try {
+			value = Integer.parseInt(params[0]);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(params[0] + " - Invalid parameter");
+		}
+	}
+
+	@Override
+	public SetEntityY getNewInstanceOfThis() {
+		return new SetEntityY(value);
+	}
+
 	@Override
 	public void process(Sprite sprite) {
 		sprite.getSourceEntity().incY(value);
 	}
 
 }
-
-
-

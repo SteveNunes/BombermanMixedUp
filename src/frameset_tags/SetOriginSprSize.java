@@ -3,18 +3,19 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class SetOriginSprSize extends FrameTag {
-	
+
 	public int width;
 	public int height;
-	
+
 	public SetOriginSprSize(int width, int height) {
 		this.width = width;
 		this.height = height;
 	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + width + ";" + height + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + width + ";" + height + "}";
+	}
 
 	public SetOriginSprSize(String tags) {
 		String[] params = validateStringTags(this, tags, 2);
@@ -23,14 +24,16 @@ public class SetOriginSprSize extends FrameTag {
 			width = Integer.parseInt(params[n++]);
 			height = Integer.parseInt(params[n++]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public SetOriginSprSize getNewInstanceOfThis()
-		{ return new SetOriginSprSize(width, height); }
-	
+	public SetOriginSprSize getNewInstanceOfThis() {
+		return new SetOriginSprSize(width, height);
+	}
+
 	@Override
 	public void process(Sprite sprite) {
 		sprite.setOriginSpriteWidth(width);
@@ -38,9 +41,3 @@ public class SetOriginSprSize extends FrameTag {
 	}
 
 }
-
-
-
-
-
-

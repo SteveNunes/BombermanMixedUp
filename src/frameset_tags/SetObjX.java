@@ -3,33 +3,36 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class SetObjX extends FrameTag {
-	
+
 	public int value;
-	
-	public SetObjX(int value)
-		{ this.value = value; }
 
-	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + value + "}"; }
-
-	public SetObjX(String tags) {
-		String[] params = validateStringTags(this, tags, 1);
-		try
-			{ value = Integer.parseInt(params[0]); }
-		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+	public SetObjX(int value) {
+		this.value = value;
 	}
 
 	@Override
-	public SetObjX getNewInstanceOfThis()
-		{ return new SetObjX(value); }
-	
+	public String toString() {
+		return "{" + getClassName(this) + ";" + value + "}";
+	}
+
+	public SetObjX(String tags) {
+		String[] params = validateStringTags(this, tags, 1);
+		try {
+			value = Integer.parseInt(params[0]);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(params[0] + " - Invalid parameter");
+		}
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.getSourceFrameSet().setX(value); }
+	public SetObjX getNewInstanceOfThis() {
+		return new SetObjX(value);
+	}
+
+	@Override
+	public void process(Sprite sprite) {
+		sprite.getSourceFrameSet().setX(value);
+	}
 
 }
-
-
-

@@ -16,41 +16,48 @@ public class ClockFade implements Fade {
 	private Integer speed;
 	private Integer inc;
 	private Color color;
-	
-	public ClockFade()
-		{ this(Color.BLACK); }
-	
-	public ClockFade(Direction closingDirection)
-		{ this(Color.BLACK, closingDirection, 1); }
 
-	public ClockFade(Color color)
-		{ this(color, Direction.DOWN, 1); }
+	public ClockFade() {
+		this(Color.BLACK);
+	}
 
-	public ClockFade(int speed)
-		{ this(Color.BLACK, Direction.DOWN, speed); }
+	public ClockFade(Direction closingDirection) {
+		this(Color.BLACK, closingDirection, 1);
+	}
 
-	public ClockFade(Color color, int speed)
-		{ this(color, Direction.DOWN, speed); }
-	
-	public ClockFade(Direction closingDirection, int speed)
-		{ this(Color.BLACK, closingDirection, speed); }
+	public ClockFade(Color color) {
+		this(color, Direction.DOWN, 1);
+	}
 
-	public ClockFade(Color color, Direction closingDirection)
-		{ this(Color.BLACK, closingDirection, 1); }
-	
+	public ClockFade(int speed) {
+		this(Color.BLACK, Direction.DOWN, speed);
+	}
+
+	public ClockFade(Color color, int speed) {
+		this(color, Direction.DOWN, speed);
+	}
+
+	public ClockFade(Direction closingDirection, int speed) {
+		this(Color.BLACK, closingDirection, speed);
+	}
+
+	public ClockFade(Color color, Direction closingDirection) {
+		this(Color.BLACK, closingDirection, 1);
+	}
+
 	public ClockFade(Color color, Direction closingDirection, int speed) {
 		setColor(color);
 		setSpeed(speed);
 		reset(FadeState.NONE);
 		closingDirection = Direction.DOWN;
 	}
-	
+
 	@Override
 	public ClockFade fadeIn() {
 		reset(FadeState.FADE_IN);
 		return this;
 	}
-	
+
 	@Override
 	public ClockFade fadeOut() {
 		reset(FadeState.FADE_OUT);
@@ -71,27 +78,31 @@ public class ClockFade implements Fade {
 	}
 
 	@Override
-	public boolean isFadeDone()
-		{ return fadeState == FadeState.DONE; }
+	public boolean isFadeDone() {
+		return fadeState == FadeState.DONE;
+	}
 
 	@Override
-	public void stopFade()
-		{ fadeState = FadeState.NONE; }
-	
-	@Override
-	public FadeState getInitialFadeState()
-		{ return fadeInitialState; }
+	public void stopFade() {
+		fadeState = FadeState.NONE;
+	}
 
 	@Override
-	public FadeState getCurrentFadeState()
-		{ return fadeState; }
-	
+	public FadeState getInitialFadeState() {
+		return fadeInitialState;
+	}
+
+	@Override
+	public FadeState getCurrentFadeState() {
+		return fadeState;
+	}
+
 	@Override
 	public void apply(Canvas canvas) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		if (fadeState != FadeState.NONE) {
 			double w = canvas.getWidth(), h = canvas.getHeight();
-			int radius = (int)h;
+			int radius = (int) h;
 			gc.save();
 			gc.setFill(color);
 			gc.fillArc(w / 2 - radius, h / 2 - radius, radius * 2, radius * 2, 90, arc, ArcType.ROUND);
@@ -104,14 +115,14 @@ public class ClockFade implements Fade {
 			gc.restore();
 		}
 	}
-	
+
 	public void setSpeed(int speed) {
 		if (speed < 1)
 			throw new RuntimeException("speed must be equal or higher than 1");
 		this.speed = speed;
 		reset(fadeInitialState);
 	}
-	
+
 	public void setColor(Color color) {
 		if (color == null)
 			throw new RuntimeException("color is null");

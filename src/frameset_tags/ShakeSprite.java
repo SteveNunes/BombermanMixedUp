@@ -3,14 +3,14 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class ShakeSprite extends FrameTag {
-	
+
 	public Double startStrengthX;
 	public Double startStrengthY;
 	public Double incStrengthX;
 	public Double incStrengthY;
 	public Double finalStrengthX;
 	public Double finalStrengthY;
-	
+
 	public ShakeSprite(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
 		this.startStrengthX = startStrengthX;
 		this.startStrengthY = startStrengthY;
@@ -19,10 +19,11 @@ public class ShakeSprite extends FrameTag {
 		this.finalStrengthX = finalStrengthX;
 		this.finalStrengthY = finalStrengthY;
 	}
-	
+
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + startStrengthX + ";" + startStrengthY + ";" + incStrengthX + ";" + incStrengthY + ";" + finalStrengthX + ";" + finalStrengthY + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + startStrengthX + ";" + startStrengthY + ";" + incStrengthX + ";" + incStrengthY + ";" + finalStrengthX + ";" + finalStrengthY + "}";
+	}
 
 	public ShakeSprite(String tags) {
 		String[] params = validateStringTags(this, tags);
@@ -53,16 +54,19 @@ public class ShakeSprite extends FrameTag {
 				finalStrengthY = Double.parseDouble(params[n = 5]);
 			}
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public ShakeSprite getNewInstanceOfThis()
-		{ return new ShakeSprite(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY); }
+	public ShakeSprite getNewInstanceOfThis() {
+		return new ShakeSprite(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
+	}
 
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.setShake(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY); }
+	public void process(Sprite sprite) {
+		sprite.setShake(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
+	}
 
 }

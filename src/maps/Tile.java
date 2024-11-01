@@ -30,10 +30,11 @@ public class Tile {
 	public DrawImageEffects effects;
 	public String stringTileTags;
 	public TileCoord tileCoord;
-	
-	public Tile(Tile tile)
-		{ this(tile, tile.getOriginLayer()); }
-	
+
+	public Tile(Tile tile) {
+		this(tile, tile.getOriginLayer());
+	}
+
 	public Tile(Tile tile, Layer originLayer) {
 		spriteX = tile.spriteX;
 		spriteY = tile.spriteY;
@@ -49,16 +50,19 @@ public class Tile {
 		setCoords(tile.getTileCoord());
 		setTileProps(tile.getTileProps());
 	}
-	
-	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY)
-		{ this(originLayer, spriteX, spriteY, outX, outY, ImageFlip.NONE, 0, 1, Color.TRANSPARENT, null); }
 
-	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY, ImageFlip flip, int rotate, double opacity)
-		{ this(originLayer, spriteX, spriteY, outX, outY, flip, rotate, opacity, Color.TRANSPARENT, null); }
+	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY) {
+		this(originLayer, spriteX, spriteY, outX, outY, ImageFlip.NONE, 0, 1, Color.TRANSPARENT, null);
+	}
 
-	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY, ImageFlip flip, int rotate, double opacity, Color tint)
-		{ this(originLayer, spriteX, spriteY, outX, outY, flip, rotate, opacity, tint, null); }
-	
+	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY, ImageFlip flip, int rotate, double opacity) {
+		this(originLayer, spriteX, spriteY, outX, outY, flip, rotate, opacity, Color.TRANSPARENT, null);
+	}
+
+	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY, ImageFlip flip, int rotate, double opacity, Color tint) {
+		this(originLayer, spriteX, spriteY, outX, outY, flip, rotate, opacity, tint, null);
+	}
+
 	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY, ImageFlip flip, int rotate, double opacity, Color tint, DrawImageEffects effects) {
 		this.spriteX = spriteX;
 		this.spriteY = spriteY;
@@ -72,13 +76,14 @@ public class Tile {
 		this.stringTileTags = null;
 		tileCoord = new TileCoord(outX / Main.TILE_SIZE, outY / Main.TILE_SIZE);
 	}
-	
+
 	public Tile(Layer originLayer, String strFromIni) {
 		this.originLayer = originLayer;
 		String[] split = strFromIni.split(" ");
 		if (split.length < 8)
 			throw new RuntimeException(strFromIni + " - Too few parameters");
-		int n = 2; // Os 2 primeiros parametros são ignorados pq so eh util no construtor da classe Layer
+		int n = 2; // Os 2 primeiros parametros são ignorados pq so eh util no construtor da classe
+		           // Layer
 		try {
 			String[] split2 = split[n].split("!");
 			spriteX = Integer.parseInt(split2[0]) * Main.TILE_SIZE;
@@ -86,10 +91,6 @@ public class Tile {
 			split2 = split[++n].split("!");
 			outX = Integer.parseInt(split2[0]) * Main.TILE_SIZE;
 			outY = Integer.parseInt(split2[1]) * Main.TILE_SIZE;
-			if (outX > MapSet.getMapLimit().getX())
-				MapSet.getMapLimit().setX(outX);
-			if (outY > MapSet.getMapLimit().getY())
-				MapSet.getMapLimit().setY(outY);
 			tileCoord = new TileCoord(outX / Main.TILE_SIZE, outY / Main.TILE_SIZE);
 			flip = ImageFlip.valueOf(split[++n]);
 			rotate = Integer.parseInt(split[++n]);
@@ -100,6 +101,12 @@ public class Tile {
 					if (TileProp.getPropFromValue(v) != null) {
 						TileProp prop = TileProp.getPropFromValue(v);
 						getOriginLayer().addTileProp(getTileCoord(), prop);
+						if (prop == TileProp.MAX_SCREEN_TILE_LIMITER) {
+							if (outX > MapSet.getMapLimit().getX())
+								MapSet.getMapLimit().setX(outX);
+							if (outY > MapSet.getMapLimit().getY())
+								MapSet.getMapLimit().setY(outY);
+						}
 					}
 				}
 			opacity = Double.parseDouble(split[++n]);
@@ -108,58 +115,88 @@ public class Tile {
 			if (split.length > 9 && !getOriginLayer().haveTilesOnCoord(getTileCoord()))
 				setTileTagsFromString(MyConverters.arrayToString(split, 9));
 		}
-		catch (Exception e)
-			{ e.printStackTrace(); throw new RuntimeException(split[n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(split[n] + " - Invalid parameter");
+		}
 	}
-	
-	public TileCoord getTileCoord()
-		{ return tileCoord; }
-	
-	public static void addTileShadow(Position shadowType, TileCoord coord)
-		{ addTileShadow(coord, shadowType, true); }
-	
+
+	public TileCoord getTileCoord() {
+		return tileCoord;
+	}
+
+	public static void addTileShadow(Position shadowType, TileCoord coord) {
+		addTileShadow(coord, shadowType, true);
+	}
+
 	public static void addTileShadow(TileCoord coord, Position shadowType, boolean updateLayer) {
 		Tile tile = !MapSet.haveTilesOnCoord(coord) ? null : MapSet.getTopTileFromCoord(coord);
 		Position groundTile = MapSet.getGroundTile();
+		List<TileProp> props = null;
+		Tags tileTags = null;
 		if (tile == null || (tile.spriteX == groundTile.getX() && tile.spriteY == groundTile.getY())) {
-			if (tile != null)
+			if (tile != null) {
+				if (MapSet.getCurrentLayer().tileHaveProps(coord))
+					props = MapSet.getCurrentLayer().getTileProps(coord);
+				if (MapSet.getCurrentLayer().tileHaveTags(coord))
+					tileTags = MapSet.getCurrentLayer().getTileTags(coord);
 				MapSet.getCurrentLayer().removeFirstTileFromCoord(coord);
-			tile = new Tile(MapSet.getCurrentLayer(), (int)shadowType.getX(), (int)shadowType.getY(), (int)coord.getPosition().getX(), (int)coord.getPosition().getY());
-			if (!MapSet.getCurrentLayer().haveTilesOnCoord(coord))
-				MapSet.getCurrentLayer().addTileProp(coord, TileProp.GROUND);
+			}
+			tile = new Tile(MapSet.getCurrentLayer(), (int) shadowType.getX(), (int) shadowType.getY(), (int) coord.getPosition().getX(), (int) coord.getPosition().getY());
+			if (!MapSet.getCurrentLayer().haveTilesOnCoord(coord)) {
+				if (props != null)
+					MapSet.getCurrentLayer().addTileProp(coord, props.toArray(new TileProp[props.size()]));
+				else
+					MapSet.getCurrentLayer().addTileProp(coord, TileProp.GROUND);
+				if (tileTags != null)
+					MapSet.getCurrentLayer().setTileTags(coord, tileTags);
+			}
 			MapSet.getCurrentLayer().addTile(tile);
 			if (updateLayer)
 				MapSet.getCurrentLayer().buildLayer();
 		}
 	}
-	
-	public static void removeTileShadow(TileCoord coord)
-		{ removeTileShadow(coord, true); }
-	
+
+	public static void removeTileShadow(TileCoord coord) {
+		removeTileShadow(coord, true);
+	}
+
 	public static void removeTileShadow(TileCoord coord, boolean updateLayer) {
 		Tile tile = !MapSet.haveTilesOnCoord(coord) ? null : MapSet.getTopTileFromCoord(coord);
-		Position groundTile = MapSet.getGroundTile(),
-						 brickShadow = MapSet.getGroundWithBrickShadow(),
-						 wallShadow = MapSet.getGroundWithWallShadow();
-		if (tile == null || (tile.spriteX == brickShadow.getX() && tile.spriteY == brickShadow.getY()) ||
-				(tile.spriteX == wallShadow.getX() && tile.spriteY == wallShadow.getY())) {
-					if (tile != null)
-						MapSet.getCurrentLayer().removeFirstTileFromCoord(coord);
-					tile = new Tile(MapSet.getCurrentLayer(), (int)groundTile.getX(), (int)groundTile.getY(), (int)coord.getPosition().getX(), (int)coord.getPosition().getY());
-					if (!MapSet.getCurrentLayer().haveTilesOnCoord(coord))
-						MapSet.getCurrentLayer().addTileProp(coord, TileProp.GROUND);
-					MapSet.getCurrentLayer().addTile(tile);
-					if (updateLayer)
-						MapSet.getCurrentLayer().buildLayer();
+		Position groundTile = MapSet.getGroundTile(), brickShadow = MapSet.getGroundWithBrickShadow(), wallShadow = MapSet.getGroundWithWallShadow();
+		List<TileProp> props = null;
+		Tags tileTags = null;
+		if (tile == null || (tile.spriteX == brickShadow.getX() && tile.spriteY == brickShadow.getY()) || (tile.spriteX == wallShadow.getX() && tile.spriteY == wallShadow.getY())) {
+			if (tile != null) {
+				if (MapSet.getCurrentLayer().tileHaveProps(coord))
+					props = MapSet.getCurrentLayer().getTileProps(coord);
+				if (MapSet.getCurrentLayer().tileHaveTags(coord))
+					tileTags = MapSet.getCurrentLayer().getTileTags(coord);
+				MapSet.getCurrentLayer().removeFirstTileFromCoord(coord);
+			}
+			tile = new Tile(MapSet.getCurrentLayer(), (int) groundTile.getX(), (int) groundTile.getY(), (int) coord.getPosition().getX(), (int) coord.getPosition().getY());
+			if (!MapSet.getCurrentLayer().haveTilesOnCoord(coord)) {
+				if (props != null)
+					MapSet.getCurrentLayer().addTileProp(coord, props.toArray(new TileProp[props.size()]));
+				else
+					MapSet.getCurrentLayer().addTileProp(coord, TileProp.GROUND);
+				if (tileTags != null)
+					MapSet.getCurrentLayer().setTileTags(coord, tileTags);
+			}
+			MapSet.getCurrentLayer().addTile(tile);
+			if (updateLayer)
+				MapSet.getCurrentLayer().buildLayer();
 		}
 	}
-	
-	public Layer getOriginLayer()
-		{ return originLayer; }
-	
-	public int getOriginLayerIndex()
-		{ return getOriginLayer().getLayer(); }
-	
+
+	public Layer getOriginLayer() {
+		return originLayer;
+	}
+
+	public int getOriginLayerIndex() {
+		return getOriginLayer().getLayer();
+	}
+
 	public void runTags(Entity whoTriggered, TileCoord triggeredTileCoord) {
 		if (!tileTagsIsDisabled() && getTileTags() != null) {
 			FrameSet frameSet = new FrameSet(getTileTagsFrameSet());
@@ -172,9 +209,10 @@ public class Tile {
 			frameSet.getSprite(0).setPosition(0, 0);
 			frameSet.getSprite(0).setOutputSize(Main.TILE_SIZE, Main.TILE_SIZE);
 			String key = "" + hashCode(), key2 = key;
-			for (int n = 1; MapSet.runningStageTags.containsKey(key); key = key2 + n++);
+			for (int n = 1; MapSet.runningStageTags.containsKey(key); key = key2 + n++)
+				;
 			MapSet.runningStageTags.put(key, frameSet);
-		}		
+		}
 	}
 
 	public void setCoords(TileCoord coord) {
@@ -190,74 +228,94 @@ public class Tile {
 		if (props != null && (!getOriginLayer().haveTilesOnCoord(coord) || !getOriginLayer().tileHaveProps(coord)))
 			getOriginLayer().addTileProp(coord, props.toArray(new TileProp[props.size()]));
 	}
-	
+
 	// ================ Metodos relacionados a TileProps ==============
 
-	public boolean tileContainsProp(TileProp prop)
-		{ return getOriginLayer().tileContainsProp(getTileCoord(), prop); }
-	
-	public Map<TileCoord, List<TileProp>> getTilePropsMap()
-		{ return getOriginLayer().getTilePropsMap(); }
+	public boolean tileContainsProp(TileProp prop) {
+		return getOriginLayer().tileContainsProp(getTileCoord(), prop);
+	}
 
-	public boolean tileHaveProps()
-		{ return getOriginLayer().tileHaveProps(getTileCoord()); }
+	public Map<TileCoord, List<TileProp>> getTilePropsMap() {
+		return getOriginLayer().getTilePropsMap();
+	}
 
-	public List<TileProp> getTileProps()
-		{ return getOriginLayer().getTileProps(getTileCoord()); }
-	
-	public int getTotalTileProps()
-		{ return getOriginLayer().getTotalTileProps(getTileCoord()); }
-	
-	public void setTileProps(List<TileProp> tileProps)
-		{ getOriginLayer().setTileProps(getTileCoord(), tileProps); }
+	public boolean tileHaveProps() {
+		return getOriginLayer().tileHaveProps(getTileCoord());
+	}
 
-	public void addTileProp(TileProp ... props)
-		{ getOriginLayer().addTileProp(getTileCoord(), props); }
-	
-	public void removeTileProp(TileProp ... props)
-		{ getOriginLayer().removeTileProp(getTileCoord(), props); }
-	
-	public void clearTileProps()
-		{ getOriginLayer().clearTileProps(getTileCoord()); }
-	
+	public List<TileProp> getTileProps() {
+		return getOriginLayer().getTileProps(getTileCoord());
+	}
+
+	public int getTotalTileProps() {
+		return getOriginLayer().getTotalTileProps(getTileCoord());
+	}
+
+	public void setTileProps(List<TileProp> tileProps) {
+		getOriginLayer().setTileProps(getTileCoord(), tileProps);
+	}
+
+	public void addTileProp(TileProp... props) {
+		getOriginLayer().addTileProp(getTileCoord(), props);
+	}
+
+	public void removeTileProp(TileProp... props) {
+		getOriginLayer().removeTileProp(getTileCoord(), props);
+	}
+
+	public void clearTileProps() {
+		getOriginLayer().clearTileProps(getTileCoord());
+	}
+
 	// ================ Metodos relacionados a TileTags ==============
-	
-	public boolean tileHaveTags()
-		{ return getOriginLayer().tileHaveTags(getTileCoord()); }
-	
-	public void disableTileTags()
-		{ getOriginLayer().disableTileTags(getTileCoord()); }
-	
-	public void enableTileTags()
-		{ getOriginLayer().enableTileTags(getTileCoord()); }
-	
-	public boolean tileTagsIsDisabled()
-		{ return getOriginLayer().tileTagsIsDisabled(getTileCoord()); }
 
-	public Tags getTileTags()
-		{ return getOriginLayer().getTileTags(getTileCoord()); }
-	
+	public boolean tileHaveTags() {
+		return getOriginLayer().tileHaveTags(getTileCoord());
+	}
+
+	public void disableTileTags() {
+		getOriginLayer().disableTileTags(getTileCoord());
+	}
+
+	public void enableTileTags() {
+		getOriginLayer().enableTileTags(getTileCoord());
+	}
+
+	public boolean tileTagsIsDisabled() {
+		return getOriginLayer().tileTagsIsDisabled(getTileCoord());
+	}
+
+	public Tags getTileTags() {
+		return getOriginLayer().getTileTags(getTileCoord());
+	}
+
 	public String getStringTags() {
 		if (getOriginLayer().tileHaveTags(getTileCoord()))
 			return getOriginLayer().getTileTags(getTileCoord()).toString();
 		return stringTileTags;
 	}
 
-	public FrameSet getTileTagsFrameSet()
-		{ return getOriginLayer().getTileTagsFrameSet(getTileCoord()); }
+	public FrameSet getTileTagsFrameSet() {
+		return getOriginLayer().getTileTagsFrameSet(getTileCoord());
+	}
 
-	public void setTileTagsFromString(String stringTileTags)
-		{ getOriginLayer().setTileTagsFromString(getTileCoord(), stringTileTags, this); }
-	
-	public void setTileTags(Tags tags)
-		{ getOriginLayer().setTileTags(getTileCoord(), tags); }
-	
-	public void removeTileTag(String tagStr)
-		{ getOriginLayer().removeTileTag(getTileCoord(), tagStr); }
-	
-	public void removeTileTag(FrameTag tag)
-		{ getOriginLayer().removeTileTag(getTileCoord(), tag); }
-	
-	public void clearTileTags()
-		{ getOriginLayer().clearTileTags(getTileCoord()); }
+	public void setTileTagsFromString(String stringTileTags) {
+		getOriginLayer().setTileTagsFromString(getTileCoord(), stringTileTags, this);
+	}
+
+	public void setTileTags(Tags tags) {
+		getOriginLayer().setTileTags(getTileCoord(), tags);
+	}
+
+	public void removeTileTag(String tagStr) {
+		getOriginLayer().removeTileTag(getTileCoord(), tagStr);
+	}
+
+	public void removeTileTag(FrameTag tag) {
+		getOriginLayer().removeTileTag(getTileCoord(), tag);
+	}
+
+	public void clearTileTags() {
+		getOriginLayer().clearTileTags(getTileCoord());
+	}
 }

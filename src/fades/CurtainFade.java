@@ -16,38 +16,46 @@ public class CurtainFade implements Fade {
 	private Double value;
 	private Double valueInc;
 	private Color color;
-	
-	public CurtainFade()
-		{ this(Color.BLACK); }
-	
-	public CurtainFade(Direction closingDirection)
-		{ this(Color.BLACK, closingDirection, 1); }
 
-	public CurtainFade(Color color)
-		{ this(color, Direction.DOWN, 1); }
+	public CurtainFade() {
+		this(Color.BLACK);
+	}
 
-	public CurtainFade(double speed)
-		{ this(Color.BLACK, Direction.DOWN, speed); }
+	public CurtainFade(Direction closingDirection) {
+		this(Color.BLACK, closingDirection, 1);
+	}
 
-	public CurtainFade(Color color, double speed)
-		{ this(color, Direction.DOWN, speed); }
-	
-	public CurtainFade(Direction closingDirection, double speed)
-		{ this(Color.BLACK, closingDirection, speed); }
+	public CurtainFade(Color color) {
+		this(color, Direction.DOWN, 1);
+	}
 
-	public CurtainFade(Color color, Direction closingDirection)
-		{ this(Color.BLACK, closingDirection, 1); }
-	
+	public CurtainFade(double speed) {
+		this(Color.BLACK, Direction.DOWN, speed);
+	}
+
+	public CurtainFade(Color color, double speed) {
+		this(color, Direction.DOWN, speed);
+	}
+
+	public CurtainFade(Direction closingDirection, double speed) {
+		this(Color.BLACK, closingDirection, speed);
+	}
+
+	public CurtainFade(Color color, Direction closingDirection) {
+		this(Color.BLACK, closingDirection, 1);
+	}
+
 	public CurtainFade(Color color, Direction closingDirection, double speed) {
 		setColor(color);
 		setSpeed(speed);
 		reset(FadeState.NONE);
 		this.closingDirection = Direction.DOWN;
 	}
-	
-	public Direction getClosingDirection()
-		{ return closingDirection; }
-	
+
+	public Direction getClosingDirection() {
+		return closingDirection;
+	}
+
 	public CurtainFade setClosingDirection(Direction closingDirection) {
 		this.closingDirection = closingDirection;
 		return this;
@@ -58,7 +66,7 @@ public class CurtainFade implements Fade {
 		reset(FadeState.FADE_IN);
 		return this;
 	}
-	
+
 	@Override
 	public CurtainFade fadeOut() {
 		reset(FadeState.FADE_OUT);
@@ -79,21 +87,25 @@ public class CurtainFade implements Fade {
 	}
 
 	@Override
-	public boolean isFadeDone()
-		{ return fadeState == FadeState.DONE; }
+	public boolean isFadeDone() {
+		return fadeState == FadeState.DONE;
+	}
 
 	@Override
-	public void stopFade()
-		{ fadeState = FadeState.NONE; }
-	
-	@Override
-	public FadeState getInitialFadeState()
-		{ return fadeInitialState; }
+	public void stopFade() {
+		fadeState = FadeState.NONE;
+	}
 
 	@Override
-	public FadeState getCurrentFadeState()
-		{ return fadeState; }
-	
+	public FadeState getInitialFadeState() {
+		return fadeInitialState;
+	}
+
+	@Override
+	public FadeState getCurrentFadeState() {
+		return fadeState;
+	}
+
 	@Override
 	public void apply(Canvas canvas) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -117,7 +129,7 @@ public class CurtainFade implements Fade {
 			gc.restore();
 		}
 	}
-	
+
 	private void fadeDone() {
 		fadeState = FadeState.DONE;
 		if (onFadeDoneEvent != null)
@@ -130,7 +142,7 @@ public class CurtainFade implements Fade {
 		this.speed = speed;
 		reset(fadeInitialState);
 	}
-	
+
 	public void setColor(Color color) {
 		if (color == null)
 			throw new RuntimeException("color is null");

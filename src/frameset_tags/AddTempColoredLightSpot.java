@@ -5,7 +5,7 @@ import javafx.scene.paint.Color;
 import light_spot_effects.ColoredLightSpot;
 
 public class AddTempColoredLightSpot extends FrameTag {
-	
+
 	int x;
 	int y;
 	int xVariance;
@@ -15,7 +15,7 @@ public class AddTempColoredLightSpot extends FrameTag {
 	double maxRadius;
 	double radiusInc;
 	double opacity;
-	
+
 	public AddTempColoredLightSpot(int x, int y, int xVariance, int yVariance, Color color, double minRadius, double maxRadius, double radiusInc, double opacity) {
 		this.x = x;
 		this.y = y;
@@ -29,8 +29,9 @@ public class AddTempColoredLightSpot extends FrameTag {
 	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + x + ";" + y + ";" + xVariance + ";" + yVariance + ";" + color.toString() + ";" + minRadius + ";" + maxRadius + ";" + radiusInc + ";" + opacity + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + x + ";" + y + ";" + xVariance + ";" + yVariance + ";" + color.toString() + ";" + minRadius + ";" + maxRadius + ";" + radiusInc + ";" + opacity + "}";
+	}
 
 	public AddTempColoredLightSpot(String tags) {
 		String[] params = validateStringTags(this, tags, 9);
@@ -46,21 +47,19 @@ public class AddTempColoredLightSpot extends FrameTag {
 			radiusInc = Double.parseDouble(params[n++]);
 			opacity = Double.parseDouble(params[n++]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public AddTempColoredLightSpot getNewInstanceOfThis()
-		{ return new AddTempColoredLightSpot(x, y, xVariance, yVariance, color, minRadius, maxRadius, radiusInc, opacity); }
-	
+	public AddTempColoredLightSpot getNewInstanceOfThis() {
+		return new AddTempColoredLightSpot(x, y, xVariance, yVariance, color, minRadius, maxRadius, radiusInc, opacity);
+	}
+
 	@Override
 	public void process(Sprite sprite) {
-		ColoredLightSpot.addTempColoredLightSpot(new ColoredLightSpot(x, y)
-				.setColor(color)
-				.setSpotVariance(xVariance, yVariance)
-				.setRadiusVariance(minRadius, maxRadius, radiusInc)
-				.setOpacity(opacity));
+		ColoredLightSpot.addTempColoredLightSpot(new ColoredLightSpot(x, y).setColor(color).setSpotVariance(xVariance, yVariance).setRadiusVariance(minRadius, maxRadius, radiusInc).setOpacity(opacity));
 	}
 
 }

@@ -28,7 +28,7 @@ public class Explosion {
 	private int explosionIndex;
 
 	private static List<Explosion> explosions = new ArrayList<>();
-	
+
 	private Explosion(Entity owner, TileCoord centerCoord, int tileRange, List<Direction> directions, int explosionIndex, boolean passThroughAllBricks) {
 		this.directions = new ArrayList<>(directions);
 		this.tileRange = tileRange;
@@ -36,56 +36,67 @@ public class Explosion {
 		this.centerCoord = centerCoord.getNewInstance();
 		this.owner = owner;
 		this.explosionIndex = explosionIndex;
-		fireDis = new int[] {0, 0, 0, 0};
+		fireDis = new int[] { 0, 0, 0, 0 };
 		count = 0;
 	}
-	
-	public static void addExplosion(TileCoord centerCoord, int tileRange, boolean passThroughAllBricks)
-		{ addExplosion(null, centerCoord, tileRange, new ArrayList<>(), 1, passThroughAllBricks); }
-	
-	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, boolean passThroughAllBricks)
-		{ addExplosion(owner, centerCoord, tileRange, new ArrayList<>(), 1, passThroughAllBricks); }
-	
-	public static void addExplosion(TileCoord centerCoord, int tileRange, Direction direction, boolean passThroughAllBricks)
-		{ addExplosion(null, centerCoord, tileRange, Arrays.asList(direction), 1, passThroughAllBricks); }
-	
-	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, Direction direction, boolean passThroughAllBricks)
-		{ addExplosion(owner, centerCoord, tileRange, Arrays.asList(direction), 1, passThroughAllBricks); }
-	
-	public static void addExplosion(TileCoord centerCoord, int tileRange, List<Direction> directions, boolean passThroughAllBricks)
-		{ addExplosion(null, centerCoord, tileRange, directions, 1, passThroughAllBricks); }
-	
-	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, List<Direction> directions, boolean passThroughAllBricks)
-		{ addExplosion(owner, centerCoord, tileRange, directions, 1, passThroughAllBricks); }
 
-	public static void addExplosion(TileCoord centerCoord, int tileRange, int explosionIndex, boolean passThroughAllBricks)
-		{ addExplosion(null, centerCoord, tileRange, new ArrayList<>(), explosionIndex, passThroughAllBricks); }
-	
-	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, int explosionIndex, boolean passThroughAllBricks)
-		{ addExplosion(owner, centerCoord, tileRange, new ArrayList<>(), explosionIndex, passThroughAllBricks); }
+	public static void addExplosion(TileCoord centerCoord, int tileRange, boolean passThroughAllBricks) {
+		addExplosion(null, centerCoord, tileRange, new ArrayList<>(), 1, passThroughAllBricks);
+	}
 
-	public static void addExplosion(TileCoord centerCoord, int tileRange, Direction direction, int explosionIndex, boolean passThroughAllBricks)
-		{ addExplosion(null, centerCoord, tileRange, Arrays.asList(direction), explosionIndex, passThroughAllBricks); }
+	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, boolean passThroughAllBricks) {
+		addExplosion(owner, centerCoord, tileRange, new ArrayList<>(), 1, passThroughAllBricks);
+	}
 
-	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, Direction direction, int explosionIndex, boolean passThroughAllBricks)
-		{ addExplosion(owner, centerCoord, tileRange, Arrays.asList(direction), explosionIndex, passThroughAllBricks); }
+	public static void addExplosion(TileCoord centerCoord, int tileRange, Direction direction, boolean passThroughAllBricks) {
+		addExplosion(null, centerCoord, tileRange, Arrays.asList(direction), 1, passThroughAllBricks);
+	}
 
-	public static void addExplosion(TileCoord centerCoord, int tileRange, List<Direction> directions, int explosionIndex, boolean passThroughAllBricks)
-		{ addExplosion(null, centerCoord, tileRange, directions, explosionIndex, passThroughAllBricks); }
-	
+	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, Direction direction, boolean passThroughAllBricks) {
+		addExplosion(owner, centerCoord, tileRange, Arrays.asList(direction), 1, passThroughAllBricks);
+	}
+
+	public static void addExplosion(TileCoord centerCoord, int tileRange, List<Direction> directions, boolean passThroughAllBricks) {
+		addExplosion(null, centerCoord, tileRange, directions, 1, passThroughAllBricks);
+	}
+
+	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, List<Direction> directions, boolean passThroughAllBricks) {
+		addExplosion(owner, centerCoord, tileRange, directions, 1, passThroughAllBricks);
+	}
+
+	public static void addExplosion(TileCoord centerCoord, int tileRange, int explosionIndex, boolean passThroughAllBricks) {
+		addExplosion(null, centerCoord, tileRange, new ArrayList<>(), explosionIndex, passThroughAllBricks);
+	}
+
+	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, int explosionIndex, boolean passThroughAllBricks) {
+		addExplosion(owner, centerCoord, tileRange, new ArrayList<>(), explosionIndex, passThroughAllBricks);
+	}
+
+	public static void addExplosion(TileCoord centerCoord, int tileRange, Direction direction, int explosionIndex, boolean passThroughAllBricks) {
+		addExplosion(null, centerCoord, tileRange, Arrays.asList(direction), explosionIndex, passThroughAllBricks);
+	}
+
+	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, Direction direction, int explosionIndex, boolean passThroughAllBricks) {
+		addExplosion(owner, centerCoord, tileRange, Arrays.asList(direction), explosionIndex, passThroughAllBricks);
+	}
+
+	public static void addExplosion(TileCoord centerCoord, int tileRange, List<Direction> directions, int explosionIndex, boolean passThroughAllBricks) {
+		addExplosion(null, centerCoord, tileRange, directions, explosionIndex, passThroughAllBricks);
+	}
+
 	public static void addExplosion(Entity owner, TileCoord centerCoord, int tileRange, List<Direction> directions, int explosionIndex, boolean passThroughAllBricks) {
 		if (directions.isEmpty())
 			directions.addAll(Arrays.asList(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT));
 		explosions.add(new Explosion(owner, centerCoord, tileRange, directions, explosionIndex, passThroughAllBricks));
 	}
-	
+
 	public static void drawExplosions() {
 		for (int p = explosions.size() - 1; p >= 0; p--) {
 			Explosion ex = explosions.get(p);
 			WritableImage sprite = Materials.loadedSprites.get("Explosion" + ex.explosionIndex);
 			if (++ex.count == 1) {
 				Direction dir = Direction.UP;
-				ex.fireDis = new int[] {0, 0, 0, 0};
+				ex.fireDis = new int[] { 0, 0, 0, 0 };
 				for (int d = 0; d < 4; d++) {
 					TileCoord coord = ex.centerCoord.getNewInstance();
 					if (ex.directions.contains(dir))
@@ -108,8 +119,7 @@ public class Explosion {
 				explosions.remove(p--);
 			}
 			else {
-				int x = ex.centerCoord.getX() * Main.TILE_SIZE,
-						y = ex.centerCoord.getY() * Main.TILE_SIZE;
+				int x = ex.centerCoord.getX() * Main.TILE_SIZE, y = ex.centerCoord.getY() * Main.TILE_SIZE;
 				if (ex.directions.size() == 4)
 					Draw.addDrawQueue(SpriteLayerType.SPRITE, sprite, 80 + z * 16, 224, 16, 16, x, y, Main.TILE_SIZE, Main.TILE_SIZE); // Explosão central
 				if (ex.directions.contains(Direction.UP))
@@ -145,5 +155,5 @@ public class Explosion {
 			}
 		}
 	}
-	
+
 }

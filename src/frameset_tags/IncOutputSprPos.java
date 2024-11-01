@@ -3,18 +3,19 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class IncOutputSprPos extends FrameTag {
-	
+
 	public double incrementX;
 	public double incrementY;
-	
+
 	public IncOutputSprPos(double incrementX, double incrementY) {
 		this.incrementX = incrementX;
 		this.incrementY = incrementY;
 	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + incrementX + ";" + incrementY + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + incrementX + ";" + incrementY + "}";
+	}
 
 	public IncOutputSprPos(String tags) {
 		String[] params = validateStringTags(this, tags, 2);
@@ -23,13 +24,15 @@ public class IncOutputSprPos extends FrameTag {
 			incrementX = Double.parseDouble(params[n++]);
 			incrementY = Double.parseDouble(params[n++]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public IncOutputSprPos getNewInstanceOfThis()
-		{ return new IncOutputSprPos(incrementX, incrementY); }
+	public IncOutputSprPos getNewInstanceOfThis() {
+		return new IncOutputSprPos(incrementX, incrementY);
+	}
 
 	@Override
 	public void process(Sprite sprite) {
@@ -38,9 +41,3 @@ public class IncOutputSprPos extends FrameTag {
 	}
 
 }
-
-
-
-
-
-

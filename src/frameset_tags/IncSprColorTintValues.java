@@ -3,12 +3,12 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class IncSprColorTintValues extends FrameTag {
-	
+
 	public double incrementRed;
 	public double incrementGreen;
 	public double incrementBlue;
 	public double incrementAlpha;
-	
+
 	public IncSprColorTintValues(double incrementRed, double incrementGreen, double incrementBlue, double incrementAlpha) {
 		this.incrementRed = incrementRed;
 		this.incrementGreen = incrementGreen;
@@ -16,12 +16,14 @@ public class IncSprColorTintValues extends FrameTag {
 		this.incrementAlpha = incrementAlpha;
 	}
 
-	public IncSprColorTintValues(double incrementRed, double incrementGreen, double incrementBlue)
-		{ this(incrementRed, incrementGreen, incrementBlue, 1); }
+	public IncSprColorTintValues(double incrementRed, double incrementGreen, double incrementBlue) {
+		this(incrementRed, incrementGreen, incrementBlue, 1);
+	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + incrementRed + ";" + incrementGreen + ";" + incrementBlue + ";" + incrementAlpha + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + incrementRed + ";" + incrementGreen + ";" + incrementBlue + ";" + incrementAlpha + "}";
+	}
 
 	public IncSprColorTintValues(String tags) {
 		String[] params = validateStringTags(this, tags, 4);
@@ -32,14 +34,16 @@ public class IncSprColorTintValues extends FrameTag {
 			incrementBlue = Double.parseDouble(params[n++]);
 			incrementAlpha = Double.parseDouble(params[n++]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public IncSprColorTintValues getNewInstanceOfThis()
-		{ return new IncSprColorTintValues(incrementRed, incrementGreen, incrementBlue, incrementAlpha); }
-	
+	public IncSprColorTintValues getNewInstanceOfThis() {
+		return new IncSprColorTintValues(incrementRed, incrementGreen, incrementBlue, incrementAlpha);
+	}
+
 	@Override
 	public void process(Sprite sprite) {
 		sprite.getEffects().getColorTint().incRed(incrementRed);
@@ -49,15 +53,3 @@ public class IncSprColorTintValues extends FrameTag {
 	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-

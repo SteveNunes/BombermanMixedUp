@@ -9,7 +9,7 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
 public class DrawParams {
-	
+
 	private Color color;
 	private double[] params;
 	private DrawType drawType;
@@ -31,8 +31,8 @@ public class DrawParams {
 	private Double opacity;
 	private DrawImageEffects effects;
 	private int frontValue;
-	
-	DrawParams(int frontValue, DrawType drawType, Color color, double ... params) {
+
+	DrawParams(int frontValue, DrawType drawType, Color color, double... params) {
 		this.frontValue = frontValue;
 		this.color = color;
 		this.params = params;
@@ -58,20 +58,22 @@ public class DrawParams {
 		this.frontValue = frontValue;
 		ghostingDistance = null;
 	}
-	
+
 	public DrawParams setGhosting(int distance, double opacityDec) {
 		ghostingDistance = distance;
 		ghostingOpacityDec = opacityDec;
 		ghostingCount = 1;
 		return this;
 	}
-	
-	public boolean isGhosting()
-		{ return ghostingDistance != null; }
-	
-	public int getFrontValue()
-		{ return frontValue; }
-	
+
+	public boolean isGhosting() {
+		return ghostingDistance != null;
+	}
+
+	public int getFrontValue() {
+		return frontValue;
+	}
+
 	public void draw(GraphicsContext gc) {
 		if (ghostingDistance == null || --ghostingCount == 0) {
 			if (drawType == DrawType.IMAGE)

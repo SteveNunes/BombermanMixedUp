@@ -3,30 +3,36 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class IncObjX extends FrameTag {
-	
+
 	public int increment;
-	
-	public IncObjX(int increment)
-		{ this.increment = increment; }
 
-	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + increment + "}"; }
-
-	public IncObjX(String tags) {
-		String[] params = validateStringTags(this, tags, 1);
-		try
-			{ increment = Integer.parseInt(params[0]); }
-		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+	public IncObjX(int increment) {
+		this.increment = increment;
 	}
 
 	@Override
-	public IncObjX getNewInstanceOfThis()
-		{ return new IncObjX(increment); }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + increment + "}";
+	}
+
+	public IncObjX(String tags) {
+		String[] params = validateStringTags(this, tags, 1);
+		try {
+			increment = Integer.parseInt(params[0]);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(params[0] + " - Invalid parameter");
+		}
+	}
 
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.getSourceFrameSet().incX(increment); }
+	public IncObjX getNewInstanceOfThis() {
+		return new IncObjX(increment);
+	}
+
+	@Override
+	public void process(Sprite sprite) {
+		sprite.getSourceFrameSet().incX(increment);
+	}
 
 }

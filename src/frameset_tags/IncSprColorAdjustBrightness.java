@@ -3,33 +3,36 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class IncSprColorAdjustBrightness extends FrameTag {
-	
-	public double increment;
-	
-	public IncSprColorAdjustBrightness(double increment)
-		{ this.increment = increment; }
 
-	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + increment + "}"; }
-	
-	public IncSprColorAdjustBrightness(String tags) {
-		String[] params = validateStringTags(this, tags, 1);
-		try
-			{ increment = Double.parseDouble(params[0]); }
-		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+	public double increment;
+
+	public IncSprColorAdjustBrightness(double increment) {
+		this.increment = increment;
 	}
 
 	@Override
-	public IncSprColorAdjustBrightness getNewInstanceOfThis()
-		{ return new IncSprColorAdjustBrightness(increment); }
-	
+	public String toString() {
+		return "{" + getClassName(this) + ";" + increment + "}";
+	}
+
+	public IncSprColorAdjustBrightness(String tags) {
+		String[] params = validateStringTags(this, tags, 1);
+		try {
+			increment = Double.parseDouble(params[0]);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(params[0] + " - Invalid parameter");
+		}
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.getEffects().getColorAdjust().incBrightness(increment); }
+	public IncSprColorAdjustBrightness getNewInstanceOfThis() {
+		return new IncSprColorAdjustBrightness(increment);
+	}
+
+	@Override
+	public void process(Sprite sprite) {
+		sprite.getEffects().getColorAdjust().incBrightness(increment);
+	}
 
 }
-
-
-

@@ -3,11 +3,11 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class SetSprWaving extends FrameTag {
-	
+
 	public int speed;
 	public int[] wavingPattern;
 	public boolean disable;
-	
+
 	public SetSprWaving(int speed, int[] wavingPattern) {
 		this.speed = speed;
 		this.wavingPattern = wavingPattern;
@@ -50,14 +50,16 @@ public class SetSprWaving extends FrameTag {
 					wavingPattern[x] = Integer.parseInt(split[x]);
 			}
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public SetSprWaving getNewInstanceOfThis()
-		{ return new SetSprWaving(speed, wavingPattern); }
-	
+	public SetSprWaving getNewInstanceOfThis() {
+		return new SetSprWaving(speed, wavingPattern);
+	}
+
 	@Override
 	public void process(Sprite sprite) {
 		if (sprite.getWavingImage() == null)
@@ -67,6 +69,3 @@ public class SetSprWaving extends FrameTag {
 	}
 
 }
-
-
-

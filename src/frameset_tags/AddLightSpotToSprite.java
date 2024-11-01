@@ -10,19 +10,18 @@ public class AddLightSpotToSprite extends AddTempLightSpot {
 		deleteMeAfterFirstRead = true;
 	}
 
-	public AddLightSpotToSprite(String tags)
-		{ super(tags); }
+	public AddLightSpotToSprite(String tags) {
+		super(tags);
+	}
 
 	@Override
-	public AddLightSpotToSprite getNewInstanceOfThis()
-		{ return new AddLightSpotToSprite(x, y, xVariance, yVariance, minRadius, maxRadius, radiusInc); }
-	
+	public AddLightSpotToSprite getNewInstanceOfThis() {
+		return new AddLightSpotToSprite(x, y, xVariance, yVariance, minRadius, maxRadius, radiusInc);
+	}
+
 	@Override
 	public void process(Sprite sprite) {
-		LightSpot.addLightSpot(new LightSpot(sprite.getSpritePosition())
-				.setOffset(x, y)
-				.setSpotVariance(xVariance, yVariance)
-				.setRadiusVariance(minRadius, maxRadius, radiusInc));
+		LightSpot.addLightSpot(new LightSpot(sprite.getSpritePosition()).setOffset(x, y).setSpotVariance(xVariance, yVariance).setRadiusVariance(minRadius, maxRadius, radiusInc));
 	}
-	
+
 }

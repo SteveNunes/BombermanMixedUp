@@ -1,5 +1,5 @@
 package application;
-	
+
 import enums.GameMode;
 import gui.FrameSetEditor;
 import gui.Game;
@@ -15,9 +15,8 @@ import tools.Materials;
 import util.IniFile;
 import util.TimerFX;
 
-
 public class Main extends Application {
-	
+
 	public final static int TILE_SIZE = 16;
 	public final static GameMode GAME_MODE = GameMode.MAP_EDITOR;
 
@@ -27,7 +26,7 @@ public class Main extends Application {
 	public static Stage stageMain;
 	public static Scene sceneMain;
 	public static boolean close = false;
-	
+
 	@Override
 	public void start(Stage stage) {
 		try {
@@ -58,12 +57,12 @@ public class Main extends Application {
 			stageMain.show();
 			stageMain.setOnCloseRequest(e -> close());
 		}
-		catch(Exception e) {
+		catch (Exception e) {
 			e.printStackTrace();
 			close();
 		}
 	}
-	
+
 	public static void close() {
 		close = true;
 		TimerFX.stopAllTimers();
@@ -75,7 +74,8 @@ public class Main extends Application {
 		launch(args);
 	}
 
-	public static boolean frameSetEditorIsPaused()
-		{ return (frameSetEditor != null && frameSetEditor.isPaused); }
-	
+	public static boolean frameSetEditorIsPaused() {
+		return (frameSetEditor != null && frameSetEditor.isPaused);
+	}
+
 }

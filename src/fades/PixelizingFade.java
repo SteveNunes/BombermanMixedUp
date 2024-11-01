@@ -16,15 +16,18 @@ public class PixelizingFade implements Fade {
 	private Color color;
 	private Integer inc;
 	private int backupSize;
-	
-	public PixelizingFade()
-		{ this(Color.WHITE); }
 
-	public PixelizingFade(Color color)
-		{ this(color, 1); }
-	
-	public PixelizingFade(double speed)
-		{ this(Color.WHITE, speed); }
+	public PixelizingFade() {
+		this(Color.WHITE);
+	}
+
+	public PixelizingFade(Color color) {
+		this(color, 1);
+	}
+
+	public PixelizingFade(double speed) {
+		this(Color.WHITE, speed);
+	}
 
 	public PixelizingFade(Color color, double speed) {
 		setColor(color);
@@ -32,7 +35,7 @@ public class PixelizingFade implements Fade {
 		reset(FadeState.NONE);
 		backupSize = Draw.getOutputPixelSize();
 	}
-	
+
 	@Override
 	public PixelizingFade fadeIn() {
 		reset(FadeState.FADE_IN);
@@ -44,7 +47,7 @@ public class PixelizingFade implements Fade {
 		reset(FadeState.FADE_OUT);
 		return this;
 	}
-	
+
 	private void reset(FadeState state) {
 		fadeState = state;
 		fadeInitialState = state;
@@ -53,8 +56,9 @@ public class PixelizingFade implements Fade {
 	}
 
 	@Override
-	public boolean isFadeDone()
-		{ return fadeState == FadeState.DONE; }
+	public boolean isFadeDone() {
+		return fadeState == FadeState.DONE;
+	}
 
 	@Override
 	public void stopFade() {
@@ -69,12 +73,14 @@ public class PixelizingFade implements Fade {
 	}
 
 	@Override
-	public FadeState getInitialFadeState()
-		{ return fadeInitialState; }
+	public FadeState getInitialFadeState() {
+		return fadeInitialState;
+	}
 
 	@Override
-	public FadeState getCurrentFadeState()
-		{ return fadeState; }
+	public FadeState getCurrentFadeState() {
+		return fadeState;
+	}
 
 	@Override
 	public void apply(Canvas canvas) {
@@ -82,7 +88,7 @@ public class PixelizingFade implements Fade {
 			GraphicsContext gc = canvas.getGraphicsContext2D();
 			gc.save();
 			Draw.setOutputPixelSize(value.intValue());
-			gc.setGlobalAlpha((double)value / 100);
+			gc.setGlobalAlpha((double) value / 100);
 			gc.setFill(color);
 			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 			if (!isFadeDone()) {
@@ -104,7 +110,7 @@ public class PixelizingFade implements Fade {
 		this.speed = speed;
 		reset(fadeInitialState);
 	}
-	
+
 	public void setColor(Color color) {
 		if (color == null)
 			throw new RuntimeException("color is null");

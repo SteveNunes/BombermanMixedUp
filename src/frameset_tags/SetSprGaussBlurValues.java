@@ -4,21 +4,23 @@ import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
 
 public class SetSprGaussBlurValues extends FrameTag {
-	
+
 	public int radius;
 	public BlendMode blendMode;
-	
+
 	public SetSprGaussBlurValues(int radius, BlendMode blendMode) {
 		this.radius = radius;
 		this.blendMode = blendMode;
 	}
 
-	public SetSprGaussBlurValues(int radius)
-		{ this(radius, BlendMode.SRC_ATOP); }
+	public SetSprGaussBlurValues(int radius) {
+		this(radius, BlendMode.SRC_ATOP);
+	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + radius + ";" + blendMode.name() + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + radius + ";" + blendMode.name() + "}";
+	}
 
 	public SetSprGaussBlurValues(String tags) {
 		String[] params = validateStringTags(this, tags, 2);
@@ -27,22 +29,19 @@ public class SetSprGaussBlurValues extends FrameTag {
 			radius = Integer.parseInt(params[n++]);
 			blendMode = BlendMode.valueOf(params[n++]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public SetSprGaussBlurValues getNewInstanceOfThis()
-		{ return new SetSprGaussBlurValues(radius, blendMode); }
-	
+	public SetSprGaussBlurValues getNewInstanceOfThis() {
+		return new SetSprGaussBlurValues(radius, blendMode);
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.getEffects().setGaussianBlur(radius, blendMode); }
+	public void process(Sprite sprite) {
+		sprite.getEffects().setGaussianBlur(radius, blendMode);
+	}
 
 }
-
-
-
-
-
-

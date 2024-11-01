@@ -14,15 +14,18 @@ public class DefaultFade implements Fade {
 	private Double speed;
 	private Double valueInc;
 	private Color color;
-	
-	public DefaultFade()
-		{ this(Color.BLACK); }
 
-	public DefaultFade(Color color)
-		{ this(color, 0.02); }
-	
-	public DefaultFade(double speed)
-		{ this(Color.BLACK, speed); }
+	public DefaultFade() {
+		this(Color.BLACK);
+	}
+
+	public DefaultFade(Color color) {
+		this(color, 0.02);
+	}
+
+	public DefaultFade(double speed) {
+		this(Color.BLACK, speed);
+	}
 
 	public DefaultFade(Color color, double speed) {
 		setColor(color);
@@ -41,7 +44,7 @@ public class DefaultFade implements Fade {
 		reset(FadeState.FADE_OUT);
 		return this;
 	}
-	
+
 	private void reset(FadeState state) {
 		fadeState = state;
 		fadeInitialState = state;
@@ -50,12 +53,14 @@ public class DefaultFade implements Fade {
 	}
 
 	@Override
-	public boolean isFadeDone()
-		{ return fadeState == FadeState.DONE; }
+	public boolean isFadeDone() {
+		return fadeState == FadeState.DONE;
+	}
 
 	@Override
-	public void stopFade()
-		{ fadeState = FadeState.NONE; }
+	public void stopFade() {
+		fadeState = FadeState.NONE;
+	}
 
 	@Override
 	public DefaultFade setOnFadeDoneEvent(Runnable runnable) {
@@ -64,12 +69,14 @@ public class DefaultFade implements Fade {
 	}
 
 	@Override
-	public FadeState getInitialFadeState()
-		{ return fadeInitialState; }
+	public FadeState getInitialFadeState() {
+		return fadeInitialState;
+	}
 
 	@Override
-	public FadeState getCurrentFadeState()
-		{ return fadeState; }
+	public FadeState getCurrentFadeState() {
+		return fadeState;
+	}
 
 	@Override
 	public void apply(Canvas canvas) {
@@ -95,7 +102,7 @@ public class DefaultFade implements Fade {
 		this.speed = speed;
 		reset(fadeInitialState);
 	}
-	
+
 	public void setColor(Color color) {
 		if (color == null)
 			throw new RuntimeException("color is null");

@@ -3,10 +3,10 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class SetSprScrolling extends FrameTag {
-	
+
 	public double incrementX;
 	public double incrementY;
-	
+
 	public SetSprScrolling(double incrementX, double incrementY) {
 		this.incrementX = incrementX;
 		this.incrementY = incrementY;
@@ -14,8 +14,9 @@ public class SetSprScrolling extends FrameTag {
 	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + incrementX + ";" + incrementY + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + incrementX + ";" + incrementY + "}";
+	}
 
 	public SetSprScrolling(String tags) {
 		String[] params = validateStringTags(this, tags, 2);
@@ -24,16 +25,19 @@ public class SetSprScrolling extends FrameTag {
 			incrementX = Double.parseDouble(params[n++]);
 			incrementY = Double.parseDouble(params[n++]);
 		}
-		catch (Exception e)
-			{ throw new RuntimeException(params[--n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			throw new RuntimeException(params[--n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public SetSprScrolling getNewInstanceOfThis()
-		{ return new SetSprScrolling(incrementX, incrementY); }
+	public SetSprScrolling getNewInstanceOfThis() {
+		return new SetSprScrolling(incrementX, incrementY);
+	}
 
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.setSpriteScroll(incrementX, incrementY); }
+	public void process(Sprite sprite) {
+		sprite.setSpriteScroll(incrementX, incrementY);
+	}
 
 }

@@ -3,33 +3,36 @@ package frameset_tags;
 import frameset.Sprite;
 
 public class IncSprDropShadowOffsetY extends FrameTag {
-	
-	public double increment;
-	
-	public IncSprDropShadowOffsetY(double increment)
-		{ this.increment = increment; }
 
-	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + increment + "}"; }
-	
-	public IncSprDropShadowOffsetY(String tags) {
-		String[] params = validateStringTags(this, tags, 1);
-		try
-			{ increment = Double.parseDouble(params[0]); }
-		catch (Exception e)
-			{ throw new RuntimeException(params[0] + " - Invalid parameter"); }
+	public double increment;
+
+	public IncSprDropShadowOffsetY(double increment) {
+		this.increment = increment;
 	}
 
 	@Override
-	public IncSprDropShadowOffsetY getNewInstanceOfThis()
-		{ return new IncSprDropShadowOffsetY(increment); }
-	
+	public String toString() {
+		return "{" + getClassName(this) + ";" + increment + "}";
+	}
+
+	public IncSprDropShadowOffsetY(String tags) {
+		String[] params = validateStringTags(this, tags, 1);
+		try {
+			increment = Double.parseDouble(params[0]);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(params[0] + " - Invalid parameter");
+		}
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ sprite.getEffects().getDropShadow().incOffsetY(increment); }
+	public IncSprDropShadowOffsetY getNewInstanceOfThis() {
+		return new IncSprDropShadowOffsetY(increment);
+	}
+
+	@Override
+	public void process(Sprite sprite) {
+		sprite.getEffects().getDropShadow().incOffsetY(increment);
+	}
 
 }
-
-
-

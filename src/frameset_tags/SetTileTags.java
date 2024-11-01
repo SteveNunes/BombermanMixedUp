@@ -7,13 +7,13 @@ import frameset.Sprite;
 import maps.MapSet;
 
 public class SetTileTags extends FrameTag {
-	
+
 	public String tags;
 	public String replacedTags;
 	public List<TileCoord2> targetCoords;
 	public int targetLayer;
 	public String originalTag;
-	
+
 	public SetTileTags(int layer, List<TileCoord2> targetCoords, String tags) {
 		this.tags = tags;
 		this.targetCoords = new ArrayList<>(targetCoords);
@@ -21,15 +21,18 @@ public class SetTileTags extends FrameTag {
 		replacedTags = "{" + tags.replace("@", ";") + "}";
 	}
 
-	public String getOriginalTag()
-		{ return originalTag; }
+	public String getOriginalTag() {
+		return originalTag;
+	}
 
-	public void setOriginalTag(String originalTag)
-		{ this.originalTag = originalTag; }
+	public void setOriginalTag(String originalTag) {
+		this.originalTag = originalTag;
+	}
 
 	@Override
-	public String toString()
-		{ return "{" + getClassName(this) + ";" + targetLayer + ";" + tags + ";" + tileCoord2ListToString(targetCoords) + "}"; }
+	public String toString() {
+		return "{" + getClassName(this) + ";" + targetLayer + ";" + tags + ";" + tileCoord2ListToString(targetCoords) + "}";
+	}
 
 	public SetTileTags(String stringTags) {
 		String[] params = validateStringTags(this, stringTags);
@@ -44,16 +47,20 @@ public class SetTileTags extends FrameTag {
 			replacedTags = "{" + tags.replace("@", ";") + "}";
 			targetCoords = stringToTileCoord2List((n = 2) >= params.length ? null : params[n]);
 		}
-		catch (Exception e)
-			{ e.printStackTrace(); throw new RuntimeException(params[n] + " - Invalid parameter"); }
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(params[n] + " - Invalid parameter");
+		}
 	}
 
 	@Override
-	public SetTileTags getNewInstanceOfThis()
-		{ return new SetTileTags(targetLayer, targetCoords, tags); }
-	
+	public SetTileTags getNewInstanceOfThis() {
+		return new SetTileTags(targetLayer, targetCoords, tags);
+	}
+
 	@Override
-	public void process(Sprite sprite)
-		{ processTile(sprite.getTileCoord(), targetCoords, coord -> MapSet.getLayer(targetLayer).setTileTagsFromString(coord, replacedTags)); }
+	public void process(Sprite sprite) {
+		processTile(sprite.getTileCoord(), targetCoords, coord -> MapSet.getLayer(targetLayer).setTileTagsFromString(coord, replacedTags));
+	}
 
 }
