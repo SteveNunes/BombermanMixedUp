@@ -208,8 +208,9 @@ public class BomberMan extends Entity {
 		for (int n = 0; n < bombs.size(); n++)
 			if (!bombs.get(n).isActive())
 				bombs.remove(n--);
-		if (MapSet.tileContainsProp(getTileCoordFromCenter(), TileProp.DAMAGE_PLAYER))
-			takeDamage();
+		if (MapSet.tileContainsProp(getTileCoordFromCenter(), TileProp.DAMAGE_PLAYER) ||
+				(MapSet.tileContainsProp(getTileCoordFromCenter(), TileProp.EXPLOSION) && !gotItems.contains(ItemType.FIRE_IMMUNE)))
+					takeDamage();
 		super.run(gc, isPaused);
 		if (!isBlockedMovement()) {
 			if (!queuedInputs.isEmpty()) {
@@ -321,7 +322,7 @@ public class BomberMan extends Entity {
 				if (bomb.getBombType().isUnique())
 					type = BombType.NORMAL;
 			}
-			Bomb bomb = Bomb.addBomb(this, coord, type, fireRange, true);
+			Bomb bomb = Bomb.addBomb(this, coord, type, type == BombType.SENSOR ? 2 : fireRange, true);
 			if (bomb != null) {
 				bombs.add(bomb);
 				Sound.playWav(this, setBombSound);
@@ -367,12 +368,11 @@ public class BomberMan extends Entity {
 		maxBombs = GameConfigs.STARTING_BOMBS;
 		double speed = GameConfigs.INITIAL_PLAYER_SPEED;
 		if (gotItems.isEmpty()) { // TEMP
-			gotItems.add(ItemType.FOLLOW_BOMB);
-			gotItems.add(ItemType.POWER_GLOVE);
+			gotItems.add(ItemType.REMOTE_BOMB);
 			gotItems.add(ItemType.HYPER_GLOVE);
+			gotItems.add(ItemType.HYPER_PUNCH);
 			gotItems.add(ItemType.PUSH_POWER);
 			gotItems.add(ItemType.KICK_BOMB);
-			gotItems.add(ItemType.PUNCH_BOMB);
 			gotItems.add(ItemType.PASS_BRICK);
 			gotItems.add(ItemType.LINED_BOMBS);
 			for (int n = 0; n < 9; n++)

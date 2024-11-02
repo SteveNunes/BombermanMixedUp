@@ -193,8 +193,10 @@ public class Item extends Entity {
 		}
 
 		for (Item item : tempItems) {
-			if (--item.startInvFrames <= 0 && item.getCurrentFrameSetName().equals("ItemStandFrameSet") && MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM))
-				item.destroy();
+			if (--item.startInvFrames <= 0 && item.getCurrentFrameSetName().equals("ItemStandFrameSet") &&
+					(MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM) ||
+					 MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.EXPLOSION)))
+						item.destroy();
 			else if (!item.getCurrentFrameSetName().equals("ItemStandFrameSet") && !item.getCurrentFrameSet().isRunning())
 				removeItem(item);
 			else
@@ -221,7 +223,7 @@ public class Item extends Entity {
 			if (!items.containsKey(coord))
 				items.put(coord, this);
 		}
-		if (Entity.haveAnyEntityAtCoord(coord))
+		if (getCurrentFrameSetName().equals("ItemStandFrameSet") && Entity.haveAnyEntityAtCoord(coord))
 			for (Entity entity : Entity.getEntityListFromCoord(coord))
 				if (entity instanceof BomberMan)
 						((BomberMan)entity).pickItem(this);

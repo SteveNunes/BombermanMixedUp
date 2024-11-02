@@ -23,7 +23,7 @@ import maps.Item;
 import maps.MapSet;
 import objmoveutils.TileCoord;
 import pathfinder.PathFinder;
-import util.MyMath;
+import util.CollectionUtils;
 
 public abstract class Tools {
 
@@ -70,77 +70,86 @@ public abstract class Tools {
 		return "-";
 	}
 
-	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Direction direction, FindType type) {
-		return findInLine(null, ignoreEntity, coord, Set.of(direction), Set.of(type), null);
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, int distanceInTiles, Direction direction, FindType type) {
+		return findInLine(null, ignoreEntity, coord, distanceInTiles, Set.of(direction), Set.of(type), null);
 	}
 
-	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Direction direction, Set<FindType> types) {
-		return findInLine(null, ignoreEntity, coord, Set.of(direction), types, null);
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, int distanceInTiles, Direction direction, Set<FindType> types) {
+		return findInLine(null, ignoreEntity, coord, distanceInTiles, Set.of(direction), types, null);
 	}
 
-	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Set<Direction> directions, FindType type) {
-		return findInLine(null, ignoreEntity, coord, directions, Set.of(type), null);
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, int distanceInTiles, Set<Direction> directions, FindType type) {
+		return findInLine(null, ignoreEntity, coord, distanceInTiles, directions, Set.of(type), null);
 	}
 
-	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Set<Direction> directions, Set<FindType> types) {
-		return findInLine(null, ignoreEntity, coord, directions, types, null);
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, int distanceInTiles, Set<Direction> directions, Set<FindType> types) {
+		return findInLine(null, ignoreEntity, coord, distanceInTiles, directions, types, null);
 	}
 
-	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Direction direction, FindType type, Set<PassThrough> ignores) {
-		return findInLine(null, ignoreEntity, coord, Set.of(direction), Set.of(type), ignores);
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, int distanceInTiles, Direction direction, FindType type, Set<PassThrough> ignores) {
+		return findInLine(null, ignoreEntity, coord, distanceInTiles, Set.of(direction), Set.of(type), ignores);
 	}
 
-	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Direction direction, Set<FindType> types, Set<PassThrough> ignores) {
-		return findInLine(null, ignoreEntity, coord, Set.of(direction), types, ignores);
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, int distanceInTiles, Direction direction, Set<FindType> types, Set<PassThrough> ignores) {
+		return findInLine(null, ignoreEntity, coord, distanceInTiles, Set.of(direction), types, ignores);
 	}
 
-	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Set<Direction> directions, FindType type, Set<PassThrough> ignores) {
-		return findInLine(null, ignoreEntity, coord, directions, Set.of(type), ignores);
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, int distanceInTiles, Set<Direction> directions, FindType type, Set<PassThrough> ignores) {
+		return findInLine(null, ignoreEntity, coord, distanceInTiles, directions, Set.of(type), ignores);
 	}
 
-	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, Set<Direction> directions, Set<FindType> types, Set<PassThrough> ignores) {
-		return findInLine(null, ignoreEntity, coord, directions, types, ignores);
+	public static TileCoord findInLine(Entity ignoreEntity, TileCoord coord, int distanceInTiles, Set<Direction> directions, Set<FindType> types, Set<PassThrough> ignores) {
+		return findInLine(null, ignoreEntity, coord, distanceInTiles, directions, types, ignores);
 	}
 
-	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Direction direction, FindType type) {
-		return findInLine(entity, ignoreEntity, coord, Set.of(direction), Set.of(type), null);
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, int distanceInTiles, Direction direction, FindType type) {
+		return findInLine(entity, ignoreEntity, coord, distanceInTiles, Set.of(direction), Set.of(type), null);
 	}
 
-	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Direction direction, Set<FindType> types) {
-		return findInLine(entity, ignoreEntity, coord, Set.of(direction), types, null);
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, int distanceInTiles, Direction direction, Set<FindType> types) {
+		return findInLine(entity, ignoreEntity, coord, distanceInTiles, Set.of(direction), types, null);
 	}
 
-	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Set<Direction> directions, FindType type) {
-		return findInLine(entity, ignoreEntity, coord, directions, Set.of(type), null);
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, int distanceInTiles, Set<Direction> directions, FindType type) {
+		return findInLine(entity, ignoreEntity, coord, distanceInTiles, directions, Set.of(type), null);
 	}
 
-	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Set<Direction> directions, Set<FindType> types) {
-		return findInLine(entity, ignoreEntity, coord, directions, types, null);
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, int distanceInTiles, Set<Direction> directions, Set<FindType> types) {
+		return findInLine(entity, ignoreEntity, coord, distanceInTiles, directions, types, null);
 	}
 
-	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Direction direction, FindType type, Set<PassThrough> ignores) {
-		return findInLine(entity, ignoreEntity, coord, Set.of(direction), Set.of(type), ignores);
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, int distanceInTiles, Direction direction, FindType type, Set<PassThrough> ignores) {
+		return findInLine(entity, ignoreEntity, coord, distanceInTiles, Set.of(direction), Set.of(type), ignores);
 	}
 
-	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Direction direction, Set<FindType> types, Set<PassThrough> ignores) {
-		return findInLine(entity, ignoreEntity, coord, Set.of(direction), types, ignores);
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, int distanceInTiles, Direction direction, Set<FindType> types, Set<PassThrough> ignores) {
+		return findInLine(entity, ignoreEntity, coord, distanceInTiles, Set.of(direction), types, ignores);
 	}
 
-	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Set<Direction> directions, FindType type, Set<PassThrough> ignores) {
-		return findInLine(entity, ignoreEntity, coord, directions, Set.of(type), ignores);
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, int distanceInTiles, Set<Direction> directions, FindType type, Set<PassThrough> ignores) {
+		return findInLine(entity, ignoreEntity, coord, distanceInTiles, directions, Set.of(type), ignores);
 	}
 
-	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, Set<Direction> directions, Set<FindType> types, Set<PassThrough> ignores) {
-		for (Direction dir : directions)
-			for (TileCoord c = coord.getNewInstance().incCoordsByDirection(dir); MapSet.haveTilesOnCoord(c); c.incCoordsByDirection(dir)) {
+	public static TileCoord findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, int distanceInTiles, Set<Direction> directions, Set<FindType> types, Set<PassThrough> ignores) {
+		for (Direction dir : directions) {
+			int distance = distanceInTiles;
+			out:
+			for (TileCoord c = coord.getNewInstance().incCoordsByDirection(dir); distance-- > 0 && MapSet.haveTilesOnCoord(c); c.incCoordsByDirection(dir)) {
 				if (!MapSet.tileIsFree(c, ignores)) {
-					if ((types.contains(FindType.BOMB) && Bomb.haveBombAt(entity, c)) || (types.contains(FindType.BRICK) && Brick.haveBrickAt(c)) || (types.contains(FindType.ITEM) && Item.haveItemAt(c)) || (types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, Monster.class)) || (types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, BomberMan.class)))
-						return c;
-					return null;
+					if ((types.contains(FindType.BOMB) && Bomb.haveBombAt(entity, c)) ||
+							(types.contains(FindType.BRICK) && Brick.haveBrickAt(c)) ||
+							(types.contains(FindType.ITEM) && Item.haveItemAt(c)) ||
+							(types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, Monster.class)) ||
+							(types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, BomberMan.class)))
+								return c;
+					continue out;
 				}
-				else if (types.contains(FindType.EMPTY) || (types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof Monster) || (types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof BomberMan))
-					return c;
+				else if (types.contains(FindType.EMPTY) ||
+						(types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof Monster) ||
+						(types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof BomberMan))
+							return c;
 			}
+		}
 		return null;
 	}
 
@@ -207,28 +216,30 @@ public abstract class Tools {
 	public static TileCoord findInRect(Entity entity, TileCoord coord, Entity ignoreEntity, FindInRectType findType, int radiusInTiles, Set<FindType> types, Set<PassThrough> ignores) {
 		radiusInTiles--;
 		TileCoord coord2 = new TileCoord();
-		for (int y = coord.getY() - radiusInTiles; y <= coord.getY() + radiusInTiles; y++)
-			for (int x = coord.getX() - radiusInTiles; x <= coord.getX() + radiusInTiles; x++) {
-				int dx = x - coord.getX();
-				int dy = y - coord.getY();
-				if (findType == null || findType == FindInRectType.RECTANGLE_AREA || (dx * dx) / (radiusInTiles * radiusInTiles) + (dy * dy) / (radiusInTiles * radiusInTiles) <= 1) {
-					coord2.setCoords(x, y);
-					boolean found = false;
-					if (!MapSet.tileIsFree(coord2, ignores)) {
-						if ((types.contains(FindType.BOMB) && Bomb.haveBombAt(entity, coord2)) || (types.contains(FindType.BRICK) && Brick.haveBrickAt(coord2)) || (types.contains(FindType.ITEM) && Item.haveItemAt(coord2)) || (types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, Monster.class)) || (types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, BomberMan.class)))
-							found = true;
-					}
-					else if (types.contains(FindType.EMPTY) || (types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof Monster) || (types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof BomberMan))
-						found = true;
-					if (found) {
-						Function<TileCoord, Boolean> tileIsFree = t -> {
-							return MapSet.tileIsFree(t, ignores) || t.equals(coord) || t.equals(coord2);
-						};
-						PathFinder pf = new PathFinder(coord, coord2, Direction.DOWN, tileIsFree);
-						if (pf.pathWasFound())
-							return coord2;
-					}
-				}
+		for (int radius = 1; radius <= radiusInTiles; radius++)
+			for (int y = coord.getY() - radius; y <= coord.getY() + radius; y++)
+				for (int x = coord.getX() - radius; x <= coord.getX() + radius; x++)
+					if (x == coord.getX() - radius || x == coord.getX() + radius ||
+							y == coord.getY() - radius || y == coord.getY() + radius) {
+									int dx = x - coord.getX(), dy = y - coord.getY();
+									if (findType == null || findType == FindInRectType.RECTANGLE_AREA || (dx * dx) / (radiusInTiles * radiusInTiles) + (dy * dy) / (radiusInTiles * radiusInTiles) <= 1) {
+										coord2.setCoords(x, y);
+										boolean found = false;
+										if (!MapSet.tileIsFree(coord2, ignores)) {
+											if ((types.contains(FindType.BOMB) && Bomb.haveBombAt(entity, coord2)) || (types.contains(FindType.BRICK) && Brick.haveBrickAt(coord2)) || (types.contains(FindType.ITEM) && Item.haveItemAt(coord2)) || (types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, Monster.class)) || (types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, BomberMan.class)))
+												found = true;
+										}
+										else if (types.contains(FindType.EMPTY) || (types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof Monster) || (types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof BomberMan))
+											found = true;
+										if (found) {
+											Function<TileCoord, Boolean> tileIsFree = t -> {
+												return MapSet.tileIsFree(t, ignores) || t.equals(coord) || t.equals(coord2);
+											};
+											PathFinder pf = new PathFinder(coord, coord2, Direction.DOWN, tileIsFree);
+											if (pf.pathWasFound())
+												return coord2;
+										}
+									}
 			}
 		return null;
 	}
@@ -238,8 +249,8 @@ public abstract class Tools {
 	}
 
 	public static TileCoord getRandomFreeTileCoordAround(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
-		Direction dir = getRandomFreeDirection(entity, coord, passThrough);
-		return dir == null ? null : coord.getNewInstance().incCoordsByDirection(dir);
+		List<TileCoord> dirs = getFreeTileCoordsAround(entity, coord, passThrough);
+		return dirs == null ? null : CollectionUtils.getRandomItemFromList(dirs);
 	}
 
 	public static Direction getRandomFreeDirection(Entity entity, TileCoord coord) {
@@ -247,21 +258,28 @@ public abstract class Tools {
 	}
 
 	public static Direction getRandomFreeDirection(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
+		List<Direction> dirs = getFreeDirections(entity, coord, passThrough);
+		return dirs == null ? null : CollectionUtils.getRandomItemFromList(dirs);
+	}
+
+	public static List<Direction> getFreeDirections(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
 		List<Direction> dirs = new ArrayList<>(Arrays.asList(Direction.LEFT, Direction.UP, Direction.RIGHT, Direction.DOWN));
-		TileCoord coord2 = null;
-		Direction dir = null;
-		do {
-			int n = (int) MyMath.getRandom(0, dirs.size() - 1);
-			dir = dirs.get(n);
-			coord2 = coord.getNewInstance().incCoordsByDirection(dir);
-			if (dirs.isEmpty()) {
-				dir = null;
-				break;
-			}
-			dirs.remove(n);
+		List<Direction> freeDirs = new ArrayList<>();
+		for (Direction dir : dirs)
+			if (MapSet.tileIsFree(entity, coord.getNewInstance().incCoordsByDirection(dir), passThrough))
+				freeDirs.add(dir);
+		return freeDirs.isEmpty() ? null : freeDirs;
+	}
+
+	public static List<TileCoord> getFreeTileCoordsAround(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
+		List<Direction> dirs = new ArrayList<>(Arrays.asList(Direction.LEFT, Direction.UP, Direction.RIGHT, Direction.DOWN));
+		List<TileCoord> freeTileCoords = new ArrayList<>();
+		for (Direction dir : dirs) {
+			TileCoord coord2 = coord.getNewInstance().incCoordsByDirection(dir);
+			if (MapSet.tileIsFree(entity, coord2, passThrough))
+				freeTileCoords.add(coord2);
 		}
-		while (!MapSet.tileIsFree(entity, coord2, passThrough));
-		return dir;
+		return freeTileCoords.isEmpty() ? null : freeTileCoords;
 	}
 
 }

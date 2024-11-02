@@ -55,6 +55,7 @@ public class Entity extends Position {
 	private String currentFrameSetName;
 	private Entity linkedEntityFront;
 	private Entity linkedEntityBack;
+	private Entity focusedOn;
 	private Entity holder; // Entity que está segurando o objeto
 	private Entity holding; // Objeto que a entity está segurando
 	private long holdingCTime; // Momento em que a entity segurou o objeto
@@ -127,6 +128,7 @@ public class Entity extends Position {
 		holder = null;
 		holderDesloc = null;
 		pathFinder = null;
+		focusedOn = null;
 		curseDuration = 0;
 		currentHeight = 0;
 	}
@@ -155,6 +157,7 @@ public class Entity extends Position {
 		shake = null;
 		jumpMove = null;
 		gotoMove = null;
+		focusedOn = null;
 		this.direction = direction;
 		speed = 0;
 		pushing = 0;
@@ -188,6 +191,14 @@ public class Entity extends Position {
 	
 	public int getHeight() {
 		return currentHeight;
+	}
+
+	public Entity getFocusedOn() {
+		return focusedOn;
+	}
+
+	public void setFocusedOn(Entity focusedOn) {
+		this.focusedOn = focusedOn;
 	}
 
 	public PathFinder getPathFinder() {

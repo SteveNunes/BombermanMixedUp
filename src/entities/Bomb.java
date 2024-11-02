@@ -22,6 +22,7 @@ import pathfinder.PathFinderOptmize;
 import tools.GameConfigs;
 import tools.Sound;
 import tools.Tools;
+import util.CollectionUtils;
 import util.MyMath;
 
 public class Bomb extends Entity {
@@ -67,7 +68,7 @@ public class Bomb extends Entity {
 		this.type = type;
 		this.fireDistance = fireDistance;
 		this.owner = owner;
-		timer = type == BombType.REMOTE || type == BombType.SPIKED_REMOTE ? -1 : 180;
+		timer = type == BombType.SENSOR || type == BombType.REMOTE || type == BombType.SPIKED_REMOTE ? -1 : 180;
 		int ticksPerFrame = type == BombType.LAND_MINE ? 3 : 16;
 		ownerIsOver = owner != null && owner.getTileCoordFromCenter().equals(coord);
 		if (owner != null) {
@@ -190,8 +191,9 @@ public class Bomb extends Entity {
 				bomb.run();
 				if (bomb.currentFrameSetNameIsEqual("LandedFrames") && Entity.haveAnyEntityAtCoord(bomb.getTileCoordFromCenter()))
 					bomb.setFrameSet("UnlandingFrames");
-				else if (MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
-					bomb.detonate();
+				else if (MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB) ||
+								MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.EXPLOSION))
+									bomb.detonate();
 				continue;
 			}
 			if (bomb.ownerIsOver(bomb.owner)) {
@@ -199,10 +201,12 @@ public class Bomb extends Entity {
 				if (x <= xx - Main.TILE_SIZE / 2 || x >= xx + Main.TILE_SIZE / 2 || y <= yy - Main.TILE_SIZE / 2 || y >= yy + Main.TILE_SIZE / 2)
 					bomb.ownerIsOver = false;
 			}
-			if (bomb.type != BombType.REMOTE && bomb.type != BombType.SPIKED_REMOTE && !bomb.isBlockedMovement())
+			if (bomb.getTimer() != -1 && !bomb.isBlockedMovement())
 				bomb.decTimer();
-			if ((bomb.getTimer() == -1 || bomb.getTimer() > 0) && !bomb.isBlockedMovement() && MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB))
-				bomb.setTimer(0);
+			if ((bomb.getTimer() == -1 || bomb.getTimer() > 0) && !bomb.isBlockedMovement() &&
+					(MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB) ||
+					 MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.EXPLOSION)))
+							bomb.setTimer(0);
 			if (bomb.getTimer() == 0)
 				bomb.detonate();
 			else
@@ -247,7 +251,22 @@ public class Bomb extends Entity {
 		centerToTile();
 		unsetPushEntity();
 		Sound.playWav("explosion/Explosion" + (nesBomb ? "" : fireDistance < 3 ? "1" : (int) (fireDistance / 3)));
-		Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, getBombType().getValue(), type == BombType.SPIKED || type == BombType.SPIKED_REMOTE);
+		if (getBombType() != BombType.MAGMA)
+			Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, getBombType().getValue(), type == BombType.SPIKED || type == BombType.SPIKED_REMOTE);
+		else {
+			int range = fireDistance / 2;
+			TileCoord coord = new TileCoord();
+			for (int y = getTileCoordFromCenter().getY() - range; y <= getTileCoordFromCenter().getY() + range; y++)
+				for (int x = getTileCoordFromCenter().getX() - range; x <= getTileCoordFromCenter().getX() + range; x++) {
+					int dx = x - getTileCoordFromCenter().getX();
+					int dy = y - getTileCoordFromCenter().getY();
+					if ((dx * dx) / (range * range) + (dy * dy) / (range * range) <= 1) {
+						coord.setCoords(x, y);
+						if (MapSet.haveTilesOnCoord(coord))
+							Explosion.addExplosion(this, coord, 1, getBombType().getValue(), true).setPassThroughAny(true);
+					}
+				}
+		}
 		removeBomb(this);
 	}
 
@@ -292,6 +311,31 @@ public class Bomb extends Entity {
 				}
 			}
 		}
+		else if (getBombType() == BombType.MAGNET && !isBlockedMovement() && getFocusedOn() == null) {
+			TileCoord coord = Tools.findInLine(this, owner, getTileCoordFromCenter(), 5, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
+			if (coord != null) {
+				Direction dir = getTileCoordFromCenter().get4wayDirectionToReach(coord);
+				if (!getTileCoordFromCenter().getNewInstance().incCoordsByDirection(dir).equals(coord)) {
+					setFocusedOn(Entity.getFirstEntityFromCoord(coord));
+					kick(dir, 4, "MagnetBomb", "BombSlam");
+				}
+			}
+		}
+		else if (getBombType() == BombType.HEART && !isBlockedMovement() && isPerfectTileCentred()) {
+			List<Direction> dirs = Tools.getFreeDirections(owner, getTileCoordFromCenter(), null);
+			Direction dir = Tools.getRandomFreeDirection(owner, getTileCoordFromCenter());
+			while (dirs != null && dirs.size() > 1 && dir == getDirection().getReverseDirection())
+				dir = CollectionUtils.getRandomItemFromList(dirs);
+			if (dirs != null) {
+				setDirection(dir);
+				setSpeed(0.5);
+			}
+		}
+		else if (getBombType() == BombType.SENSOR && !isBlockedMovement()) {
+			TileCoord coord = Tools.findInLine(this, owner, getTileCoordFromCenter(), 2, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
+			if (coord != null)
+				detonate();
+		}
 		super.run(gc, isPaused);
 		if (!isBlockedMovement() && tileWasChanged() && isActive()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
@@ -327,9 +371,10 @@ public class Bomb extends Entity {
 	}
 
 	public void kick(Direction direction, double speed, String kickSound, String slamSound) {
-		if (getPushEntity() == null && MapSet.tileIsFree(getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction))) {
+		if (getPushEntity() == null) {
 			bombs.remove(getTileCoordFromCenter());
-			Sound.playWav(kickSound);
+			if (kickSound != null)
+				Sound.playWav(kickSound);
 			entities.PushEntity pushEntity = new entities.PushEntity(this, speed, direction);
 			pushEntity.setOnColideEvent(e -> {
 				if (getBombType() == BombType.RUBBER) {
@@ -344,10 +389,26 @@ public class Bomb extends Entity {
 						unsetGhosting();
 				}
 				else {
-					Sound.playWav(slamSound);
+					if (slamSound != null)
+						Sound.playWav(slamSound);
 					setShake(2d, -0.05, 0d);
 					unsetGhosting();
 					bombs.put(getTileCoordFromCenter(), this);
+				}
+				TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction);
+				if (haveBombAt(coord)) {
+					Bomb bomb = Bomb.getBombAt(coord);
+					if (bomb.getShake() != null && (getBombType() == BombType.RUBBER || bomb.getBombType() == BombType.RUBBER || owner != bomb.owner)) {
+						isActive = false;
+						bomb.isActive = false;
+						int distance = (fireDistance + bomb.fireDistance) / 2;
+						Bomb.removeBomb(bomb);
+						Bomb.removeBomb(this);
+						Bomb.addBomb(coord, BombType.MAGMA, distance);
+						return;
+					}
+					else
+						bomb.kick(direction, speed, kickSound, slamSound);
 				}
 			});
 			setPushEntity(pushEntity);
@@ -395,7 +456,6 @@ public class Bomb extends Entity {
 		Sound.playWav(getBombType() == BombType.RUBBER ? "BombBounce" : "BombHittingGround");
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		bombs.put(coord, this);
-		System.out.println("PAROU EM " + coord);
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
 	}

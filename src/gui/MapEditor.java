@@ -1453,7 +1453,7 @@ public class MapEditor {
 				Color color;
 				if (!ok.contains(tile.getTileCoord())) {
 					List<TileProp> tileProps = MapSet.getTileProps(tile.getTileCoord());
-					if (tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
+					if (tileProps.contains(TileProp.EXPLOSION) || tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
 						color = Color.INDIANRED;
 					else if (tileProps.contains(TileProp.MAX_SCREEN_TILE_LIMITER))
 						color = Color.LIGHTGRAY;

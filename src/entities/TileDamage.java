@@ -56,7 +56,7 @@ public class TileDamage {
 
 	public void setDamageToAllExcept(TileProp... execeptionProps) {
 		List<TileProp> exceptions = Arrays.asList(execeptionProps);
-		for (TileProp prop : Arrays.asList(TileProp.DAMAGE_BOMB, TileProp.DAMAGE_BRICK, TileProp.DAMAGE_ENEMY, TileProp.DAMAGE_ITEM, TileProp.DAMAGE_PLAYER))
+		for (TileProp prop : Arrays.asList(TileProp.EXPLOSION, TileProp.DAMAGE_BOMB, TileProp.DAMAGE_BRICK, TileProp.DAMAGE_ENEMY, TileProp.DAMAGE_ITEM, TileProp.DAMAGE_PLAYER))
 			if (!exceptions.contains(prop))
 				layer.addTileProp(coord, prop);
 	}

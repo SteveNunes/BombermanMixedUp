@@ -150,8 +150,9 @@ public class Brick extends Entity {
 		for (Brick brick : tempBricks) {
 			String cFSet = brick.getCurrentFrameSetName();
 			if (!cFSet.equals("BrickBreakFrameSet")) {
-				if (MapSet.tileContainsProp(brick.getTileCoordFromCenter(), TileProp.DAMAGE_BRICK))
-					brick.breakIt();
+				if (MapSet.tileContainsProp(brick.getTileCoordFromCenter(), TileProp.DAMAGE_BRICK) ||
+						MapSet.tileContainsProp(brick.getTileCoordFromCenter(), TileProp.EXPLOSION))
+							brick.breakIt();
 				else if (cFSet.equals("BrickRegenFrameSet") && !brick.getCurrentFrameSet().isRunning()) {
 					brick.setFrameSet("BrickStandFrameSet");
 					brick.setBrickShadow();
@@ -234,6 +235,9 @@ public class Brick extends Entity {
 				setShake(2d, -0.05, 0d);
 				unsetGhosting();
 				bricks.put(getTileCoordFromCenter(), this);
+				TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction);
+				if (haveBrickAt(coord))
+					Brick.getBrickAt(coord).kick(direction, speed, kickSound, slamSound);
 			});
 			setPushEntity(pushEntity);
 			setGhosting(2, 0.2);
