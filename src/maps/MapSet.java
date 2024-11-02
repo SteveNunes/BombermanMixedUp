@@ -58,7 +58,8 @@ public abstract class MapSet {
 	private static Position groundWithBrickShadow;
 	private static Position groundWithWallShadow;
 	private static Position mapMove;
-	private static Position mapLimit;
+	private static Position mapMinLimit;
+	private static Position mapMaxLimit;
 	public static Map<String, FrameSet> runningStageTags;
 	private static Map<String, FrameSet> preLoadedStageTags;
 	private static int bricksRegenTimeInFrames;
@@ -83,14 +84,19 @@ public abstract class MapSet {
 		runningStageTags = new HashMap<>();
 		preLoadedStageTags = new HashMap<>();
 		mapMove = new Position();
-		mapLimit = new Position();
+		mapMinLimit = new Position();
+		mapMaxLimit = new Position();
 		mapName = IniFiles.stages.read(iniMapName, "File");
 		iniFileMap = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
 		shake = null;
 		if (iniFileMap == null)
 			throw new RuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
-		setTileSet(iniFileMap.read("SETUP", "TileSet"));
+		if (iniFileMap.read("SETUP", "TileSet") == null)
+			throw new RuntimeException("Unable to find \"TileSet\" item at \"SETUP\" section from \"" + iniFileMap.fileName() + "\"");
+		setTileSet(iniFileMap.getLastReadVal());
 		Map<Integer, List<String>> tileInfos = new HashMap<>();
+		if (iniFileMap.read("SETUP", "CopyImageLayer") == null)
+			throw new RuntimeException("Unable to find \"CopyImageLayer\" item at \"SETUP\" section from \"" + iniFileMap.fileName() + "\"");
 		copyImageLayerIndex = iniFileMap.readAsInteger("SETUP", "CopyImageLayer", null);
 		if (iniFileMap.read("SETUP", "BrickRegenTimer") != null)
 			MapSet.setBricksRegenTime(Integer.parseInt(iniFileMap.getLastReadVal()));
@@ -104,6 +110,8 @@ public abstract class MapSet {
 		}
 		else
 			leftStageClearCriterias = null;
+		if (!iniFileMap.isSection("TILES"))
+			throw new RuntimeException("Unable to find \"TILES\" section from \"" + iniFileMap.fileName() + "\"");
 		iniFileMap.getItemList("TILES").forEach(item -> {
 			int layerIndex = Integer.parseInt(iniFileMap.read("TILES", item).split(" ")[0]);
 			if (!tileInfos.containsKey(layerIndex))
@@ -234,12 +242,20 @@ public abstract class MapSet {
 		}
 	}
 
-	public static Position getMapLimit() {
-		return mapLimit;
+	public static Position getMapMinLimit() {
+		return mapMinLimit;
 	}
 
-	public static void setMapLimit(int x, int y) {
-		mapLimit.setPosition(x, y);
+	public static void setMapMinLimit(int x, int y) {
+		mapMinLimit.setPosition(x, y);
+	}
+
+	public static Position getMapMaxLimit() {
+		return mapMaxLimit;
+	}
+
+	public static void setMapMaxLimit(int x, int y) {
+		mapMaxLimit.setPosition(x, y);
 	}
 
 	public static List<StageClearCriteria> getStageClearCriterias() {
@@ -646,19 +662,21 @@ public abstract class MapSet {
 	public static boolean tileIsFree(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
 		if (!haveTilesOnCoord(coord))
 			return false;
+		if (getTileProps(coord) == null)
+			return true;
 		Entity en = Entity.haveAnyEntityAtCoord(coord) ? Entity.getFirstEntityFromCoord(coord) : null;
-		if (getTileProps(coord) != null)
-			for (TileProp prop : getTileProps(coord))
-				if (TileProp.getCantCrossList(Elevation.ON_GROUND).contains(prop) ||
-						((prop == TileProp.HOLE || prop == TileProp.GROUND_HOLE || prop == TileProp.DEEP_HOLE) && (passThrough == null || !passThrough.contains(PassThrough.HOLE))) ||
-						((prop == TileProp.WALL || prop == TileProp.HIGH_WALL) && (passThrough == null || !passThrough.contains(PassThrough.WALL))) ||
-						((prop == TileProp.WATER || prop == TileProp.DEEP_WATER) && (passThrough == null || !passThrough.contains(PassThrough.WATER))) ||
-						(en != null && en instanceof BomberMan && passThrough != null && !passThrough.contains(PassThrough.PLAYER)) ||
-						(en != null && en instanceof Monster && passThrough != null && !passThrough.contains(PassThrough.MONSTER)) ||
-						(Item.haveItemAt(coord) && passThrough != null && !passThrough.contains(PassThrough.ITEM)) ||
-						(Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
-						(Bomb.haveBombAt(entity, coord) && Bomb.getBombAt(coord).getBombType() != BombType.LAND_MINE && (passThrough == null || !passThrough.contains(PassThrough.BOMB))))
-							return false;
+		for (TileProp prop : getTileProps(coord))
+			if ((entity == null || entity.getElevation() == Elevation.ON_GROUND) &&
+					(((prop == TileProp.HOLE || prop == TileProp.GROUND_HOLE || prop == TileProp.DEEP_HOLE) && (passThrough == null || !passThrough.contains(PassThrough.HOLE))) ||
+					(prop == TileProp.WALL && (passThrough == null || !passThrough.contains(PassThrough.WALL))) ||
+					((prop == TileProp.WATER || prop == TileProp.DEEP_WATER) && (passThrough == null || !passThrough.contains(PassThrough.WATER))) ||
+					((en != null && en instanceof BomberMan && passThrough != null && !passThrough.contains(PassThrough.PLAYER)) ||
+					(en != null && en instanceof Monster && passThrough != null && !passThrough.contains(PassThrough.MONSTER)) ||
+					(Item.haveItemAt(coord) && passThrough != null && !passThrough.contains(PassThrough.ITEM)) ||
+					(Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
+					(Bomb.haveBombAt(entity, coord) && Bomb.getBombAt(coord).getBombType() != BombType.LAND_MINE && (passThrough == null || !passThrough.contains(PassThrough.BOMB))) ||
+					TileProp.getCantCrossList(entity == null ? Elevation.ON_GROUND : entity.getElevation()).contains(prop))))
+						return false;
 		return true;
 	}
 

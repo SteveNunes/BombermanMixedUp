@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import application.Main;
 import background_effects.BackgroundEffect;
 import drawimage_stuffs.DrawImageEffects;
 import enums.DrawType;
@@ -20,6 +21,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import light_spot_effects.ColoredLightSpot;
 import light_spot_effects.LightSpot;
+import maps.MapSet;
 import screen_pos_effects.TintScreen;
 import screen_pos_effects.WavingImage;
 
@@ -91,7 +93,7 @@ public abstract class Draw {
 				for (DrawParams dp : draws) {
 					if (backgroundEffect != null && layerType == SpriteLayerType.BACKGROUND)
 						backgroundEffect.apply(getTempCanvas());
-					dp.draw(gcTemp);
+					dp.draw(gcTemp, -offsetX / zoom, -offsetY / zoom, (int)canvas.getWidth() / zoom, (int)canvas.getHeight() / zoom);
 					if (!dp.isGhosting())
 						drawParamsList.get(layerType).remove(dp);
 				}
@@ -100,9 +102,17 @@ public abstract class Draw {
 		LightSpot.setMultipleLightSpots(gcTemp);
 		LightSpot.setMultipleLightSpotsInDarkness(gcTemp);
 		ColoredLightSpot.setMultipleColoredLightSpots(gcTemp);
-		WritableImage i = wavingImage != null ? wavingImage.apply(getTempCanvasSnapshot()) : getTempCanvasSnapshot();
+		int minX = (int)MapSet.getMapMinLimit().getX(), minY = (int)MapSet.getMapMinLimit().getY(),
+				maxX = (int)MapSet.getMapMaxLimit().getX(), maxY = (int)MapSet.getMapMaxLimit().getY();
+		gcTemp.setFill(Color.RED);
+		gcTemp.fillRect(minX - Main.TILE_SIZE * 2, minY - Main.TILE_SIZE * 2, Main.TILE_SIZE * 3, maxY + Main.TILE_SIZE);
+		gcTemp.fillRect(minX - Main.TILE_SIZE * 2, minY - Main.TILE_SIZE * 2, maxX + Main.TILE_SIZE, Main.TILE_SIZE * 3);
+		gcTemp.fillRect(maxX, minY - Main.TILE_SIZE * 2, Main.TILE_SIZE * 3, maxY + Main.TILE_SIZE * 3);
+		gcTemp.fillRect(minX - Main.TILE_SIZE * 2, maxY, maxX + Main.TILE_SIZE * 3, Main.TILE_SIZE * 3);
+		WritableImage i = getTempCanvasSnapshot((int)-offsetX / zoom, (int)-offsetY / zoom, (int)canvas.getWidth() / zoom, (int)canvas.getHeight() / zoom);
+		i = wavingImage != null ? wavingImage.apply(i) : i;
 		Canvas c = getTempCanvas();
-		gc.drawImage(i, 0, 0, c.getWidth(), c.getHeight(), offsetX, offsetY, c.getWidth() * zoom, c.getHeight() * zoom);
+		gc.drawImage(i, 0, 0, c.getWidth(), c.getHeight(), 0, 0, c.getWidth() * zoom, c.getHeight() * zoom);
 		ColoredLightSpot.clearTempColoredLightSpots();
 		LightSpot.clearTempLightSpots();
 		pixelizeCanvas(canvas, pixelSize);
@@ -186,7 +196,7 @@ public abstract class Draw {
 	}
 
 	public static WritableImage getCanvasSnapshot(Canvas canvas, int x, int y, int w, int h) {
-		return getCanvasSnapshot(canvas, 0, 0, w, h, null);
+		return getCanvasSnapshot(canvas, x, y, w, h, null);
 	}
 
 	public static WritableImage getCanvasSnapshot(Canvas canvas, int x, int y, int w, int h, WritableImage outputImage) {

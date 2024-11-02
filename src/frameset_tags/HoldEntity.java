@@ -27,7 +27,7 @@ public class HoldEntity extends FrameTag {
 	public void process(Sprite sprite) {
 		Entity entity = sprite.getSourceEntity();
 		for (Entity en : Entity.getEntityListFromCoord(entity.getTileCoordFromCenter())) {
-			if (en != entity && !entity.isBlockedMovement()) {
+			if (en != entity && !en.isBlockedMovement()) {
 				entity.setHoldingEntity(en);
 				return;
 			}

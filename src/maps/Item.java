@@ -10,6 +10,7 @@ import entities.Effect;
 import entities.Entity;
 import enums.Curse;
 import enums.Direction;
+import enums.Elevation;
 import enums.ItemType;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
@@ -64,12 +65,9 @@ public class Item extends Entity {
 		this.itemType = itemType;
 		startInvFrames = 10;
 		int itemIndex = itemType.getValue() - 1;
-		String itemStandFrameSet = "{SetSprSource;ItemEdge;0;0;18;18;0;0;0;0;18;18},{SetEntityShadow;0;0;18;4;0.5},{SetTicksPerFrame;1},{SetSprIndex;0},{SetOutputSprPos;-2;-13},{SetJumpMove;1;1.1;50},{SetSprFrontValue;1},,{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{SetOutputSprPos;-1;-12},{SetSprFrontValue;1}|{SetSprIndex;1},{SetEntityShadow;0;0;16;3;0.35},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;2},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;0},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{Goto;-3;2}|{},,{SetSprIndex;85}|{SetSprIndex;1},{SetEntityShadow;0;0;14;2;0.2},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{SetSprIndex;2},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}"
-		    + "|{SetSprIndex;0},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{Goto;-3;2}|{SetSprIndex;1},{SetEntityShadow;0;0;16;3;0.35},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;2},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;0},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{Goto;-3;2}|{},,{SetSprIndex;" + itemIndex + "}|{SetSprIndex;1},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{SetSprIndex;2},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{SetSprIndex;0},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{Goto;-3;2}|{SetTicksPerFrame;5},{SetEntityShadow;0;0;16;3;0.5}"
-		    + "|{SetSprIndex;1},{IncOutputSprY;1},,{IncOutputSprY;1}|{SetSprIndex;2}|{SetEntityShadow;0;0;18;4;0.65}|{SetSprIndex;0}|{Goto;-4;1}|{SetSprIndex;1},{IncOutputSprY;1},,{IncOutputSprY;1}|{SetSprIndex;2}|{SetEntityShadow;0;0;18;4;0.8}|{SetSprIndex;0}|{Goto;-4;1}|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{SetEntityShadow;0;0;18;4;0.65}|{SetSprIndex;0}|{Goto;-4;1}|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{SetEntityShadow;0;0;16;3;0.5}|{SetSprIndex;0}|{Goto;-4;1}|{Goto;0}";
+		String itemStandFrameSet = "{SetSprSource;ItemEdge;0;0;18;18;0;0;0;0;18;18},{SetEntityShadow;0;0;18;4;0},{SetTicksPerFrame;1},{SetSprIndex;0},{SetOutputSprPos;-2;-13},{SetJumpMove;1;1.1;50},{SetSprFrontValue;1},,{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{SetOutputSprPos;-1;-12},{SetSprFrontValue;1}|{SetSprIndex;1},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;2},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;0},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{Goto;-3;2}|{},,{SetSprIndex;85}|{SetSprIndex;1},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{SetSprIndex;2},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{SetSprIndex;0},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{Goto;-3;2}|{SetSprIndex;1},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;2},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;0},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{Goto;-3;2}|{},,{SetSprIndex;" + itemIndex + "}|{SetSprIndex;1},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{SetSprIndex;2},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{SetSprIndex;0},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{Goto;-3;2}|{SetTicksPerFrame;5}|{SetSprIndex;1},{IncOutputSprY;1},,{IncOutputSprY;1}|{SetSprIndex;2}|{}|{SetSprIndex;0}|{Goto;-4;1}|{SetSprIndex;1},{IncOutputSprY;1},,{IncOutputSprY;1}|{SetSprIndex;2}|{}|{SetSprIndex;0}|{Goto;-4;1}|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{}|{SetSprIndex;0}|{Goto;-4;1}|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{}|{SetSprIndex;0}|{Goto;-4;1}|{Goto;0}";
 		addNewFrameSetFromString("ItemStandFrameSet", itemStandFrameSet);
-		String itemJumpingFrameSet = "{SetSprSource;MainSprites;1280;16;16;16;0;0;0;0;16;16},{SetEntityShadow;0;0;18;4;0.5},{SetTicksPerFrame;2},{SetSprIndex;0},{IncSprFrontValue;2}"
-		    + "|{IncSprIndex;1}|{Goto;-1;3}|{DecSprIndex;1}|{Goto;-1;3}|{Goto;-4}";
+		String itemJumpingFrameSet = "{SetSprSource;MainSprites;1344;16;16;16;0;0;0;0;16;16},{SetEntityShadow;0;0;14;7;0},{SetTicksPerFrame;1},{SetSprIndex;0},{IncSprFrontValue;2},{SetSprAlign;BOTTOM}|{IncOutputSprWidth;-2}|{Goto;-1;7}|{IncOutputSprWidth;2},{SetSprFlip;HORIZONTAL}|{Goto;-1;7}|{IncOutputSprWidth;-2}|{Goto;-1;7}|{IncOutputSprWidth;2},{SetSprFlip;NONE}|{Goto;-1;7}|{Goto;-8}";
 		addNewFrameSetFromString("ItemJumpingFrameSet", itemJumpingFrameSet);
 		setUpItemPickUpFrameSet();
 		setFrameSet("ItemStandFrameSet");
@@ -269,12 +267,12 @@ public class Item extends Entity {
 			onJumpFallAtOccupedTileEvent(jumpMove);
 			return;
 		}
-			
 		Sound.playWav("ItemBounce");
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		items.put(coord, this);
 		setFrameSet("ItemStandFrameSet");
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
+		setElevation(Elevation.ON_GROUND);
 	}
 
 	@Override

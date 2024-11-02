@@ -11,10 +11,8 @@ public enum TileProp {
 	NOTHING(0), // Tiles que não tem função alguma
 	GROUND(1), // Chão normal, qualquer coisa passa por cima
 	GROUND_HOLE(2), // Buraco (Só pode atravessar voando ou pulando, explosão passa por cima)
-	MAX_SCREEN_TILE_LIMITER(3), // Tile que define o limite máximo de tiles do mapa (objetos que passarem X ou Y
-	                            // desse tile são teleportados para o lado oposto da tela. Também serve para
-	                            // limitar o scroll da tela em mapas que tem conteudos fora da tela, como
-	                            // plataformas flutuantes
+	MIN_SCREEN_TILE_LIMITER(3), // Tile que define o limite minimo da tela (coloque apenas 1 no tile limite esquerdo superior do mapa)
+	MAX_SCREEN_TILE_LIMITER(4), // Tile que define o limite maximo da tela (coloque apenas 1 no tile limite direito inferior do mapa)
 	GROUND_NO_PLAYER(5), // Chão normal, que player não passa
 	GROUND_NO_MOB(6), // Chão normal, que mob não passa
 	GROUND_NO_BOMB(7), // Chão normal, que não pode por bomba
@@ -99,9 +97,9 @@ public enum TileProp {
 	@SuppressWarnings("serial")
 	private static Map<Elevation, List<TileProp>> cantCross = new HashMap<>() {
 		{
-			put(Elevation.ON_GROUND, Arrays.asList(MAX_SCREEN_TILE_LIMITER, JUMP_OVER, WALL, HIGH_WALL, HOLE, DEEP_HOLE, WATER, DEEP_WATER, MAP_EDGE, MOVING_BRICK));
-			put(Elevation.FLYING, Arrays.asList(MAX_SCREEN_TILE_LIMITER, JUMP_OVER, WALL, HIGH_WALL, MOVING_BRICK));
-			put(Elevation.HIGH_FLYING, Arrays.asList(MAX_SCREEN_TILE_LIMITER, HIGH_WALL));
+			put(Elevation.ON_GROUND, Arrays.asList(MIN_SCREEN_TILE_LIMITER, MAX_SCREEN_TILE_LIMITER, JUMP_OVER, WALL, HIGH_WALL, HOLE, DEEP_HOLE, WATER, DEEP_WATER, MAP_EDGE, MOVING_BRICK));
+			put(Elevation.FLYING, Arrays.asList(JUMP_OVER, WALL, HIGH_WALL, MOVING_BRICK));
+			put(Elevation.HIGH_FLYING, Arrays.asList(HIGH_WALL));
 		}
 	};
 
@@ -113,7 +111,8 @@ public enum TileProp {
 			put(0, NOTHING);
 			put(1, GROUND);
 			put(2, GROUND_HOLE);
-			put(3, MAX_SCREEN_TILE_LIMITER);
+			put(3, MIN_SCREEN_TILE_LIMITER);
+			put(4, MAX_SCREEN_TILE_LIMITER);
 			put(5, GROUND_NO_PLAYER);
 			put(6, GROUND_NO_MOB);
 			put(7, GROUND_NO_BOMB);

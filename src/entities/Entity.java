@@ -303,6 +303,7 @@ public class Entity extends Position {
 	}
 
 	public JumpMove setJumpMove(double jumpStrenght, double strenghtMultipiler, int durationFrames) {
+		setElevation(Elevation.FLYING);
 		return (jumpMove = new JumpMove(new Position(), getPosition(), jumpStrenght, strenghtMultipiler, durationFrames));
 	}
 
@@ -353,6 +354,7 @@ public class Entity extends Position {
 
 	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {
 		checkOutScreenCoords();
+		setElevation(Elevation.ON_GROUND);
 	}
 
 	public void onJumpFallAtOccupedTileEvent(JumpMove jumpMove) {
@@ -793,7 +795,7 @@ public class Entity extends Position {
 				setTempSpeed(GameConfigs.MAX_PLAYER_SPEED);
 			else if (curse == Curse.INVISIBLE)
 				setVisible(false);
-			else if (curse == Curse.STUNNED) { System.out.println("BBB");
+			else if (curse == Curse.STUNNED) {
 				Effect.runEffect(MapSet.getInitialPlayerPosition(0), "STUN")
 					.setClosingPredicate(this, e -> e.isDead() || e.getCurse() != Curse.STUNNED)
 					.linkTo(this, 0, getHeight());
@@ -848,8 +850,15 @@ public class Entity extends Position {
 				unsetGotoMove();
 				checkOutScreenCoords();
 			}
-			else
+			else {
 				incPosition(gotoMove.getIncrements());
+				boolean[] corners = getFreeCorners();
+				for (boolean b : corners)
+					if (!b) {
+						decPosition(gotoMove.getIncrements());
+						break;
+					}
+			}
 		}
 		if (pushEntity != null) {
 			pushEntity.process();
@@ -879,6 +888,7 @@ public class Entity extends Position {
 			consumerWhenFrameSetEnds.accept(this);
 		if (!(this instanceof Effect))
 			addEntityToList(getTileCoordFromCenter(), this);
+		setHeight((jumpMove == null ? 0 : -((int)jumpMove.getIncrements().getY()) + (int)getCurrentFrameSet().getY()));
 	}
 
 	private void processLinkedEntity() {
@@ -902,8 +912,8 @@ public class Entity extends Position {
 		if (haveShadow()) {
 			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.SAVE);
 			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.SET_FILL, Color.BLACK);
-			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.SET_GLOBAL_ALPHA, shadowOpacity);
-			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.FILL_OVAL, getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight(), getShadowWidth(), getShadowHeight());
+			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.SET_GLOBAL_ALPHA, shadowOpacity != 0 ? shadowOpacity : (double)getShadowHeight() / 5);
+			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.FILL_OVAL, getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight() * 2 + getShadowHeight() * 0.5, getShadowWidth(), getShadowHeight());
 			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.RESTORE);
 		}
 	}
@@ -921,17 +931,19 @@ public class Entity extends Position {
 	}
 
 	public boolean[] getFreeCorners() {
-		return getFreeCorners(getDirection());
+		return getFreeCorners(null);
 	}
 
+	
 	public boolean[] getFreeCorners(Direction direction) {
 		boolean[] freeCorners = new boolean[4];
 		int z = -1;
 		for (Position pos : getCornersPositions()) {
-			pos.incPositionByDirection(direction);
+			if (direction != null)
+				pos.incPositionByDirection(direction);
 			freeCorners[++z] = tileIsFree(pos.getTileCoord());
-			for (int n = 0; freeCorners[z] && n < 3; n++)
-				for (Entity entity : n == 0 ? Brick.getBricks() : n == 1 ? Bomb.getBombs() : Monster.getMonsters())
+			for (int n = 0; n < 3; n++)
+				for (Entity entity : freeCorners[z] && n == 0 ? Brick.getBricks() : n == 1 ? Bomb.getBombs() : Monster.getMonsters())
 					if (entity != this && (n != 0 || !canPassThroughBrick()) && (n != 1 || (!((Bomb) entity).ownerIsOver(this) && !canPassThroughBomb())) && (n != 2 || !canPassThroughMonster())) {
 						int x = (int) pos.getX(), y = (int) pos.getY();
 						int xx = (int) entity.getX(), yy = (int) entity.getY();
@@ -1094,15 +1106,19 @@ public class Entity extends Position {
 	}
 	
 	public void checkOutScreenCoords() {
-		if (getX() < Main.TILE_SIZE / 2)
-			setX(MapSet.getMapLimit().getX() + Main.TILE_SIZE / 2);
-		else if (getX() > MapSet.getMapLimit().getX() + Main.TILE_SIZE / 2) {
-			setX(Main.TILE_SIZE / 2);
+		int minX = (int)MapSet.getMapMinLimit().getX() + Main.TILE_SIZE / 2;
+		int maxX = (int)MapSet.getMapMaxLimit().getX() + Main.TILE_SIZE / 2;
+		int minY = (int)MapSet.getMapMinLimit().getY();
+		int maxY = (int)MapSet.getMapMaxLimit().getY() + Main.TILE_SIZE;
+		if (getX() < minX)
+			setX(maxX);
+		else if (getX() > maxX) {
+			setX(minX);
 		}
-		if (getY() < Main.TILE_SIZE + Main.TILE_SIZE / 2)
-			setY(MapSet.getMapLimit().getY() + Main.TILE_SIZE + Main.TILE_SIZE / 2);
-		else if (getY() > MapSet.getMapLimit().getY() + Main.TILE_SIZE + Main.TILE_SIZE / 2) {
-			setY(Main.TILE_SIZE + Main.TILE_SIZE / 2);
+		if (getY() < minY)
+			setY(maxY);
+		else if (getY() > maxY) {
+			setY(minY);
 		}
 	}
 
@@ -1142,8 +1158,8 @@ public class Entity extends Position {
 	}
 
 	public void setDirection(Direction direction) {
-		if ((direction.isVertical() && getX() >= 0 && getX() <= MapSet.getMapLimit().getX()) ||
-				(direction.isHorizontal() && getY() >= 0 && getY() <= MapSet.getMapLimit().getY()))
+		if ((direction.isVertical() && getX() >= MapSet.getMapMinLimit().getX() && getX() <= MapSet.getMapMaxLimit().getX()) ||
+				(direction.isHorizontal() && getY() >= MapSet.getMapMinLimit().getY() && getY() <= MapSet.getMapMaxLimit().getY()))
 					setDirection(direction, false);
 	}
 
@@ -1224,11 +1240,15 @@ public class Entity extends Position {
 	}
 
 	public int getShadowWidth() {
-		return shadow == null ? 0 : (int) shadow.getWidth();
+		int w = shadow == null ? 0 : (int) shadow.getWidth();
+		int hh = -((int)getCurrentFrameSet().getSprite(0).outputSpriteSizePos.getY()) + getHeight();
+		return w - hh / 5;
 	}
 
 	public int getShadowHeight() {
-		return shadow == null ? 0 : (int) shadow.getHeight();
+		int h = shadow == null ? 0 : (int) shadow.getHeight();
+		int hh = -((int)getCurrentFrameSet().getSprite(0).outputSpriteSizePos.getY()) + getHeight();
+		return h - hh / 5;
 	}
 
 	public float getShadowOpacity() {

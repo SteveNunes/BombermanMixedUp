@@ -10,6 +10,7 @@ import application.Main;
 import enums.BombType;
 import enums.Curse;
 import enums.Direction;
+import enums.Elevation;
 import enums.GameInputs;
 import enums.ItemType;
 import enums.PassThrough;
@@ -26,6 +27,7 @@ import tools.GameConfigs;
 import tools.IniFiles;
 import tools.Sound;
 import util.CollectionUtils;
+import util.Misc;
 import util.MyMath;
 
 public class BomberMan extends Entity {
@@ -128,7 +130,7 @@ public class BomberMan extends Entity {
 		if (input == GameInputs.A) {
 			bombs.sort((b1, b2) -> (int) (b1.getSetTime() - b2.getSetTime()));
 			for (Bomb bomb : bombs)
-				if (bomb.getBombType() == BombType.REMOTE || bomb.getBombType() == BombType.SPIKED_REMOTE) {
+				if (!bomb.isBlockedMovement() && (bomb.getBombType() == BombType.REMOTE || bomb.getBombType() == BombType.SPIKED_REMOTE)) {
 					bomb.detonate();
 					return;
 				}
@@ -328,7 +330,7 @@ public class BomberMan extends Entity {
 			if (bomb != null) {
 				bombs.add(bomb);
 				Sound.playWav(this, setBombSound);
-				bombCd = type == BombType.FOLLOW || type == BombType.MAGNET ? 20 : (int) (10 / getSpeed());
+				bombCd = type == BombType.FOLLOW || type == BombType.MAGNET ? 20 : (int) (15 / getSpeed());
 				return bomb;
 			}
 		}
@@ -443,6 +445,7 @@ public class BomberMan extends Entity {
 		checkOutScreenCoords();
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_PLAYER);
+		setElevation(Elevation.ON_GROUND);
 	}
 
 	@Override

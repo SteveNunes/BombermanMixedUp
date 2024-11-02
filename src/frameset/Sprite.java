@@ -32,7 +32,7 @@ public class Sprite extends Position {
 	private FrameSet sourceFrameSet;
 	private String spriteSourceName;
 	private Rectangle originSpriteSizePos;
-	private Rectangle outputSpriteSizePos;
+	public Rectangle outputSpriteSizePos;
 	private DrawImageEffects spriteEffects;
 	private Position absoluteOutputSpritePos;
 	private Position spriteScroll;
@@ -664,7 +664,6 @@ public class Sprite extends Position {
 					tx += jumpMove.getIncrements().getX();
 					ty += jumpMove.getIncrements().getY();
 					frontValue2++;
-					System.out.println(tx + " " + ty);
 				}
 			}
 			if (getSourceEntity().getJumpMove() != null) {
@@ -672,8 +671,6 @@ public class Sprite extends Position {
 				ty += (int) getSourceEntity().getJumpMove().getIncrements().getY();
 				frontValue2++;
 			}
-			
-			getSourceEntity().setHeight((int)(ty - getAbsoluteY()));
 
 			if (gc != null)
 				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int) getOriginSpriteWidth(), (int) getOriginSpriteHeight(), tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);

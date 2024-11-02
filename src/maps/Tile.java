@@ -101,12 +101,10 @@ public class Tile {
 					if (TileProp.getPropFromValue(v) != null) {
 						TileProp prop = TileProp.getPropFromValue(v);
 						getOriginLayer().addTileProp(getTileCoord(), prop);
-						if (prop == TileProp.MAX_SCREEN_TILE_LIMITER) {
-							if (outX > MapSet.getMapLimit().getX())
-								MapSet.getMapLimit().setX(outX);
-							if (outY > MapSet.getMapLimit().getY())
-								MapSet.getMapLimit().setY(outY);
-						}
+						if (prop == TileProp.MIN_SCREEN_TILE_LIMITER)
+							MapSet.getMapMinLimit().setPosition(outX, outY);
+						else if (prop == TileProp.MAX_SCREEN_TILE_LIMITER)
+							MapSet.getMapMaxLimit().setPosition(outX, outY);
 					}
 				}
 			opacity = Double.parseDouble(split[++n]);

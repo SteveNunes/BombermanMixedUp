@@ -20,15 +20,11 @@ public class IncSwitchValue extends FrameTag {
 	}
 
 	public IncSwitchValue(String tags) {
-		String[] params = validateStringTags(this, tags);
-		if (params.length > 2)
-			throw new RuntimeException(tags + " - Too much parameters");
-		if (params.length < 1)
-			throw new RuntimeException(tags + " - Too few parameters");
+		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
 			switchName = params[n++];
-			incValue = params.length == 1 ? 1 : Integer.parseInt(params[n]);
+			incValue = Integer.parseInt(params[n]);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(params[--n] + " - Invalid parameter");

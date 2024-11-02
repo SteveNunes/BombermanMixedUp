@@ -73,22 +73,40 @@ public class DrawParams {
 	public int getFrontValue() {
 		return frontValue;
 	}
+	
+	private boolean checkCoords(double drawX, double drawY, double drawW, double drawH, double startX, double startY, double width, double height) {
+		int endX = (int)(startX + width), endY = (int)(startY + height);
+		return ((targetX >= startX || targetX + drawW >= startX || targetX <= endX || targetX + drawW <= endX) &&
+						(targetY >= startY || targetY + drawH >= startY || targetY <= endY || targetY + drawH <= endY));
+	}
 
-	public void draw(GraphicsContext gc) {
+	public void draw(GraphicsContext gc, int startX, int startY, int width, int height) {
 		if (ghostingDistance == null || --ghostingCount == 0) {
-			if (drawType == DrawType.IMAGE)
-				ImageUtils.drawImage(gc, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, opacity, effects);
+			if (drawType == DrawType.IMAGE) {
+				if (checkCoords(targetX, targetY, (targetWidth != null ? targetWidth : sourceWidth == null ? 0 : sourceWidth), (targetHeight != null ? targetHeight : sourceHeight == null ? 0 : sourceHeight), startX, startY, width, height))
+					ImageUtils.drawImage(gc, image, sourceX, sourceY, sourceWidth, sourceHeight, targetX, targetY, targetWidth, targetHeight, flip, rotateAngle, opacity, effects);
+			}
 			else {
-				if (drawType == DrawType.FILL_OVAL)
-					gc.fillOval(params[0], params[1], params[2], params[3]);
-				else if (drawType == DrawType.FILL_RECT)
-					gc.fillRect(params[0], params[1], params[2], params[3]);
-				else if (drawType == DrawType.STROKE_OVAL)
-					gc.strokeOval(params[0], params[1], params[2], params[3]);
-				else if (drawType == DrawType.STROKE_RECT)
-					gc.strokeRect(params[0], params[1], params[2], params[3]);
-				else if (drawType == DrawType.STROKE_LINE)
-					gc.strokeLine(params[0], params[1], params[2], params[3]);
+				if (drawType == DrawType.FILL_OVAL) {
+					if (checkCoords(params[0] - params[2] / 2, params[1] - params[3] / 2, params[2], params[3], startX, startY, width, height))
+						gc.fillOval(params[0], params[1], params[2], params[3]);
+				}
+				else if (drawType == DrawType.FILL_RECT) {
+					if (checkCoords(params[0] - params[2] / 2, params[1] - params[3] / 2, params[2], params[3], startX, startY, width, height))
+						gc.fillRect(params[0], params[1], params[2], params[3]);
+				}
+				else if (drawType == DrawType.STROKE_OVAL) {
+					if (checkCoords(params[0] - params[2] / 2, params[1] - params[3] / 2, params[2], params[3], startX, startY, width, height))
+						gc.strokeOval(params[0], params[1], params[2], params[3]);
+				}
+				else if (drawType == DrawType.STROKE_RECT) {
+					if (checkCoords(params[0] - params[2] / 2, params[1] - params[3] / 2, params[2], params[3], startX, startY, width, height))
+						gc.strokeRect(params[0], params[1], params[2], params[3]);
+				}
+				else if (drawType == DrawType.STROKE_LINE) {
+					if (checkCoords(params[0], params[1], params[2] - params[0], params[3] - params[1], startX, startY, width, height))
+						gc.strokeLine(params[0], params[1], params[2], params[3]);
+				}
 				else if (drawType == DrawType.SET_FILL)
 					gc.setFill(color);
 				else if (drawType == DrawType.SET_STROKE)

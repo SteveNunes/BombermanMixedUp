@@ -11,6 +11,7 @@ import application.Main;
 import enums.BombType;
 import enums.Curse;
 import enums.Direction;
+import enums.Elevation;
 import enums.FindType;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
@@ -100,6 +101,9 @@ public class Bomb extends Entity {
 			String frameSet = "{SetSprSource;Bombs;0;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}";
 			addNewFrameSetFromString("StandFrames", frameSet);
 			setFrameSet("StandFrames");
+			frameSet = "{SetSprSource;Bombs;0;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0},{SetEntityShadow;0;0;16;8;0.35}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}";
+			addNewFrameSetFromString("JumpingFrames", frameSet);
+			setFrameSet("JumpingFrames");
 		}
 		setPosition(coord.getPosition());
 		setPassThroughItem(true);
@@ -430,6 +434,7 @@ public class Bomb extends Entity {
 
 	@Override
 	public void onJumpStartEvent(TileCoord coord, JumpMove jumpMove) {
+		setFrameSet("JumpingFrames");
 		bombs.remove(coord);
 	}
 
@@ -459,6 +464,8 @@ public class Bomb extends Entity {
 		Sound.playWav(getBombType() == BombType.RUBBER ? "BombBounce" : "BombHittingGround");
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		bombs.put(coord, this);
+		setFrameSet("StandFrames");
+		setElevation(Elevation.ON_GROUND);
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
 	}

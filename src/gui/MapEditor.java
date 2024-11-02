@@ -1015,12 +1015,13 @@ public class MapEditor {
 	}
 
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
+		BomberMan bomber = getCurrentBomber();
 		Draw.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
 
 		if (markCorners) { // TEMP PARA EXIBIR QUADRADOS INDICANDO SE OS CANTOS DO TILE DO BOMBERMAN ESTAO
 		                   // LIVRES
 			Position[] cornersPos = getCurrentBomber().getCornersPositions();
-			boolean[] corners = getCurrentBomber().getFreeCorners();
+			boolean[] corners = getCurrentBomber().getFreeCorners(bomber.getDirection());
 			for (int x = 0; x < 4; x++) {
 				int xx = (int) cornersPos[x].getX() * zoomMain, yy = (int) cornersPos[x].getY() * zoomMain;
 				if (x % 2 != 0)
@@ -1061,7 +1062,6 @@ public class MapEditor {
 			for (Item item : Item.getItemMap().values())
 				gcMain.strokeRect(item.getX() * zoomMain + deslocX(), item.getY() * zoomMain + deslocY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
 		}
-		BomberMan bomber = getCurrentBomber();
 		TileCoord c = Tools.findInRect(bomber, bomber.getTileCoordFromCenter(), null, FindInRectType.CIRCLE_AREA, 3, FindType.BOMB);
 		if (c != null) {
 			gcMain.setLineWidth(4);
@@ -1458,7 +1458,7 @@ public class MapEditor {
 					List<TileProp> tileProps = MapSet.getTileProps(tile.getTileCoord());
 					if (tileProps.contains(TileProp.EXPLOSION) || tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
 						color = Color.INDIANRED;
-					else if (tileProps.contains(TileProp.MAX_SCREEN_TILE_LIMITER))
+					else if (tileProps.contains(TileProp.MIN_SCREEN_TILE_LIMITER) || tileProps.contains(TileProp.MAX_SCREEN_TILE_LIMITER))
 						color = Color.LIGHTGRAY;
 					else if (tileProps.contains(TileProp.PLAYER_INITIAL_POSITION))
 						color = Color.DEEPPINK;

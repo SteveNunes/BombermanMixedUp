@@ -136,8 +136,6 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new IncSprGlowLevel(s));
 			else if (tag.equals("IncSprIndex"))
 				tags.addTag(newTag = new IncSprIndex(s));
-			else if (tag.equals("DecSprIndex"))
-				tags.addTag(newTag = new DecSprIndex(s));
 			else if (tag.equals("IncSprInnerShadowOffsetX"))
 				tags.addTag(newTag = new IncSprInnerShadowOffsetX(s));
 			else if (tag.equals("IncSprInnerShadowOffsetY"))
@@ -306,8 +304,6 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new SetSprScrolling(s));
 			else if (tag.equals("SetSwitchValue"))
 				tags.addTag(newTag = new SetSwitchValue(s));
-			else if (tag.equals("DecSwitchValue"))
-				tags.addTag(newTag = new DecSwitchValue(s));
 			else if (tag.equals("IncSwitchValue"))
 				tags.addTag(newTag = new IncSwitchValue(s));
 			else if (tag.equals("SetMapLayerIndex"))
