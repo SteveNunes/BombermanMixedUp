@@ -254,8 +254,10 @@ public class BomberMan extends Entity {
 			TileCoord frontTile = getTileCoord().getNewInstance().incCoordsByDirection(getDirection());
 			if (getPushingValue() > 5 && haveItem(ItemType.KICK_BOMB) && Bomb.haveBombAt(this, frontTile)) {
 				TileCoord nextCoord = frontTile.getNewInstance().incCoordsByDirection(getDirection());
-				if (MapSet.tileIsFree(nextCoord, Set.of()))
+				if (MapSet.tileIsFree(nextCoord, Set.of())) {
 					Bomb.getBombAt(frontTile).kick(getDirection(), 4);
+					setPushingValue(0);
+				}
 			}
 		}
 		if (!getCurrentFrameSet().isRunning())

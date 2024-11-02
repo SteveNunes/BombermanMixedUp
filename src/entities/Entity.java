@@ -611,12 +611,16 @@ public class Entity extends Position {
 		holderDesloc.incPosition(x, y);
 	}
 
-	public void unsetHolder() { // Ajeitar aqui a distancia do arremesso baseado no tempo que o botao ficou
-	                            // pressionado
+	public void unsetHolder() { 
+		int distance = (int)((System.currentTimeMillis() - holder.getHoldingCTime()) + 200) / 200;
+		if (distance < 2)
+			distance = 2;
+		if (distance > 5)
+			distance = 5;
 		holder = null;
 		holderDesloc = null;
-		TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(getDirection(), 4);
-		jumpTo(this, coord, 6, 1.2, 20);
+		TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(getDirection(), distance);
+		jumpTo(this, coord, distance + 1, 1.2, 20);
 	}
 
 	public Entity getHoldingEntity() {
@@ -906,6 +910,10 @@ public class Entity extends Position {
 
 	public boolean isMoving() {
 		return getSpeed() != 0 || getPushEntity() != null || getPathFinder() != null;
+	}
+
+	public void setPushingValue(int value) {
+		pushing = value;
 	}
 
 	public int getPushingValue() {

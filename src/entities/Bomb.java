@@ -14,6 +14,7 @@ import enums.Direction;
 import enums.FindType;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
+import maps.Item;
 import maps.MapSet;
 import objmoveutils.JumpMove;
 import objmoveutils.TileCoord;
@@ -453,6 +454,8 @@ public class Bomb extends Entity {
 					return;
 				}
 			}
+		if (Item.haveItemAt(getTileCoordFromCenter()))
+			Item.getItemAt(getTileCoordFromCenter()).destroy();
 		Sound.playWav(getBombType() == BombType.RUBBER ? "BombBounce" : "BombHittingGround");
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		bombs.put(coord, this);

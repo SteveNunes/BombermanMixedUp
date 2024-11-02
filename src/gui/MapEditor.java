@@ -483,6 +483,10 @@ public class MapEditor {
 			rebuildCurrentLayer(false);
 		}
 	}
+	
+	public BomberMan getCurrentBomber() {
+		return bombers.get(controlledBomberIndex);
+	}
 
 	public int getCurrentLayerIndex() {
 		return MapSet.getCurrentLayerIndex();
@@ -601,7 +605,7 @@ public class MapEditor {
 		Main.sceneMain.setOnKeyPressed(e -> {
 			for (int n = 0; n < keysInputs.length; n++) {
 				if (e.getCode() == keysInputs[n])
-					bombers.get(controlledBomberIndex).keyPress(GameInputs.getList()[n]);
+					getCurrentBomber().keyPress(GameInputs.getList()[n]);
 			}
 			if (e.getCode() == KeyCode.I && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord))
 				Item.addItem(canvasMouseDraw.tileCoord, itemType);
@@ -612,13 +616,13 @@ public class MapEditor {
 					controlledBomberIndex = bombers.size() - 1;
 				else if (e.getCode() == KeyCode.E && ++controlledBomberIndex == bombers.size())
 					controlledBomberIndex = 0;
-				bombers.get(controlledBomberIndex).setBlinkingFrames(45);
+				getCurrentBomber().setBlinkingFrames(45);
 			}
 			else if (e.getCode() == KeyCode.P && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Entity.haveAnyEntityAtCoord(canvasMouseDraw.tileCoord))
 				addPlayerAtCursor();
 			else if (e.getCode() == KeyCode.F) {
 				if (pathFinder == null)
-					pathFinder = new PathFinder(bombers.get(controlledBomberIndex).getTileCoordFromCenter(), canvasMouseDraw.tileCoord, bombers.get(controlledBomberIndex).getDirection(), PathFinderOptmize.OPTIMIZED, t -> MapSet.tileIsFree(t));
+					pathFinder = new PathFinder(getCurrentBomber().getTileCoordFromCenter(), canvasMouseDraw.tileCoord, getCurrentBomber().getDirection(), PathFinderOptmize.OPTIMIZED, t -> MapSet.tileIsFree(t));
 				else
 					pathFinder = null;
 			}
@@ -736,7 +740,7 @@ public class MapEditor {
 		Main.sceneMain.setOnKeyReleased(e -> {
 			for (int n = 0; n < keysInputs.length; n++) {
 				if (e.getCode() == keysInputs[n])
-					bombers.get(controlledBomberIndex).keyRelease(GameInputs.getList()[n]);
+					getCurrentBomber().keyRelease(GameInputs.getList()[n]);
 			}
 		});
 	}
@@ -1015,8 +1019,8 @@ public class MapEditor {
 
 		if (markCorners) { // TEMP PARA EXIBIR QUADRADOS INDICANDO SE OS CANTOS DO TILE DO BOMBERMAN ESTAO
 		                   // LIVRES
-			Position[] cornersPos = bombers.get(controlledBomberIndex).getCornersPositions();
-			boolean[] corners = bombers.get(controlledBomberIndex).getFreeCorners();
+			Position[] cornersPos = getCurrentBomber().getCornersPositions();
+			boolean[] corners = getCurrentBomber().getFreeCorners();
 			for (int x = 0; x < 4; x++) {
 				int xx = (int) cornersPos[x].getX() * zoomMain, yy = (int) cornersPos[x].getY() * zoomMain;
 				if (x % 2 != 0)
@@ -1028,7 +1032,7 @@ public class MapEditor {
 			}
 		}
 		if (pathFinder != null) {
-			pathFinder.recalculatePath(bombers.get(controlledBomberIndex).getTileCoordFromCenter(), canvasMouseDraw.tileCoord, bombers.get(controlledBomberIndex).getDirection());
+			pathFinder.recalculatePath(getCurrentBomber().getTileCoordFromCenter(), canvasMouseDraw.tileCoord, getCurrentBomber().getDirection());
 			if (pathFinder.getCurrentPath() != null)
 				for (Pair<TileCoord, Direction> path : pathFinder.getCurrentPath()) {
 					Direction dir = path.getValue();
@@ -1057,14 +1061,13 @@ public class MapEditor {
 			for (Item item : Item.getItemMap().values())
 				gcMain.strokeRect(item.getX() * zoomMain + deslocX(), item.getY() * zoomMain + deslocY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
 		}
-		BomberMan bomber = bombers.get(controlledBomberIndex);
+		BomberMan bomber = getCurrentBomber();
 		TileCoord c = Tools.findInRect(bomber, bomber.getTileCoordFromCenter(), null, FindInRectType.CIRCLE_AREA, 3, FindType.BOMB);
 		if (c != null) {
 			gcMain.setLineWidth(4);
 			gcMain.setStroke(Color.PINK);
 			gcMain.strokeRect(c.getX() * Main.TILE_SIZE * zoomMain + deslocX(), c.getY() * Main.TILE_SIZE * zoomMain + deslocY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
 		}
-
 		drawBlockTypeMark();
 		drawGridAndAim();
 		drawTileTagsOverCursor();
