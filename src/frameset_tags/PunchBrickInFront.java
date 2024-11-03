@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import entities.Bomb;
 import entities.Entity;
 import frameset.Sprite;
 import maps.Brick;

@@ -141,6 +141,8 @@ public class MapEditor {
 	@FXML
 	private Canvas canvasTileSet;
 	@FXML
+	private CheckBox checkBoxShowTilesWith2Sprites;
+	@FXML
 	private CheckBox checkBoxShowAim;
 	@FXML
 	private CheckBox checkBoxShowGrid;
@@ -203,6 +205,7 @@ public class MapEditor {
 	private int ctrlZPos;
 	private long resetBricks;
 	private List<BomberMan> bombers;
+	private Set<TileCoord> alreadySetTiles;
 	private String defaultMap = "SBM2_1-1";
 	public boolean playing;
 	public boolean editable;
@@ -226,6 +229,7 @@ public class MapEditor {
 		copiedTiles = new HashMap<>();
 		holdedKeys = new ArrayList<>();
 		backupTiles = new ArrayList<>();
+		alreadySetTiles = new HashSet<>();
 		font = new Font("Lucida Console", 15);
 		resetBricks = System.currentTimeMillis();
 		zoomMain = 3;
@@ -857,6 +861,7 @@ public class MapEditor {
 			canvasMouseDraw.tileCoord.setCoords(((int) e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int) e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 		});
 		canvasMain.setOnMousePressed(e -> {
+			alreadySetTiles.clear();
 			canvasMouseDraw.startDragX = (int) e.getX();
 			canvasMouseDraw.startDragY = (int) e.getY();
 			canvasMouseDraw.startDragDX = canvasMouseDraw.getCoordX();
@@ -886,6 +891,7 @@ public class MapEditor {
 			}
 		});
 		canvasMain.setOnMouseClicked(e -> {
+			alreadySetTiles.clear();
 			canvasMouseDraw.tileCoord.setCoords(((int) e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int) e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 			if (e.getButton() == MouseButton.PRIMARY) {
 				if (playing && isAltHold() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord))
@@ -942,10 +948,11 @@ public class MapEditor {
 				if (tile != null) {
 					boolean vf = tile.flip == ImageFlip.VERTICAL || tile.flip == ImageFlip.BOTH, hf = tile.flip == ImageFlip.HORIZONTAL || tile.flip == ImageFlip.BOTH;
 					tile.setCoords(new TileCoord(canvasMouseDraw.getCoordX() + (hf ? w - 1 - x : x), canvasMouseDraw.getCoordY() + (vf ? h - 1 - y : y)));
-					if (fixTilesOnLayer) {
+					if (fixTilesOnLayer && !alreadySetTiles.contains(tile.getTileCoord())) {
+						alreadySetTiles.add(tile.getTileCoord().getNewInstance());
 						getCurrentLayer().addTile(tile);
 						if (!MapSet.tileHaveProps(tile.getTileCoord()))
-							MapSet.addTileProp(tile.getTileCoord(), comboBoxTileType.getSelectionModel().getSelectedItem());
+							MapSet.addTileProp(tile.getTileCoord().getNewInstance(), comboBoxTileType.getSelectionModel().getSelectedItem());
 					}
 				}
 			}
@@ -1451,8 +1458,9 @@ public class MapEditor {
 
 	void drawBlockTypeMark() {
 		Set<TileCoord> ok = new HashSet<>();
-		if (checkBoxShowBlockType.isSelected()) {
-			MapSet.getTileListFromCurrentLayer().forEach(tile -> {
+		gcMain.save();
+		MapSet.getTileListFromCurrentLayer().forEach(tile -> {
+			if (checkBoxShowBlockType.isSelected()) {
 				Color color;
 				if (!ok.contains(tile.getTileCoord())) {
 					List<TileProp> tileProps = MapSet.getTileProps(tile.getTileCoord());
@@ -1502,16 +1510,26 @@ public class MapEditor {
 						color = Color.RED;
 					else
 						color = Color.ORANGE;
-					gcMain.save();
 					gcMain.setFill(color);
 					gcMain.setLineWidth(1);
 					gcMain.setGlobalAlpha(0.6);
 					gcMain.fillRect(tile.getTileCoord().getX() * Main.TILE_SIZE * zoomMain + deslocX(), tile.getTileCoord().getY() * Main.TILE_SIZE * zoomMain + deslocY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
-					gcMain.restore();
 					ok.add(tile.getTileCoord());
 				}
-			});
-		}
+			}
+			int totalTiles = MapSet.getTileListFromCoord(tile.getTileCoord()).size();
+			if (checkBoxShowTilesWith2Sprites.isSelected() && totalTiles > 1) {
+				gcMain.setFill(Misc.blink(50) ? Color.LIGHTBLUE : Color.YELLOW);
+				gcMain.setStroke(Misc.blink(50) ? Color.LIGHTBLUE : Color.YELLOW);
+				gcMain.setLineWidth(1);
+				gcMain.setGlobalAlpha(1);
+				gcMain.strokeRect(tile.getTileCoord().getX() * Main.TILE_SIZE * zoomMain + deslocX(), tile.getTileCoord().getY() * Main.TILE_SIZE * zoomMain + deslocY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+				gcMain.setFont(new Font("Lucida Console", 20));
+				gcMain.fillText("" + totalTiles, tile.getTileCoord().getX() * Main.TILE_SIZE * zoomMain + deslocX() + Main.TILE_SIZE / 3 * zoomMain,
+																				 tile.getTileCoord().getY() * Main.TILE_SIZE * zoomMain + deslocY() + Main.TILE_SIZE / 1.5 * zoomMain);
+			}
+		});
+		gcMain.restore();
 	}
 
 	void iterateAllSelectedCoords(Consumer<TileCoord> consumer) {

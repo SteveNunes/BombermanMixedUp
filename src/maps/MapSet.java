@@ -70,7 +70,7 @@ public abstract class MapSet {
 
 	public static void loadMap(String iniMapName) {
 		long ct = System.currentTimeMillis();
-		if (!IniFiles.stages.isSection(iniMapName))
+		if (!IniFiles.stages.sectionExists(iniMapName))
 			throw new RuntimeException("Unable to load map \"" + iniMapName + "\" (Map not found on Stages.cfg)");
 		System.out.println("Carregando mapa " + iniMapName + " ...");
 		Effect.clearTempEffects();
@@ -110,7 +110,7 @@ public abstract class MapSet {
 		}
 		else
 			leftStageClearCriterias = null;
-		if (!iniFileMap.isSection("TILES"))
+		if (!iniFileMap.sectionExists("TILES"))
 			throw new RuntimeException("Unable to find \"TILES\" section from \"" + iniFileMap.fileName() + "\"");
 		iniFileMap.getItemList("TILES").forEach(item -> {
 			int layerIndex = Integer.parseInt(iniFileMap.read("TILES", item).split(" ")[0]);

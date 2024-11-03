@@ -50,7 +50,7 @@
          <children>
             <HBox alignment="CENTER" spacing="30.0">
                <children>
-                  <HBox alignment="CENTER" spacing="10.0">
+                  <HBox alignment="CENTER" spacing="10.0" HBox.hgrow="ALWAYS">
                      <children>
                         <VBox alignment="CENTER_LEFT" spacing="2.0">
                            <children>
@@ -58,7 +58,12 @@
                               <CheckBox fx:id="checkBoxShowAim" maxWidth="100.0" minWidth="100.0" mnemonicParsing="false" prefWidth="100.0" text="Exibir mira" />
                            </children>
                         </VBox>
-                        <CheckBox fx:id="checkBoxShowBlockType" maxWidth="140.0" minWidth="140.0" mnemonicParsing="false" prefWidth="140.0" text="Exibir tipo de bloco" />
+                        <VBox alignment="CENTER_LEFT" spacing="2.0">
+                           <children>
+                              <CheckBox fx:id="checkBoxShowBlockType" maxWidth="140.0" minWidth="140.0" mnemonicParsing="false" prefWidth="140.0" text="Exibir tipo de bloco" />
+                              <CheckBox fx:id="checkBoxShowTilesWith2Sprites" maxWidth="170.0" minWidth="170.0" mnemonicParsing="false" prefWidth="170.0" text="Exibir tiles com 2+ sprites" />
+                           </children>
+                        </VBox>
                         <VBox alignment="CENTER_LEFT" spacing="2.0">
                            <children>
                               <CheckBox fx:id="checkBoxShowBricks" maxWidth="100.0" minWidth="100.0" mnemonicParsing="false" prefWidth="100.0" text="Exibir tijolos" />

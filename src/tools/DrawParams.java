@@ -76,8 +76,8 @@ public class DrawParams {
 	
 	private boolean checkCoords(double drawX, double drawY, double drawW, double drawH, double startX, double startY, double width, double height) {
 		int endX = (int)(startX + width), endY = (int)(startY + height);
-		return ((targetX >= startX || targetX + drawW >= startX || targetX <= endX || targetX + drawW <= endX) &&
-						(targetY >= startY || targetY + drawH >= startY || targetY <= endY || targetY + drawH <= endY));
+		return ((drawX >= startX || drawX + drawW >= startX || drawX <= endX || drawX + drawW <= endX) &&
+						(drawY >= startY || drawY + drawH >= startY || drawY <= endY || drawY + drawH <= endY));
 	}
 
 	public void draw(GraphicsContext gc, int startX, int startY, int width, int height) {

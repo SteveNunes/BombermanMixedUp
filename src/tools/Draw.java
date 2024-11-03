@@ -104,7 +104,7 @@ public abstract class Draw {
 		ColoredLightSpot.setMultipleColoredLightSpots(gcTemp);
 		int minX = (int)MapSet.getMapMinLimit().getX(), minY = (int)MapSet.getMapMinLimit().getY(),
 				maxX = (int)MapSet.getMapMaxLimit().getX(), maxY = (int)MapSet.getMapMaxLimit().getY();
-		gcTemp.setFill(Color.RED);
+		gcTemp.setFill(Color.BLACK);
 		gcTemp.fillRect(minX - Main.TILE_SIZE * 2, minY - Main.TILE_SIZE * 2, Main.TILE_SIZE * 3, maxY + Main.TILE_SIZE);
 		gcTemp.fillRect(minX - Main.TILE_SIZE * 2, minY - Main.TILE_SIZE * 2, maxX + Main.TILE_SIZE, Main.TILE_SIZE * 3);
 		gcTemp.fillRect(maxX, minY - Main.TILE_SIZE * 2, Main.TILE_SIZE * 3, maxY + Main.TILE_SIZE * 3);
