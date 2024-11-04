@@ -162,7 +162,6 @@ public class FrameSetEditor {
 		setSpriteContextMenu();
 		setMouseEvents();
 		setKeyboardEvents(Main.sceneMain);
-		Tools.loadStuffs();
 		Draw.setBackgroundEffect(new SquaredBg(3, 3, 50, 255));
 
 		for (int n = 0; n < 0; n++) { // NOTA: TEMP para desenhar multiplos FrameSets na tela para testar capacidade

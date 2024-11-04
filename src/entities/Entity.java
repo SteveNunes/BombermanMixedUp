@@ -595,10 +595,21 @@ public class Entity extends Position {
 	}
 
 	public void setHolder(Entity holder) {
+		if (getHoldingEntity() != null)
+			unsetHoldingEntity();
+		unsetAllMovings();
 		this.holder = holder;
 		holderDesloc = new Position();
 		if (haveFrameSet("BeingHolded"))
 			setFrameSet("BeingHolded");
+	}
+
+	private void unsetAllMovings() {
+		unsetGotoMove();
+		unsetGhosting();
+		unsetJumpMove();
+		unsetPushEntity();
+		unsetShake();
 	}
 
 	public Position getHolderDesloc() {
@@ -631,8 +642,6 @@ public class Entity extends Position {
 
 	public void setHoldingEntity(Entity entity) {
 		holdingCTime = System.currentTimeMillis();
-		if (entity.getHoldingEntity() != null)
-			entity.unsetHoldingEntity();
 		holding = entity;
 		entity.setHolder(this);
 		entity.onBeingHoldEvent(this);

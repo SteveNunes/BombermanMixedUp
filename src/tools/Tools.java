@@ -10,9 +10,7 @@ import drawimage_stuffs.DrawImageEffects;
 import entities.Bomb;
 import entities.BomberMan;
 import entities.Entity;
-import entities.Explosion;
 import entities.Monster;
-import entities.TileDamage;
 import enums.Direction;
 import enums.FindInRectType;
 import enums.FindType;
@@ -50,14 +48,6 @@ public abstract class Tools {
 			list.remove(item);
 			list.add(index, item);
 		}
-	}
-
-	public static void runAllStuffs() {
-		Explosion.drawExplosions();
-		Brick.drawBricks();
-		Bomb.drawBombs();
-		Item.drawItems();
-		TileDamage.runTileDamages();
 	}
 
 	public static DrawImageEffects loadEffectsFromString(String arrayToString) {

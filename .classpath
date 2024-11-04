@@ -12,5 +12,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="D:/Java/java-libs/MyPersonalLib.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JXInput"/>
+	<classpathentry kind="lib" path="D:/Java/java-libs/jinput-2.0.10.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

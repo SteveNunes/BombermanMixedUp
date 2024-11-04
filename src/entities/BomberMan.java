@@ -30,6 +30,8 @@ import util.CollectionUtils;
 import util.MyMath;
 
 public class BomberMan extends Entity {
+	
+	private static List<BomberMan> bomberManList = new ArrayList<>();
 
 	private int fireRange;
 	private int maxBombs;
@@ -85,6 +87,45 @@ public class BomberMan extends Entity {
 		}
 		setOnFrameSetEndsEvent(e -> changeToStandFrameSet());
 		setPassThroughs(true, PassThrough.ITEM, PassThrough.MONSTER, PassThrough.PLAYER);
+	}
+	
+	public static BomberMan addBomberMan(int bomberIndex, int palleteIndex) {
+		BomberMan bomber = new BomberMan(bomberManList.size(), bomberIndex, palleteIndex);
+		bomberManList.add(bomber);
+		return bomber;
+	}
+	
+	public static BomberMan getBomberMan(int index) {
+		if (bomberManList.isEmpty())
+			throw new RuntimeException("No bombermans were added");
+		if (index < 0 || index >= bomberManList.size())
+			throw new RuntimeException(index + " - Invalid index (Expected: 0 - " + (bomberManList.size() - 1));
+		return bomberManList.get(index);
+	}
+
+	public static BomberMan removeBomberMan(int index) {
+		if (bomberManList.isEmpty())
+			throw new RuntimeException("No bombermans were added");
+		if (index < 0 || index >= bomberManList.size())
+			throw new RuntimeException(index + " - Invalid index (Expected: 0 - " + (bomberManList.size() - 1));
+		return bomberManList.remove(index);
+	}
+
+	public static void drawBomberMans() {
+		for (BomberMan bomberMan : bomberManList)
+			bomberMan.run();
+	}
+	
+	public static void clearBomberMans() {
+		bomberManList.clear();
+	}
+	
+	public static int getTotalBomberMans() {
+		return bomberManList.size();
+	}
+
+	public static List<BomberMan> getBomberManList() {
+		return bomberManList;
 	}
 
 	public int getPlayer() {

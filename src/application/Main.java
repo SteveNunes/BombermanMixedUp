@@ -1,5 +1,6 @@
 package application;
 
+import entities.GameInputs;
 import enums.GameMode;
 import gui.FrameSetEditor;
 import gui.Game;
@@ -12,13 +13,14 @@ import javafx.stage.Stage;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import tools.Materials;
+import tools.Tools;
 import util.IniFile;
 import util.TimerFX;
 
 public class Main extends Application {
 
 	public final static int TILE_SIZE = 16;
-	public final static GameMode GAME_MODE = GameMode.MAP_EDITOR;
+	public final static GameMode GAME_MODE = GameMode.GAME;
 
 	public static FrameSetEditor frameSetEditor = null;
 	public static MapEditor mapEditor = null;
@@ -34,6 +36,8 @@ public class Main extends Application {
 			TileCoord.setGlobalTileSize(TILE_SIZE);
 			stageMain = stage;
 			Materials.loadFromFiles();
+			GameInputs.init();
+			Tools.loadStuffs();
 			if (GAME_MODE == GameMode.FRAMESET_EDITOR) {
 				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/FrameSetEditorView.fxml"));
 				sceneMain = new Scene(loader.load());
@@ -47,10 +51,10 @@ public class Main extends Application {
 				mapEditor.init();
 			}
 			else {
-				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/MapEditorView.fxml"));
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameView.fxml"));
 				sceneMain = new Scene(loader.load());
-				mapEditor = loader.getController();
-				mapEditor.init();
+				game = loader.getController();
+				game.init();
 			}
 			stageMain.setResizable(false);
 			stageMain.setScene(sceneMain);
@@ -65,9 +69,10 @@ public class Main extends Application {
 
 	public static void close() {
 		close = true;
+		GameInputs.close();
 		TimerFX.stopAllTimers();
-		IniFile.closeAllOpenedIniFiles();
 		Platform.exit();
+		IniFile.closeAllOpenedIniFiles();
 	}
 
 	public static void main(String[] args) {

@@ -12,8 +12,10 @@ import entities.Bomb;
 import entities.BomberMan;
 import entities.Effect;
 import entities.Entity;
+import entities.Explosion;
 import entities.Monster;
 import entities.Shake;
+import entities.TileDamage;
 import enums.BombType;
 import enums.Direction;
 import enums.Elevation;
@@ -41,8 +43,8 @@ import util.MyMath;
 public abstract class MapSet {
 
 	private static Map<Integer, Layer> layers;
-	private static Map<TileCoord, Integer> initialPlayerCoords;
-	private static Map<TileCoord, Integer> initialMonsterCoords;
+	private static List<TileCoord> initialPlayerCoords;
+	private static List<TileCoord> initialMonsterCoords;
 	private static Shake shake;
 	public static Entity mapFrameSets;
 	private static IniFile iniFileMap;
@@ -79,8 +81,8 @@ public abstract class MapSet {
 		bricksRegenTimeInFrames = 0;
 		layers = new HashMap<>();
 		switches = new HashMap<>();
-		initialPlayerCoords = new HashMap<>();
-		initialMonsterCoords = new HashMap<>();
+		initialPlayerCoords = new ArrayList<>();
+		initialMonsterCoords = new ArrayList<>();
 		runningStageTags = new HashMap<>();
 		preLoadedStageTags = new HashMap<>();
 		mapMove = new Position();
@@ -123,9 +125,9 @@ public abstract class MapSet {
 			layers.put(i, layer);
 			for (TileCoord coord : layer.getTilePropsMap().keySet()) {
 				if (layer.getTileProps(coord).contains(TileProp.PLAYER_INITIAL_POSITION))
-					initialPlayerCoords.put(coord.getNewInstance(), initialPlayerCoords.size());
+					initialPlayerCoords.add(coord.getNewInstance());
 				else if (layer.getTileProps(coord).contains(TileProp.MOB_INITIAL_POSITION))
-					initialMonsterCoords.put(coord.getNewInstance(), initialMonsterCoords.size());
+					initialMonsterCoords.add(coord.getNewInstance());
 			}
 		});
 		groundTile = getTilePositionFromIni(iniFileMap, "GroundTile");
@@ -147,6 +149,8 @@ public abstract class MapSet {
 			Effect.addNewTempEffect(item, iniFileMap.read("EFFECTS", item));
 		});
 		resetMapFrameSets();
+		for (int p = 0; p < initialPlayerCoords.size() && p < BomberMan.getTotalBomberMans(); p++)
+			BomberMan.getBomberMan(p).setPosition(initialPlayerCoords.get(p).getPosition());
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
 	}
 
@@ -470,17 +474,15 @@ public abstract class MapSet {
 	}
 
 	public static Position getInitialPlayerPosition(int playerIndex) {
-		for (TileCoord coord : initialPlayerCoords.keySet())
-			if (initialPlayerCoords.get(coord) == playerIndex)
-				return new Position(coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE);
-		return null;
+		if (playerIndex < 0 || playerIndex >= initialPlayerCoords.size())
+			return null;
+		return initialPlayerCoords.get(playerIndex).getPosition();
 	}
 
 	public static Position getInitialMonsterPosition(int monsterIndex) {
-		for (TileCoord coord : initialMonsterCoords.keySet())
-			if (initialMonsterCoords.get(coord) == monsterIndex)
-				return new Position(coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE);
-		return null;
+		if (monsterIndex < 0 || monsterIndex >= initialMonsterCoords.size())
+			return null;
+		return initialMonsterCoords.get(monsterIndex).getPosition();
 	}
 
 	public static IniFile getMapIniFile() {
@@ -644,6 +646,12 @@ public abstract class MapSet {
 			if (!frameSet.isRunning())
 				removeStageTag.add(frameSetName);
 		}
+		Explosion.drawExplosions();
+		Brick.drawBricks();
+		Bomb.drawBombs();
+		Item.drawItems();
+		TileDamage.runTileDamages();
+		BomberMan.drawBomberMans();
 		removeStageTag.forEach(fs -> runningStageTags.remove(fs));
 	}
 

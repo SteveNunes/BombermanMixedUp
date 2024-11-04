@@ -14,10 +14,8 @@ import java.util.function.Consumer;
 import application.Main;
 import entities.Bomb;
 import entities.BomberMan;
-import entities.Effect;
 import entities.Entity;
-import entities.Explosion;
-import entities.TileDamage;
+import entities.Player;
 import enums.BombType;
 import enums.Direction;
 import enums.FindInRectType;
@@ -204,7 +202,6 @@ public class MapEditor {
 	private int zoomTileSet;
 	private int ctrlZPos;
 	private long resetBricks;
-	private List<BomberMan> bombers;
 	private Set<TileCoord> alreadySetTiles;
 	private String defaultMap = "SBM2_1-1";
 	public boolean playing;
@@ -249,22 +246,12 @@ public class MapEditor {
 		canvasMain.setWidth(320 * zoomMain - 16 * zoomMain * 3);
 		canvasMain.setHeight(240 * zoomMain - 16 * zoomMain);
 		listenerHandleComboBoxMapFrameSets = new ListenerHandle<>(comboBoxMapFrameSets.valueProperty(), (o, oldValue, newValue) -> MapSet.mapFrameSets.setFrameSet(comboBoxMapFrameSets.getSelectionModel().getSelectedItem()));
-		Tools.loadStuffs();
 		setAllCanvas();
 		defineControls();
 		setKeyboardEvents();
 		setMainCanvasMouseEvents();
 		rebuildTileSetCanvas();
 		updateTileSelectionArray();
-		bombers = new ArrayList<>();
-		bombers.add(new BomberMan(0, 1, getNextBomberColor()));
-		bombers.get(0).setPosition(MapSet.getInitialPlayerPosition(0));
-		bombers.add(new BomberMan(1, 1, getNextBomberColor()));
-		bombers.get(1).setPosition(MapSet.getInitialPlayerPosition(1));
-		for (int n = 2; n < 0; n++) { // TESTE DE SOBRECARGA
-			bombers.add(new BomberMan(n, 1, getNextBomberColor()));
-			bombers.get(n).setPosition(MapSet.getInitialPlayerPosition(1));
-		}
 		mainLoop();
 	}
 
@@ -488,10 +475,6 @@ public class MapEditor {
 		}
 	}
 	
-	public BomberMan getCurrentBomber() {
-		return bombers.get(controlledBomberIndex);
-	}
-
 	public int getCurrentLayerIndex() {
 		return MapSet.getCurrentLayerIndex();
 	}
@@ -607,20 +590,16 @@ public class MapEditor {
 
 	void setKeyboardEvents() {
 		Main.sceneMain.setOnKeyPressed(e -> {
-			for (int n = 0; n < keysInputs.length; n++) {
-				if (e.getCode() == keysInputs[n])
-					getCurrentBomber().keyPress(GameInputs.getList()[n]);
-			}
 			if (e.getCode() == KeyCode.I && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord))
 				Item.addItem(canvasMouseDraw.tileCoord, itemType);
 			else if (e.getCode() == KeyCode.B && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !Bomb.haveBombAt(null, canvasMouseDraw.tileCoord) && !MapSet.tileContainsProp(canvasMouseDraw.tileCoord, TileProp.GROUND_NO_BOMB))
 				Bomb.addBomb(canvasMouseDraw.tileCoord, bombType, 5);
 			else if (e.getCode() == KeyCode.Q || e.getCode() == KeyCode.E) {
 				if (e.getCode() == KeyCode.Q && --controlledBomberIndex == -1)
-					controlledBomberIndex = bombers.size() - 1;
-				else if (e.getCode() == KeyCode.E && ++controlledBomberIndex == bombers.size())
+					controlledBomberIndex = Player.getTotalPlayers() - 1;
+				else if (e.getCode() == KeyCode.E && ++controlledBomberIndex == Player.getTotalPlayers())
 					controlledBomberIndex = 0;
-				getCurrentBomber().setBlinkingFrames(45);
+				Player.getPlayer(controlledBomberIndex).getBomberMan().setBlinkingFrames(45);
 			}
 			else if (e.getCode() == KeyCode.P && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Entity.haveAnyEntityAtCoord(canvasMouseDraw.tileCoord))
 				addPlayerAtCursor();
@@ -747,6 +726,10 @@ public class MapEditor {
 					getCurrentBomber().keyRelease(GameInputs.getList()[n]);
 			}
 		});
+	}
+
+	private BomberMan getCurrentBomber() {
+		return Player.getPlayer(controlledBomberIndex).getBomberMan();
 	}
 
 	void decLayerIndex() {
@@ -988,20 +971,14 @@ public class MapEditor {
 				getDrawGc().fillRect(0, 0, getCurrentLayer().getWidth(), getCurrentLayer().getHeight());
 				Draw.addDrawQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
 			}
+			Player.getPlayers().forEach(p -> p.getBomberMan().run());
 		}
-		Explosion.drawExplosions();
-		Bomb.drawBombs();
-		Item.drawItems();
-		Effect.drawEffects();
-		TileDamage.runTileDamages();
 		if (checkBoxShowBricks.isSelected() && MapSet.getCurrentLayerIndex() == 26) {
-			Brick.drawBricks();
 			if (checkBoxShowItems.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
 						Draw.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileCoord().getX() * Main.TILE_SIZE, brick.getTileCoord().getY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
 		}
-		bombers.forEach(bomber -> bomber.run());
 		updateTileSelectionArray();
 		if (editable) {
 			for (int y = 0; y < tileSelectionArray.length; y++)
@@ -1240,7 +1217,7 @@ public class MapEditor {
 				}
 				contextMenu.getItems().add(new SeparatorMenuItem());
 				menuItem = new MenuItem("Adicionar player");
-				menuItem.setDisable(bombers.size() == 17);
+				menuItem.setDisable(Player.getTotalPlayers() == 17);
 				contextMenu.getItems().add(menuItem);
 				menuItem.setOnAction(e -> addPlayerAtCursor());
 				contextMenu.getItems().add(new SeparatorMenuItem());
@@ -1332,9 +1309,10 @@ public class MapEditor {
 	}
 
 	private void addPlayerAtCursor() {
-		BomberMan bomber = new BomberMan(bombers.size(), 1, getNextBomberColor());
+		Player.addPlayer();
+		BomberMan bomber = new BomberMan(Player.getTotalPlayers(), 1, getNextBomberColor());
+		Player.getPlayer(Player.getTotalPlayers() - 1).setBomberMan(bomber);
 		bomber.setPosition(canvasMouseDraw.tileCoord.getPosition());
-		bombers.add(bomber);
 	}
 
 	private int getNextBomberColor() {
