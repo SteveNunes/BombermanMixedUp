@@ -221,8 +221,8 @@ public class MapEditor {
 		markCorners = false;
 		markEntities = true;
 		markBombs = true;
-		markBricks = false;
-		markItems = false;
+		markBricks = true;
+		markItems = true;
 		canvasMouseDraw = new CanvasMouse(true);
 		canvasMouseTileSet = new CanvasMouse();
 		tileSelection = new Rectangle(0, 0, 1, 1);
@@ -499,6 +499,9 @@ public class MapEditor {
 	}
 
 	void loadMap(String mapName, boolean resetCurrentLayerIndex) {
+		Brick.clearBricks();
+		Bomb.clearBombs();
+		Item.clearItems();
 		if (mapName == null)
 			throw new RuntimeException("Unable to load map because 'mapName' is null");
 		if (defaultMap != null) {
@@ -538,7 +541,7 @@ public class MapEditor {
 			HBox hBox = new HBox(textHBox);
 			HBox hBox2 = new HBox(new Text(MapSet.getLayer(layer).getWidth() + " x " + MapSet.getLayer(layer).getHeight()));
 			ComboBox<SpriteLayerType> comboBox = new ComboBox<>();
-			ControllerUtils.setListToComboBox(comboBox, Arrays.asList(SpriteLayerType.getList()));
+			ControllerUtils.setListToComboBox(comboBox, Arrays.asList(SpriteLayerType.values()));
 			comboBox.getSelectionModel().select(MapSet.getLayer(layer).getSpriteLayerType());
 			comboBox.valueProperty().addListener((o, oldV, newV) -> MapSet.getLayer(layer).setSpriteLayerType(newV));
 			ControllerUtils.forceComboBoxSize(comboBox, 125, 23);
@@ -598,10 +601,16 @@ public class MapEditor {
 	void setKeyboardEvents() {
 		Main.sceneMain.setOnKeyPressed(e -> {
 			Player.convertOnKeyPressEvent(e.getCode().getCode());
-			if (e.getCode() == KeyCode.I && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord))
+			if (e.getCode() == KeyCode.I && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !MapSet.tileContainsProp(canvasMouseDraw.tileCoord, TileProp.GROUND_NO_ITEM))
 				Item.addItem(canvasMouseDraw.tileCoord, itemType);
-			else if (e.getCode() == KeyCode.B && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !Bomb.haveBombAt(null, canvasMouseDraw.tileCoord) && !MapSet.tileContainsProp(canvasMouseDraw.tileCoord, TileProp.GROUND_NO_BOMB))
+			else if (e.getCode() == KeyCode.B && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !MapSet.tileContainsProp(canvasMouseDraw.tileCoord, TileProp.GROUND_NO_BOMB))
 				Bomb.addBomb(canvasMouseDraw.tileCoord, bombType, 5);
+			else if (e.getCode() == KeyCode.T && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !MapSet.tileContainsProp(canvasMouseDraw.tileCoord, TileProp.GROUND_NO_BRICK)) {
+				if (itemType != null)
+					Brick.addBrick(canvasMouseDraw.tileCoord, itemType);
+				else
+					Brick.addBrick(canvasMouseDraw.tileCoord);
+			}
 			else if (e.getCode() == KeyCode.Q || e.getCode() == KeyCode.E) {
 				if (e.getCode() == KeyCode.Q && --controlledBomberIndex == -1)
 					controlledBomberIndex = Player.getTotalPlayers() - 1;
@@ -732,7 +741,7 @@ public class MapEditor {
 			Player.convertOnKeyReleaseEvent(e.getCode().getCode());
 			for (int n = 0; n < keysInputs.length; n++) {
 				if (e.getCode() == keysInputs[n])
-					getCurrentBomber().keyRelease(GameInputs.getList()[n]);
+					getCurrentBomber().keyRelease(GameInputs.values()[n]);
 			}
 		});
 	}
@@ -987,7 +996,8 @@ public class MapEditor {
 			BomberMan.drawBomberMans();
 		}
 		if (checkBoxShowBricks.isSelected()) {
-			Brick.drawBricks();
+			if (!playing)
+				Brick.drawBricks();
 			if (checkBoxShowItems.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
@@ -1044,6 +1054,7 @@ public class MapEditor {
 			gcMain.setStroke(Color.RED);
 			for (Entity entity : Entity.getEntityList())
 				gcMain.strokeRect(entity.getX() * zoomMain + deslocX(), entity.getY() * zoomMain + deslocY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+			gcMain.setStroke(Color.MEDIUMVIOLETRED);
 		}
 		if (markBombs) {
 			gcMain.setStroke(Color.ORANGE);
@@ -1218,32 +1229,47 @@ public class MapEditor {
 			final TileCoord coord = canvasMouseDraw.tileCoord.getNewInstance();
 			if (getCurrentLayer().haveTilesOnCoord(coord)) {
 				contextMenu.getItems().add(new SeparatorMenuItem());
-				Menu menu = new Menu("Criar item");
-				menu.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord));
+				
+				Menu menu = new Menu("Adicionar");
 				contextMenu.getItems().add(menu);
-				for (ItemType type : ItemType.values()) {
-					menuItem = new MenuItem(type.name());
-					menu.getItems().add(menuItem);
-					menuItem.setOnAction(e -> {
-						Item.addItem(coord, type);
-						itemType = type;
-					});
-				}
-				contextMenu.getItems().add(new SeparatorMenuItem());
-				menuItem = new MenuItem("Adicionar player");
+				menuItem = new MenuItem("Player");
 				menuItem.setDisable(Player.getTotalPlayers() == 17);
-				contextMenu.getItems().add(menuItem);
+				menu.getItems().add(menuItem);
 				menuItem.setOnAction(e -> addPlayerAtCursor());
-				contextMenu.getItems().add(new SeparatorMenuItem());
-				menu = new Menu("Adicionar bomba");
-				menu.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord) || Bomb.haveBombAt(null, coord) || MapSet.tileContainsProp(coord, TileProp.GROUND_NO_BOMB));
-				contextMenu.getItems().add(menu);
+				Menu menu2 = new Menu("Bomba");
+				menu2.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord) || Bomb.haveBombAt(null, coord) || MapSet.tileContainsProp(coord, TileProp.GROUND_NO_BOMB));
+				menu.getItems().add(menu2);
 				for (BombType type : BombType.values()) {
 					menuItem = new MenuItem(type.name());
-					menu.getItems().add(menuItem);
+					menu2.getItems().add(menuItem);
 					menuItem.setOnAction(e -> {
 						Bomb.addBomb(canvasMouseDraw.tileCoord, type, 5);
 						bombType = type;
+					});
+				}
+				menu2 = new Menu("Tijolo");
+				menu2.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord) || Bomb.haveBombAt(null, coord) || MapSet.tileContainsProp(coord, TileProp.GROUND_NO_BOMB));
+				menu.getItems().add(menu2);
+				for (int n = -1; n < ItemType.values().length; n++) {
+					ItemType type = n == -1 ? null : ItemType.values()[n];
+					menuItem = new MenuItem(type == null ? "Sem item" : "Com item: " + type.name());
+					menu2.getItems().add(menuItem);
+					menuItem.setOnAction(e -> {
+						if ((itemType = type) != null)
+							Brick.addBrick(canvasMouseDraw.tileCoord, type);
+						else
+							Brick.addBrick(canvasMouseDraw.tileCoord);
+					});
+				}
+				menu2 = new Menu("Item");
+				menu2.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord));
+				menu.getItems().add(menu2);
+				for (ItemType type : ItemType.values()) {
+					menuItem = new MenuItem(type.name());
+					menu2.getItems().add(menuItem);
+					menuItem.setOnAction(e -> {
+						Item.addItem(coord, type);
+						itemType = type;
 					});
 				}
 				if (!editable) {

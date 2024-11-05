@@ -13,7 +13,7 @@ public class PushEntity {
 	private Double strenght;
 	private Double decStrenght;
 	private Direction direction;
-	private Consumer<Entity> consumerWhenHits;
+	private Consumer<Entity> consumerWhenStop;
 	private TileCoord targetTile;
 
 	public PushEntity(Entity entity, Double strenght) {
@@ -33,7 +33,7 @@ public class PushEntity {
 		this.startStrenght = startStrenght;
 		this.decStrenght = decStrenght;
 		this.direction = direction == null ? entity.getDirection() : direction;
-		consumerWhenHits = null;
+		consumerWhenStop = null;
 		targetTile = null;
 		strenght = startStrenght;
 	}
@@ -44,7 +44,7 @@ public class PushEntity {
 		decStrenght = pushEntity.decStrenght;
 		direction = pushEntity.direction;
 		strenght = startStrenght;
-		consumerWhenHits = pushEntity.consumerWhenHits;
+		consumerWhenStop = pushEntity.consumerWhenStop;
 		targetTile = pushEntity.targetTile == null ? null : new TileCoord(pushEntity.targetTile);
 	}
 
@@ -53,8 +53,8 @@ public class PushEntity {
 		return this;
 	}
 
-	public PushEntity setOnColideEvent(Consumer<Entity> consumer) {
-		consumerWhenHits = consumer;
+	public PushEntity setOnStopEvent(Consumer<Entity> consumer) {
+		consumerWhenStop = consumer;
 		return this;
 	}
 
@@ -90,8 +90,8 @@ public class PushEntity {
 			if ((targetTile != null && targetTile.equals(entity.getTileCoord()) || (decStrenght == null && entity.isPerfectlyBlockedDir(direction)) || (decStrenght != null && (strenght -= decStrenght) <= 0))) {
 				if (entity.isPerfectlyBlockedDir(direction) || (targetTile != null && targetTile.equals(entity.getTileCoord()))) {
 					entity.centerToTile();
-					if (entity.isPerfectlyBlockedDir(direction) && consumerWhenHits != null)
-						consumerWhenHits.accept(entity);
+					if (entity.isPerfectlyBlockedDir(direction) && consumerWhenStop != null)
+						consumerWhenStop.accept(entity);
 				}
 				direction = null;
 			}
@@ -108,7 +108,7 @@ public class PushEntity {
 
 	@Override
 	public String toString() {
-		return "PushEntity [entity=" + entity + ", startStrenght=" + startStrenght + ", strenght=" + strenght + ", decStrenght=" + decStrenght + ", direction=" + direction + ", consumerWhenHits=" + consumerWhenHits + ", targetTile=" + targetTile + "]";
+		return "PushEntity [entity=" + entity + ", startStrenght=" + startStrenght + ", strenght=" + strenght + ", decStrenght=" + decStrenght + ", direction=" + direction + ", consumerWhenHits=" + consumerWhenStop + ", targetTile=" + targetTile + "]";
 	}
 
 }

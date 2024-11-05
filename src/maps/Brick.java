@@ -90,7 +90,7 @@ public class Brick extends Entity {
 	}
 
 	public static void addBrick(Brick brick, boolean updateLayer) {
-		TileCoord coord = brick.getTileCoordFromCenter();
+		TileCoord coord = brick.getTileCoordFromCenter().getNewInstance();
 		if (!haveBrickAt(coord, false)) {
 			brick.setPosition(coord.getPosition());
 			bricks.put(coord, brick);
@@ -112,20 +112,23 @@ public class Brick extends Entity {
 		Tile.removeTileShadow(coord);
 	}
 
-	public static void removeBrick(Brick brick) {
-		removeBrick(brick.getTileCoordFromCenter());
-	}
-
 	public static void removeBrick(TileCoord coord) {
 		removeBrick(coord, true);
 	}
-
+	
 	public static void removeBrick(TileCoord coord, boolean updateLayer) {
-		if (haveBrickAt(coord, false)) {
-			brickList.remove(bricks.get(coord));
-			bricks.get(coord).unsetBrickShadow();
-			bricks.remove(coord);
-		}
+		if (bricks.containsKey(coord))
+			removeBrick(bricks.get(coord));
+	}
+
+	public static void removeBrick(Brick brick) {
+		removeBrick(brick, true);
+	}
+
+	public static void removeBrick(Brick brick, boolean updateLayer) {
+		brickList.remove(brick);
+		brick.unsetBrickShadow();
+		bricks.remove(brick.getTileCoordFromCenter());
 	}
 
 	public static void clearBricks() {
@@ -167,7 +170,7 @@ public class Brick extends Entity {
 			if (brick.isBreaked() && brick.regenTimeInFrames == 0) {
 				brick.unsetBrickShadow();
 				if (MapSet.getBricksRegenTimeInFrames() == 0)
-					removeBrick(brick.getTileCoordFromCenter());
+					removeBrick(brick);
 				else
 					brick.regenTimeInFrames = MapSet.getBricksRegenTimeInFrames();
 				if (brick.getItem() != null) {
@@ -181,14 +184,12 @@ public class Brick extends Entity {
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
 		super.run(gc, isPaused);
-		if (getPushEntity() != null && bricks.containsKey(getTileCoordFromCenter()))
-			bricks.remove(getTileCoordFromCenter());
 		if (!isBlockedMovement() && tileWasChanged()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
 			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BRICK);
 			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BRICK, true);
-			bricks.remove(prevCoord);
+			removeThisFromTile(prevCoord);
 			if (!bricks.containsKey(coord))
 				bricks.put(coord, this);
 		}
@@ -196,7 +197,7 @@ public class Brick extends Entity {
 
 	public void breakIt() {
 		if (!getCurrentFrameSetName().equals("BrickBreakFrameSet")) {
-			bricks.remove(getTileCoordFromCenter());
+			removeThisFromTile(getTileCoordFromCenter());
 			setFrameSet("BrickBreakFrameSet");
 		}
 	}
@@ -227,10 +228,9 @@ public class Brick extends Entity {
 
 	public void kick(Direction direction, double speed, String kickSound, String slamSound) {
 		if (getPushEntity() == null && MapSet.tileIsFree(getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction))) {
-			bricks.remove(getTileCoordFromCenter());
 			Sound.playWav(kickSound);
 			entities.PushEntity pushEntity = new entities.PushEntity(this, speed, direction);
-			pushEntity.setOnColideEvent(e -> {
+			pushEntity.setOnStopEvent(e -> {
 				Sound.playWav(slamSound);
 				setShake(2d, -0.05, 0d);
 				unsetGhosting();
@@ -252,13 +252,33 @@ public class Brick extends Entity {
 
 	@Override
 	public void onBeingHoldEvent(Entity holder) {
-		bricks.remove(getTileCoordFromCenter());
+		removeThisFromTile(getTileCoordFromCenter());
 		Tile.removeTileShadow(getTileCoordFromCenter().getNewInstance().incCoordsByDirection(Direction.DOWN));
 	}
 
+	private void removeThisFromTile(TileCoord coord) {
+		if (bricks.containsKey(coord) && bricks.get(coord) == this)
+			bricks.remove(coord);
+	}
+	
 	@Override
-	public void onJumpStartEvent(TileCoord coord, JumpMove jumpMove) {
-		bricks.remove(coord);
+	public void onSetPushEntityTrigger() {
+		removeThisFromTile(getTileCoordFromCenter());
+	}
+
+	@Override
+	public void onSetGotoMoveTrigger() {
+		removeThisFromTile(getTileCoordFromCenter());
+	}
+	
+	@Override
+	public void onSetJumpMoveTrigger() {
+		removeThisFromTile(getTileCoordFromCenter());
+	}
+
+	@Override
+	public void onPushEntityStop() {
+		bricks.put(getTileCoordFromCenter(), this);
 	}
 
 	@Override

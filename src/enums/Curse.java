@@ -21,8 +21,7 @@ public enum Curse {
 	STUNNED(11);
 
 	private int value;
-	private static Curse[] list = { NO_BOMB, MIN_FIRE, MIN_BOMB, MIN_SPEED, ULTRA_SPEED,
-			SLOW_EXPLODE_BOMB, FAST_EXPLODE_BOMB, BLINDNESS, INVISIBLE, REVERSED, SWAP_PLAYERS, STUNNED };
+	
 	@SuppressWarnings("serial")
 	private static Map<Curse, Integer> duration = new HashMap<>() {{ // FALTA: Ajustar a duração dos curses
 		put(NO_BOMB, 600);
@@ -47,22 +46,22 @@ public enum Curse {
 		return value;
 	}
 
-	public Curse getNext() {
+	public Curse getNext() { 
 		int i = value + 1;
-		if (i == list.length)
+		if (i == Curse.values().length)
 			i = 0;
-		return list[i];
+		return Curse.values()[i];
 	}
 
 	public Curse getPreview() {
 		int i = value - 1;
 		if (i == 0)
-			i = list.length - 1;
-		return list[i];
+			i = Curse.values().length - 1;
+		return Curse.values()[i];
 	}
 
 	public static Curse getRandom() {
-		return CollectionUtils.getRandomItemFromArray(list);
+		return CollectionUtils.getRandomItemFromArray(Curse.values());
 	}
 
 	public static int getDuration(Curse curse) {

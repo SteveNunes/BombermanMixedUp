@@ -10,7 +10,6 @@ import application.Main;
 import enums.BombType;
 import enums.Curse;
 import enums.Direction;
-import enums.Elevation;
 import enums.GameInputs;
 import enums.ItemType;
 import enums.PassThrough;
@@ -170,7 +169,7 @@ public class BomberMan extends Entity {
 		if (input == GameInputs.A) {
 			bombs.sort((b1, b2) -> (int) (b1.getSetTime() - b2.getSetTime()));
 			for (Bomb bomb : bombs)
-				if (!bomb.isBlockedMovement() && (bomb.getBombType() == BombType.REMOTE || bomb.getBombType() == BombType.SPIKED_REMOTE)) {
+				if ((!bomb.isBlockedMovement() || bomb.isStucked()) && (bomb.getBombType() == BombType.REMOTE || bomb.getBombType() == BombType.SPIKED_REMOTE)) {
 					bomb.detonate();
 					return;
 				}
@@ -203,7 +202,7 @@ public class BomberMan extends Entity {
 				}
 				return;
 			}
-			if ((haveItem(ItemType.PUNCH_BOMB) || haveItem(ItemType.HYPER_PUNCH)) && Bomb.haveBombAt(this, coord) && haveFrameSet("PunchBomb"))
+			if ((haveItem(ItemType.PUNCH_BOMB) || haveItem(ItemType.HYPER_PUNCH)) && Bomb.haveBombAt(this, coord) && !Bomb.getBombAt(coord).isBlockedMovement() && haveFrameSet("PunchBomb"))
 				setFrameSet("PunchBomb");
 			else if (haveItem(ItemType.HYPER_PUNCH) && Brick.haveBrickAt(coord) && haveFrameSet("PunchBomb"))
 				setFrameSet("PunchBrick");
@@ -294,10 +293,11 @@ public class BomberMan extends Entity {
 				MapSet.checkTileTrigger(this, getPreviewTileCoord(), TileProp.TRIGGER_BY_PLAYER, true);
 			}
 			TileCoord frontTile = getTileCoord().getNewInstance().incCoordsByDirection(getDirection());
-			if (getPushingValue() > 5 && haveItem(ItemType.KICK_BOMB) && Bomb.haveBombAt(this, frontTile)) {
+			if (getPushingValue() > 5 && haveItem(ItemType.KICK_BOMB) && Bomb.haveBombAt(this, frontTile) && !Bomb.getBombAt(frontTile).isBlockedMovement()) {
 				TileCoord nextCoord = frontTile.getNewInstance().incCoordsByDirection(getDirection());
 				if (MapSet.tileIsFree(nextCoord, Set.of())) {
 					Bomb.getBombAt(frontTile).kick(getDirection(), 4);
+					Bomb.getBombs().get(0).kick(getDirection().getReverseDirection(), 4);
 					setPushingValue(0);
 				}
 			}
@@ -485,7 +485,6 @@ public class BomberMan extends Entity {
 		checkOutScreenCoords();
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_PLAYER);
-		setElevation(Elevation.ON_GROUND);
 	}
 
 	@Override

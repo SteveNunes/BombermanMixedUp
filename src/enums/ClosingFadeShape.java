@@ -2,6 +2,7 @@ package enums;
 
 public enum ClosingFadeShape {
 
-	CIRCLE, SQUARE;
+	CIRCLE,
+	SQUARE;
 
 }

@@ -671,7 +671,15 @@ public abstract class MapSet {
 		if (!haveTilesOnCoord(coord))
 			return false;
 		Entity en = Entity.haveAnyEntityAtCoord(coord) ? Entity.getFirstEntityFromCoord(coord) : null;
-		for (TileProp prop : getTileProps(coord))
+		for (TileProp prop : getTileProps(coord)) {
+			if (entity != null && entity.getElevation() == Elevation.ON_GROUND) {
+				if ((entity instanceof Bomb && prop == TileProp.GROUND_NO_BOMB) ||
+						(entity instanceof Brick && prop == TileProp.GROUND_NO_BRICK) ||
+						(entity instanceof Item && prop == TileProp.GROUND_NO_ITEM) ||
+						(entity instanceof Monster && prop == TileProp.GROUND_NO_MOB) ||
+						(entity instanceof BomberMan && prop == TileProp.GROUND_NO_PLAYER))
+							return false;
+			}
 			if ((entity == null || entity.getElevation() == Elevation.ON_GROUND) &&
 					(((prop == TileProp.HOLE || prop == TileProp.GROUND_HOLE || prop == TileProp.DEEP_HOLE) && (passThrough == null || !passThrough.contains(PassThrough.HOLE))) ||
 					(prop == TileProp.WALL && (passThrough == null || !passThrough.contains(PassThrough.WALL))) ||
@@ -683,6 +691,7 @@ public abstract class MapSet {
 					(Bomb.haveBombAt(entity, coord) && Bomb.getBombAt(coord).getBombType() != BombType.LAND_MINE && (passThrough == null || !passThrough.contains(PassThrough.BOMB))) ||
 					TileProp.getCantCrossList(entity == null ? Elevation.ON_GROUND : entity.getElevation()).contains(prop)))
 						return false;
+		}
 		return true;
 	}
 

@@ -85,7 +85,7 @@ public abstract class Draw {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		gc.setFill(clearColor);
 		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-		for (SpriteLayerType layerType : SpriteLayerType.getList()) {
+		for (SpriteLayerType layerType : SpriteLayerType.values()) {
 			if (drawParamsList.containsKey(layerType)) {
 				if (layerType == SpriteLayerType.SPRITE)
 					drawParamsList.get(layerType).sort((p1, p2) -> p1.getFrontValue() - p2.getFrontValue());

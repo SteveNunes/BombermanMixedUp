@@ -14,16 +14,16 @@ public class GameInputs {
 	
 	public static void init() {
 		JXInputEX.setOnJoystickConnectedEvent(x -> {
-			System.out.println(x + " foi conectado");
+			System.out.println(x.getJoystickName() + " foi conectado");
 		});
 		JXInputEX.setOnJoystickDisconnectedEvent(x -> {
-			System.out.println(x + " foi desconectado");
+			System.out.println(x.getJoystickName() + " foi desconectado");
 		});
 		JInputEX.setOnJoystickConnectedEvent(d -> {
-			System.out.println(d + " foi conectado");
+			System.out.println(d.getName() + " foi conectado");
 		});
 		JInputEX.setOnJoystickDisconnectedEvent(d -> {
-			System.out.println(d + " foi desconectado");
+			System.out.println(d.getName() + " foi desconectado");
 		});
 		loadJoysticks();
 	}

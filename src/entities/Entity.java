@@ -305,6 +305,7 @@ public class Entity extends Position {
 
 	public JumpMove setJumpMove(double jumpStrenght, double strenghtMultipiler, int durationFrames) {
 		setElevation(Elevation.FLYING);
+		onSetJumpMoveTrigger();
 		return (jumpMove = new JumpMove(new Position(), getPosition(), jumpStrenght, strenghtMultipiler, durationFrames));
 	}
 
@@ -319,10 +320,12 @@ public class Entity extends Position {
 	}
 
 	public GotoMove setGotoMove(Position endPosition, int durationFrames) {
+		onSetGotoMoveTrigger();
 		return setGotoMove(endPosition, durationFrames, false);
 	}
 
 	public GotoMove setGotoMove(Position endPosition, int durationFrames, Boolean resetAfterFullCycle) {
+		onSetGotoMoveTrigger();
 		return (gotoMove = new GotoMove(new Position(), getPosition(), endPosition, durationFrames, resetAfterFullCycle));
 	}
 
@@ -338,24 +341,22 @@ public class Entity extends Position {
 		if (jumpSound != null)
 			Sound.playWav(entity, jumpSound);
 		final JumpMove jumpMove = setJumpMove(jumpStrenght, strenghtMultipiler, durationFrames);
-		onJumpStartEvent(getTileCoordFromCenter(), jumpMove);
+		onSetJumpMoveTrigger();
 		jumpMove.setOnCycleCompleteEvent(e -> {
 			TileCoord coord2 = getTileCoordFromCenter();
-			if (!MapSet.tileIsFree(coord2))
+			setElevation(Elevation.ON_GROUND);
+			if (!MapSet.tileIsFree(entity, coord2, entity.passThrough)) {
+				setElevation(Elevation.FLYING);
 				onJumpFallAtOccupedTileEvent(jumpMove);
+			}
 			else
 				onJumpFallAtFreeTileEvent(jumpMove);
 		});
 		setGotoMove(coord.getPosition(), durationFrames - 1);
 	}
 
-	public void onBeingHoldEvent(Entity holder) {}
-
-	public void onJumpStartEvent(TileCoord coord, JumpMove jumpMove) {}
-
 	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {
 		checkOutScreenCoords();
-		setElevation(Elevation.ON_GROUND);
 	}
 
 	public void onJumpFallAtOccupedTileEvent(JumpMove jumpMove) {
@@ -604,7 +605,17 @@ public class Entity extends Position {
 		if (haveFrameSet("BeingHolded"))
 			setFrameSet("BeingHolded");
 	}
+	
+	public void onBeingHoldEvent(Entity holder) {}
 
+	public void onSetPushEntityTrigger() {}
+
+	public void onSetGotoMoveTrigger() {}
+	
+	public void onSetJumpMoveTrigger() {}
+	
+	public void onPushEntityStop() {}
+	
 	private void unsetAllMovings() {
 		unsetGotoMove();
 		unsetGhosting();
@@ -734,42 +745,11 @@ public class Entity extends Position {
 		return pushEntity;
 	}
 
-	public void setPushEntity(Double strenght, Consumer<Entity> consumerWhenCollides) {
-		pushEntity = new PushEntity(this, strenght, null, getDirection()).setOnColideEvent(consumerWhenCollides);
-	}
-
-	public void setPushEntity(Double strenght, Direction direction, Consumer<Entity> consumerWhenCollides) {
-		pushEntity = new PushEntity(this, strenght, null, direction).setOnColideEvent(consumerWhenCollides);
-	}
-
-	public void setPushEntity(Double startStrenght, Double decStrenght, Consumer<Entity> consumerWhenCollides) {
-		pushEntity = new PushEntity(this, startStrenght, decStrenght, getDirection()).setOnColideEvent(consumerWhenCollides);
-	}
-
-	public void setPushEntity(Double startStrenght, Double decStrenght, Direction direction, Consumer<Entity> consumerWhenCollides) {
-		pushEntity = new PushEntity(this, startStrenght, decStrenght, direction).setOnColideEvent(consumerWhenCollides);
-	}
-
-	public void setPushEntity(Double strenght) {
-		pushEntity = new PushEntity(this, strenght, null, getDirection());
-	}
-
-	public void setPushEntity(Double strenght, Direction direction) {
-		pushEntity = new PushEntity(this, strenght, null, direction);
-	}
-
-	public void setPushEntity(Double startStrenght, Double decStrenght) {
-		pushEntity = new PushEntity(this, startStrenght, decStrenght, getDirection());
-	}
-
-	public void setPushEntity(Double startStrenght, Double decStrenght, Direction direction) {
-		pushEntity = new PushEntity(this, startStrenght, decStrenght, direction);
-	}
-
 	public void setPushEntity(PushEntity pushEntity) {
 		this.pushEntity = pushEntity;
+		onSetPushEntityTrigger();
 	}
-
+	
 	public void unsetPushEntity() {
 		pushEntity = null;
 	}
@@ -840,9 +820,9 @@ public class Entity extends Position {
 			tileChangedCoord = getTileCoordFromCenter().getNewInstance();
 			tileWasChanged = true;
 		}
-		if (jumpMove != null) {
-			jumpMove.move();
-			if (jumpMove.jumpIsFinished())
+		if (getJumpMove() != null) {
+			getJumpMove().move();
+			if (getJumpMove().jumpIsFinished())
 				unsetJumpMove();
 		}
 		if (getPathFinder() != null) {
@@ -854,26 +834,26 @@ public class Entity extends Position {
 				moveEntity(getDirection(), getSpeed());
 			}
 		}
-		if (gotoMove != null) {
-			gotoMove.move();
-			if (gotoMove.isCycleCompleted()) {
+		if (getGotoMove() != null) {
+			getGotoMove().move();
+			if (getGotoMove().isCycleCompleted()) {
 				unsetGotoMove();
 				checkOutScreenCoords();
 			}
 			else {
-				incPosition(gotoMove.getIncrements());
+				incPosition(getGotoMove().getIncrements());
 				boolean[] corners = getFreeCorners();
 				for (boolean b : corners)
 					if (!b) {
-						decPosition(gotoMove.getIncrements());
+						decPosition(getGotoMove().getIncrements());
 						break;
 					}
 			}
 		}
-		if (pushEntity != null) {
-			pushEntity.process();
-			if (!pushEntity.isActive()) {
-				pushEntity = null;
+		if (getPushEntity() != null) {
+			getPushEntity().process();
+			if (!getPushEntity().isActive()) {
+				unsetPushEntity();
 				setBlockedMovement(false);
 				checkOutScreenCoords();
 			}
@@ -952,15 +932,15 @@ public class Entity extends Position {
 			if (direction != null)
 				pos.incPositionByDirection(direction);
 			freeCorners[++z] = tileIsFree(pos.getTileCoord());
-			for (int n = 0; n < 3; n++)
-				for (Entity entity : freeCorners[z] && n == 0 ? Brick.getBricks() : n == 1 ? Bomb.getBombs() : Monster.getMonsters()) {
+			for (int n = 0; freeCorners[z] && n < 3; n++)
+				for (Entity entity : n == 0 ? Brick.getBricks() : n == 1 ? Bomb.getBombs() : Monster.getMonsters()) {
 					if (entity != this && entity.getElevation() == getElevation() &&
 							((n == 0 && !canPassThroughBrick()) ||
-							(n == 1 && ((Bomb) entity).getBombType() != BombType.LAND_MINE && (!((Bomb) entity).ownerIsOver(this) && !canPassThroughBomb())) ||
+							(n == 1 && ((Bomb) entity).getBombType() != BombType.LAND_MINE && !((Bomb) entity).ownerIsOver(this) && !canPassThroughBomb()) ||
 							(n == 2 && !canPassThroughMonster()))) {
 								int x = (int) pos.getX(), y = (int) pos.getY();
 								int xx = (int) entity.getX(), yy = (int) entity.getY();
-								if (x >= xx && y >= yy && x <= xx + Main.TILE_SIZE && y <= yy + Main.TILE_SIZE) {
+								if (x >= xx && y >= yy && x < xx + Main.TILE_SIZE && y < yy + Main.TILE_SIZE) {
 									freeCorners[z] = false;
 									break;
 								}
@@ -1392,6 +1372,26 @@ public class Entity extends Position {
 
 	public static boolean haveAnyEntityAtCoord(TileCoord coord, Entity ignoreEntity) {
 		return entityMap.containsKey(coord) && (entityMap.get(coord).size() > 1 || (!entityMap.get(coord).isEmpty() && !entityMap.get(coord).contains(ignoreEntity)));
+	}
+
+	public void pushEntity(Entity entity, TileCoord targetTile, Double startStrenght, Double decStrenght, Direction direction, Consumer<Entity> onStopEvent, String triggerSound, String soundWhenHits) {
+		if (triggerSound != null)
+			Sound.playWav(this, triggerSound);
+		entities.PushEntity pushEntity = new entities.PushEntity(entity, startStrenght, decStrenght, direction);
+		pushEntity.setOnStopEvent(e -> {
+			if (soundWhenHits != null)
+				Sound.playWav(this, soundWhenHits);
+			setShake(2d, -0.05, 0d);
+			entity.unsetGhosting();
+			if (onStopEvent != null)
+				onStopEvent.accept(e);
+			onPushEntityStop();
+		});
+		pushEntity.setTargetTile(targetTile);
+		pushEntity.testIfPathIsFree();
+		if (pushEntity.isActive())
+			entity.setPushEntity(pushEntity);
+		entity.setGhosting(2, 0.2);
 	}
 
 }

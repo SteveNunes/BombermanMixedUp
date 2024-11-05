@@ -10,7 +10,6 @@ import entities.Effect;
 import entities.Entity;
 import enums.Curse;
 import enums.Direction;
-import enums.Elevation;
 import enums.ItemType;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
@@ -210,14 +209,12 @@ public class Item extends Entity {
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
 		super.run(gc, isPaused);
-		if (getPushEntity() != null && items.containsKey(getTileCoordFromCenter()))
-			items.remove(getTileCoordFromCenter());
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		if (!isBlockedMovement() && tileWasChanged()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
 			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
 			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_ITEM, true);
-			items.remove(prevCoord);
+			removeThisFromTile(prevCoord);
 			if (!items.containsKey(coord))
 				items.put(coord, this);
 		}
@@ -249,14 +246,34 @@ public class Item extends Entity {
 		return haveItemAt(tileCoord) ? items.get(tileCoord) : null;
 	}
 
+	private void removeThisFromTile(TileCoord coord) {
+		if (items.containsKey(coord) && items.get(coord) == this)
+			items.remove(coord);
+	}
+	
 	@Override
 	public void onBeingHoldEvent(Entity holder) {
-		items.remove(holder.getTileCoordFromCenter());
+		removeThisFromTile(getTileCoordFromCenter());
 	}
 
 	@Override
-	public void onJumpStartEvent(TileCoord coord, JumpMove jumpMove) {
-		items.remove(coord);
+	public void onSetPushEntityTrigger() {
+		removeThisFromTile(getTileCoordFromCenter());
+	}
+
+	@Override
+	public void onSetGotoMoveTrigger() {
+		removeThisFromTile(getTileCoordFromCenter());
+	}
+	
+	@Override
+	public void onSetJumpMoveTrigger() {
+		removeThisFromTile(getTileCoordFromCenter());
+	}
+
+	@Override
+	public void onPushEntityStop() {
+		items.put(getTileCoordFromCenter(), this);
 	}
 
 	@Override
@@ -272,7 +289,6 @@ public class Item extends Entity {
 		items.put(coord, this);
 		setFrameSet("ItemStandFrameSet");
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
-		setElevation(Elevation.ON_GROUND);
 	}
 
 	@Override

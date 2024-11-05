@@ -11,7 +11,6 @@ import application.Main;
 import enums.BombType;
 import enums.Curse;
 import enums.Direction;
-import enums.Elevation;
 import enums.FindType;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
@@ -212,7 +211,7 @@ public class Bomb extends Entity {
 			}
 			if (bomb.getTimer() != -1 && !bomb.isBlockedMovement())
 				bomb.decTimer();
-			if ((bomb.getTimer() == -1 || bomb.getTimer() > 0) && !bomb.isBlockedMovement() &&
+			if ((bomb.getTimer() == -1 || bomb.getTimer() > 0) && (!bomb.isBlockedMovement() || bomb.isStucked()) &&
 					(MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB) ||
 					 MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.EXPLOSION)))
 							bomb.setTimer(0);
@@ -297,7 +296,7 @@ public class Bomb extends Entity {
 
 	@Override
 	public boolean isBlockedMovement() {
-		return getJumpMove() != null || getHolder() != null;
+		return isStucked() || getJumpMove() != null || getHolder() != null;
 	}
 
 	@Override
@@ -315,7 +314,7 @@ public class Bomb extends Entity {
 						bombs.put(getTileCoordFromCenter(), this);
 				}
 				else {
-					bombs.remove(getTileCoordFromCenter());
+					removeThisFromTile(getTileCoordFromCenter());
 					setSpeed(0.5);
 				}
 			}
@@ -348,7 +347,7 @@ public class Bomb extends Entity {
 		super.run(gc, isPaused);
 		if (!isBlockedMovement() && tileWasChanged() && isActive()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
-			bombs.remove(prevCoord);
+			removeThisFromTile(prevCoord);
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
 			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
 			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
@@ -381,11 +380,10 @@ public class Bomb extends Entity {
 
 	public void kick(Direction direction, double speed, String kickSound, String slamSound) {
 		if (getPushEntity() == null) {
-			bombs.remove(getTileCoordFromCenter());
 			if (kickSound != null)
 				Sound.playWav(kickSound);
 			entities.PushEntity pushEntity = new entities.PushEntity(this, speed, direction);
-			pushEntity.setOnColideEvent(e -> {
+			pushEntity.setOnStopEvent(e -> {
 				if (getBombType() == BombType.RUBBER) {
 					Sound.playWav("BombBounce");
 					Direction dir = Tools.getRandomFreeDirection(this, getTileCoordFromCenter(), Set.of());
@@ -404,20 +402,20 @@ public class Bomb extends Entity {
 					unsetGhosting();
 					bombs.put(getTileCoordFromCenter(), this);
 				}
-				TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction);
-				if (haveBombAt(coord)) {
-					Bomb bomb = Bomb.getBombAt(coord);
-					if (bomb.getShake() != null && (getBombType() == BombType.RUBBER || bomb.getBombType() == BombType.RUBBER || owner != bomb.owner)) {
-						isActive = false;
-						bomb.isActive = false;
-						int distance = (fireDistance + bomb.fireDistance) / 2;
-						Bomb.removeBomb(bomb);
-						Bomb.removeBomb(this);
-						Bomb.addBomb(coord, BombType.MAGMA, distance);
-						return;
+				List<Bomb> list = new ArrayList<>(bombList);
+				for (Bomb bomb : list) {
+					TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction);
+					if (bomb != this && bomb.getTileCoordFromCenter().equals(coord)) {
+						if (bomb.getPushEntity() != null) {
+							int distance = (fireDistance + bomb.fireDistance) / 2;
+							Bomb.removeBomb(bomb);
+							Bomb.removeBomb(this);
+							Bomb.addBomb(coord, BombType.MAGMA, distance);
+							return;
+						}
+						if (!bomb.isBlockedMovement())
+							bomb.kick(direction, speed, kickSound, slamSound);
 					}
-					else
-						bomb.kick(direction, speed, kickSound, slamSound);
 				}
 			});
 			setPushEntity(pushEntity);
@@ -425,21 +423,42 @@ public class Bomb extends Entity {
 		}
 	}
 
+	private void removeThisFromTile(TileCoord coord) {
+		if (bombs.containsKey(coord) && bombs.get(coord) == this)
+			bombs.remove(coord);
+	}
+	
+	@Override
+	public void onBeingHoldEvent(Entity holder) {
+		removeThisFromTile(getTileCoordFromCenter());
+	}
+
+	@Override
+	public void onSetPushEntityTrigger() {
+		removeThisFromTile(getTileCoordFromCenter());
+	}
+
+	@Override
+	public void onSetGotoMoveTrigger() {
+		removeThisFromTile(getTileCoordFromCenter());
+	}
+	
+	@Override
+	public void onSetJumpMoveTrigger() {
+		setFrameSet("JumpingFrames");
+		removeThisFromTile(getTileCoordFromCenter());
+	}
+
+	@Override
+	public void onPushEntityStop() {
+		bombs.put(getTileCoordFromCenter(), this);
+		MapSet.checkTileTrigger(this, getTileCoordFromCenter(), TileProp.TRIGGER_BY_STOPPED_BOMB);
+	}
+
 	public void punch(Direction direction, String punchSound) {
 		setDirection(direction);
 		TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction, 4);
 		jumpTo(this, coord.getNewInstance(), 4, 1.2, 20, punchSound);
-	}
-
-	@Override
-	public void onBeingHoldEvent(Entity holder) {
-		bombs.remove(holder.getTileCoordFromCenter());
-	}
-
-	@Override
-	public void onJumpStartEvent(TileCoord coord, JumpMove jumpMove) {
-		setFrameSet("JumpingFrames");
-		bombs.remove(coord);
 	}
 
 	@Override
@@ -469,7 +488,6 @@ public class Bomb extends Entity {
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		bombs.put(coord, this);
 		setFrameSet("StandFrames");
-		setElevation(Elevation.ON_GROUND);
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
 	}
