@@ -670,20 +670,18 @@ public abstract class MapSet {
 	public static boolean tileIsFree(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
 		if (!haveTilesOnCoord(coord))
 			return false;
-		if (getTileProps(coord) == null)
-			return true;
 		Entity en = Entity.haveAnyEntityAtCoord(coord) ? Entity.getFirstEntityFromCoord(coord) : null;
 		for (TileProp prop : getTileProps(coord))
 			if ((entity == null || entity.getElevation() == Elevation.ON_GROUND) &&
 					(((prop == TileProp.HOLE || prop == TileProp.GROUND_HOLE || prop == TileProp.DEEP_HOLE) && (passThrough == null || !passThrough.contains(PassThrough.HOLE))) ||
 					(prop == TileProp.WALL && (passThrough == null || !passThrough.contains(PassThrough.WALL))) ||
 					((prop == TileProp.WATER || prop == TileProp.DEEP_WATER) && (passThrough == null || !passThrough.contains(PassThrough.WATER))) ||
-					((en != null && en instanceof BomberMan && passThrough != null && !passThrough.contains(PassThrough.PLAYER)) ||
+					(en != null && en instanceof BomberMan && passThrough != null && !passThrough.contains(PassThrough.PLAYER)) ||
 					(en != null && en instanceof Monster && passThrough != null && !passThrough.contains(PassThrough.MONSTER)) ||
 					(Item.haveItemAt(coord) && passThrough != null && !passThrough.contains(PassThrough.ITEM)) ||
 					(Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
 					(Bomb.haveBombAt(entity, coord) && Bomb.getBombAt(coord).getBombType() != BombType.LAND_MINE && (passThrough == null || !passThrough.contains(PassThrough.BOMB))) ||
-					TileProp.getCantCrossList(entity == null ? Elevation.ON_GROUND : entity.getElevation()).contains(prop))))
+					TileProp.getCantCrossList(entity == null ? Elevation.ON_GROUND : entity.getElevation()).contains(prop)))
 						return false;
 		return true;
 	}

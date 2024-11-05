@@ -194,7 +194,7 @@ public class Bomb extends Entity {
 		for (Bomb bomb : bombs) {
 			if (bomb.type == BombType.LAND_MINE) {
 				bomb.run();
-				if (bomb.currentFrameSetNameIsEqual("LandedFrames") && Entity.haveAnyEntityAtCoord(bomb.getTileCoordFromCenter()))
+				if (bomb.currentFrameSetNameIsEqual("LandedFrames") && Entity.haveAnyEntityAtCoord(bomb.getTileCoordFromCenter(), bomb))
 					bomb.setFrameSet("UnlandingFrames");
 				else if (MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB) ||
 								MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.EXPLOSION))
@@ -202,9 +202,13 @@ public class Bomb extends Entity {
 				continue;
 			}
 			if (bomb.ownerIsOver(bomb.owner)) {
-				int x = (int) bomb.owner.getX() + Main.TILE_SIZE / 2, y = (int) bomb.owner.getY() + Main.TILE_SIZE / 2, xx = (int) bomb.getX() + Main.TILE_SIZE / 2, yy = (int) bomb.getY() + Main.TILE_SIZE / 2;
-				if (x <= xx - Main.TILE_SIZE / 2 || x >= xx + Main.TILE_SIZE / 2 || y <= yy - Main.TILE_SIZE / 2 || y >= yy + Main.TILE_SIZE / 2)
-					bomb.ownerIsOver = false;
+				int x = (int) bomb.owner.getX() + Main.TILE_SIZE / 2,
+						y = (int) bomb.owner.getY() + Main.TILE_SIZE / 2,
+						xx = (int) bomb.getX() + Main.TILE_SIZE / 2,
+						yy = (int) bomb.getY() + Main.TILE_SIZE / 2;
+				if (x <= xx - Main.TILE_SIZE / 2 || x >= xx + Main.TILE_SIZE / 2 ||
+						y <= yy - Main.TILE_SIZE / 2 || y >= yy + Main.TILE_SIZE / 2)
+							bomb.ownerIsOver = false;
 			}
 			if (bomb.getTimer() != -1 && !bomb.isBlockedMovement())
 				bomb.decTimer();

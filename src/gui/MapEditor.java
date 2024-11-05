@@ -15,11 +15,14 @@ import application.Main;
 import entities.Bomb;
 import entities.BomberMan;
 import entities.Entity;
+import entities.Explosion;
 import entities.Player;
+import entities.TileDamage;
 import enums.BombType;
 import enums.Direction;
 import enums.FindInRectType;
 import enums.FindType;
+import enums.GameInputMode;
 import enums.GameInputs;
 import enums.Icons;
 import enums.ImageFlip;
@@ -216,7 +219,7 @@ public class MapEditor {
 
 	public void init() {
 		markCorners = false;
-		markEntities = false;
+		markEntities = true;
 		markBombs = true;
 		markBricks = false;
 		markItems = false;
@@ -246,6 +249,10 @@ public class MapEditor {
 		canvasMain.setWidth(320 * zoomMain - 16 * zoomMain * 3);
 		canvasMain.setHeight(240 * zoomMain - 16 * zoomMain);
 		listenerHandleComboBoxMapFrameSets = new ListenerHandle<>(comboBoxMapFrameSets.valueProperty(), (o, oldValue, newValue) -> MapSet.mapFrameSets.setFrameSet(comboBoxMapFrameSets.getSelectionModel().getSelectedItem()));
+		BomberMan.addBomberMan(1, 0);
+		Player.addPlayer();
+		Player.getPlayer(0).setInputMode(GameInputMode.KEYBOARD);
+		Player.getPlayer(0).setBomberMan(BomberMan.getBomberMan(0));
 		setAllCanvas();
 		defineControls();
 		setKeyboardEvents();
@@ -590,6 +597,7 @@ public class MapEditor {
 
 	void setKeyboardEvents() {
 		Main.sceneMain.setOnKeyPressed(e -> {
+			Player.convertOnKeyPressEvent(e.getCode().getCode());
 			if (e.getCode() == KeyCode.I && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord))
 				Item.addItem(canvasMouseDraw.tileCoord, itemType);
 			else if (e.getCode() == KeyCode.B && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !Bomb.haveBombAt(null, canvasMouseDraw.tileCoord) && !MapSet.tileContainsProp(canvasMouseDraw.tileCoord, TileProp.GROUND_NO_BOMB))
@@ -721,6 +729,7 @@ public class MapEditor {
 			}
 		});
 		Main.sceneMain.setOnKeyReleased(e -> {
+			Player.convertOnKeyReleaseEvent(e.getCode().getCode());
 			for (int n = 0; n < keysInputs.length; n++) {
 				if (e.getCode() == keysInputs[n])
 					getCurrentBomber().keyRelease(GameInputs.getList()[n]);
@@ -971,9 +980,14 @@ public class MapEditor {
 				getDrawGc().fillRect(0, 0, getCurrentLayer().getWidth(), getCurrentLayer().getHeight());
 				Draw.addDrawQueue(SpriteLayerType.GROUND, getCurrentLayer().getLayerImage(), 0, 0);
 			}
-			Player.getPlayers().forEach(p -> p.getBomberMan().run());
+			Explosion.drawExplosions();
+			Bomb.drawBombs();
+			Item.drawItems();
+			TileDamage.runTileDamages();
+			BomberMan.drawBomberMans();
 		}
-		if (checkBoxShowBricks.isSelected() && MapSet.getCurrentLayerIndex() == 26) {
+		if (checkBoxShowBricks.isSelected()) {
+			Brick.drawBricks();
 			if (checkBoxShowItems.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)

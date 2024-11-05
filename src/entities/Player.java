@@ -61,18 +61,19 @@ public class Player {
 		dinputMap = new HashMap<>();
 		keyboardMap = new HashMap<>();
 		mappingIndex = -1;
+		loadConfigs();
 		// Teclas padrão do jogador 1
-		if (playerId == 0) {
-			mapGameInput(KeyEvent.VK_LEFT, GameInputs.LEFT);
-			mapGameInput(KeyEvent.VK_UP, GameInputs.UP);
-			mapGameInput(KeyEvent.VK_RIGHT, GameInputs.RIGHT);
-			mapGameInput(KeyEvent.VK_DOWN, GameInputs.DOWN);
+		if (playerId == 0 && keyboardMap.isEmpty()) {
+			mapGameInput(KeyEvent.VK_A, GameInputs.LEFT);
+			mapGameInput(KeyEvent.VK_W, GameInputs.UP);
+			mapGameInput(KeyEvent.VK_D, GameInputs.RIGHT);
+			mapGameInput(KeyEvent.VK_S, GameInputs.DOWN);
 			mapGameInput(KeyEvent.VK_ENTER, GameInputs.START);
 			mapGameInput(KeyEvent.VK_SPACE, GameInputs.SELECT);
-			mapGameInput(KeyEvent.VK_Z, GameInputs.A);
-			mapGameInput(KeyEvent.VK_X, GameInputs.B);
-			mapGameInput(KeyEvent.VK_A, GameInputs.C);
-			mapGameInput(KeyEvent.VK_S, GameInputs.D);
+			mapGameInput(KeyEvent.VK_NUMPAD1, GameInputs.A);
+			mapGameInput(KeyEvent.VK_NUMPAD2, GameInputs.B);
+			mapGameInput(KeyEvent.VK_NUMPAD4, GameInputs.C);
+			mapGameInput(KeyEvent.VK_NUMPAD5, GameInputs.D);
 		}
 	}
 	
@@ -219,6 +220,44 @@ public class Player {
 	public void setOnReleaseInputEvent(Consumer<enums.GameInputs> onReleaseInputEvent) {
 		this.onReleaseInputEvent = onReleaseInputEvent;
 	}
+	
+	public void loadConfigs() {
+		IniFile ini = IniFile.getNewIniFileInstance("appdata/configs/Inputs.ini");
+		if (ini.read("INPUT_MODE", "" + playerId) != null) {
+			try {
+				GameInputMode mode = GameInputMode.valueOf(ini.getLastReadVal());
+				setInputMode(mode);
+			}
+			catch (Exception e) {
+				throw new RuntimeException(ini.getLastReadVal() + " - Invalid GameInputMode name");
+			}
+		}
+		String[] inputTypes = { "DINPUT", "XINPUT", "KEYBOARD" };
+		for (String inputType : inputTypes) {
+			String str = ini.read(inputType, "" + playerId);
+			if (str == null)
+				continue;
+			String[] split = str.split(" ");
+			for (String s : split) {
+				String[] split2 = s.split(":");
+				if (split2.length < 2)
+					throw new RuntimeException(s + " - Invalid value ([" + inputType + "] section)");
+				int buttonId = -1;
+				GameInputs input = null;
+				try {
+					buttonId = Integer.parseInt(split2[0]); 
+					input = GameInputs.valueOf(split2[1]); 
+				}
+				catch (Exception e) {
+					if (buttonId == -1)
+						throw new RuntimeException(s + " - Invalid integer value at left (" + split2[0] + ") ([" + inputType + "] section, " + playerId + "= item)");
+					throw new RuntimeException(s + " - Invalid integer value at right (" + split2[1] + ") ([" + inputType + "] section, " + playerId + "= item)");
+				}
+				mapGameInput(buttonId, input);
+			}
+		}
+
+	}
 
 	public void saveConfigs() {
 		IniFile ini = IniFile.getNewIniFileInstance("appdata/configs/Inputs.ini");
@@ -250,6 +289,7 @@ public class Player {
 			}
 			ini.write("KEYBOARD", "" + playerId, sb.toString());
 		}
+		ini.write("INPUT_MODE", "" + playerId, getInputMode().name());
 	}
 	
 }

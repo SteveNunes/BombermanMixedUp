@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import application.Main;
+import enums.BombType;
 import enums.Curse;
 import enums.Direction;
 import enums.DrawType;
@@ -952,15 +953,19 @@ public class Entity extends Position {
 				pos.incPositionByDirection(direction);
 			freeCorners[++z] = tileIsFree(pos.getTileCoord());
 			for (int n = 0; n < 3; n++)
-				for (Entity entity : freeCorners[z] && n == 0 ? Brick.getBricks() : n == 1 ? Bomb.getBombs() : Monster.getMonsters())
-					if (entity != this && (n != 0 || !canPassThroughBrick()) && (n != 1 || (!((Bomb) entity).ownerIsOver(this) && !canPassThroughBomb())) && (n != 2 || !canPassThroughMonster())) {
-						int x = (int) pos.getX(), y = (int) pos.getY();
-						int xx = (int) entity.getX(), yy = (int) entity.getY();
-						if (x >= xx && y >= yy && x <= xx + Main.TILE_SIZE && y <= yy + Main.TILE_SIZE) {
-							freeCorners[z] = false;
-							break;
-						}
+				for (Entity entity : freeCorners[z] && n == 0 ? Brick.getBricks() : n == 1 ? Bomb.getBombs() : Monster.getMonsters()) {
+					if (entity != this && entity.getElevation() == getElevation() &&
+							((n == 0 && !canPassThroughBrick()) ||
+							(n == 1 && ((Bomb) entity).getBombType() != BombType.LAND_MINE && (!((Bomb) entity).ownerIsOver(this) && !canPassThroughBomb())) ||
+							(n == 2 && !canPassThroughMonster()))) {
+								int x = (int) pos.getX(), y = (int) pos.getY();
+								int xx = (int) entity.getX(), yy = (int) entity.getY();
+								if (x >= xx && y >= yy && x <= xx + Main.TILE_SIZE && y <= yy + Main.TILE_SIZE) {
+									freeCorners[z] = false;
+									break;
+								}
 					}
+				}
 		}
 		return freeCorners;
 	}
@@ -1020,13 +1025,9 @@ public class Entity extends Position {
 					pushing = 0;
 				}
 				else {
-					if (!freeCorners[0] && freeCorners[1] && (int) ru.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para cima, e o canto esquerdo superior estiver bloqueado,
-					                                                                                                // mas o canto direito superior estiver livre, e esse canto livre for maior que
-					                                                                                                // metade do tile, anda na diagonal tentando alinhar
+					if (!freeCorners[0] && freeCorners[1] && (int) ru.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z)
 						incPosition(speed, -speed / 2);
-					else if (freeCorners[0] && !freeCorners[1] && (int) lu.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para cima, e o canto direito superior estiver bloqueado,
-					                                                                                                                      // mas o canto esquerdo superior estiver livre, e esse canto livre for maior que
-					                                                                                                                      // metade do tile, anda na diagonal tentando alinhar
+					else if (freeCorners[0] && !freeCorners[1] && (int) lu.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z)
 						incPosition(-speed, -speed / 2);
 					else
 						pushing++;
@@ -1042,13 +1043,9 @@ public class Entity extends Position {
 					pushing = 0;
 				}
 				else {
-					if (!freeCorners[2] && freeCorners[3] && (int) rd.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para baixo, e o canto esquerdo inferior estiver bloqueado,
-					                                                                                                // mas o canto direito inferior estiver livre, e esse canto livre for maior que
-					                                                                                                // metade do tile, anda na diagonal tentando alinhar
+					if (!freeCorners[2] && freeCorners[3] && (int) rd.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z)
 						incPosition(speed, speed / 2);
-					else if (freeCorners[2] && !freeCorners[3] && (int) ld.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para baixo, e o canto direito inferior estiver bloqueado,
-					                                                                                                                      // mas o canto esquerdo inferior estiver livre, e esse canto livre for maior que
-					                                                                                                                      // metade do tile, anda na diagonal tentando alinhar
+					else if (freeCorners[2] && !freeCorners[3] && (int) ld.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z)
 						incPosition(-speed, speed / 2);
 					else
 						pushing++;
@@ -1064,13 +1061,9 @@ public class Entity extends Position {
 					pushing = 0;
 				}
 				else {
-					if (!freeCorners[0] && freeCorners[2] && (int) ld.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para esquerda, e o canto esquerdo superior estiver
-					                                                                                                // bloqueado, mas o canto esquerdo inferior estiver livre, e esse canto livre
-					                                                                                                // for maior que metade do tile, anda na diagonal tentando alinhar
+					if (!freeCorners[0] && freeCorners[2] && (int) ld.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z)
 						incPosition(-speed / 2, speed);
-					else if (freeCorners[0] && !freeCorners[2] && (int) lu.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para esquerda, e o canto esquerdo inferior estiver
-					                                                                                                                      // bloqueado, mas o canto esquerdo superior estiver livre, e esse canto livre
-					                                                                                                                      // for maior que metade do tile, anda na diagonal tentando alinhar
+					else if (freeCorners[0] && !freeCorners[2] && (int) lu.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z)
 						incPosition(-speed / 2, -speed);
 					else
 						pushing++;
@@ -1086,13 +1079,9 @@ public class Entity extends Position {
 					pushing = 0;
 				}
 				else {
-					if (!freeCorners[1] && freeCorners[3] && (int) rd.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z) // Se estiver andando para direita, e o canto direita superior estiver
-					                                                                                                // bloqueado, mas o canto direita inferior estiver livre, e esse canto livre for
-					                                                                                                // maior que metade do tile, anda na diagonal tentando alinhar
+					if (!freeCorners[1] && freeCorners[3] && (int) rd.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z)
 						incPosition(speed / 2, speed);
-					else if (freeCorners[1] && !freeCorners[3] && (int) ru.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z) // Se estiver andando para direita, e o canto direita inferior estiver
-					                                                                                                                      // bloqueado, mas o canto direita superior estiver livre, e esse canto livre for
-					                                                                                                                      // maior que metade do tile, anda na diagonal tentando alinhar
+					else if (freeCorners[1] && !freeCorners[3] && (int) ru.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z)
 						incPosition(speed / 2, -speed);
 					else
 						pushing++;
@@ -1402,7 +1391,7 @@ public class Entity extends Position {
 	}
 
 	public static boolean haveAnyEntityAtCoord(TileCoord coord, Entity ignoreEntity) {
-		return entityMap.containsKey(coord) && (entityMap.get(coord).size() > 1 || !entityMap.get(coord).contains(ignoreEntity));
+		return entityMap.containsKey(coord) && (entityMap.get(coord).size() > 1 || (!entityMap.get(coord).isEmpty() && !entityMap.get(coord).contains(ignoreEntity)));
 	}
 
 }
