@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 import application.Main;
+import damage.Explosion;
+import entityTools.PushEntity;
 import enums.BombType;
 import enums.Curse;
 import enums.Direction;
@@ -382,7 +384,7 @@ public class Bomb extends Entity {
 		if (getPushEntity() == null) {
 			if (kickSound != null)
 				Sound.playWav(kickSound);
-			entities.PushEntity pushEntity = new entities.PushEntity(this, speed, direction);
+			entityTools.PushEntity pushEntity = new entityTools.PushEntity(this, speed, direction);
 			pushEntity.setOnStopEvent(e -> {
 				if (getBombType() == BombType.RUBBER) {
 					Sound.playWav("BombBounce");
@@ -465,25 +467,10 @@ public class Bomb extends Entity {
 	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {
 		checkOutScreenCoords();
 		centerToTile();
-		if (Entity.haveAnyEntityAtCoord(getTileCoordFromCenter()))
-			for (Entity entity : Entity.getEntityListFromCoord(getTileCoordFromCenter())) {
-				if (entity instanceof BomberMan) {
-					if (!entity.isBlockedMovement())
-						((BomberMan)entity).dropItem();
-					onJumpFallAtOccupedTileEvent(jumpMove);
-					return;
-				}
-				else if (entity instanceof Monster) {
-					if (!entity.isBlockedMovement()) {
-						entity.setCurse(Curse.STUNNED);
-						entity.setCurseDuration(120);
-					}
-					onJumpFallAtOccupedTileEvent(jumpMove);
-					return;
-				}
-			}
-		if (Item.haveItemAt(getTileCoordFromCenter()))
-			Item.getItemAt(getTileCoordFromCenter()).destroy();
+		if (checkEntitiesAbove()) {
+			onJumpFallAtOccupedTileEvent(jumpMove);
+			return;
+		}
 		Sound.playWav(getBombType() == BombType.RUBBER ? "BombBounce" : "BombHittingGround");
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		bombs.put(coord, this);
@@ -499,9 +486,31 @@ public class Bomb extends Entity {
 		Sound.playWav(getBombType() == BombType.RUBBER ? "BombBounce" : "BombHittingGround");
 		checkOutScreenCoords();
 		centerToTile();
+		checkEntitiesAbove();
 		jumpMove.resetJump(4, 1.2, 14);
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		setGotoMove(coord.incCoordsByDirection(getDirection()).getPosition(), jumpMove.getDurationFrames());
+	}
+	
+	public boolean checkEntitiesAbove() {
+		if (Entity.haveAnyEntityAtCoord(getTileCoordFromCenter()))
+			for (Entity entity : Entity.getEntityListFromCoord(getTileCoordFromCenter())) {
+				if (entity instanceof BomberMan) {
+					if (!entity.isBlockedMovement())
+						((BomberMan)entity).dropItem();
+					return true;
+				}
+				else if (entity instanceof Monster) {
+					if (!entity.isBlockedMovement()) {
+						entity.setCurse(Curse.STUNNED);
+						entity.setCurseDuration(120);
+					}
+					return true;
+				}
+			}
+		if (Item.haveItemAt(getTileCoordFromCenter()))
+			Item.getItemAt(getTileCoordFromCenter()).destroy();
+		return false;
 	}
 
 }

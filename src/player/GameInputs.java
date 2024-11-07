@@ -1,4 +1,4 @@
-package entities;
+package player;
 
 import java.util.List;
 
@@ -56,7 +56,7 @@ public class GameInputs {
 					if (p.getXinputDevice() == x)
 						ok = false;
 				if (ok) {
-					x.setOnPressAnyComponentEvent(e -> {
+					x.setOnPressAnyComponentEvent((i, s) -> {
 						for (Player player : Player.getPlayers())
 							if (player.getInputMode() == GameInputMode.DETECTING)
 								player.setXinputDevice(x);

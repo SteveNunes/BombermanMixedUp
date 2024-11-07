@@ -229,7 +229,7 @@ public class Brick extends Entity {
 	public void kick(Direction direction, double speed, String kickSound, String slamSound) {
 		if (getPushEntity() == null && MapSet.tileIsFree(getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction))) {
 			Sound.playWav(kickSound);
-			entities.PushEntity pushEntity = new entities.PushEntity(this, speed, direction);
+			entityTools.PushEntity pushEntity = new entityTools.PushEntity(this, speed, direction);
 			pushEntity.setOnStopEvent(e -> {
 				Sound.playWav(slamSound);
 				setShake(2d, -0.05, 0d);

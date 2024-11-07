@@ -6,8 +6,8 @@ import java.util.List;
 
 import application.Main;
 import entities.BomberMan;
-import entities.Player;
 import enums.GameInputMode;
+import enums.GameInputs;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -24,6 +24,7 @@ import javafx.stage.Stage;
 import maps.MapSet;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
+import player.Player;
 import tools.Draw;
 import tools.Tools;
 import util.TimerFX;
@@ -64,7 +65,7 @@ public class Game {
 	
 	void setEvents() {
 		Main.sceneMain.setOnKeyPressed(e -> {
-			Player.convertOnKeyPressEvent(e.getCode().getCode());
+			Player.convertOnKeyPressEvent(e);
 			holdedKeys.add(e.getCode());
 			if (e.getCode() == KeyCode.ESCAPE)
 				Main.close();
@@ -73,7 +74,7 @@ public class Game {
 					openInputSetup(n, canvasTileCoord.getTileCoord());
 		});
 		Main.sceneMain.setOnKeyReleased(e -> {
-			Player.convertOnKeyReleaseEvent(e.getCode().getCode());
+			Player.convertOnKeyReleaseEvent(e);
 			holdedKeys.add(e.getCode());
 		});
 		canvasMain.setOnMouseMoved(e -> canvasTileCoord.setPosition((e.getX() + 32 * ZOOM) / ZOOM, (e.getY() + 32 * ZOOM) / ZOOM));
@@ -97,7 +98,7 @@ public class Game {
 			if (player.getInputMode() == GameInputMode.DETECTING)
 				player.setInputMode(GameInputMode.KEYBOARD);
 			else
-				player.pressInput(e.getCode().getCode());
+				player.pressInput(e.getCode().getCode(), e.getCode().getName());
 		});
 		stage.setScene(scene);
 		vBox.setPrefSize(400, 240);
@@ -107,12 +108,16 @@ public class Game {
 		text.setFont(new Font("Lucida Console", 20));
 		text.setTextAlignment(TextAlignment.CENTER);
 		vBox.getChildren().add(text);
-		Text text2 = new Text("");
-		text2.setFont(new Font("Lucida Console", 15));
-		text2.setTextAlignment(TextAlignment.LEFT);
-		vBox.getChildren().add(text2);
+		Text[] texts = {new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text("")};
+		for (Text t : texts) {
+			t.setFont(new Font("Lucida Console", 15));
+			t.setTextAlignment(TextAlignment.LEFT);
+			vBox.getChildren().add(t);
+		}
 		player.setMappingMode(true);
 		boolean[] done = { false };
+		int[] nextText = { 0 };
+		GameInputs[] inputs = GameInputs.values();
 		TimerFX.createTimer("WaitForDevice", 20, 0, () -> {
 			if (player.getInputMode() != GameInputMode.DETECTING) {
 				String str;
@@ -122,22 +127,27 @@ public class Game {
 					str = player.getDinputDevice().getName(); 
 				else
 					str = "Teclado";
-				text.setText(str);
-				text2.setText(text2.getText() + "\nPressione um botão para definir: " + player.getNextMappingInput().name());
+				texts[0].setText("Pressione para definir: " + player.getNextMappingInput().name());
+				text.setText(str + "\n");
 				TimerFX.stopTimer("WaitForDevice");
 			}
 		});
 		player.setOnPressInputEvent(i -> {
+			nextText[0]++;
+			for (int z = 0; z <= nextText[0]; z++) {
+				if (player.getNextMappingInput() != null && !done[0] && z == nextText[0])
+					texts[z].setText("Pressione para definir: " + player.getNextMappingInput().name());
+				else if (z < 10)
+					texts[z].setText(inputs[z] + " = " + player.getButtonInfosMap().get(inputs[z]).getName());
+			}
 			if (done[0]) {
 				player.setOnPressInputEvent(null);
 				stage.close();
 			}
 			else if (player.getNextMappingInput() == null) {
-				text2.setText(text2.getText() + "\n\nConfiguração concluida!");
+				texts[10].setText("\nConfiguração concluida!");
 				done[0] = true;
 			}
-			else
-				text2.setText(text2.getText() + "\nPressione um botão para definir: " + player.getNextMappingInput().name());
 		});
 		stage.setOnCloseRequest(e -> player.setMappingMode(false));
 		stage.showAndWait();

@@ -8,14 +8,14 @@ import java.util.Map;
 import java.util.Set;
 
 import application.Main;
+import damage.Explosion;
+import damage.TileDamage;
 import entities.Bomb;
 import entities.BomberMan;
 import entities.Effect;
 import entities.Entity;
-import entities.Explosion;
 import entities.Monster;
-import entities.Shake;
-import entities.TileDamage;
+import entityTools.ShakeEntity;
 import enums.BombType;
 import enums.Direction;
 import enums.Elevation;
@@ -45,7 +45,7 @@ public abstract class MapSet {
 	private static Map<Integer, Layer> layers;
 	private static List<TileCoord> initialPlayerCoords;
 	private static List<TileCoord> initialMonsterCoords;
-	private static Shake shake;
+	private static ShakeEntity shake;
 	public static Entity mapFrameSets;
 	private static IniFile iniFileMap;
 	private static IniFile iniFileTileSet;
@@ -271,26 +271,26 @@ public abstract class MapSet {
 	}
 
 	public static void setShake(Double incStrength, Double finalStrength) {
-		shake = new Shake(incStrength, incStrength, finalStrength, finalStrength);
+		shake = new ShakeEntity(incStrength, incStrength, finalStrength, finalStrength);
 	}
 
 	public static void setShake(Double startStrength, Double incStrength, Double finalStrength) {
-		shake = new Shake(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength);
+		shake = new ShakeEntity(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength);
 	}
 
 	public static void setShake(Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
-		shake = new Shake(incStrengthX > 0 ? 0 : finalStrengthX, incStrengthY > 0 ? 0 : finalStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
+		shake = new ShakeEntity(incStrengthX > 0 ? 0 : finalStrengthX, incStrengthY > 0 ? 0 : finalStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
 	}
 
 	public static void setShake(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
-		shake = new Shake(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
+		shake = new ShakeEntity(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
 	}
 
 	public static void stopShake() {
 		shake.stop();
 	}
 
-	public static Shake getShake() {
+	public static ShakeEntity getShake() {
 		return shake;
 	}
 
@@ -651,6 +651,7 @@ public abstract class MapSet {
 		Bomb.drawBombs();
 		Item.drawItems();
 		TileDamage.runTileDamages();
+		Effect.drawEffects();
 		BomberMan.drawBomberMans();
 		removeStageTag.forEach(fs -> runningStageTags.remove(fs));
 	}

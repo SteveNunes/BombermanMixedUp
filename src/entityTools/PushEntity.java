@@ -1,7 +1,8 @@
-package entities;
+package entityTools;
 
 import java.util.function.Consumer;
 
+import entities.Entity;
 import enums.Direction;
 import maps.MapSet;
 import objmoveutils.TileCoord;

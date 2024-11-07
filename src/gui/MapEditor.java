@@ -12,12 +12,12 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import application.Main;
+import damage.Explosion;
+import damage.TileDamage;
 import entities.Bomb;
 import entities.BomberMan;
+import entities.Effect;
 import entities.Entity;
-import entities.Explosion;
-import entities.Player;
-import entities.TileDamage;
 import enums.BombType;
 import enums.Direction;
 import enums.FindInRectType;
@@ -68,6 +68,7 @@ import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import pathfinder.PathFinder;
 import pathfinder.PathFinderOptmize;
+import player.Player;
 import tools.Draw;
 import tools.IniFiles;
 import tools.Materials;
@@ -600,7 +601,7 @@ public class MapEditor {
 
 	void setKeyboardEvents() {
 		Main.sceneMain.setOnKeyPressed(e -> {
-			Player.convertOnKeyPressEvent(e.getCode().getCode());
+			Player.convertOnKeyPressEvent(e);
 			if (e.getCode() == KeyCode.I && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !MapSet.tileContainsProp(canvasMouseDraw.tileCoord, TileProp.GROUND_NO_ITEM))
 				Item.addItem(canvasMouseDraw.tileCoord, itemType);
 			else if (e.getCode() == KeyCode.B && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !MapSet.tileContainsProp(canvasMouseDraw.tileCoord, TileProp.GROUND_NO_BOMB))
@@ -738,7 +739,7 @@ public class MapEditor {
 			}
 		});
 		Main.sceneMain.setOnKeyReleased(e -> {
-			Player.convertOnKeyReleaseEvent(e.getCode().getCode());
+			Player.convertOnKeyReleaseEvent(e);
 			for (int n = 0; n < keysInputs.length; n++) {
 				if (e.getCode() == keysInputs[n])
 					getCurrentBomber().keyRelease(GameInputs.values()[n]);
@@ -993,6 +994,7 @@ public class MapEditor {
 			Bomb.drawBombs();
 			Item.drawItems();
 			TileDamage.runTileDamages();
+			Effect.drawEffects();
 			BomberMan.drawBomberMans();
 		}
 		if (checkBoxShowBricks.isSelected()) {

@@ -1,8 +1,8 @@
-package entities;
+package entityTools;
 
 import util.MyMath;
 
-public class Shake {
+public class ShakeEntity {
 
 	private Double startStrengthX;
 	private Double startStrengthY;
@@ -14,7 +14,7 @@ public class Shake {
 	private Double finalStrengthY;
 	private int x, y;
 
-	public Shake(Shake shake) {
+	public ShakeEntity(ShakeEntity shake) {
 		startStrengthX = shake.startStrengthX;
 		startStrengthY = shake.startStrengthY;
 		strengthX = shake.startStrengthX;
@@ -26,19 +26,19 @@ public class Shake {
 		updateVals();
 	}
 
-	public Shake(Double incStrength, Double finalStrength) {
+	public ShakeEntity(Double incStrength, Double finalStrength) {
 		this(incStrength, incStrength, finalStrength, finalStrength);
 	}
 
-	public Shake(Double startStrength, Double incStrength, Double finalStrength) {
+	public ShakeEntity(Double startStrength, Double incStrength, Double finalStrength) {
 		this(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength);
 	}
 
-	public Shake(Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
+	public ShakeEntity(Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
 		this(null, null, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
 	}
 
-	public Shake(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
+	public ShakeEntity(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
 		this.startStrengthX = startStrengthX != null ? startStrengthX : incStrengthX > 0 ? 0 : finalStrengthX;
 		this.startStrengthY = startStrengthY != null ? startStrengthY : incStrengthY > 0 ? 0 : finalStrengthY;
 		this.strengthX = this.startStrengthX;

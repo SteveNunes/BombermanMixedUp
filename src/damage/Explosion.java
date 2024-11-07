@@ -1,4 +1,4 @@
-package entities;
+package damage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import application.Main;
+import entities.Entity;
 import enums.Direction;
 import enums.PassThrough;
 import enums.SpriteLayerType;

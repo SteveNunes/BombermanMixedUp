@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import application.Main;
+import entityTools.PushEntity;
+import entityTools.ShakeEntity;
 import enums.BombType;
 import enums.Curse;
 import enums.Direction;
@@ -66,7 +68,7 @@ public class Entity extends Position {
 	private int currentHeight;
 	private TileCoord previewTileCoord;
 	private PathFinder pathFinder;
-	private Shake shake;
+	private ShakeEntity shake;
 	private int invencibleFrames;
 	private int elapsedSteps;
 	private int elapsedFrames;
@@ -114,7 +116,7 @@ public class Entity extends Position {
 		blinkingFrames = entity.blinkingFrames;
 		defaultTags = entity.defaultTags == null ? null : new Tags(defaultTags);
 		pushEntity = entity.pushEntity == null ? null : new PushEntity(entity.pushEntity);
-		shake = entity.shake == null ? null : new Shake(entity.shake);
+		shake = entity.shake == null ? null : new ShakeEntity(entity.shake);
 		linkedEntityInfos = new LinkedList<>();
 		linkedEntityBack = null;
 		linkedEntityFront = null;
@@ -215,26 +217,26 @@ public class Entity extends Position {
 	}
 
 	public void setShake(Double incStrength, Double finalStrength) {
-		shake = new Shake(incStrength, incStrength, finalStrength, finalStrength);
+		shake = new ShakeEntity(incStrength, incStrength, finalStrength, finalStrength);
 	}
 
 	public void setShake(Double startStrength, Double incStrength, Double finalStrength) {
-		shake = new Shake(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength);
+		shake = new ShakeEntity(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength);
 	}
 
 	public void setShake(Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
-		shake = new Shake(incStrengthX > 0 ? 0 : finalStrengthX, incStrengthY > 0 ? 0 : finalStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
+		shake = new ShakeEntity(incStrengthX > 0 ? 0 : finalStrengthX, incStrengthY > 0 ? 0 : finalStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
 	}
 
 	public void setShake(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
-		shake = new Shake(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
+		shake = new ShakeEntity(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
 	}
 
 	public void stopShake() {
 		shake.stop();
 	}
 
-	public Shake getShake() {
+	public ShakeEntity getShake() {
 		return shake;
 	}
 
@@ -636,16 +638,18 @@ public class Entity extends Position {
 		holderDesloc.incPosition(x, y);
 	}
 
-	public void unsetHolder() { 
-		int distance = (int)((System.currentTimeMillis() - holder.getHoldingCTime()) + 200) / 200;
-		if (distance < 2)
-			distance = 2;
-		if (distance > 5)
-			distance = 5;
-		holder = null;
-		holderDesloc = null;
-		TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(getDirection(), distance);
-		jumpTo(this, coord, distance + 1, 1.2, 20);
+	public void unsetHolder() {
+		if (holder != null) {
+			int distance = (int)((System.currentTimeMillis() - holder.getHoldingCTime()) + 200) / 200;
+			if (distance < 2)
+				distance = 2;
+			if (distance > 5)
+				distance = 5;
+			holder = null;
+			holderDesloc = null;
+			TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(getDirection(), distance);
+			jumpTo(this, coord, distance + 1, 1.2, 20);
+		}
 	}
 
 	public Entity getHoldingEntity() {
@@ -660,7 +664,8 @@ public class Entity extends Position {
 	}
 
 	public void unsetHoldingEntity() {
-		holding.unsetHolder();
+		if (holding != null)
+			holding.unsetHolder();
 		holding = null;
 	}
 
@@ -1377,7 +1382,7 @@ public class Entity extends Position {
 	public void pushEntity(Entity entity, TileCoord targetTile, Double startStrenght, Double decStrenght, Direction direction, Consumer<Entity> onStopEvent, String triggerSound, String soundWhenHits) {
 		if (triggerSound != null)
 			Sound.playWav(this, triggerSound);
-		entities.PushEntity pushEntity = new entities.PushEntity(entity, startStrenght, decStrenght, direction);
+		entityTools.PushEntity pushEntity = new entityTools.PushEntity(entity, startStrenght, decStrenght, direction);
 		pushEntity.setOnStopEvent(e -> {
 			if (soundWhenHits != null)
 				Sound.playWav(this, soundWhenHits);

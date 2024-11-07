@@ -1,6 +1,5 @@
 package application;
 
-import entities.GameInputs;
 import enums.GameMode;
 import gui.FrameSetEditor;
 import gui.Game;
@@ -12,6 +11,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
+import player.GameInputs;
 import tools.Materials;
 import tools.Tools;
 import util.IniFile;
@@ -20,7 +20,7 @@ import util.TimerFX;
 public class Main extends Application {
 
 	public final static int TILE_SIZE = 16;
-	public final static GameMode GAME_MODE = GameMode.MAP_EDITOR;
+	public final static GameMode GAME_MODE = GameMode.GAME;
 
 	public static FrameSetEditor frameSetEditor = null;
 	public static MapEditor mapEditor = null;

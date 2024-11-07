@@ -497,6 +497,7 @@ public class BomberMan extends Entity {
 	}
 	
 	public void dropItem() {
+		unsetHoldingEntity();
 		dropItem((int)MyMath.getRandom(1, 3));
 	}
 

@@ -6,7 +6,7 @@ import java.awt.Rectangle;
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
 import entities.Entity;
-import entities.Shake;
+import entityTools.ShakeEntity;
 import enums.ImageAlignment;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
@@ -39,7 +39,7 @@ public class Sprite extends Position {
 	private EliticMove eliticMove;
 	private RectangleMove rectangleMove;
 	private JumpMove jumpMove;
-	private Shake shake;
+	private ShakeEntity shake;
 	private ImageFlip flip;
 	private ImageAlignment alignment;
 	private int spritesPerLine;
@@ -79,7 +79,7 @@ public class Sprite extends Position {
 		eliticMove = sprite.eliticMove == null ? null : new EliticMove(sprite.eliticMove);
 		rectangleMove = sprite.rectangleMove == null ? null : new RectangleMove(sprite.rectangleMove);
 		jumpMove = sprite.jumpMove == null ? null : new JumpMove(sprite.jumpMove);
-		shake = sprite.shake == null ? null : new Shake(sprite.shake);
+		shake = sprite.shake == null ? null : new ShakeEntity(sprite.shake);
 		layerType = sprite.layerType;
 		wavingImage = sprite.wavingImage == null ? null : new WavingImage(sprite.wavingImage);
 		spriteScroll = sprite.spriteScroll == null ? null : new Position(sprite.spriteScroll);
@@ -140,26 +140,26 @@ public class Sprite extends Position {
 	}
 
 	public void setShake(Double incStrength, Double finalStrength) {
-		shake = new Shake(incStrength, incStrength, finalStrength, finalStrength);
+		shake = new ShakeEntity(incStrength, incStrength, finalStrength, finalStrength);
 	}
 
 	public void setShake(Double startStrength, Double incStrength, Double finalStrength) {
-		shake = new Shake(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength);
+		shake = new ShakeEntity(startStrength, startStrength, incStrength, incStrength, finalStrength, finalStrength);
 	}
 
 	public void setShake(Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
-		shake = new Shake(incStrengthX > 0 ? 0 : finalStrengthX, incStrengthY > 0 ? 0 : finalStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
+		shake = new ShakeEntity(incStrengthX > 0 ? 0 : finalStrengthX, incStrengthY > 0 ? 0 : finalStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
 	}
 
 	public void setShake(Double startStrengthX, Double startStrengthY, Double incStrengthX, Double incStrengthY, Double finalStrengthX, Double finalStrengthY) {
-		shake = new Shake(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
+		shake = new ShakeEntity(startStrengthX, startStrengthY, incStrengthX, incStrengthY, finalStrengthX, finalStrengthY);
 	}
 
 	public void stopShake() {
 		shake.stop();
 	}
 
-	public Shake getShake() {
+	public ShakeEntity getShake() {
 		return shake;
 	}
 
@@ -647,7 +647,7 @@ public class Sprite extends Position {
 				ty += getSourceEntity().getHolderDesloc().getY();
 				frontValue2++;
 			}
-			Shake shake;
+			ShakeEntity shake;
 			if ((shake = MapSet.getShake()) != null || (shake = getSourceEntity().getShake()) != null || (shake = this.shake) != null) {
 				if (this.shake != null)
 					shake.proccess();
