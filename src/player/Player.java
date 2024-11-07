@@ -3,14 +3,13 @@ package player;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import entities.BomberMan;
+import enums.GameInput;
 import enums.GameInputMode;
-import enums.GameInputs;
 import joystick.JInputEX;
 import joystick.JXInputEX;
 import util.IniFile;
@@ -40,15 +39,15 @@ public class Player {
 	private static Map<Integer, Player> keyOwner = new HashMap<>();
 	
 	private int playerId;
-	private Map<Integer, enums.GameInputs> xinputButtonToGameInputMap;
-	private Map<enums.GameInputs, Integer> xinputGameInputToButtonMap;
-	private Map<Integer, enums.GameInputs> dinputButtonToGameInputMap;
-	private Map<enums.GameInputs, Integer> dinputGameInputToButtonMap;
-	private Map<Integer, enums.GameInputs> keyboardKeyToGameInputMap;
-	private Map<enums.GameInputs, Integer> keyboardGameInputToKeyMap;
-	private Consumer<enums.GameInputs> onPressInputEvent;
-	private Consumer<enums.GameInputs> onReleaseInputEvent;
-	private Map<GameInputMode, Map<enums.GameInputs, ButtonInfos>> buttonsInfos;
+	private Map<Integer, enums.GameInput> xinputButtonToGameInputMap;
+	private Map<enums.GameInput, Integer> xinputGameInputToButtonMap;
+	private Map<Integer, enums.GameInput> dinputButtonToGameInputMap;
+	private Map<enums.GameInput, Integer> dinputGameInputToButtonMap;
+	private Map<Integer, enums.GameInput> keyboardKeyToGameInputMap;
+	private Map<enums.GameInput, Integer> keyboardGameInputToKeyMap;
+	private Consumer<enums.GameInput> onPressInputEvent;
+	private Consumer<enums.GameInput> onReleaseInputEvent;
+	private Map<GameInputMode, Map<enums.GameInput, ButtonInfos>> buttonsInfos;
 	private JXInputEX xinputDevice;
 	private JInputEX dinputDevice;
 	private GameInputMode inputMode;
@@ -69,21 +68,21 @@ public class Player {
 		dinputGameInputToButtonMap = new HashMap<>();
 		keyboardKeyToGameInputMap = new HashMap<>();
 		keyboardGameInputToKeyMap = new HashMap<>();
-		buttonsInfos = new LinkedHashMap<>();
+		buttonsInfos = new HashMap<>();
 		mappingIndex = -1;
 		loadConfigs();
 		// Teclas padrão do jogador 1
 		if (playerId == 0 && keyboardKeyToGameInputMap.isEmpty()) {
-			mapGameInput(KeyEvent.VK_A, GameInputs.LEFT, "Left");
-			mapGameInput(KeyEvent.VK_W, GameInputs.UP, "Up");
-			mapGameInput(KeyEvent.VK_D, GameInputs.RIGHT, "Right");
-			mapGameInput(KeyEvent.VK_S, GameInputs.DOWN, "Down");
-			mapGameInput(KeyEvent.VK_ENTER, GameInputs.START, "Enter");
-			mapGameInput(KeyEvent.VK_SPACE, GameInputs.SELECT, "Space");
-			mapGameInput(KeyEvent.VK_DELETE, GameInputs.A, "Delete");
-			mapGameInput(KeyEvent.VK_END, GameInputs.B, "End");
-			mapGameInput(KeyEvent.VK_INSERT, GameInputs.C, "Insert");
-			mapGameInput(KeyEvent.VK_HOME, GameInputs.D, "Home");
+			mapGameInput(KeyEvent.VK_A, GameInput.LEFT, "Left");
+			mapGameInput(KeyEvent.VK_W, GameInput.UP, "Up");
+			mapGameInput(KeyEvent.VK_D, GameInput.RIGHT, "Right");
+			mapGameInput(KeyEvent.VK_S, GameInput.DOWN, "Down");
+			mapGameInput(KeyEvent.VK_ENTER, GameInput.START, "Enter");
+			mapGameInput(KeyEvent.VK_SPACE, GameInput.SELECT, "Space");
+			mapGameInput(KeyEvent.VK_DELETE, GameInput.A, "Delete");
+			mapGameInput(KeyEvent.VK_END, GameInput.B, "End");
+			mapGameInput(KeyEvent.VK_INSERT, GameInput.C, "Insert");
+			mapGameInput(KeyEvent.VK_HOME, GameInput.D, "Home");
 		}
 	}
 	
@@ -145,8 +144,11 @@ public class Player {
 	
 	public static void convertOnKeyPressEvent(javafx.scene.input.KeyEvent keyEvent) {
 		int keyCode = keyEvent.getCode().getCode();
-		if (keyOwner.containsKey(keyCode))
+		if (keyOwner.containsKey(keyCode)) {
+			if (keyOwner.get(keyCode).getInputMode() == GameInputMode.DETECTING)
+				keyOwner.get(keyCode).setInputMode(GameInputMode.KEYBOARD);
 			keyOwner.get(keyCode).pressInput(keyCode, keyEvent.getCode().getName());
+		}
 	}
 	
 	public static void convertOnKeyReleaseEvent(javafx.scene.input.KeyEvent keyEvent) {
@@ -163,23 +165,23 @@ public class Player {
 		mappingIndex = state ? 0 : -1;
 		if (state) {
 			inputMode = GameInputMode.DETECTING;
-			player.GameInputs.refreshJoysticks();
+			player.GameInput.refreshJoysticks();
 		}
 	}
 
-	public enums.GameInputs getNextMappingInput() {
-		return mappingIsActive() ? enums.GameInputs.values()[mappingIndex] : null;
+	public enums.GameInput getNextMappingInput() {
+		return mappingIsActive() ? enums.GameInput.values()[mappingIndex] : null;
 	}
 	
-	public int getButtonId(enums.GameInputs gameInput) {
+	public int getButtonId(enums.GameInput gameInput) {
 		return getButtonInfosMap().get(gameInput).getId();
 	}
 
-	public String getButtonName(enums.GameInputs gameInput) {
+	public String getButtonName(enums.GameInput gameInput) {
 		return getButtonInfosMap().get(gameInput).getName();
 	}
 
-	public Map<enums.GameInputs, ButtonInfos> getButtonInfosMap() {
+	public Map<enums.GameInput, ButtonInfos> getButtonInfosMap() {
 		if (!buttonsInfos.containsKey(inputMode))
 			buttonsInfos.put(inputMode, new HashMap<>());
 		return buttonsInfos.get(inputMode);
@@ -188,7 +190,7 @@ public class Player {
 	public void pressInput(int buttonId, String buttonName) {
 		if (mappingIndex > -1) {
 			mapGameInput(buttonId, getNextMappingInput(), buttonName);
-			if (++mappingIndex == enums.GameInputs.values().length)
+			if (++mappingIndex == enums.GameInput.values().length)
 				mappingIndex = -1;
 		}
 		else if (getGameInputFromId(buttonId) != null && bomberMan != null)
@@ -206,7 +208,7 @@ public class Player {
 		}
 	}
 	
-	private enums.GameInputs getGameInputFromId(Integer inputId) {
+	private enums.GameInput getGameInputFromId(Integer inputId) {
 		if (inputMode == GameInputMode.XINPUT)
 			return !xinputButtonToGameInputMap.containsKey(inputId) ? null : xinputButtonToGameInputMap.get(inputId);
 		if (inputMode == GameInputMode.DINPUT)
@@ -214,23 +216,41 @@ public class Player {
 		return !keyboardKeyToGameInputMap.containsKey(inputId) ? null : keyboardKeyToGameInputMap.get(inputId);
 	}
 
-	public void mapGameInput(Integer inputId, enums.GameInputs gameInput, String buttonName) {
-		if (inputMode == GameInputMode.XINPUT) {
-			xinputButtonToGameInputMap.put(inputId, gameInput);
-			xinputGameInputToButtonMap.put(gameInput, inputId);
+	public void mapGameInput(Integer inputId, enums.GameInput gameInput, String buttonName) {
+		for (int n = 0; n < 2; n++) {
+			GameInputMode inputMode = n == 0 ? GameInputMode.XINPUT : GameInputMode.DINPUT;
+			if (this.inputMode == inputMode) {
+				if (!buttonsInfos.containsKey(inputMode))
+					buttonsInfos.put(inputMode, new HashMap<>());
+				Map<GameInput, ButtonInfos> buttonInfos = buttonsInfos.get(inputMode);
+				Map<GameInput, Integer> gameInputToButtonMap = n == 0 ? xinputGameInputToButtonMap : dinputGameInputToButtonMap;
+				Map<Integer, GameInput> buttonToGameInputMap = n == 0 ? xinputButtonToGameInputMap : dinputButtonToGameInputMap;
+				if (gameInputToButtonMap.containsKey(gameInput)) {
+					int id = gameInputToButtonMap.get(gameInput);
+					GameInput input = buttonToGameInputMap.get(inputId);
+					buttonToGameInputMap.put(id, input);
+					gameInputToButtonMap.put(input, id);
+					buttonInfos.put(input, new ButtonInfos(id, buttonInfos.get(gameInput).getName()));
+				}
+				else if (buttonToGameInputMap.containsKey(inputId)) {
+					GameInput input = buttonToGameInputMap.get(inputId);
+					gameInputToButtonMap.remove(input);
+					buttonInfos.remove(input);
+				}
+				buttonToGameInputMap.put(inputId, gameInput);
+				gameInputToButtonMap.put(gameInput, inputId);
+				buttonInfos.put(gameInput, new ButtonInfos(inputId, buttonName));
+				return;
+			}
 		}
-		else if (inputMode == GameInputMode.DINPUT) {
-			dinputButtonToGameInputMap.put(inputId, gameInput);
-			dinputGameInputToButtonMap.put(gameInput, inputId);
-		}
-		else {
-			if (keyOwner.containsKey(inputId)) { // Se a nova tecla ja esta designada
+		if (inputMode == GameInputMode.KEYBOARD) {
+			if (keyOwner.containsKey(inputId)) {
 				Player otherPlayer = keyOwner.get(inputId);
-				GameInputs otherGameInput = otherPlayer.keyboardKeyToGameInputMap.get(inputId);
-				if (otherPlayer != this) { 
-					if (keyboardGameInputToKeyMap.containsKey(otherGameInput)) { // Se o GameInput que estava nessa tecla tambem esta designado no player atual, trocar as teclas entre os players
+				GameInput otherGameInput = otherPlayer.keyboardKeyToGameInputMap.get(inputId);
+				if (otherPlayer != this) {
+					if (keyboardGameInputToKeyMap.containsKey(otherGameInput)) {
 						int otherInputId = keyboardGameInputToKeyMap.get(otherGameInput);
-						GameInputs otherGameInput2 = keyboardKeyToGameInputMap.get(otherInputId);
+						GameInput otherGameInput2 = keyboardKeyToGameInputMap.get(otherInputId);
 						int otherInputId2 = otherPlayer.keyboardGameInputToKeyMap.get(otherGameInput2);
 						String buttonName1 = getButtonInfosMap().get(otherGameInput).getName();
 						String buttonName2 = otherPlayer.getButtonInfosMap().get(otherGameInput2).getName();
@@ -250,13 +270,17 @@ public class Player {
 					}
 				}
 				else {
-					if (keyboardGameInputToKeyMap.containsKey(gameInput)) { // Se o GameInput que estava nessa tecla tambem esta designado no player atual, trocar as teclas entre os players
+					if (keyboardGameInputToKeyMap.containsKey(gameInput)) {
 						int otherInputId = keyboardGameInputToKeyMap.get(gameInput);
 						if (otherInputId != inputId) {
 							keyboardGameInputToKeyMap.put(otherGameInput, otherInputId);
 							keyboardKeyToGameInputMap.put(otherInputId, otherGameInput);
 							getButtonInfosMap().put(otherGameInput, new ButtonInfos(otherInputId, getButtonInfosMap().get(gameInput).getName()));
 						}
+					}
+					else {
+						keyboardGameInputToKeyMap.remove(otherGameInput);
+						getButtonInfosMap().remove(otherGameInput);
 					}
 				}
 			}
@@ -267,11 +291,11 @@ public class Player {
 		}
 	}
 
-	public void setOnPressInputEvent(Consumer<enums.GameInputs> onPressInputEvent) {
+	public void setOnPressInputEvent(Consumer<enums.GameInput> onPressInputEvent) {
 		this.onPressInputEvent = onPressInputEvent;
 	}
 	
-	public void setOnReleaseInputEvent(Consumer<enums.GameInputs> onReleaseInputEvent) {
+	public void setOnReleaseInputEvent(Consumer<enums.GameInput> onReleaseInputEvent) {
 		this.onReleaseInputEvent = onReleaseInputEvent;
 	}
 	
@@ -297,11 +321,11 @@ public class Player {
 				if (split2.length < 3)
 					throw new RuntimeException(s + " - Invalid value ([" + inputType + "] section)");
 				int buttonId = -1;
-				GameInputs input = null;
+				GameInput input = null;
 				String name = null;
 				try {
 					buttonId = Integer.parseInt(split2[0]); 
-					input = GameInputs.valueOf(split2[1]); 
+					input = GameInput.valueOf(split2[1]); 
 					name = split2[2]; 
 				}
 				catch (Exception e) {
@@ -321,7 +345,7 @@ public class Player {
 		for (GameInputMode inputMode : GameInputMode.values())
 			if (buttonsInfos.containsKey(inputMode)) {
 				sb = new StringBuilder();
-				for (GameInputs i : buttonsInfos.get(inputMode).keySet()) {
+				for (GameInput i : buttonsInfos.get(inputMode).keySet()) {
 					if (!sb.isEmpty())
 						sb.append(" ");
 					sb.append(buttonsInfos.get(inputMode).get(i).getId() + ":" + i + ":" + buttonsInfos.get(inputMode).get(i).getName());

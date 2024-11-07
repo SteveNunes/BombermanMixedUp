@@ -1,6 +1,6 @@
 package enums;
 
-public enum GameInputs {
+public enum GameInput {
 
 	UP(0),
 	RIGHT(1),
@@ -15,7 +15,7 @@ public enum GameInputs {
 
 	private int value;
 
-	private GameInputs(int value) {
+	private GameInput(int value) {
 		this.value = value;
 	}
 

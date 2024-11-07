@@ -10,7 +10,7 @@ import application.Main;
 import enums.BombType;
 import enums.Curse;
 import enums.Direction;
-import enums.GameInputs;
+import enums.GameInput;
 import enums.ItemType;
 import enums.PassThrough;
 import enums.TileProp;
@@ -40,8 +40,8 @@ public class BomberMan extends Entity {
 	private List<ItemType> gotItems;
 	private List<Bomb> bombs;
 	private List<Direction> pressedDirs;
-	private Set<GameInputs> holdedInputs;
-	private List<GameInputs> queuedInputs;
+	private Set<GameInput> holdedInputs;
+	private List<GameInput> queuedInputs;
 	private int bombCd;
 	private int score;
 	private int addedScore;
@@ -155,18 +155,18 @@ public class BomberMan extends Entity {
 		this.palleteIndex = palleteIndex;
 	}
 
-	public boolean isPressed(GameInputs input) {
+	public boolean isPressed(GameInput input) {
 		return holdedInputs.contains(input);
 	}
 
-	public void keyPress(GameInputs input) {
+	public void keyPress(GameInput input) {
 		if (holdedInputs.contains(input))
 			return;
 		if (isBlockedMovement()) {
 			queuedInputs.add(input);
 			return;
 		}
-		if (input == GameInputs.A) {
+		if (input == GameInput.A) {
 			bombs.sort((b1, b2) -> (int) (b1.getSetTime() - b2.getSetTime()));
 			for (Bomb bomb : bombs)
 				if ((!bomb.isBlockedMovement() || bomb.isStucked()) && (bomb.getBombType() == BombType.REMOTE || bomb.getBombType() == BombType.SPIKED_REMOTE)) {
@@ -174,7 +174,7 @@ public class BomberMan extends Entity {
 					return;
 				}
 		}
-		else if (input == GameInputs.B) {
+		else if (input == GameInput.B) {
 			if (getHoldingEntity() == null && haveFrameSet("HoldingStart")) {
 				if (haveItem(ItemType.POWER_GLOVE) || haveItem(ItemType.HYPER_GLOVE)) {
 					for (Entity entity : Entity.getEntityListFromCoord(getTileCoordFromCenter()))
@@ -187,7 +187,7 @@ public class BomberMan extends Entity {
 					setFrameSet("HoldingStart");
 			}
 		}
-		else if (input == GameInputs.C) {
+		else if (input == GameInput.C) {
 			bombs.sort((b1, b2) -> (int) (b1.getSetTime() - b2.getSetTime()));
 			for (Bomb bomb : bombs)
 				if (bomb.getPushEntity() != null) {
@@ -202,12 +202,14 @@ public class BomberMan extends Entity {
 				}
 				return;
 			}
-			if ((haveItem(ItemType.PUNCH_BOMB) || haveItem(ItemType.HYPER_PUNCH)) && Bomb.haveBombAt(this, coord) && !Bomb.getBombAt(coord).isBlockedMovement() && haveFrameSet("PunchBomb"))
-				setFrameSet("PunchBomb");
-			else if (haveItem(ItemType.HYPER_PUNCH) && Brick.haveBrickAt(coord) && haveFrameSet("PunchBomb"))
-				setFrameSet("PunchBrick");
-			else if (haveItem(ItemType.PUSH_POWER) && Bomb.haveBombAt(this, coord) && haveFrameSet("PushPower"))
-				setFrameSet("PushPower");
+			for (int n = 0; n < 2; n++, coord.incCoordsByDirection(getDirection())) {
+				if ((haveItem(ItemType.PUNCH_BOMB) || haveItem(ItemType.HYPER_PUNCH)) && Bomb.haveBombAt(this, coord) && !Bomb.getBombAt(coord).isBlockedMovement() && haveFrameSet("PunchBomb"))
+					setFrameSet("PunchBomb");
+				else if (haveItem(ItemType.HYPER_PUNCH) && Brick.haveBrickAt(coord) && haveFrameSet("PunchBomb"))
+					setFrameSet("PunchBrick");
+				else if (n == 1 && haveItem(ItemType.PUSH_POWER) && haveFrameSet("PushPower"))
+					setFrameSet("PushPower");
+			}
 		}
 		else {
 			Direction dir = input.getDirection();
@@ -221,7 +223,7 @@ public class BomberMan extends Entity {
 		holdedInputs.add(input);
 	}
 
-	public void keyRelease(GameInputs input) {
+	public void keyRelease(GameInput input) {
 		if (input.isDirection())
 			pressedDirs.removeAll(Arrays.asList(input.getDirection()));
 		holdedInputs.remove(input);
@@ -255,7 +257,7 @@ public class BomberMan extends Entity {
 		super.run(gc, isPaused);
 		if (!isBlockedMovement()) {
 			if (!queuedInputs.isEmpty()) {
-				List<GameInputs> list = new ArrayList<>(queuedInputs);
+				List<GameInput> list = new ArrayList<>(queuedInputs);
 				queuedInputs.clear();
 				list.forEach(i -> keyPress(i));
 			}
@@ -268,9 +270,9 @@ public class BomberMan extends Entity {
 				setDirection(getCurse() == Curse.REVERSED ? dir.getReverseDirection() : dir);
 				changeToMovingFrameSet();
 			}
-			if (!holdedInputs.contains(GameInputs.B) && (currentFrameSetNameIsEqual("HoldingStand") || currentFrameSetNameIsEqual("HoldingMoving")))
+			if (!holdedInputs.contains(GameInput.B) && (currentFrameSetNameIsEqual("HoldingStand") || currentFrameSetNameIsEqual("HoldingMoving")))
 				setFrameSet("Release");
-			if (holdedInputs.contains(GameInputs.B)) {
+			if (holdedInputs.contains(GameInput.B)) {
 				if (currentFrameSetNameIsEqual("Moving")) { // Definir a coordenada um pouco mais para as costas se ta soltando a bomba
 				                                            // enquanto esta andando, pra evitar q a proxima bomba saia na sua frente
 					Position pos = new Position((int) getX() + Main.TILE_SIZE / 2, (int) getY() + Main.TILE_SIZE / 2);

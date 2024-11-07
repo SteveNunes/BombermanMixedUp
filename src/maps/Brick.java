@@ -43,11 +43,10 @@ public class Brick extends Entity {
 		super();
 		setPosition(coord.getPosition());
 		regenTimeInFrames = 0;
-		setPassThroughBrick(true);
 		this.item = item;
 		Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet", "BrickRollingFrameSet").forEach(frameSet -> {
 			String s = MapSet.getTileSetIniFile().read("CONFIG", frameSet);
-			addNewFrameSetFromString(frameSet, s == null ? "" : s);
+			addNewFrameSetFromString(frameSet, s == null ? "" : (s.equals("BrickBreakFrameSet") ? "{SetSprFrontValue;2}," + s : s));
 		});
 		setFrameSet("BrickStandFrameSet");
 		setPassThroughItem(true);

@@ -22,8 +22,8 @@ import enums.BombType;
 import enums.Direction;
 import enums.FindInRectType;
 import enums.FindType;
+import enums.GameInput;
 import enums.GameInputMode;
-import enums.GameInputs;
 import enums.Icons;
 import enums.ImageFlip;
 import enums.ItemType;
@@ -742,7 +742,7 @@ public class MapEditor {
 			Player.convertOnKeyReleaseEvent(e);
 			for (int n = 0; n < keysInputs.length; n++) {
 				if (e.getCode() == keysInputs[n])
-					getCurrentBomber().keyRelease(GameInputs.values()[n]);
+					getCurrentBomber().keyRelease(GameInput.values()[n]);
 			}
 		});
 	}

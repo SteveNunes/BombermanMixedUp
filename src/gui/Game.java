@@ -6,8 +6,8 @@ import java.util.List;
 
 import application.Main;
 import entities.BomberMan;
+import enums.GameInput;
 import enums.GameInputMode;
-import enums.GameInputs;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -117,7 +117,7 @@ public class Game {
 		player.setMappingMode(true);
 		boolean[] done = { false };
 		int[] nextText = { 0 };
-		GameInputs[] inputs = GameInputs.values();
+		GameInput[] inputs = GameInput.values();
 		TimerFX.createTimer("WaitForDevice", 20, 0, () -> {
 			if (player.getInputMode() != GameInputMode.DETECTING) {
 				String str;
@@ -138,7 +138,7 @@ public class Game {
 				if (player.getNextMappingInput() != null && !done[0] && z == nextText[0])
 					texts[z].setText("Pressione para definir: " + player.getNextMappingInput().name());
 				else if (z < 10)
-					texts[z].setText(inputs[z] + " = " + player.getButtonInfosMap().get(inputs[z]).getName());
+					texts[z].setText(inputs[z] + " = " + (!player.getButtonInfosMap().containsKey(inputs[z]) ? "-" : player.getButtonInfosMap().get(inputs[z]).getName()));
 			}
 			if (done[0]) {
 				player.setOnPressInputEvent(null);

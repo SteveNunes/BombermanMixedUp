@@ -549,6 +549,10 @@ public class Sprite extends Position {
 		return frontValue + extraFrontValue;
 	}
 	
+	public void setFrontValue(int value) {
+		extraFrontValue = value;
+	}
+
 	public void incFrontValue(int value) {
 		extraFrontValue += value;
 	}

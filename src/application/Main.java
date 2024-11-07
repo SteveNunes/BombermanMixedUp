@@ -11,7 +11,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
-import player.GameInputs;
+import player.GameInput;
 import tools.Materials;
 import tools.Tools;
 import util.IniFile;
@@ -20,7 +20,7 @@ import util.TimerFX;
 public class Main extends Application {
 
 	public final static int TILE_SIZE = 16;
-	public final static GameMode GAME_MODE = GameMode.GAME;
+	public final static GameMode GAME_MODE = GameMode.MAP_EDITOR;
 
 	public static FrameSetEditor frameSetEditor = null;
 	public static MapEditor mapEditor = null;
@@ -36,7 +36,7 @@ public class Main extends Application {
 			TileCoord.setGlobalTileSize(TILE_SIZE);
 			stageMain = stage;
 			Materials.loadFromFiles();
-			GameInputs.init();
+			GameInput.init();
 			Tools.loadStuffs();
 			if (GAME_MODE == GameMode.FRAMESET_EDITOR) {
 				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/FrameSetEditorView.fxml"));
@@ -69,7 +69,7 @@ public class Main extends Application {
 
 	public static void close() {
 		close = true;
-		GameInputs.close();
+		GameInput.close();
 		TimerFX.stopAllTimers();
 		Platform.exit();
 		IniFile.closeAllOpenedIniFiles();

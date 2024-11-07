@@ -7,7 +7,7 @@ import joystick.JInputEX;
 import joystick.JXInputEX;
 import util.TimerFX;
 
-public class GameInputs {
+public class GameInput {
 
 	private static List<JXInputEX> xinputList = null;
 	private static List<JInputEX> dinputList = null;
@@ -50,33 +50,19 @@ public class GameInputs {
 	
 	public static void refreshJoysticks() {
 		if (xinputList != null)
-			for (JXInputEX x : xinputList) {
-				boolean ok = true;
-				for (Player p : Player.getPlayers())
-					if (p.getXinputDevice() == x)
-						ok = false;
-				if (ok) {
-					x.setOnPressAnyComponentEvent((i, s) -> {
-						for (Player player : Player.getPlayers())
-							if (player.getInputMode() == GameInputMode.DETECTING)
-								player.setXinputDevice(x);
-					});
-				}
-			}
+			for (JXInputEX x : xinputList)
+				x.setOnPressAnyComponentEvent((i, s) -> {
+					for (Player player : Player.getPlayers())
+						if (player.getInputMode() == GameInputMode.DETECTING)
+							player.setXinputDevice(x);
+				});
 		if (dinputList != null)
-			for (JInputEX d : dinputList) {
-				boolean ok = true;
-				for (Player p : Player.getPlayers())
-					if (p.getDinputDevice() == d || p.getXinputDevice() != null)
-						ok = false;
-				if (ok) {
-					d.setOnPressComponentEvent((j, c) -> {
-						for (Player player : Player.getPlayers())
-							if (player.getInputMode() == GameInputMode.DETECTING)
-								player.setDinputDevice(d);
-					});
-				}
-			}
+			for (JInputEX d : dinputList)
+				d.setOnPressComponentEvent((j, c) -> {
+					for (Player player : Player.getPlayers())
+						if (player.getInputMode() == GameInputMode.DETECTING)
+							player.setDinputDevice(d);
+				});
 	}
 	
 	public static int getTotalXinputs() {

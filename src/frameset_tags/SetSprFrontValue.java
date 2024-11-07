@@ -32,7 +32,7 @@ public class SetSprFrontValue extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		sprite.incFrontValue(value);
+		sprite.setFrontValue(value);
 	}
 
 }
