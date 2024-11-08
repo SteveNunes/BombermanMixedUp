@@ -5,6 +5,7 @@ import gui.ExplosionEditor;
 import gui.FrameSetEditor;
 import gui.Game;
 import gui.MapEditor;
+import gui.PalleteEditor;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -21,9 +22,10 @@ import util.TimerFX;
 public class Main extends Application {
 
 	public final static int TILE_SIZE = 16;
-	public final static GameMode GAME_MODE = GameMode.EXPLOSION_EDITOR;
+	public final static GameMode GAME_MODE = GameMode.PALLETE_EDITOR;
 
 	public static FrameSetEditor frameSetEditor = null;
+	public static PalleteEditor palleteEditor = null;
 	public static ExplosionEditor explosionEditor = null;
 	public static MapEditor mapEditor = null;
 	public static Game game = null;
@@ -34,9 +36,9 @@ public class Main extends Application {
 	@Override
 	public void start(Stage stage) {
 		try {
+			stageMain = stage;
 			Position.setGlobalTileSize(TILE_SIZE);
 			TileCoord.setGlobalTileSize(TILE_SIZE);
-			stageMain = stage;
 			Materials.loadFromFiles();
 			GameInput.init();
 			Tools.loadStuffs();
@@ -57,6 +59,12 @@ public class Main extends Application {
 				sceneMain = new Scene(loader.load());
 				explosionEditor = loader.getController();
 				explosionEditor.init();
+			}
+			else if (GAME_MODE == GameMode.PALLETE_EDITOR) {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/PalleteEditorView.fxml"));
+				sceneMain = new Scene(loader.load());
+				palleteEditor = loader.getController();
+				palleteEditor.init();
 			}
 			else {
 				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameView.fxml"));

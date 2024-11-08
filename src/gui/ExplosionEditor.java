@@ -2,6 +2,7 @@ package gui;
 
 import java.util.Locale;
 
+import application.Main;
 import gui.util.Alerts;
 import gui.util.ImageUtils;
 import javafx.fxml.FXML;
@@ -60,8 +61,10 @@ public class ExplosionEditor {
   private GraphicsContext gcMain;
 
 	public void init() {
+		Main.stageMain.setTitle("Explosion Editor");
 		originalExplosion = (WritableImage)ImageUtils.removeBgColor(new Image("file:./appdata/sprites/Explosion.png"), Color.valueOf("#03E313"));
 		gcMain = canvasMain.getGraphicsContext2D();
+		gcMain.setImageSmoothing(false);
 		buttonPrint.setOnAction(e -> {
 			String s = String.format(Locale.US, "{ %d, %.2f, %d, %.2f, %d, %.2f },\n",
 																(radioRed1.isSelected() ? 1 : radioGreen1.isSelected() ? 2 : 3),
