@@ -4,6 +4,7 @@ public enum GameMode {
 
 	GAME,
 	FRAMESET_EDITOR,
-	MAP_EDITOR;
+	MAP_EDITOR,
+	EXPLOSION_EDITOR;
 
 }

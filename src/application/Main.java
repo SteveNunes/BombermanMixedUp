@@ -1,6 +1,7 @@
 package application;
 
 import enums.GameMode;
+import gui.ExplosionEditor;
 import gui.FrameSetEditor;
 import gui.Game;
 import gui.MapEditor;
@@ -20,9 +21,10 @@ import util.TimerFX;
 public class Main extends Application {
 
 	public final static int TILE_SIZE = 16;
-	public final static GameMode GAME_MODE = GameMode.MAP_EDITOR;
+	public final static GameMode GAME_MODE = GameMode.EXPLOSION_EDITOR;
 
 	public static FrameSetEditor frameSetEditor = null;
+	public static ExplosionEditor explosionEditor = null;
 	public static MapEditor mapEditor = null;
 	public static Game game = null;
 	public static Stage stageMain;
@@ -49,6 +51,12 @@ public class Main extends Application {
 				sceneMain = new Scene(loader.load());
 				mapEditor = loader.getController();
 				mapEditor.init();
+			}
+			else if (GAME_MODE == GameMode.EXPLOSION_EDITOR) {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/ExplosionEditorView.fxml"));
+				sceneMain = new Scene(loader.load());
+				explosionEditor = loader.getController();
+				explosionEditor.init();
 			}
 			else {
 				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameView.fxml"));

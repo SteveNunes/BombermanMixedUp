@@ -91,12 +91,20 @@ public abstract class Materials {
 		GraphicsContext gc = c.getGraphicsContext2D();
 		Image exp = ImageUtils.removeBgColor(new Image("file:./appdata/sprites/Explosion.png"), Color.valueOf("#03E313"));
 		gc.setImageSmoothing(false);
-		int repColors[][] = { { 1, 2, 3 }, { 1, 2, 3 }, { 1, 2, 2 }, { 2, 2, 3 }, { 2, 3, 3 }, { 3, 3, 2 }, { 3, 2, 1 }, { 3, 3, 3 }, { 3, 3, 1 }, { 1, 3, 3 }, { 1, 3, 2 }, { 2, 3, 1 }, { 3, 2, 3 },
-				/*
-				 * CORES SEM USO {2, 1, 3}, {3, 1, 2}, {2, 1, 1}, {3, 1, 1}, {1, 2, 1}, {1, 3,
-				 * 1}, {1, 1, 2}, {1, 1, 3}, {3, 2, 2}, {2, 1, 2}, {2, 3, 2}, {2, 2, 1}, {3, 1,
-				 * 3}, {1, 1, 1}, {2, 2, 2},
-				 */
+		double repColors[][] = {
+				{ 1, 1, 2, 1, 3, 1 }, 
+				{ 1, 1, 2, 1, 3, 1 }, 
+				{ 1, 1, 2, 1, 2, 1 }, 
+				{ 2, 1, 2, 1, 3, 1 }, 
+				{ 2, 1, 3, 1, 3, 1 }, 
+				{ 3, 1, 3, 1, 2, 1 }, 
+				{ 3, 1, 2, 1, 1, 1 }, 
+				{ 3, 1, 3, 1, 3, 1 }, 
+				{ 3, 1, 3, 1, 1, 1 }, 
+				{ 1, 1, 3, 1, 3, 1 }, 
+				{ 1, 1, 3, 1, 2, 1 }, 
+				{ 2, 1, 3, 1, 1, 1 }, 
+				{ 3, 1, 2, 1, 3, 1 },
 		};
 		WritableImage exp3 = new WritableImage(256, repColors.length * 20 + 80);
 		PixelWriter pw2 = exp3.getPixelWriter();
@@ -106,7 +114,9 @@ public abstract class Materials {
 			for (int y = 0; y < 80; y++)
 				for (int x = 0; x < 64; x++) {
 					int[] rgba = ImageUtils.getRgbaArray(exp.getPixelReader().getArgb(x + (cc == 0 ? 64 : 0), y));
-					int r = rgba[repColors[cc][0]], g = rgba[repColors[cc][1]], b = rgba[repColors[cc][2]];
+					int r = (int)(rgba[(int)repColors[cc][0]] * repColors[cc][1]),
+							g = (int)(rgba[(int)repColors[cc][2]] * repColors[cc][3]),
+							b = (int)(rgba[(int)repColors[cc][4]] * repColors[cc][5]);
 					if (r + g + b != 0) {
 						pw.setColor(x, y, ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b)));
 						if (x < 64)
