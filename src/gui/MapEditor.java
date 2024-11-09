@@ -219,17 +219,18 @@ public class MapEditor {
 	private CanvasMouse canvasMouseTileSet;
 	private ItemType itemType;
 	private BombType bombType;
-	private int zoomMain;
+	public static int zoomMain;
 	private int zoomTileSet;
 	private int ctrlZPos;
 	private long resetBricks;
 	private Set<TileCoord> alreadySetTiles;
-	private String defaultMap = "Battle-Map-01";
+	private String defaultMap = "TikTok-Battle-01";
 	public boolean playing;
 	public boolean editable;
 	private int controlledBomberIndex;
 	private int bomberColor;
 	private TileCoord hoveredInitialCoord;
+	private Layer copyLayer;
 
 	public void init() {
 		canvasMouseDraw = new CanvasMouse(true);
@@ -248,6 +249,7 @@ public class MapEditor {
 		playing = false;
 		editable = true;
 		pathFinder = null;
+		copyLayer = null;
 		hoveredInitialCoord = null;
 		MapSet.setCurrentLayerIndex(26);
 		ctrlZPos = -1;
@@ -421,7 +423,7 @@ public class MapEditor {
 			Brick.getBricks().forEach(brick -> brick.setFrameSet("BrickRegenFrameSet"));
 		});
 	}
-
+	
 	private void setPlayButton() {
 		playing = false;
 		editable = true;
@@ -888,6 +890,12 @@ public class MapEditor {
 			canvasMouseDraw.tileCoord.setCoords(((int) e.getX() - deslocX()) / (Main.TILE_SIZE * zoomMain), ((int) e.getY() - deslocY()) / (Main.TILE_SIZE * zoomMain));
 		});
 		canvasMain.setOnMousePressed(e -> {
+			if (e.getButton() == MouseButton.PRIMARY && selection != null) {
+				selection = null;
+				copyLayer = null;
+				copiedTiles.clear();
+				return;
+			}
 			alreadySetTiles.clear();
 			canvasMouseDraw.startDragX = (int) e.getX();
 			canvasMouseDraw.startDragY = (int) e.getY();
@@ -1022,6 +1030,8 @@ public class MapEditor {
 			Effect.drawEffects();
 			BomberMan.drawBomberMans();
 		}
+		if (copyLayer != null)
+			Draw.addDrawQueue(SpriteLayerType.CEIL, copyLayer.getLayerImage(), canvasMouseDraw.getCoordX() * Main.TILE_SIZE, canvasMouseDraw.getCoordY() * Main.TILE_SIZE);
 		if (checkBoxShowBricks.isSelected()) {
 			if (!playing)
 				Brick.drawBricks();
@@ -1397,28 +1407,39 @@ public class MapEditor {
 	void copySelectedTiles() {
 		copiedTiles.clear();
 		iterateAllSelectedCoords(coord -> copiedTiles.add(new CopiedTile(coord)));
+		copyLayer = new Layer(999999);
+		pasteCopiedTiles(copyLayer, new TileCoord(0, 0));
+	}
+	
+	void pasteCopiedTiles() {
+		pasteCopiedTiles(getCurrentLayer(), canvasMouseDraw.tileCoord);
 	}
 
-	void pasteCopiedTiles() {
-		Integer x = 0, y = 0;
+	void pasteCopiedTiles(Layer layer, TileCoord targetTile) {
+		Integer x = Integer.MAX_VALUE, xx = targetTile.getX(), 
+						y = Integer.MAX_VALUE, yy = targetTile.getY();
 		for (CopiedTile cTile : copiedTiles) {
-			if (canvasMouseDraw.tileCoord.getX() - cTile.getCoord().getX() > x)
-				x = canvasMouseDraw.tileCoord.getX() - cTile.getCoord().getX();
-			if (canvasMouseDraw.tileCoord.getY() - cTile.getCoord().getY() > y)
-				y = canvasMouseDraw.tileCoord.getY() - cTile.getCoord().getY();
+			if (cTile.getCoord().getX() < x)
+				x = cTile.getCoord().getX();
+			if (cTile.getCoord().getY() < y)
+				y = cTile.getCoord().getY();
 		}
+		x = xx > x ? xx - x : -(x - xx);
+		y = yy > y ? yy - y : -(y - yy);
 		for (CopiedTile cTile : copiedTiles) {
 			TileCoord coord = cTile.getCoord().getNewInstance();
 			coord.incCoords(x, y);
-			if (MapSet.haveTilesOnCoord(coord))
-				MapSet.getCurrentLayer().removeAllTilesFromCoord(coord);
-			for (Tile tile : cTile.getTiles())
-				MapSet.getCurrentLayer().addTile(new Tile(tile, coord));
-			MapSet.setTileProps(coord, cTile.getProps());
-			if (cTile.getTags() != null)
-				MapSet.setTileTags(coord, cTile.getTags());
+			if (layer.haveTilesOnCoord(coord))
+				layer.removeAllTilesFromCoord(coord);
+			if (cTile.getTiles() != null) {
+				for (Tile tile : cTile.getTiles())
+					layer.addTile(new Tile(tile, coord));
+				layer.setTileProps(coord, cTile.getProps());
+				if (cTile.getTags() != null)
+					layer.setTileTags(coord, cTile.getTags());
+			}
 		}
-		getCurrentLayer().buildLayer();
+		layer.buildLayer();
 	}
 
 	void replaceTile(TileCoord coord, Tile newTile) {
@@ -1503,8 +1524,13 @@ public class MapEditor {
 						color = Color.GOLD;
 					else if (tileProps.contains(TileProp.EXPLOSION) || tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
 						color = Color.INDIANRED;
-					else if (tileProps.contains(TileProp.MIN_SCREEN_TILE_LIMITER) || tileProps.contains(TileProp.MAX_SCREEN_TILE_LIMITER))
+					else if (tileProps.contains(TileProp.MIN_SCREEN_TILE_LIMITER) || tileProps.contains(TileProp.MAX_SCREEN_TILE_LIMITER)) {
+						if (tileProps.contains(TileProp.MIN_SCREEN_TILE_LIMITER))
+							MapSet.getMapMinLimit().setPosition(tile.outX, tile.outX);
+						if (tileProps.contains(TileProp.MAX_SCREEN_TILE_LIMITER))
+							MapSet.getMapMaxLimit().setPosition(tile.outX, tile.outX);
 						color = Color.LIGHTGRAY;
+					}
 					else if (MapSet.getInitialPlayerPositions().contains(tile.getTileCoord()) ||
 									 tileProps.contains(TileProp.PLAYER_INITIAL_POSITION))
 										 color = Color.DEEPPINK;
@@ -1670,6 +1696,10 @@ public class MapEditor {
 		}
 	}
 
+	public static boolean isPlaying() {
+		return Main.mapEditor.playing;
+	}
+
 }
 
 class CanvasMouse {
@@ -1695,10 +1725,10 @@ class CanvasMouse {
 		y = 0;
 		dragX = 0;
 		dragY = 0;
-		movedX = desloc ? -96 : 0;
-		movedY = desloc ? -96 : 0;
-		startDragX = desloc ? 96 : 0;
-		startDragY = desloc ? 96 : 0;
+		movedX = desloc ? -32 * MapEditor.zoomMain : 0;
+		movedY = desloc ? -32 * MapEditor.zoomMain : 0;
+		startDragX = desloc ? 32 * MapEditor.zoomMain : 0;
+		startDragY = desloc ? 32 * MapEditor.zoomMain : 0;
 		startDragDX = 0;
 		startDragDY = 0;
 	}
@@ -1722,9 +1752,16 @@ class CopiedTile {
 	
 	public CopiedTile(TileCoord coord) {
 		this.coord = coord.getNewInstance();
-		tiles = new ArrayList<>(MapSet.getTileListFromCoord(coord));
-		props = new ArrayList<>(MapSet.getTileProps(coord));
-		tags = !MapSet.tileHaveTags(coord) ? null : new Tags(MapSet.getTileTags(coord));
+		if (MapSet.haveTilesOnCoord(coord)) {
+			tiles = new ArrayList<>(MapSet.getTileListFromCoord(coord));
+			props = new ArrayList<>(MapSet.getTileProps(coord));
+			tags = !MapSet.tileHaveTags(coord) ? null : new Tags(MapSet.getTileTags(coord));
+		}
+		else {
+			tiles = null;
+			props = null;
+			tags = null;
+		}
 	}
 
 	public TileCoord getCoord() {

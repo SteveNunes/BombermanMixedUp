@@ -4,6 +4,7 @@ import enums.GameMode;
 import gui.ExplosionEditor;
 import gui.FrameSetEditor;
 import gui.Game;
+import gui.GameTikTok;
 import gui.MapEditor;
 import gui.PalleteEditor;
 import javafx.application.Application;
@@ -22,13 +23,14 @@ import util.TimerFX;
 public class Main extends Application {
 
 	public final static int TILE_SIZE = 16;
-	public final static GameMode GAME_MODE = GameMode.MAP_EDITOR;
+	public final static GameMode GAME_MODE = GameMode.GAME_TIKTOK;
 
 	public static FrameSetEditor frameSetEditor = null;
 	public static PalleteEditor palleteEditor = null;
 	public static ExplosionEditor explosionEditor = null;
 	public static MapEditor mapEditor = null;
 	public static Game game = null;
+	public static GameTikTok gameTikTok = null;
 	public static Stage stageMain;
 	public static Scene sceneMain;
 	public static boolean close = false;
@@ -65,6 +67,12 @@ public class Main extends Application {
 				sceneMain = new Scene(loader.load());
 				palleteEditor = loader.getController();
 				palleteEditor.init();
+			}
+			else if (GAME_MODE == GameMode.GAME_TIKTOK) {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameTikTokView.fxml"));
+				sceneMain = new Scene(loader.load());
+				gameTikTok = loader.getController();
+				gameTikTok.init();
 			}
 			else {
 				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameView.fxml"));

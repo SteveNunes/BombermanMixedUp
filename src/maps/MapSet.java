@@ -3,6 +3,7 @@ package maps;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -347,10 +348,9 @@ public abstract class MapSet {
 
 	public static void setBricks() {
 		Brick.clearBricks();
-		List<Brick> addBricks = new ArrayList<>();
 		for (TileCoord coord : getTilePropsMap().keySet())
 			if (MapSet.getTileProps(coord).contains(TileProp.FIXED_BRICK))
-				addBricks.add(new Brick(coord, null));
+				Brick.addBrick(coord.getNewInstance());
 		if (IniFiles.stages.read(iniMapName, "Blocks") != null && !IniFiles.stages.read(iniMapName, "Blocks").equals("0")) {
 			int totalBricks = 0, bricksQuant = 0;
 			int[] totalBrickSpawners = { 0 };
@@ -368,22 +368,23 @@ public abstract class MapSet {
 			catch (Exception e) {
 				throw new RuntimeException(IniFiles.stages.read(iniMapName, "Blocks") + " - Wrong data for this item");
 			}
+			List<TileCoord> coords = new ArrayList<>();
+			for (TileCoord coord : getLayer(26).getTilesMap().keySet())
+				for (TileProp p : MapSet.getTileProps(coord))
+					if (p == TileProp.BRICK_RANDOM_SPAWNER && MapSet.tileIsFree(coord, Set.of(PassThrough.BRICK, PassThrough.PLAYER)))
+						coords.add(coord.getNewInstance());
 			done:
-			while (totalBricks > 0) {
-				for (Tile tile : getLayer(26).getTileList())
-					for (TileProp p : MapSet.getTileProps(tile.getTileCoord()))
-						if (p == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(tile.getTileCoord())) {
-							if ((int) MyMath.getRandom(0, 3) == 0) {
-								addBricks.add(new Brick(tile.getTileCoord(), null));
-								if (--totalBricks == 0 || ++bricksQuant >= totalBrickSpawners[0])
-									break done;
-							}
+			while (!coords.isEmpty() && totalBricks > 0)
+				for (TileCoord coord : new ArrayList<>(coords))
+					if (!Brick.haveBrickAt(coord) && (int)MyMath.getRandom(0, 3) == 0) {
+						coords.remove(coord);
+						if (testCoordForInsertFixedBlock(coord)) {
+							Brick.addBrick(coord.getNewInstance());
+							if (--totalBricks == 0 || ++bricksQuant >= totalBrickSpawners[0])
+								break done;
 						}
-			}
+					}
 		}
-		addBricks.sort((b1, b2) -> (int) b2.getY() - (int) b1.getY());
-		addBricks.forEach(brick -> Brick.addBrick(brick, false));
-		getLayer(26).buildLayer();
 		addItemsToBricks();
 	}
 
@@ -418,7 +419,6 @@ public abstract class MapSet {
 
 	public static void setRandomWalls() {
 		if (IniFiles.stages.read(iniMapName, "FixedBlocks") != null && !IniFiles.stages.read(iniMapName, "FixedBlocks").equals("0")) {
-			List<Tile> addWalls = new ArrayList<>();
 			int totalWalls = 0;
 			try {
 				String[] split = IniFiles.stages.read(iniMapName, "FixedBlocks").split("!");
@@ -428,57 +428,54 @@ public abstract class MapSet {
 			catch (Exception e) {
 				throw new RuntimeException(IniFiles.stages.read(iniMapName, "FixedBlocks") + " - Wrong data for this item");
 			}
-			Map<TileCoord, List<TileProp>> recProp = new HashMap<>();
+			Set<TileCoord> trieds = new HashSet<>();
 			done:
 			while (totalWalls > 0) {
 				List<TileCoord> coords = new ArrayList<>();
 				for (TileCoord coord : getLayer(26).getTilesMap().keySet())
-					coords.add(coord.getNewInstance());
+					if (!trieds.contains(coord) && MapSet.tileIsFree(coord, Set.of(PassThrough.BRICK, PassThrough.PLAYER)))
+						coords.add(coord.getNewInstance());
+				if (coords.isEmpty())
+					break done;
 				for (TileCoord coord : coords) {
 					if (MapSet.getTileProps(coord).contains(TileProp.GROUND) && (int) MyMath.getRandom(0, 9) == 0) {
-						Tile tile = new Tile(getLayer(26), (int) wallTile.getX(), (int) wallTile.getY(), coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE);
+						trieds.add(coord.getNewInstance());
 						if (testCoordForInsertFixedBlock(coord)) {
-							recProp.put(coord.getNewInstance(), Arrays.asList(TileProp.WALL));
-							addWalls.add(tile);
+							MapSet.getLayer(26).setTileProps(coord.getNewInstance(), new ArrayList<>(Arrays.asList(TileProp.WALL)));
+							MapSet.getFirstBottomTileFromCoord(coord).spriteX = (int) wallTile.getX();
+							MapSet.getFirstBottomTileFromCoord(coord).spriteY = (int) wallTile.getY();
+							coord.incY(1);
+							if (MapSet.tileIsFree(coord))
+								Tile.addTileShadow(groundWithWallShadow, coord);
 							if (--totalWalls == 0)
 								break done;
 						}
 					}
 				}
 			}
-			addWalls.sort((t1, t2) -> (int) t2.outY - (int) t1.outY);
-			addWalls.forEach(tile -> {
-				TileCoord coord = tile.getTileCoord().getNewInstance();
-				getLayer(26).removeFirstTileFromCoord(coord);
-				getLayer(26).addTile(tile);
-				coord.setY(coord.getY() + 1);
-				Tile.addTileShadow(groundWithWallShadow, coord);
-			});
-			recProp.forEach((coord, props) -> MapSet.setTileProps(coord, new ArrayList<>(props)));
 			getLayer(26).buildLayer();
 		}
 	}
 
 	private static boolean testCoordForInsertFixedBlock(TileCoord coord) {
-		TileCoord coord1 = new TileCoord(), coord2 = new TileCoord();
+		List<TileCoord> checks = new ArrayList<>(initialPlayerCoords);
+		MapSet.getLayer(26).addTileProp(coord, TileProp.WALL);
+		TileCoord coord1 = new TileCoord();
 		Direction dir1 = Direction.LEFT;
 		for (int n = 0; n < 4; n++) {
 			dir1 = dir1.getNext4WayClockwiseDirection();
 			coord1.setCoords(coord);
 			coord1.incCoordsByDirection(dir1);
-			Direction dir2 = Direction.LEFT;
-			if (tileIsFree(coord1))
-				for (int n2 = 0; n2 < 4; n2++) {
-					dir2 = dir2.getNext4WayClockwiseDirection();
-					coord2.setCoords(coord);
-					coord2.incCoordsByDirection(dir2);
-					if (dir1 != dir2 && tileIsFree(coord2)) {
-						PathFinder pf = new PathFinder(coord1, coord2, dir1, t -> tileIsFree(t));
-						if (!pf.pathWasFound())
-							return false;
+			if (tileIsFree(coord1, Set.of(PassThrough.BRICK, PassThrough.PLAYER)))
+				for (TileCoord target : checks) {
+					PathFinder pf = new PathFinder(coord1.getNewInstance(), target.getNewInstance(), dir1, t -> tileIsFree(t, Set.of(PassThrough.BRICK, PassThrough.PLAYER)));
+					if (!pf.pathWasFound()) {
+						MapSet.getLayer(26).removeTileProp(coord, TileProp.WALL);
+						return false;
 					}
 				}
 		}
+		MapSet.getLayer(26).removeTileProp(coord, TileProp.WALL);
 		return true;
 	}
 	

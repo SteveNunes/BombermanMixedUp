@@ -3,6 +3,7 @@ package enums;
 public enum GameMode {
 
 	GAME,
+	GAME_TIKTOK,
 	FRAMESET_EDITOR,
 	MAP_EDITOR,
 	EXPLOSION_EDITOR,

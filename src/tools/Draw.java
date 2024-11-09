@@ -9,9 +9,11 @@ import application.Main;
 import background_effects.BackgroundEffect;
 import drawimage_stuffs.DrawImageEffects;
 import enums.DrawType;
+import enums.GameMode;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
 import fades.Fade;
+import gui.MapEditor;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
@@ -102,13 +104,15 @@ public abstract class Draw {
 		LightSpot.setMultipleLightSpots(gcTemp);
 		LightSpot.setMultipleLightSpotsInDarkness(gcTemp);
 		ColoredLightSpot.setMultipleColoredLightSpots(gcTemp);
-		int minX = (int)MapSet.getMapMinLimit().getX(), minY = (int)MapSet.getMapMinLimit().getY(),
-				maxX = (int)MapSet.getMapMaxLimit().getX(), maxY = (int)MapSet.getMapMaxLimit().getY();
-		gcTemp.setFill(Color.BLACK);
-		gcTemp.fillRect(minX - Main.TILE_SIZE * 2, minY - Main.TILE_SIZE * 2, Main.TILE_SIZE * 3, maxY + Main.TILE_SIZE);
-		gcTemp.fillRect(minX - Main.TILE_SIZE * 2, minY - Main.TILE_SIZE * 2, maxX + Main.TILE_SIZE, Main.TILE_SIZE * 3);
-		gcTemp.fillRect(maxX, minY - Main.TILE_SIZE * 2, Main.TILE_SIZE * 3, maxY + Main.TILE_SIZE * 3);
-		gcTemp.fillRect(minX - Main.TILE_SIZE * 2, maxY, maxX + Main.TILE_SIZE * 3, Main.TILE_SIZE * 3);
+		if (Main.GAME_MODE != GameMode.MAP_EDITOR || MapEditor.isPlaying()) {
+			int minX = (int)MapSet.getMapMinLimit().getX(), minY = (int)MapSet.getMapMinLimit().getY(),
+					maxX = (int)MapSet.getMapMaxLimit().getX(), maxY = (int)MapSet.getMapMaxLimit().getY();
+			gcTemp.setFill(Color.BLACK);
+			gcTemp.fillRect(minX - Main.TILE_SIZE * 2, minY - Main.TILE_SIZE * 2, Main.TILE_SIZE * 3, maxY + Main.TILE_SIZE);
+			gcTemp.fillRect(minX - Main.TILE_SIZE * 2, minY - Main.TILE_SIZE * 2, maxX + Main.TILE_SIZE, Main.TILE_SIZE * 3);
+			gcTemp.fillRect(maxX, minY - Main.TILE_SIZE * 2, Main.TILE_SIZE * 3, maxY + Main.TILE_SIZE * 3);
+			gcTemp.fillRect(minX - Main.TILE_SIZE * 2, maxY, maxX + Main.TILE_SIZE * 5, Main.TILE_SIZE * 3);
+		}
 		WritableImage i = getTempCanvasSnapshot((int)-offsetX / zoom, (int)-offsetY / zoom, (int)canvas.getWidth() / zoom, (int)canvas.getHeight() / zoom);
 		i = wavingImage != null ? wavingImage.apply(i) : i;
 		Canvas c = getTempCanvas();
