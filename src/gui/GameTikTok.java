@@ -87,7 +87,7 @@ public class GameTikTok {
 		Player player = Player.getPlayer(n);
 		if ((bomber = player.getBomberMan()) == null) {
 			bomber = BomberMan.addBomberMan(1, BomberMan.getTotalBomberMans());
-			bomber.setPosition(coord.getPosition());
+			bomber.setPosition(MapSet.getInitialPlayerPosition(BomberMan.getTotalBomberMans() - 1));
 			player.setBomberMan(bomber);
 		}
 		Stage stage = new Stage();

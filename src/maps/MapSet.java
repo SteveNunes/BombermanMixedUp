@@ -3,7 +3,6 @@ package maps;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -347,6 +346,8 @@ public abstract class MapSet {
 	}
 
 	public static void setBricks() {
+		long cTime = System.currentTimeMillis();
+		System.out.print("Definindo tijolos aleatórios... ");
 		Brick.clearBricks();
 		for (TileCoord coord : getTilePropsMap().keySet())
 			if (MapSet.getTileProps(coord).contains(TileProp.FIXED_BRICK))
@@ -370,22 +371,20 @@ public abstract class MapSet {
 			}
 			List<TileCoord> coords = new ArrayList<>();
 			for (TileCoord coord : getLayer(26).getTilesMap().keySet())
-				for (TileProp p : MapSet.getTileProps(coord))
-					if (p == TileProp.BRICK_RANDOM_SPAWNER && MapSet.tileIsFree(coord, Set.of(PassThrough.BRICK, PassThrough.PLAYER)))
-						coords.add(coord.getNewInstance());
+				if (!Brick.haveBrickAt(coord) && MapSet.tileContainsProp(coord, TileProp.BRICK_RANDOM_SPAWNER) && MapSet.tileIsFree(coord, Set.of(PassThrough.PLAYER)))
+					coords.add(coord.getNewInstance());
 			done:
 			while (!coords.isEmpty() && totalBricks > 0)
 				for (TileCoord coord : new ArrayList<>(coords))
-					if (!Brick.haveBrickAt(coord) && (int)MyMath.getRandom(0, 3) == 0) {
+					if ((int)MyMath.getRandom(0, 3) == 0) {
 						coords.remove(coord);
-						if (testCoordForInsertFixedBlock(coord)) {
-							Brick.addBrick(coord.getNewInstance());
-							if (--totalBricks == 0 || ++bricksQuant >= totalBrickSpawners[0])
-								break done;
-						}
+						Brick.addBrick(coord.getNewInstance());
+						if (coords.isEmpty() || --totalBricks == 0 || ++bricksQuant >= totalBrickSpawners[0])
+							break done;
 					}
 		}
 		addItemsToBricks();
+		System.out.println("concluido em " + (System.currentTimeMillis() - cTime)  +"ms");
 	}
 
 	public static int getBricksRegenTimeInFrames() {
@@ -419,6 +418,8 @@ public abstract class MapSet {
 
 	public static void setRandomWalls() {
 		if (IniFiles.stages.read(iniMapName, "FixedBlocks") != null && !IniFiles.stages.read(iniMapName, "FixedBlocks").equals("0")) {
+			long cTime = System.currentTimeMillis();
+			System.out.print("Definindo paredes aleatórias... ");
 			int totalWalls = 0;
 			try {
 				String[] split = IniFiles.stages.read(iniMapName, "FixedBlocks").split("!");
@@ -428,18 +429,15 @@ public abstract class MapSet {
 			catch (Exception e) {
 				throw new RuntimeException(IniFiles.stages.read(iniMapName, "FixedBlocks") + " - Wrong data for this item");
 			}
-			Set<TileCoord> trieds = new HashSet<>();
+			List<TileCoord> coords = new ArrayList<>();
+			for (TileCoord coord : getLayer(26).getTilesMap().keySet())
+				if (MapSet.getTileProps(coord).contains(TileProp.GROUND) && MapSet.tileIsFree(coord, Set.of(PassThrough.PLAYER)))
+					coords.add(coord.getNewInstance());
 			done:
-			while (totalWalls > 0) {
-				List<TileCoord> coords = new ArrayList<>();
-				for (TileCoord coord : getLayer(26).getTilesMap().keySet())
-					if (!trieds.contains(coord) && MapSet.tileIsFree(coord, Set.of(PassThrough.BRICK, PassThrough.PLAYER)))
-						coords.add(coord.getNewInstance());
-				if (coords.isEmpty())
-					break done;
-				for (TileCoord coord : coords) {
-					if (MapSet.getTileProps(coord).contains(TileProp.GROUND) && (int) MyMath.getRandom(0, 9) == 0) {
-						trieds.add(coord.getNewInstance());
+			while (!coords.isEmpty() && totalWalls > 0) {
+				for (TileCoord coord : new ArrayList<>(coords))
+					if ((int) MyMath.getRandom(0, 9) == 0) {
+						coords.remove(coord);
 						if (testCoordForInsertFixedBlock(coord)) {
 							MapSet.getLayer(26).setTileProps(coord.getNewInstance(), new ArrayList<>(Arrays.asList(TileProp.WALL)));
 							MapSet.getFirstBottomTileFromCoord(coord).spriteX = (int) wallTile.getX();
@@ -447,13 +445,13 @@ public abstract class MapSet {
 							coord.incY(1);
 							if (MapSet.tileIsFree(coord))
 								Tile.addTileShadow(groundWithWallShadow, coord);
-							if (--totalWalls == 0)
+							if (coords.isEmpty() || --totalWalls == 0)
 								break done;
 						}
 					}
-				}
 			}
 			getLayer(26).buildLayer();
+			System.out.println("concluido em " + (System.currentTimeMillis() - cTime)  +"ms");
 		}
 	}
 
