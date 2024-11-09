@@ -1,5 +1,6 @@
 package maps;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +35,20 @@ public class Tile {
 	public Tile(Tile tile) {
 		this(tile, tile.getOriginLayer());
 	}
+	
+	public Tile(Tile tile, TileCoord coord) {
+		spriteX = tile.spriteX;
+		spriteY = tile.spriteY;
+		flip = tile.flip;
+		rotate = tile.rotate;
+		originLayer = tile.originLayer;
+		opacity = tile.opacity;
+		effects = tile.effects == null ? null : new DrawImageEffects(tile.effects);
+		stringTileTags = tile.stringTileTags;
+		tileCoord = coord.getNewInstance();
+		outX = (int)coord.getPosition().getX();
+		outY = (int)coord.getPosition().getY();
+	}
 
 	public Tile(Tile tile, Layer originLayer) {
 		spriteX = tile.spriteX;
@@ -48,7 +63,9 @@ public class Tile {
 		stringTileTags = tile.stringTileTags;
 		tileCoord = tile.tileCoord.getNewInstance();
 		setCoords(tile.getTileCoord());
-		setTileProps(tile.getTileProps());
+		setTileProps(new ArrayList<>(tile.getTileProps()));
+		if (tile.tileHaveTags())
+			setTileTags(new Tags(tile.getTileTags()));
 	}
 
 	public Tile(Layer originLayer, int spriteX, int spriteY, int outX, int outY) {

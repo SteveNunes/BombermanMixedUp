@@ -43,9 +43,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Slider;
@@ -155,6 +158,14 @@ public class MapEditor {
 	@FXML
 	private CheckBox checkBoxShowItems;
 	@FXML
+	private CheckBox checkBoxMarkEntity;
+	@FXML
+	private CheckBox checkBoxMarkBomb;
+	@FXML
+	private CheckBox checkBoxMarkBrick;
+	@FXML
+	private CheckBox checkBoxMarkItem;
+	@FXML
 	private ListView<HBox> listViewLayers;
 	@FXML
 	private ComboBox<String> comboBoxTileSets;
@@ -178,6 +189,12 @@ public class MapEditor {
 	private HBox hBoxFrameSetButtons;
 	@FXML
 	private VBox vBoxTileSet;
+	@FXML
+	private RadioButton radioCtrlModeTiles;
+	@FXML
+	private RadioButton radioCtrlModeProps;
+	@FXML
+	private RadioButton radioCtrlModeTags;
 
 	private KeyCode[] keysInputs = { KeyCode.W, KeyCode.D, KeyCode.S, KeyCode.A, KeyCode.NUMPAD1, KeyCode.NUMPAD2, KeyCode.NUMPAD4, KeyCode.NUMPAD5, KeyCode.SPACE, KeyCode.ENTER };
 	private ListenerHandle<String> listenerHandleComboBoxMapFrameSets;
@@ -195,7 +212,7 @@ public class MapEditor {
 	private List<KeyCode> holdedKeys;
 	private List<TileProp> copyProps;
 	private Tags copyTags;
-	private Map<TileCoord, List<Tile>> copiedTiles;
+	private List<CopiedTile> copiedTiles;
 	private List<Map<TileCoord, List<Tile>>> backupTiles;
 	private Font font;
 	private CanvasMouse canvasMouseDraw;
@@ -207,27 +224,18 @@ public class MapEditor {
 	private int ctrlZPos;
 	private long resetBricks;
 	private Set<TileCoord> alreadySetTiles;
-	private String defaultMap = "SBM2_1-1";
+	private String defaultMap = "Battle-Map-01";
 	public boolean playing;
 	public boolean editable;
-	private boolean markCorners;
-	private boolean markEntities;
-	private boolean markBombs;
-	private boolean markBricks;
-	private boolean markItems;
 	private int controlledBomberIndex;
 	private int bomberColor;
+	private TileCoord hoveredInitialCoord;
 
 	public void init() {
-		markCorners = false;
-		markEntities = true;
-		markBombs = true;
-		markBricks = true;
-		markItems = true;
 		canvasMouseDraw = new CanvasMouse(true);
 		canvasMouseTileSet = new CanvasMouse();
 		tileSelection = new Rectangle(0, 0, 1, 1);
-		copiedTiles = new HashMap<>();
+		copiedTiles = new ArrayList<>();
 		holdedKeys = new ArrayList<>();
 		backupTiles = new ArrayList<>();
 		alreadySetTiles = new HashSet<>();
@@ -240,6 +248,7 @@ public class MapEditor {
 		playing = false;
 		editable = true;
 		pathFinder = null;
+		hoveredInitialCoord = null;
 		MapSet.setCurrentLayerIndex(26);
 		ctrlZPos = -1;
 		copyProps = null;
@@ -601,6 +610,7 @@ public class MapEditor {
 
 	void setKeyboardEvents() {
 		Main.sceneMain.setOnKeyPressed(e -> {
+			holdedKeys.add(e.getCode());
 			Player.convertOnKeyPressEvent(e);
 			if (e.getCode() == KeyCode.I && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !MapSet.tileContainsProp(canvasMouseDraw.tileCoord, TileProp.GROUND_NO_ITEM))
 				Item.addItem(canvasMouseDraw.tileCoord, itemType);
@@ -642,25 +652,39 @@ public class MapEditor {
 				}
 			}
 			else if (e.getCode() == KeyCode.C) {
-				if (selection == null) {
-
-				}
-				else if (isCtrlHold()) {
-					if (isShiftHold())
+				if (isCtrlHold()) {
+					if (selection == null) {
+						if (MapSet.haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
+							if (radioCtrlModeProps.isSelected())
+								copyProps = new ArrayList<>(MapSet.getTileProps(canvasMouseDraw.tileCoord));
+							else if (radioCtrlModeTags.isSelected())
+								copyTags = new Tags(MapSet.getTileTags(canvasMouseDraw.tileCoord));
+						}
+					}
+					else if (radioCtrlModeTiles.isSelected())
 						copySelectedTiles();
-					else
-						copySelectedTiles(true);
 				}
 			}
 			else if (e.getCode() == KeyCode.V) {
-				if (selection == null) {
-
-				}
-				else if (isCtrlHold()) {
-					if (isShiftHold())
-						pasteCopiedTiles(true);
-					else
+				if (isCtrlHold()) {
+					if (radioCtrlModeTiles.isSelected())
 						pasteCopiedTiles();
+					else if (MapSet.haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
+						if (radioCtrlModeProps.isSelected()) {
+							if (isShiftHold())
+								MapSet.setTileProps(canvasMouseDraw.tileCoord, new ArrayList<>(copyProps));
+							else
+								MapSet.getTileProps(canvasMouseDraw.tileCoord).addAll(copyProps);
+						}
+						else if (radioCtrlModeTags.isSelected()) {
+							if (isShiftHold())
+								MapSet.setTileTags(canvasMouseDraw.tileCoord, new Tags(copyTags));
+							else if (MapSet.tileHaveTags(canvasMouseDraw.tileCoord))
+								MapSet.getTileTags(canvasMouseDraw.tileCoord).getTags().addAll(copyTags.getTags());
+							else
+								MapSet.setTileTags(canvasMouseDraw.tileCoord, new Tags(copyTags));
+						}
+					}
 				}
 			}
 			else if (e.getCode() == KeyCode.W || e.getCode() == KeyCode.S || e.getCode() == KeyCode.A || e.getCode() == KeyCode.D) {
@@ -739,6 +763,7 @@ public class MapEditor {
 			}
 		});
 		Main.sceneMain.setOnKeyReleased(e -> {
+			holdedKeys.remove(e.getCode());
 			Player.convertOnKeyReleaseEvent(e);
 			for (int n = 0; n < keysInputs.length; n++) {
 				if (e.getCode() == keysInputs[n])
@@ -1028,20 +1053,6 @@ public class MapEditor {
 		BomberMan bomber = getCurrentBomber();
 		Draw.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, deslocX(), deslocY());
 
-		if (markCorners) { // TEMP PARA EXIBIR QUADRADOS INDICANDO SE OS CANTOS DO TILE DO BOMBERMAN ESTAO
-		                   // LIVRES
-			Position[] cornersPos = getCurrentBomber().getCornersPositions();
-			boolean[] corners = getCurrentBomber().getFreeCorners(bomber.getDirection());
-			for (int x = 0; x < 4; x++) {
-				int xx = (int) cornersPos[x].getX() * zoomMain, yy = (int) cornersPos[x].getY() * zoomMain;
-				if (x % 2 != 0)
-					xx -= 9;
-				if (x > 1)
-					yy -= 9;
-				gcMain.setFill(corners[x] ? Color.GREEN : Color.RED);
-				gcMain.fillRect(xx + deslocX(), yy + deslocX(), 10, 10);
-			}
-		}
 		if (pathFinder != null) {
 			pathFinder.recalculatePath(getCurrentBomber().getTileCoordFromCenter(), canvasMouseDraw.tileCoord, getCurrentBomber().getDirection());
 			if (pathFinder.getCurrentPath() != null)
@@ -1051,24 +1062,24 @@ public class MapEditor {
 					gcMain.drawImage(Materials.hud, 1025 + dir.get4DirValue() * 16, 760, 16, 16, x * zoomMain + deslocX(), y * zoomMain + deslocY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
 				}
 		}
-		if (markEntities) {
+		if (checkBoxMarkEntity.isSelected()) {
 			gcMain.setLineWidth(4);
 			gcMain.setStroke(Color.RED);
 			for (Entity entity : Entity.getEntityList())
 				gcMain.strokeRect(entity.getX() * zoomMain + deslocX(), entity.getY() * zoomMain + deslocY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
 			gcMain.setStroke(Color.MEDIUMVIOLETRED);
 		}
-		if (markBombs) {
+		if (checkBoxMarkBomb.isSelected()) {
 			gcMain.setStroke(Color.ORANGE);
 			for (Bomb bomb : Bomb.getBombMap().values())
 				gcMain.strokeRect(bomb.getX() * zoomMain + deslocX(), bomb.getY() * zoomMain + deslocY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
 		}
-		if (markBricks) {
+		if (checkBoxMarkBrick.isSelected()) {
 			gcMain.setStroke(Color.GREENYELLOW);
 			for (Brick brick : Brick.getBrickMap().values())
 				gcMain.strokeRect(brick.getX() * zoomMain + deslocX(), brick.getY() * zoomMain + deslocY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
 		}
-		if (markItems) {
+		if (checkBoxMarkItem.isSelected()) {
 			gcMain.setStroke(Color.ALICEBLUE);
 			for (Item item : Item.getItemMap().values())
 				gcMain.strokeRect(item.getX() * zoomMain + deslocX(), item.getY() * zoomMain + deslocY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
@@ -1085,7 +1096,6 @@ public class MapEditor {
 		drawTileSetCanvas();
 		if (checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
 			Tile tile = MapSet.getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
-			System.out.println(tile.getTileCoord() + " " + tile.getTileProps());
 			if (tile != null) {
 				int x, y = tile.outY * zoomMain + (Main.TILE_SIZE * zoomMain) / 2 - 20 + deslocY();
 				gcMain.setFill(Color.LIGHTBLUE);
@@ -1198,155 +1208,166 @@ public class MapEditor {
 	void setContextMenu() {
 		contextMenu = new ContextMenu();
 		if (selection != null) {
-			Menu menuSelecao = new Menu(selection.getWidth() + selection.getHeight() > 2 ? "Tiles selecionados" : "Tile selecionado");
-			contextMenu.getItems().add(menuSelecao);
-			Menu menu = new Menu("Copiar");
-			menuSelecao.getItems().add(menu);
-			MenuItem menuItem = new MenuItem("Apenas o primeiro sprite de cada tile");
-			menu.getItems().add(menuItem);
-			menuItem.setOnAction(e -> copySelectedTiles(true));
-			menuItem = new MenuItem("Cópia completa dos tiles");
-			menu.getItems().add(menuItem);
-			menuItem.setOnAction(e -> copySelectedTiles(true));
-			menu = new Menu("Colar");
-			menu.setDisable(copiedTiles.isEmpty());
-			menuSelecao.getItems().add(menu);
-			menuItem = new MenuItem("Por cima dos tiles atuais");
-			menu.getItems().add(menuItem);
-			menuItem.setOnAction(e -> pasteCopiedTiles(false));
-			menuItem = new MenuItem("Remover tiles antes de colar");
-			menu.getItems().add(menuItem);
-			menuItem.setOnAction(e -> pasteCopiedTiles());
-			menuItem = new MenuItem("Remover");
-			menuSelecao.getItems().add(menuItem);
-			menuItem.setOnAction(e -> removeAllSelectedTiles());
-		}
-		else {
-			MenuItem menuItem = new MenuItem("Resetar deslocamento do mapa");
+			MenuItem menuItem = new MenuItem(selection.getWidth() + selection.getHeight() > 2 ? "Copiar tiles selecionados" : "Copiar tile selecionado");
 			contextMenu.getItems().add(menuItem);
-			menuItem.setOnAction(e -> {
-				canvasMouseDraw = new CanvasMouse(true);
-				canvasMouseTileSet = new CanvasMouse();
-			});
-			final TileCoord coord = canvasMouseDraw.tileCoord.getNewInstance();
-			if (getCurrentLayer().haveTilesOnCoord(coord)) {
-				contextMenu.getItems().add(new SeparatorMenuItem());
-				
-				Menu menu = new Menu("Adicionar");
-				contextMenu.getItems().add(menu);
-				menuItem = new MenuItem("Player");
-				menuItem.setDisable(Player.getTotalPlayers() == 17);
-				menu.getItems().add(menuItem);
-				menuItem.setOnAction(e -> addPlayerAtCursor());
-				Menu menu2 = new Menu("Bomba");
-				menu2.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord) || Bomb.haveBombAt(null, coord) || MapSet.tileContainsProp(coord, TileProp.GROUND_NO_BOMB));
+			menuItem.setOnAction(e -> copySelectedTiles());
+		}
+		MenuItem menuItem = new Menu("Colar tiles copiados");
+		menuItem.setDisable(copiedTiles.isEmpty());
+		contextMenu.getItems().add(menuItem);
+		menuItem.setOnAction(e -> pasteCopiedTiles());
+		menuItem = new MenuItem("Remover");
+		contextMenu.getItems().add(menuItem);
+		menuItem.setOnAction(e -> removeAllSelectedTiles());
+		contextMenu.getItems().add(new SeparatorMenuItem());
+		menuItem = new MenuItem("Resetar deslocamento do mapa");
+		contextMenu.getItems().add(menuItem);
+		menuItem.setOnAction(e -> {
+			canvasMouseDraw = new CanvasMouse(true);
+			canvasMouseTileSet = new CanvasMouse();
+		});
+		final TileCoord coord = canvasMouseDraw.tileCoord.getNewInstance();
+		if (getCurrentLayer().haveTilesOnCoord(coord)) {
+			contextMenu.getItems().add(new SeparatorMenuItem());
+			Menu menu = new Menu("Posição inicial");
+			contextMenu.getItems().add(menu);
+			for (int n = 0; n < 2; n++) {
+				List<TileCoord> list = n == 0 ? MapSet.getInitialPlayerPositions() : MapSet.getInitialMonsterPositions();
+				Menu menu2 = new Menu(n == 0 ? "Jogador" : "Monstro");
 				menu.getItems().add(menu2);
-				for (BombType type : BombType.values()) {
-					menuItem = new MenuItem(type.name());
-					menu2.getItems().add(menuItem);
-					menuItem.setOnAction(e -> {
-						Bomb.addBomb(canvasMouseDraw.tileCoord, type, 5);
-						bombType = type;
-					});
-				}
-				menu2 = new Menu("Tijolo");
-				menu2.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord) || Bomb.haveBombAt(null, coord) || MapSet.tileContainsProp(coord, TileProp.GROUND_NO_BOMB));
-				menu.getItems().add(menu2);
-				for (int n = -1; n < ItemType.values().length; n++) {
-					ItemType type = n == -1 ? null : ItemType.values()[n];
-					menuItem = new MenuItem(type == null ? "Sem item" : "Com item: " + type.name());
-					menu2.getItems().add(menuItem);
-					menuItem.setOnAction(e -> {
-						if ((itemType = type) != null)
-							Brick.addBrick(canvasMouseDraw.tileCoord, type);
-						else
-							Brick.addBrick(canvasMouseDraw.tileCoord);
-					});
-				}
-				menu2 = new Menu("Item");
-				menu2.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord));
-				menu.getItems().add(menu2);
-				for (ItemType type : ItemType.values()) {
-					menuItem = new MenuItem(type.name());
-					menu2.getItems().add(menuItem);
-					menuItem.setOnAction(e -> {
-						Item.addItem(coord, type);
-						itemType = type;
-					});
-				}
-				if (!editable) {
-					contextMenu.getItems().add(new MenuItem("Recarregue o mapa para editá-lo"));
-					return;
-				}
-				contextMenu.getItems().add(new SeparatorMenuItem());
-				Menu mainMenu = new Menu("TileProps");
-				contextMenu.getItems().add(mainMenu);
-				menu = new Menu("Adicionar");
-				mainMenu.getItems().add(menu);
-				for (TileProp prop : TileProp.getList()) {
-					menuItem = new MenuItem(prop.name());
-					menuItem.setOnAction(e -> MapSet.addTileProp(coord, prop));
-					menu.getItems().addAll(menuItem);
-				}
-				menuItem = new MenuItem("Copiar");
-				mainMenu.getItems().add(menuItem);
-				menuItem.setOnAction(e -> copyProps = new ArrayList<>(MapSet.getTileProps(coord)));
-				menuItem = new MenuItem("Colar (Adicionar)");
-				mainMenu.getItems().add(menuItem);
-				menuItem.setDisable(copyProps == null);
-				menuItem.setOnAction(e -> MapSet.getTileProps(coord).addAll(copyProps));
-				menuItem = new MenuItem("Colar (Substituir)");
-				mainMenu.getItems().add(menuItem);
-				menuItem.setDisable(copyProps == null);
-				menuItem.setOnAction(e -> MapSet.setTileProps(coord, new ArrayList<>(copyProps)));
-				menu = new Menu("Remover");
-				mainMenu.getItems().add(menu);
-				menu.setDisable(!MapSet.tileHaveProps(coord));
-				for (TileProp prop : MapSet.getTileProps(coord)) {
-					menuItem = new MenuItem(prop.name());
-					menu.getItems().addAll(menuItem);
-					menuItem.setOnAction(e -> MapSet.removeTileProp(coord, prop));
-				}
-				contextMenu.getItems().add(new SeparatorMenuItem());
-				menu = new Menu("Tile Tags");
-				contextMenu.getItems().add(menu);
-				menuItem = new MenuItem("Editar");
-				menu.getItems().add(menuItem);
-				final Tile tile = getCurrentLayer().getFirstBottomTileFromCoord(coord);
-				menuItem.setOnAction(e -> {
-					String str = Alerts.textPrompt("Prompt", "Editar Tile Frame Tag", tile.getStringTags(), "Digite o novo Frame Tag para o tile atual");
-					if (str != null) {
-						String backupTags = tile.getStringTags();
-						try {
-							tile.setTileTagsFromString(str);
-						}
-						catch (Exception ex) {
-							tile.setTileTagsFromString(backupTags);
-							Alerts.exception("Erro", "Erro ao definir tag do tile", ex);
-							return;
-						}
-					}
-				});
-				menuItem = new MenuItem("Copiar");
-				menu.getItems().add(menuItem);
-				menuItem.setOnAction(e -> copyTags = new Tags(MapSet.getTileTags(coord)));
-				menuItem = new MenuItem("Colar (Adicionar)");
-				menu.getItems().add(menuItem);
-				menuItem.setDisable(copyTags == null);
-				menuItem.setOnAction(e -> {
-					if (MapSet.tileHaveTags(coord))
-						MapSet.getTileTags(coord).getTags().addAll(copyTags.getTags());
-					else
-						MapSet.setTileTags(coord, new Tags(copyTags));
-				});
-				menuItem = new MenuItem("Colar (Substituir)");
-				menu.getItems().add(menuItem);
-				menuItem.setDisable(copyTags == null);
-				menuItem.setOnAction(e -> MapSet.setTileTags(coord, new Tags(copyTags)));
+				menuItem = new MenuItem("Adicionar");
+				menu2.getItems().add(menuItem);
+				menuItem.setOnAction(e -> list.add(coord.getNewInstance()));
 				menuItem = new MenuItem("Remover");
-				menu.getItems().add(menuItem);
-				menuItem.setOnAction(e -> tile.clearTileTags());
+				menuItem.setDisable(list.contains(coord));
+				menu2.getItems().add(menuItem);
+				menuItem.setOnAction(e -> list.remove(coord));
+				Menu menu3 = new Menu("Remover da lista geral");
+				menu2.getItems().add(menu3);
+				for (TileCoord t : list) {
+					Label label = new Label(t.toString());
+					CustomMenuItem cMenuItem = new CustomMenuItem(label);
+					cMenuItem.setOnAction(e -> list.remove(t));
+					label.setOnMouseEntered(e -> hoveredInitialCoord = t.getNewInstance());
+					label.setOnMouseExited(e -> hoveredInitialCoord = null);
+					menu3.getItems().add(cMenuItem);
+				}
 			}
+			contextMenu.getItems().add(new SeparatorMenuItem());
+			menu = new Menu("Adicionar");
+			contextMenu.getItems().add(menu);
+			menuItem = new MenuItem("Player");
+			menuItem.setDisable(Player.getTotalPlayers() == 17);
+			menu.getItems().add(menuItem);
+			menuItem.setOnAction(e -> addPlayerAtCursor());
+			Menu menu2 = new Menu("Bomba");
+			menu2.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord) || Bomb.haveBombAt(null, coord) || MapSet.tileContainsProp(coord, TileProp.GROUND_NO_BOMB));
+			menu.getItems().add(menu2);
+			for (BombType type : BombType.values()) {
+				menuItem = new MenuItem(type.name());
+				menu2.getItems().add(menuItem);
+				menuItem.setOnAction(e -> {
+					Bomb.addBomb(canvasMouseDraw.tileCoord, type, 5);
+					bombType = type;
+				});
+			}
+			menu2 = new Menu("Tijolo");
+			menu2.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord) || Bomb.haveBombAt(null, coord) || MapSet.tileContainsProp(coord, TileProp.GROUND_NO_BOMB));
+			menu.getItems().add(menu2);
+			for (int n = -1; n < ItemType.values().length; n++) {
+				ItemType type = n == -1 ? null : ItemType.values()[n];
+				menuItem = new MenuItem(type == null ? "Sem item" : "Com item: " + type.name());
+				menu2.getItems().add(menuItem);
+				menuItem.setOnAction(e -> {
+					if ((itemType = type) != null)
+						Brick.addBrick(canvasMouseDraw.tileCoord, type);
+					else
+						Brick.addBrick(canvasMouseDraw.tileCoord);
+				});
+			}
+			menu2 = new Menu("Item");
+			menu2.setDisable(!MapSet.tileIsFree(coord) || Item.haveItemAt(coord));
+			menu.getItems().add(menu2);
+			for (ItemType type : ItemType.values()) {
+				menuItem = new MenuItem(type.name());
+				menu2.getItems().add(menuItem);
+				menuItem.setOnAction(e -> {
+					Item.addItem(coord, type);
+					itemType = type;
+				});
+			}
+			if (!editable) {
+				contextMenu.getItems().add(new MenuItem("Recarregue o mapa para editá-lo"));
+				return;
+			}
+			contextMenu.getItems().add(new SeparatorMenuItem());
+			Menu mainMenu = new Menu("TileProps");
+			contextMenu.getItems().add(mainMenu);
+			menu = new Menu("Adicionar");
+			mainMenu.getItems().add(menu);
+			for (TileProp prop : TileProp.getList()) {
+				menuItem = new MenuItem(prop.name());
+				menuItem.setOnAction(e -> MapSet.addTileProp(coord, prop));
+				menu.getItems().addAll(menuItem);
+			}
+			menuItem = new MenuItem("Copiar");
+			mainMenu.getItems().add(menuItem);
+			menuItem.setOnAction(e -> copyProps = new ArrayList<>(MapSet.getTileProps(coord)));
+			menuItem = new MenuItem("Colar (Adicionar)");
+			mainMenu.getItems().add(menuItem);
+			menuItem.setDisable(copyProps == null);
+			menuItem.setOnAction(e -> MapSet.getTileProps(coord).addAll(copyProps));
+			menuItem = new MenuItem("Colar (Substituir)");
+			mainMenu.getItems().add(menuItem);
+			menuItem.setDisable(copyProps == null);
+			menuItem.setOnAction(e -> MapSet.setTileProps(coord, new ArrayList<>(copyProps)));
+			menu = new Menu("Remover");
+			mainMenu.getItems().add(menu);
+			menu.setDisable(!MapSet.tileHaveProps(coord));
+			for (TileProp prop : MapSet.getTileProps(coord)) {
+				menuItem = new MenuItem(prop.name());
+				menu.getItems().addAll(menuItem);
+				menuItem.setOnAction(e -> MapSet.removeTileProp(coord, prop));
+			}
+			contextMenu.getItems().add(new SeparatorMenuItem());
+			menu = new Menu("Tile Tags");
+			contextMenu.getItems().add(menu);
+			menuItem = new MenuItem("Editar");
+			menu.getItems().add(menuItem);
+			final Tile tile = getCurrentLayer().getFirstBottomTileFromCoord(coord);
+			menuItem.setOnAction(e -> {
+				String str = Alerts.textPrompt("Prompt", "Editar Tile Frame Tag", tile.getStringTags(), "Digite o novo Frame Tag para o tile atual");
+				if (str != null) {
+					String backupTags = tile.getStringTags();
+					try {
+						tile.setTileTagsFromString(str);
+					}
+					catch (Exception ex) {
+						tile.setTileTagsFromString(backupTags);
+						Alerts.exception("Erro", "Erro ao definir tag do tile", ex);
+						return;
+					}
+				}
+			});
+			menuItem = new MenuItem("Copiar");
+			menu.getItems().add(menuItem);
+			menuItem.setOnAction(e -> copyTags = new Tags(MapSet.getTileTags(coord)));
+			menuItem = new MenuItem("Colar (Adicionar)");
+			menu.getItems().add(menuItem);
+			menuItem.setDisable(copyTags == null);
+			menuItem.setOnAction(e -> {
+				if (MapSet.tileHaveTags(coord))
+					MapSet.getTileTags(coord).getTags().addAll(copyTags.getTags());
+				else
+					MapSet.setTileTags(coord, new Tags(copyTags));
+			});
+			menuItem = new MenuItem("Colar (Substituir)");
+			menu.getItems().add(menuItem);
+			menuItem.setDisable(copyTags == null);
+			menuItem.setOnAction(e -> MapSet.setTileTags(coord, new Tags(copyTags)));
+			menuItem = new MenuItem("Remover");
+			menu.getItems().add(menuItem);
+			menuItem.setOnAction(e -> tile.clearTileTags());
 		}
 	}
 
@@ -1373,35 +1394,29 @@ public class MapEditor {
 		contextMenuTileSet.getItems().add(menuItemSelectionToString);
 	}
 
-	void copySelectedTiles(boolean copyOnlyFirstSprite) {
-		copiedTiles.clear();
-		iterateAllSelectedCoords(coord -> copiedTiles.put(coord, MapSet.getTileListFromCoord(coord)));
-	}
-
 	void copySelectedTiles() {
-		copySelectedTiles(false);
+		copiedTiles.clear();
+		iterateAllSelectedCoords(coord -> copiedTiles.add(new CopiedTile(coord)));
 	}
 
 	void pasteCopiedTiles() {
-		pasteCopiedTiles(true);
-	}
-
-	void pasteCopiedTiles(boolean removeTilesBeforePaste) {
-		int x = canvasMouseDraw.tileCoord.getX(), y = canvasMouseDraw.tileCoord.getY();
-		int[] minPos = { Integer.MAX_VALUE, Integer.MAX_VALUE };
-		copiedTiles.keySet().forEach(t -> {
-			if (t.getX() < minPos[0])
-				minPos[0] = t.getX();
-			if (t.getY() < minPos[1])
-				minPos[1] = t.getY();
-		});
-		int xx = x - minPos[0], yy = y - minPos[1];
-		for (TileCoord coord : copiedTiles.keySet()) {
-			TileCoord coord2 = new TileCoord(coord.getX() + xx, coord.getY() + yy);
-			if (removeTilesBeforePaste)
-				getCurrentLayer().removeAllTilesFromCoord(coord2);
-			for (Tile tile : copiedTiles.get(coord))
-				getCurrentLayer().addTile(new Tile(tile, getCurrentLayer()), coord2);
+		Integer x = 0, y = 0;
+		for (CopiedTile cTile : copiedTiles) {
+			if (canvasMouseDraw.tileCoord.getX() - cTile.getCoord().getX() > x)
+				x = canvasMouseDraw.tileCoord.getX() - cTile.getCoord().getX();
+			if (canvasMouseDraw.tileCoord.getY() - cTile.getCoord().getY() > y)
+				y = canvasMouseDraw.tileCoord.getY() - cTile.getCoord().getY();
+		}
+		for (CopiedTile cTile : copiedTiles) {
+			TileCoord coord = cTile.getCoord().getNewInstance();
+			coord.incCoords(x, y);
+			if (MapSet.haveTilesOnCoord(coord))
+				MapSet.getCurrentLayer().removeAllTilesFromCoord(coord);
+			for (Tile tile : cTile.getTiles())
+				MapSet.getCurrentLayer().addTile(new Tile(tile, coord));
+			MapSet.setTileProps(coord, cTile.getProps());
+			if (cTile.getTags() != null)
+				MapSet.setTileTags(coord, cTile.getTags());
 		}
 		getCurrentLayer().buildLayer();
 	}
@@ -1484,14 +1499,18 @@ public class MapEditor {
 				Color color;
 				if (!ok.contains(tile.getTileCoord())) {
 					List<TileProp> tileProps = MapSet.getTileProps(tile.getTileCoord());
-					if (tileProps.contains(TileProp.EXPLOSION) || tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
+					if (hoveredInitialCoord != null && tile.getTileCoord().equals(hoveredInitialCoord) && Misc.blink(100))
+						color = Color.GOLD;
+					else if (tileProps.contains(TileProp.EXPLOSION) || tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
 						color = Color.INDIANRED;
 					else if (tileProps.contains(TileProp.MIN_SCREEN_TILE_LIMITER) || tileProps.contains(TileProp.MAX_SCREEN_TILE_LIMITER))
 						color = Color.LIGHTGRAY;
-					else if (tileProps.contains(TileProp.PLAYER_INITIAL_POSITION))
-						color = Color.DEEPPINK;
-					else if (tileProps.contains(TileProp.MOB_INITIAL_POSITION))
-						color = Color.INDIANRED;
+					else if (MapSet.getInitialPlayerPositions().contains(tile.getTileCoord()) ||
+									 tileProps.contains(TileProp.PLAYER_INITIAL_POSITION))
+										 color = Color.DEEPPINK;
+					else if (MapSet.getInitialMonsterPositions().contains(tile.getTileCoord()) ||
+									 tileProps.contains(TileProp.MOB_INITIAL_POSITION))
+										 color = Color.INDIANRED;
 					else if (tileProps.contains(TileProp.REDIRECT_BOMB_TO_DOWN) || tileProps.contains(TileProp.REDIRECT_BOMB_TO_RIGHT) || tileProps.contains(TileProp.REDIRECT_BOMB_TO_UP) || tileProps.contains(TileProp.REDIRECT_BOMB_TO_LEFT))
 						color = Color.MEDIUMPURPLE;
 					else if (tileProps.contains(TileProp.RAIL_DL) || tileProps.contains(TileProp.RAIL_DR) || tileProps.contains(TileProp.RAIL_UL) || tileProps.contains(TileProp.RAIL_UR) || tileProps.contains(TileProp.RAIL_H) || tileProps.contains(TileProp.RAIL_V) || tileProps.contains(TileProp.RAIL_JUMP) || tileProps.contains(TileProp.RAIL_START) || tileProps.contains(TileProp.RAIL_END) || tileProps.contains(TileProp.TREADMILL_TO_LEFT) || tileProps.contains(TileProp.TREADMILL_TO_UP) || tileProps.contains(TileProp.TREADMILL_TO_RIGHT) || tileProps.contains(TileProp.TREADMILL_TO_DOWN))
@@ -1631,6 +1650,24 @@ public class MapEditor {
 			criterias += criteria.name();
 		}
 		MapSet.getMapIniFile().write("SETUP", "PortalCriteria", criterias);
+		StringBuilder sb = new StringBuilder();
+		if (!MapSet.getInitialPlayerPositions().isEmpty()) {
+			for (TileCoord coord : MapSet.getInitialPlayerPositions()) {
+				if (!sb.isEmpty())
+					sb.append(" ");
+				sb.append(coord.getX() + "!" + coord.getY());
+			}
+			MapSet.getMapIniFile().write("SETUP", "PlayerInitialCoordsOrder", sb.toString());
+		}
+		if (!MapSet.getInitialMonsterPositions().isEmpty()) {
+			sb = new StringBuilder();
+			for (TileCoord coord : MapSet.getInitialMonsterPositions()) {
+				if (!sb.isEmpty())
+					sb.append(" ");
+				sb.append(coord.getX() + "!" + coord.getY());
+			}
+			MapSet.getMapIniFile().write("SETUP", "MonsterInitialCoordsOrder", sb.toString());
+		}
 	}
 
 }
@@ -1672,6 +1709,38 @@ class CanvasMouse {
 
 	int getCoordY() {
 		return tileCoord.getY();
+	}
+	
+}
+
+class CopiedTile {
+	
+	private TileCoord coord;
+	private List<Tile> tiles;
+	private List<TileProp> props;
+	private Tags tags;
+	
+	public CopiedTile(TileCoord coord) {
+		this.coord = coord.getNewInstance();
+		tiles = new ArrayList<>(MapSet.getTileListFromCoord(coord));
+		props = new ArrayList<>(MapSet.getTileProps(coord));
+		tags = !MapSet.tileHaveTags(coord) ? null : new Tags(MapSet.getTileTags(coord));
+	}
+
+	public TileCoord getCoord() {
+		return coord;
+	}
+
+	public List<Tile> getTiles() {
+		return tiles;
+	}
+
+	public List<TileProp> getProps() {
+		return props;
+	}
+
+	public Tags getTags() {
+		return tags;
 	}
 	
 }

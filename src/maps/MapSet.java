@@ -123,13 +123,22 @@ public abstract class MapSet {
 		tileInfos.keySet().forEach(i -> {
 			Layer layer = new Layer(tileInfos.get(i));
 			layers.put(i, layer);
-			for (TileCoord coord : layer.getTilePropsMap().keySet()) {
-				if (layer.getTileProps(coord).contains(TileProp.PLAYER_INITIAL_POSITION))
-					initialPlayerCoords.add(coord.getNewInstance());
-				else if (layer.getTileProps(coord).contains(TileProp.MOB_INITIAL_POSITION))
-					initialMonsterCoords.add(coord.getNewInstance());
-			}
 		});
+		for (int n = 0; n < 2; n++)
+			if (iniFileMap.read("SETUP", n == 0 ? "MonsterInitialCoordsOrder" : "PlayerInitialCoordsOrder") != null) {
+				try {
+					String[] split = iniFileMap.getLastReadVal().split(" ");
+					for (String s : split) {
+						String[] split2 = s.split("!");
+						initialPlayerCoords.add(new TileCoord(Integer.parseInt(split2[0]), Integer.parseInt(split2[1])));
+					}
+				}
+				catch (Exception e) {
+					throw new RuntimeException("Invalid format at [SETUP], '" + (n == 0 ? "MonsterInitialCoordsOrder" : "PlayerInitialCoordsOrder") + "' -> " + iniFileMap.getLastReadVal());
+				}
+			}
+		if (initialPlayerCoords.isEmpty())
+			throw new RuntimeException("Unable to find any initial player spots on this map");
 		groundTile = getTilePositionFromIni(iniFileMap, "GroundTile");
 		groundWithBrickShadow = Misc.notNull(getTilePositionFromIni(iniFileMap, "GroundWithBrickShadow"), new Position(groundTile));
 		groundWithWallShadow = Misc.notNull(getTilePositionFromIni(iniFileMap, "GroundWithWallShadow"), new Position(groundTile));
@@ -429,7 +438,7 @@ public abstract class MapSet {
 					if (MapSet.getTileProps(coord).contains(TileProp.GROUND) && (int) MyMath.getRandom(0, 9) == 0) {
 						Tile tile = new Tile(getLayer(26), (int) wallTile.getX(), (int) wallTile.getY(), coord.getX() * Main.TILE_SIZE, coord.getY() * Main.TILE_SIZE);
 						if (testCoordForInsertFixedBlock(coord)) {
-							recProp.put(coord, Arrays.asList(TileProp.WALL));
+							recProp.put(coord.getNewInstance(), Arrays.asList(TileProp.WALL));
 							addWalls.add(tile);
 							if (--totalWalls == 0)
 								break done;
@@ -437,40 +446,48 @@ public abstract class MapSet {
 					}
 				}
 			}
-			recProp.forEach((coord, props) -> MapSet.setTileProps(coord, new ArrayList<>(props)));
 			addWalls.sort((t1, t2) -> (int) t2.outY - (int) t1.outY);
 			addWalls.forEach(tile -> {
-				TileCoord coord = tile.getTileCoord();
+				TileCoord coord = tile.getTileCoord().getNewInstance();
 				getLayer(26).removeFirstTileFromCoord(coord);
 				getLayer(26).addTile(tile);
 				coord.setY(coord.getY() + 1);
 				Tile.addTileShadow(groundWithWallShadow, coord);
 			});
+			recProp.forEach((coord, props) -> MapSet.setTileProps(coord, new ArrayList<>(props)));
 			getLayer(26).buildLayer();
 		}
 	}
 
 	private static boolean testCoordForInsertFixedBlock(TileCoord coord) {
-		TileCoord coord1 = new TileCoord(), coord2 = new TileCoord(), coord3 = new TileCoord(coord.getX(), coord.getY());
+		TileCoord coord1 = new TileCoord(), coord2 = new TileCoord();
 		Direction dir1 = Direction.LEFT;
 		for (int n = 0; n < 4; n++) {
 			dir1 = dir1.getNext4WayClockwiseDirection();
-			coord1.setCoords(coord3);
+			coord1.setCoords(coord);
 			coord1.incCoordsByDirection(dir1);
 			Direction dir2 = Direction.LEFT;
-			if (tileIsFree(new TileCoord(coord1.getX(), coord1.getY())))
+			if (tileIsFree(coord1))
 				for (int n2 = 0; n2 < 4; n2++) {
 					dir2 = dir2.getNext4WayClockwiseDirection();
-					coord2.setCoords(coord3);
+					coord2.setCoords(coord);
 					coord2.incCoordsByDirection(dir2);
-					if (dir1 != dir2 && tileIsFree(new TileCoord(coord2.getX(), coord2.getY()))) {
-						PathFinder pf = new PathFinder(coord1, coord2, dir1, t -> tileIsFree(new TileCoord(t.getX(), t.getY())));
+					if (dir1 != dir2 && tileIsFree(coord2)) {
+						PathFinder pf = new PathFinder(coord1, coord2, dir1, t -> tileIsFree(t));
 						if (!pf.pathWasFound())
 							return false;
 					}
 				}
 		}
 		return true;
+	}
+	
+	public static List<TileCoord> getInitialPlayerPositions() {
+		return initialPlayerCoords;
+	}
+
+	public static List<TileCoord> getInitialMonsterPositions() {
+		return initialMonsterCoords;
 	}
 
 	public static Position getInitialPlayerPosition(int playerIndex) {

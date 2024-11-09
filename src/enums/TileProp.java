@@ -22,8 +22,8 @@ public enum TileProp {
 	JUMP_OVER(11), // O personagem pula por cima desse bloco ao andar na direção dele
 	WALL(12), // Parede (Não dá para passar nem pulando)
 	HIGH_WALL(13), // Parede (Não dá para passar nem pulando)
-	PLAYER_INITIAL_POSITION(14), // Define o tile onde os players vão iniciar nos mapas
-	MOB_INITIAL_POSITION(15), // Define o tile onde os mobs vão iniciar nos mapas
+	PLAYER_INITIAL_POSITION(14),
+	MOB_INITIAL_POSITION(15),
 	BRICK_RANDOM_SPAWNER(16), // Tile onde pode ser gerado um tijolo aleatoriamente
 	FIXED_BRICK(17), // Tile onde deverá haver um tijolo obrigatoriamente
 	FIXED_ITEM(18), // Tile onde deverá haver um item (pego em ordem da lista de itens definida no
