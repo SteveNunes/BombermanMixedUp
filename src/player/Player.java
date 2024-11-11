@@ -116,6 +116,7 @@ public class Player {
 
 	public void setBomberMan(BomberMan bomberMan) {
 		this.bomberMan = bomberMan;
+		bomberMan.setPlayer(this);
 	}
 
 	public JXInputEX getXinputDevice() {

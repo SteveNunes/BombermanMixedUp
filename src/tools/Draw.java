@@ -2,8 +2,11 @@ package tools;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 import application.Main;
 import background_effects.BackgroundEffect;
@@ -12,6 +15,7 @@ import enums.DrawType;
 import enums.GameMode;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
+import enums.TileProp;
 import fades.Fade;
 import gui.MapEditor;
 import javafx.geometry.Rectangle2D;
@@ -21,11 +25,15 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import light_spot_effects.ColoredLightSpot;
 import light_spot_effects.LightSpot;
 import maps.MapSet;
+import maps.Tile;
+import objmoveutils.TileCoord;
 import screen_pos_effects.TintScreen;
 import screen_pos_effects.WavingImage;
+import util.Misc;
 
 public abstract class Draw {
 
@@ -37,6 +45,24 @@ public abstract class Draw {
 	private static Canvas canvasTemp;
 	private static GraphicsContext gcTemp;
 	private static int pixelSize = 1;
+	private static Map<TileCoord, Color> fixedMarks = new HashMap<>();
+	private static Map<TileCoord, Color> marks = new HashMap<>();
+
+	public static void clearFixedMarks() {
+		fixedMarks.clear();
+	}
+	
+	public static void addFixedMarkTile(TileCoord coord, Color color) {
+		fixedMarks.put(coord, color);
+	}
+	
+	public static void removeFixedMarkTile(TileCoord coord, Color color) {
+		fixedMarks.remove(coord, color);
+	}
+	
+	public static void markTile(TileCoord coord, Color color) {
+		marks.put(coord, color);
+	}
 
 	public static Canvas getTempCanvas() {
 		return canvasTemp;
@@ -117,6 +143,18 @@ public abstract class Draw {
 		i = wavingImage != null ? wavingImage.apply(i) : i;
 		Canvas c = getTempCanvas();
 		gc.drawImage(i, 0, 0, c.getWidth(), c.getHeight(), 0, 0, c.getWidth() * zoom, c.getHeight() * zoom);
+		gc.save();
+		gc.setLineWidth(3);
+		for (TileCoord coord : fixedMarks.keySet()) {
+			gc.setStroke(fixedMarks.get(coord));
+			gc.strokeRect(coord.getPosition().getX() * zoom + offsetX, coord.getPosition().getY() * zoom + offsetY, Main.TILE_SIZE * zoom - 3, Main.TILE_SIZE * zoom - 3);
+		}
+		for (TileCoord coord : marks.keySet()) {
+			gc.setStroke(marks.get(coord));
+			gc.strokeRect(coord.getPosition().getX() * zoom + offsetX, coord.getPosition().getY() * zoom + offsetY, Main.TILE_SIZE * zoom - 3, Main.TILE_SIZE * zoom - 3);
+		}
+		marks.clear();
+		gc.restore();
 		ColoredLightSpot.clearTempColoredLightSpots();
 		LightSpot.clearTempLightSpots();
 		pixelizeCanvas(canvas, pixelSize);
@@ -512,4 +550,91 @@ public abstract class Draw {
 		return drawParams;
 	}
 
+	public static void drawBlockTypeMarks(GraphicsContext gc, int zoom, boolean showTilesWith2OrMoreSprites) {
+		drawBlockTypeMarks(gc, 0, 0, zoom, showTilesWith2OrMoreSprites, null);
+	}
+
+	public static void drawBlockTypeMarks(GraphicsContext gc, int offsetX, int offsetY, int zoom, boolean showTilesWith2OrMoreSprites, Function<Tile, Color> consumerForExtraColors) {
+		Set<TileCoord> ok = new HashSet<>();
+		gc.save();
+		MapSet.getTileListFromCurrentLayer().forEach(tile -> {
+			Color color;
+			if (!ok.contains(tile.getTileCoord())) {
+				List<TileProp> tileProps = MapSet.getTileProps(tile.getTileCoord());
+				if (consumerForExtraColors != null && consumerForExtraColors.apply(tile) != null)
+					color = consumerForExtraColors.apply(tile);
+				if (tileProps.contains(TileProp.CPU_DANGER) || tileProps.contains(TileProp.EXPLOSION) || tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
+					color = Color.INDIANRED;
+				else if (tileProps.contains(TileProp.MIN_SCREEN_TILE_LIMITER) || tileProps.contains(TileProp.MAX_SCREEN_TILE_LIMITER)) {
+					if (tileProps.contains(TileProp.MIN_SCREEN_TILE_LIMITER))
+						MapSet.getMapMinLimit().setPosition(tile.outX, tile.outX);
+					if (tileProps.contains(TileProp.MAX_SCREEN_TILE_LIMITER))
+						MapSet.getMapMaxLimit().setPosition(tile.outX, tile.outX);
+					color = Color.LIGHTGRAY;
+				}
+				else if (MapSet.getInitialPlayerPositions().contains(tile.getTileCoord()) ||
+								 tileProps.contains(TileProp.PLAYER_INITIAL_POSITION))
+									 color = Color.DEEPPINK;
+				else if (MapSet.getInitialMonsterPositions().contains(tile.getTileCoord()) ||
+								 tileProps.contains(TileProp.MOB_INITIAL_POSITION))
+									 color = Color.INDIANRED;
+				else if (tileProps.contains(TileProp.REDIRECT_BOMB_TO_DOWN) || tileProps.contains(TileProp.REDIRECT_BOMB_TO_RIGHT) || tileProps.contains(TileProp.REDIRECT_BOMB_TO_UP) || tileProps.contains(TileProp.REDIRECT_BOMB_TO_LEFT))
+					color = Color.MEDIUMPURPLE;
+				else if (tileProps.contains(TileProp.RAIL_DL) || tileProps.contains(TileProp.RAIL_DR) || tileProps.contains(TileProp.RAIL_UL) || tileProps.contains(TileProp.RAIL_UR) || tileProps.contains(TileProp.RAIL_H) || tileProps.contains(TileProp.RAIL_V) || tileProps.contains(TileProp.RAIL_JUMP) || tileProps.contains(TileProp.RAIL_START) || tileProps.contains(TileProp.RAIL_END) || tileProps.contains(TileProp.TREADMILL_TO_LEFT) || tileProps.contains(TileProp.TREADMILL_TO_UP) || tileProps.contains(TileProp.TREADMILL_TO_RIGHT) || tileProps.contains(TileProp.TREADMILL_TO_DOWN))
+					color = Color.SADDLEBROWN;
+				else if (tileProps.contains(TileProp.GROUND_NO_MOB) || tileProps.contains(TileProp.GROUND_NO_PLAYER) || tileProps.contains(TileProp.GROUND_NO_BOMB) || tileProps.contains(TileProp.GROUND_NO_FIRE))
+					color = Color.LIGHTGOLDENRODYELLOW;
+				else if (tileProps.contains(TileProp.TRIGGER_BY_BRICK) || tileProps.contains(TileProp.TRIGGER_BY_BOMB) || tileProps.contains(TileProp.TRIGGER_BY_EXPLOSION) || tileProps.contains(TileProp.TRIGGER_BY_ITEM) || tileProps.contains(TileProp.TRIGGER_BY_MOB) || tileProps.contains(TileProp.TRIGGER_BY_PLAYER) || tileProps.contains(TileProp.TRIGGER_BY_RIDE) || tileProps.contains(TileProp.TRIGGER_BY_UNRIDE_PLAYER) || tileProps.contains(TileProp.TRIGGER_BY_STOPPED_BOMB) || tileProps.contains(TileProp.NO_TRIGGER_WHILE_HAVE_BOMB) || tileProps.contains(TileProp.NO_TRIGGER_WHILE_HAVE_BRICK) || tileProps.contains(TileProp.NO_TRIGGER_WHILE_HAVE_ITEM) || tileProps.contains(TileProp.NO_TRIGGER_WHILE_HAVE_MOB) || tileProps.contains(TileProp.NO_TRIGGER_WHILE_HAVE_PLAYER))
+					color = Color.DARKORANGE;
+				else if (tileProps.contains(TileProp.BRICK_RANDOM_SPAWNER))
+					color = Color.LIGHTGREEN;
+				else if (tileProps.contains(TileProp.FIXED_BRICK))
+					color = Color.GREEN;
+				else if (tileProps.contains(TileProp.FIXED_ITEM))
+					color = Color.CORAL;
+				else if (tileProps.contains(TileProp.MOVING_BRICK))
+					color = Color.PALEVIOLETRED;
+				else if (tileProps.contains(TileProp.GROUND_HOLE))
+					color = Color.ALICEBLUE;
+				else if (tileProps.contains(TileProp.DEEP_HOLE))
+					color = Color.GRAY;
+				else if (tileProps.contains(TileProp.JUMP_OVER))
+					color = Color.CORAL;
+				else if (tileProps.contains(TileProp.MAP_EDGE))
+					color = Color.SADDLEBROWN;
+				else if (tileProps.contains(TileProp.WATER))
+					color = Color.LIGHTBLUE;
+				else if (tileProps.contains(TileProp.DEEP_WATER))
+					color = Color.DARKBLUE;
+				else if (tileProps.contains(TileProp.TELEPORT_FROM_FLOATING_PLATFORM))
+					color = Color.ROSYBROWN;
+				else if (tileProps.contains(TileProp.STAGE_CLEAR))
+					color = Color.AQUA;
+				else if (tileProps.contains(TileProp.GROUND))
+					color = Color.YELLOW;
+				else if (tileProps.contains(TileProp.WALL) || tileProps.contains(TileProp.HIGH_WALL))
+					color = Color.RED;
+				else
+					color = Color.ORANGE;
+				gc.setFill(color);
+				gc.setLineWidth(1);
+				gc.setGlobalAlpha(0.6);
+				gc.fillRect(tile.getTileCoord().getX() * Main.TILE_SIZE * zoom + offsetX, tile.getTileCoord().getY() * Main.TILE_SIZE * zoom + offsetY, Main.TILE_SIZE * zoom, Main.TILE_SIZE * zoom);
+				ok.add(tile.getTileCoord());
+			}
+			int totalTiles = MapSet.getTileListFromCoord(tile.getTileCoord()).size();
+			if (showTilesWith2OrMoreSprites && totalTiles > 1) {
+				gc.setFill(Misc.blink(50) ? Color.LIGHTBLUE : Color.YELLOW);
+				gc.setStroke(Misc.blink(50) ? Color.LIGHTBLUE : Color.YELLOW);
+				gc.setLineWidth(1);
+				gc.setGlobalAlpha(1);
+				gc.strokeRect(tile.getTileCoord().getX() * Main.TILE_SIZE * zoom + offsetX, tile.getTileCoord().getY() * Main.TILE_SIZE * zoom + offsetY, Main.TILE_SIZE * zoom, Main.TILE_SIZE * zoom);
+				gc.setFont(new Font("Lucida Console", 20));
+				gc.fillText("" + totalTiles, tile.getTileCoord().getX() * Main.TILE_SIZE * zoom + offsetX + Main.TILE_SIZE / 3 * zoom,
+																		 tile.getTileCoord().getY() * Main.TILE_SIZE * zoom + offsetY + Main.TILE_SIZE / 1.5 * zoom);
+			}
+		});
+		gc.restore();
+	}
+	
 }

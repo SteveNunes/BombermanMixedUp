@@ -10,21 +10,28 @@ import application.Main;
 import enums.BombType;
 import enums.Curse;
 import enums.Direction;
+import enums.FindType;
 import enums.GameInput;
+import enums.GameInputMode;
 import enums.ItemType;
 import enums.PassThrough;
 import enums.TileProp;
 import frameset.Tags;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 import maps.Brick;
 import maps.Item;
 import maps.MapSet;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
+import player.Player;
+import tools.Draw;
+import tools.FindProps;
 import tools.GameConfigs;
 import tools.IniFiles;
 import tools.Sound;
+import tools.Tools;
 import util.CollectionUtils;
 import util.MyMath;
 
@@ -46,14 +53,16 @@ public class BomberMan extends Entity {
 	private int score;
 	private int addedScore;
 	private int lives;
-	private int player;
+	private int playerId;
+	private CpuPlay cpuPlay;
+	private Player player;
 	private String nameSound;
 
-	public BomberMan(int player, int bomberIndex, int palleteIndex) {
+	public BomberMan(int playerId, int bomberIndex, int palleteIndex) {
 		super();
 		this.bomberIndex = bomberIndex;
 		this.palleteIndex = palleteIndex;
-		this.player = player;
+		this.playerId = playerId;
 		pressedDirs = new ArrayList<>();
 		holdedInputs = new HashSet<>();
 		queuedInputs = new ArrayList<>();
@@ -62,6 +71,8 @@ public class BomberMan extends Entity {
 		bombCd = 0;
 		score = 0;
 		addedScore = 0;
+		player = null;
+		cpuPlay = null;
 		lives = GameConfigs.STARTING_LIVES;
 		setHitPoints(1);
 		String section = "" + bomberIndex;
@@ -126,9 +137,21 @@ public class BomberMan extends Entity {
 	public static List<BomberMan> getBomberManList() {
 		return bomberManList;
 	}
+	
+	public void setCpuPlay(CpuPlay cpuPlay) {
+		this.cpuPlay = cpuPlay;
+	}
 
-	public int getPlayer() {
+	public Player getPlayer() {
 		return player;
+	}
+
+	public void setPlayer(Player player) {
+		this.player = player;
+	}
+
+	public int getPlayerId() {
+		return playerId;
 	}
 
 	public String getNameSound() {
@@ -157,6 +180,10 @@ public class BomberMan extends Entity {
 
 	public boolean isPressed(GameInput input) {
 		return holdedInputs.contains(input);
+	}
+	
+	public Set<GameInput> getHoldedInputs() {
+		return holdedInputs;
 	}
 
 	public void keyPress(GameInput input) {
@@ -229,6 +256,11 @@ public class BomberMan extends Entity {
 		holdedInputs.remove(input);
 		queuedInputs.remove(input);
 	}
+	
+	@Override
+	public boolean isMoving() {
+		return super.isMoving() && currentFrameSetNameIsEqual(getDefaultMovingFrameSet());
+	}
 
 	@Override
 	public void run() {
@@ -247,6 +279,13 @@ public class BomberMan extends Entity {
 
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
+		if (playerId == 0) { // TEMP
+			FindProps find = Tools.findInLine(this, getTileCoordFromCenter(), 9, getDirection(), FindType.BRICK);
+			if (find != null)
+				Draw.markTile(find.getCoord(), Color.ORANGE);
+		}
+		if (player.getInputMode() == GameInputMode.CPU)
+			cpuPlay.run();
 		bombCd--;
 		for (int n = 0; n < bombs.size(); n++)
 			if (!bombs.get(n).isActive())
@@ -408,12 +447,20 @@ public class BomberMan extends Entity {
 		}
 		updateStatusByItems();
 	}
+	
+	public int getFireRange() {
+		return fireRange;
+	}
+	
+	public int getMaxBombs() {
+		return maxBombs - bombs.size();
+	}
 
 	public void updateStatusByItems() {
 		fireRange = GameConfigs.STARTING_FIRE;
 		maxBombs = GameConfigs.STARTING_BOMBS;
 		double speed = GameConfigs.INITIAL_PLAYER_SPEED;
-		if (gotItems.isEmpty()) { // TEMP
+		if (getPlayerId() == 0 && gotItems.isEmpty()) { // TEMP
 			gotItems.add(ItemType.REMOTE_BOMB);
 			gotItems.add(ItemType.HYPER_GLOVE);
 			gotItems.add(ItemType.HYPER_PUNCH);

@@ -14,6 +14,7 @@ import enums.BombType;
 import enums.Curse;
 import enums.Direction;
 import enums.FindType;
+import enums.PassThrough;
 import enums.TileProp;
 import javafx.scene.canvas.GraphicsContext;
 import maps.Item;
@@ -22,11 +23,13 @@ import objmoveutils.JumpMove;
 import objmoveutils.TileCoord;
 import pathfinder.PathFinder;
 import pathfinder.PathFinderOptmize;
+import tools.FindProps;
 import tools.GameConfigs;
 import tools.Sound;
 import tools.Tools;
 import util.CollectionUtils;
 import util.MyMath;
+import util.TimerFX;
 
 public class Bomb extends Entity {
 
@@ -108,6 +111,7 @@ public class Bomb extends Entity {
 		}
 		setPosition(coord.getPosition());
 		setPassThroughItem(true);
+		markTilesAsDanger();
 	}
 
 	public boolean isStucked() {
@@ -164,18 +168,19 @@ public class Bomb extends Entity {
 	}
 
 	public static void removeBomb(Bomb bomb) {
-		bombs.remove(bomb.getTileCoordFromCenter());
-		bombList.remove(bomb);
+		removeBomb(bomb.getTileCoordFromCenter());
 	}
 
 	public static void removeBomb(TileCoord coord) {
+		final Bomb bomb = bombs.get(coord);
+		TimerFX.createTimer("removeMarkTilesAsDanger-" + bomb.hashCode(), 400, () -> bomb.markTilesAsDanger(true));
 		bombList.remove(bombs.get(coord));
 		bombs.remove(coord);
 	}
 
 	public static void clearBombs() {
-		bombs.clear();
-		bombList.clear();
+		for (TileCoord coord : new ArrayList<>(bombs.keySet()))
+			removeBomb(coord);
 	}
 
 	public static int totalBombs() {
@@ -262,7 +267,7 @@ public class Bomb extends Entity {
 		unsetPushEntity();
 		Sound.playWav("explosion/Explosion" + (nesBomb ? "" : fireDistance < 3 ? "1" : (int) (fireDistance / 3)));
 		if (getBombType() != BombType.MAGMA)
-			Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, getBombType().getValue(), type == BombType.SPIKED || type == BombType.SPIKED_REMOTE);
+			Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, getBombType().getValue(), canPassThroughBricks());
 		else {
 			int range = fireDistance / 2;
 			TileCoord coord = new TileCoord();
@@ -278,6 +283,10 @@ public class Bomb extends Entity {
 				}
 		}
 		removeBomb(this);
+	}
+
+	private boolean canPassThroughBricks() {
+		return type == BombType.SPIKED || type == BombType.SPIKED_REMOTE;
 	}
 
 	public void stopKick() {
@@ -322,11 +331,11 @@ public class Bomb extends Entity {
 			}
 		}
 		else if (getBombType() == BombType.MAGNET && !isBlockedMovement() && getFocusedOn() == null) {
-			TileCoord coord = Tools.findInLine(this, owner, getTileCoordFromCenter(), 5, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
-			if (coord != null) {
-				Direction dir = getTileCoordFromCenter().get4wayDirectionToReach(coord);
-				if (!getTileCoordFromCenter().getNewInstance().incCoordsByDirection(dir).equals(coord)) {
-					setFocusedOn(Entity.getFirstEntityFromCoord(coord));
+			FindProps find = Tools.findInLine(this, owner, getTileCoordFromCenter(), 5, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
+			if (find != null) {
+				Direction dir = getTileCoordFromCenter().get4wayDirectionToReach(find.getCoord());
+				if (!getTileCoordFromCenter().getNewInstance().incCoordsByDirection(dir).equals(find.getCoord())) {
+					setFocusedOn(Entity.getFirstEntityFromCoord(find.getCoord()));
 					kick(dir, 4, "MagnetBomb", "BombSlam");
 				}
 			}
@@ -342,8 +351,8 @@ public class Bomb extends Entity {
 			}
 		}
 		else if (getBombType() == BombType.SENSOR && !isBlockedMovement()) {
-			TileCoord coord = Tools.findInLine(this, owner, getTileCoordFromCenter(), 2, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
-			if (coord != null)
+			FindProps find = Tools.findInLine(this, owner, getTileCoordFromCenter(), 2, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
+			if (find != null)
 				detonate();
 		}
 		super.run(gc, isPaused);
@@ -511,6 +520,37 @@ public class Bomb extends Entity {
 		if (Item.haveItemAt(getTileCoordFromCenter()))
 			Item.getItemAt(getTileCoordFromCenter()).destroy();
 		return false;
+	}
+
+	private void markTilesAsDanger() {
+		markTilesAsDanger(false);
+	}
+		
+	private void markTilesAsDanger(boolean remove) {
+		Set<PassThrough> passThrough = Set.of(PassThrough.PLAYER);
+		if (canPassThroughBricks())
+			passThrough.add(PassThrough.BRICK);
+		markTilesAsDanger(passThrough, getTileCoordFromCenter(), fireDistance, remove);
+	}
+	
+	public static void markTilesAsDanger(Set<PassThrough> passThrough, TileCoord coord, int distance, boolean remove) {
+		TileCoord coord2 = new TileCoord();
+		Direction dir = Direction.LEFT;
+		for (int d = 0; d < 4; d++) {
+			dir = dir.getNext4WayClockwiseDirection();
+			coord2.setCoords(coord);
+			for (int x = 0; x <= distance; x++) {
+				if (MapSet.haveTilesOnCoord(coord2)) {
+					if (!remove)
+						MapSet.addTileProp(coord2, TileProp.CPU_DANGER);
+					else if (!MapSet.getCurrentLayer().getTileProps(coord2).contains(TileProp.GROUND_NO_FIRE))
+						MapSet.removeTileProp(coord2, TileProp.CPU_DANGER);
+				}
+				if (x > 0 && (!MapSet.haveTilesOnCoord(coord2) || MapSet.getCurrentLayer().getTileProps(coord2).contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord2, passThrough)))
+					break;
+				coord2.incCoordsByDirection(dir);
+			}
+		}
 	}
 
 }

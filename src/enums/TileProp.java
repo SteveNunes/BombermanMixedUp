@@ -36,6 +36,7 @@ public enum TileProp {
 	                // afogando)
 	SLIPPY(23), // Personagem escorrega ao andar em cima
 	EXPLOSION(24),
+	CPU_DANGER(25), // Tile marcado com esse prop significa que a explosao de uma bomba que esta prestes a explodir acertara esse tile. Serve para a CPU não pisar em tiles onde uma bomba está para explodir
 	SPEED_MIN(27), // Deixa a velocidade de movimento no minimo
 	SPEED_HALF(28), // Deixa a velocidade de movimento pela metade
 	SPEED_NORMAL(29), // Normaliza a velocidade de movimento, caso tenha sido alterada
@@ -92,7 +93,7 @@ public enum TileProp {
 	NO_TRIGGER_WHILE_HAVE_ITEM(77), // As Tags de tile só são disparadas se não houver item no bloco atual
 	NO_TRIGGER_WHILE_HAVE_BOMB(78), // As Tags de tile só são disparadas se não houver bomba no bloco atual
 	DAMAGE_PLAYER(79), DAMAGE_ENEMY(80), DAMAGE_BOMB(81), DAMAGE_BRICK(82), DAMAGE_ITEM(83);
-	// NOTA: VAGOS: 25, 26, 49 50 51 61 62 63
+	// NOTA: VAGOS: 26, 49 50 51 61 62 63
 
 	@SuppressWarnings("serial")
 	private static Map<Elevation, List<TileProp>> cantCross = new HashMap<>() {{
@@ -130,6 +131,7 @@ public enum TileProp {
 		put(22, DEEP_WATER);
 		put(23, SLIPPY);
 		put(24, EXPLOSION);
+		put(25, CPU_DANGER);
 		put(27, SPEED_MIN);
 		put(28, SPEED_HALF);
 		put(29, SPEED_NORMAL);
