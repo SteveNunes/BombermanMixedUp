@@ -69,6 +69,7 @@ public class Entity extends Position {
 	private Position linkedEntityOffset;
 	private TileCoord tileChangedCoord;
 	private int currentHeight;
+	private int entityHeight;
 	private TileCoord previewTileCoord;
 	private PathFinder pathFinder;
 	private ShakeEntity shake;
@@ -143,6 +144,7 @@ public class Entity extends Position {
 		focusedOn = null;
 		curseDuration = 0;
 		currentHeight = 0;
+		entityHeight = 0;
 	}
 
 	public Entity() {
@@ -194,6 +196,7 @@ public class Entity extends Position {
 		ghostingOpacityDec = null;
 		invencibleFrames = 0;
 		currentHeight = 0;
+		entityHeight = 0;
 		holder = null;
 		holderDesloc = null;
 		pathFinder = null;
@@ -226,7 +229,15 @@ public class Entity extends Position {
 	public int getHeight() {
 		return currentHeight;
 	}
-
+	
+	public void setEntityHeight(int height) {
+		entityHeight = height;
+	}
+	
+	public int getEntityHeight() {
+		return entityHeight;
+	}
+	
 	public Entity getFocusedOn() {
 		return focusedOn;
 	}
@@ -751,6 +762,7 @@ public class Entity extends Position {
 			return;
 		frameSets.put(frameSetName, new FrameSet(freshFrameSets.get(frameSetName), this));
 		currentFrameSetName = frameSetName;
+		setEntityHeight(0);
 	}
 
 	public void addFrameSet(String frameSetName, FrameSet frameSet) {
@@ -817,6 +829,7 @@ public class Entity extends Position {
 
 	public void setCurse(Curse curse) { // FALTA: Implementar BLINDNESS e SWAP_PLAYERS
 		if (curse != null) {
+			curse = Curse.STUNNED;
 			removeCurse();
 			previewDisableEffect = disableEffect;
 			previewImageEffects = imageEffects;
@@ -835,8 +848,7 @@ public class Entity extends Position {
 			else if (curse == Curse.STUNNED) {
 				Effect.runEffect(MapSet.getInitialPlayerPosition(0), "Stun")
 					.setClosingPredicate(this, e -> e.isDead() || e.getCurse() != Curse.STUNNED)
-					.linkTo(this, 0, getHeight());
-
+					.linkTo(this, 0, -getEntityHeight());
 			}
 		}
 		else

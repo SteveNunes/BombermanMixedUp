@@ -86,7 +86,7 @@ public class Item extends Entity {
 		for (Frame frame : frameSet.getFrames())
 			for (Tags tags : frame.getFrameSetTagsList())
 				for (FrameTag tag : tags.getTags())
-					if (tag instanceof SetSprIndex && ((SetSprIndex)tag).value == -1)
+					if (tag instanceof SetSprIndex && ((SetSprIndex)tag).value != null && ((SetSprIndex)tag).value == -1)
 						((SetSprIndex)tag).value = itemIndex;
 	}
 	

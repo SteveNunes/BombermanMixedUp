@@ -18,7 +18,8 @@ public enum Curse {
 	INVISIBLE(8),
 	REVERSED(9),
 	SWAP_PLAYERS(10),
-	STUNNED(11);
+	STUNNED(11),
+	SPAM_BOMB(12);
 
 	private int value;
 	
@@ -36,6 +37,7 @@ public enum Curse {
 		put(REVERSED, 600);
 		put(SWAP_PLAYERS, 600);
 		put(STUNNED, 600);
+		put(SPAM_BOMB, 600);
 	}};
 
 	Curse(int value) {

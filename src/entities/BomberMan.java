@@ -322,6 +322,9 @@ public class BomberMan extends Entity {
 				else if (getHoldingEntity() == null)
 					setBomb();
 			}
+			if (getCurse() == Curse.SPAM_BOMB) {
+				setBomb();
+			}
 			if (tileWasChanged()) {
 				if (pressedDirs.size() > 1) {
 					Direction dir = pressedDirs.get(1);
@@ -472,6 +475,12 @@ public class BomberMan extends Entity {
 	public int getMaxBombs() {
 		return maxBombs - bombs.size();
 	}
+	
+	@Override
+	public void removeCurse() {
+		super.removeCurse();
+		updateStatusByItems();
+	}
 
 	public void updateStatusByItems() {
 		fireRange = GameConfigs.STARTING_FIRE;
@@ -521,12 +530,18 @@ public class BomberMan extends Entity {
 	
 	private void updateStatusByCurse() {
 		if (getCurse() != null) {
-			if (getCurse() == Curse.MIN_BOMB)
+			if (getCurse() == Curse.STUNNED)
+				changeToStandFrameSet();
+			else if (getCurse() == Curse.MIN_BOMB)
 				maxBombs = 1;
 			else if (getCurse() == Curse.MIN_FIRE)
 				fireRange = 1;
 			else if (getCurse() == Curse.NO_BOMB)
 				maxBombs = 0;
+			else if (getCurse() == Curse.MIN_SPEED)
+				setSpeed(GameConfigs.MIN_PLAYER_SPEED);
+			else if (getCurse() == Curse.ULTRA_SPEED)
+				setSpeed(GameConfigs.MAX_PLAYER_SPEED);
 		}
 	}
 
