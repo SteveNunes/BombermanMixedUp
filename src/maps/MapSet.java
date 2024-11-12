@@ -411,6 +411,7 @@ public abstract class MapSet {
 				}
 			}
 			catch (Exception e) {
+				e.printStackTrace();
 				throw new RuntimeException(IniFiles.stages.read(iniMapName, "Items") + " - Wrong data for this item");
 			}
 		}

@@ -40,7 +40,7 @@ public class GameInput {
 		JInputEX.init();
 		JXInputEX.refreshJoysticks();
 		xinputList = JXInputEX.getJoystickList();
-		dinputList = null; //JInputEX.getJoysticks();
+		dinputList = JInputEX.getJoysticks();
 		TimerFX.createTimer("PoolJoysticksTimer", 1, 0, () -> {
 			JInputEX.pollAllJoysticks();
 			JXInputEX.pollJoysticks();

@@ -563,8 +563,10 @@ public abstract class Draw {
 				List<TileProp> tileProps = MapSet.getTileProps(tile.getTileCoord());
 				if (consumerForExtraColors != null && consumerForExtraColors.apply(tile) != null)
 					color = consumerForExtraColors.apply(tile);
-				if (tileProps.contains(TileProp.CPU_DANGER) || tileProps.contains(TileProp.EXPLOSION) || tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
+				if (tileProps.contains(TileProp.CPU_DANGER_2) || tileProps.contains(TileProp.EXPLOSION) || tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
 					color = Color.INDIANRED;
+				else if (tileProps.contains(TileProp.CPU_DANGER))
+					color = Color.PALEVIOLETRED;
 				else if (tileProps.contains(TileProp.MIN_SCREEN_TILE_LIMITER) || tileProps.contains(TileProp.MAX_SCREEN_TILE_LIMITER)) {
 					if (tileProps.contains(TileProp.MIN_SCREEN_TILE_LIMITER))
 						MapSet.getMapMinLimit().setPosition(tile.outX, tile.outX);

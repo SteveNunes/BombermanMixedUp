@@ -10,8 +10,10 @@ public enum GameInput {
 	B(5),
 	C(6),
 	D(7),
-	SELECT(8),
-	START(9);
+	L(8),
+	R(9),
+	SELECT(10),
+	START(11);
 
 	private int value;
 

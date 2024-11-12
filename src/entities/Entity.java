@@ -812,6 +812,8 @@ public class Entity extends Position {
 	}
 
 	public void run(GraphicsContext gc, boolean isPaused) {
+		if (isDisabled)
+			return;
 		if (!(this instanceof Effect))
 			removeEntityFromList(getTileCoordFromCenter(), this);
 		if (curse != null && --curseDuration == 0)
@@ -867,21 +869,19 @@ public class Entity extends Position {
 			setPosition(getHolder().getPosition());
 			forceDirection(getHolder().getDirection());
 		}
-		if (!isDisabled) {
-			if (frameSets.isEmpty())
-				throw new RuntimeException("This entity have no FrameSets");
-			if (currentFrameSetName != null && frameSets.containsKey(currentFrameSetName)) {
-				processLinkedEntity();
-				if (!isBlockedMovement())
-					moveEntity();
-				applyShadow();
-				frameSets.get(currentFrameSetName).run(gc, isPaused);
-			}
-			elapsedFrames++;
+		if (frameSets.isEmpty())
+			throw new RuntimeException("This entity have no FrameSets");
+		if (currentFrameSetName != null && frameSets.containsKey(currentFrameSetName)) {
+			processLinkedEntity();
+			if (!isBlockedMovement())
+				moveEntity();
+			applyShadow();
+			frameSets.get(currentFrameSetName).run(gc, isPaused);
 		}
+		elapsedFrames++;
 		if (!getCurrentFrameSet().isRunning() && consumerWhenFrameSetEnds != null)
 			consumerWhenFrameSetEnds.accept(this);
-		if (!(this instanceof Effect))
+		if (!(this instanceof Effect) && !isDead())
 			addEntityToList(getTileCoordFromCenter(), this);
 		setHeight((jumpMove == null ? 0 : -((int)jumpMove.getIncrements().getY()) + (int)getCurrentFrameSet().getY()));
 	}

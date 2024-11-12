@@ -61,7 +61,8 @@ public enum ItemType {
 	APPLE_2(49),
 	FIRE_IMMUNE(50),
 	HYPER_GLOVE(51),
-	HYPER_PUNCH(52);
+	HYPER_PUNCH(52),
+	HYPER_KICK(53);
 
 	static {
 		fullList = new ArrayList<>(Arrays.asList(null, BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB,
@@ -72,7 +73,7 @@ public enum ItemType {
 				PICO_HAMMER, POPSICLE, SPIRAL_ICECREAM, SQUARED_CAKE_SLICE, FRENCH_FRIES,
 				SPIRAL_COLORED_ICECREAM, PUDDING, CANDY_CONE, BUTTER, CORN_DOG, OLIVES,
 				EXTINGUISHER, RANDOM, FIRE_MAX, SPEED_DOWN, CURSE_SKULL, STRAWBERRY_ICECREAM,
-				APPLE_2, FIRE_IMMUNE, HYPER_GLOVE, HYPER_PUNCH));
+				APPLE_2, FIRE_IMMUNE, HYPER_GLOVE, HYPER_PUNCH, HYPER_KICK));
 		bombs = new ArrayList<>(Arrays.asList(FOLLOW_BOMB, HEART_BOMB, MAGMA_BOMB,
 				MAGNET_BOMB, P_BOMB, SENSOR_BOMB, LAND_MINE_BOMB, REMOTE_BOMB, RUBBER_BOMB,
 				SPIKE_BOMB, SPIKE_REMOTE_BOMB));
@@ -80,10 +81,11 @@ public enum ItemType {
 				CAKE_SLICE, POPSICLE, APPLE_2, SPIRAL_ICECREAM, SQUARED_CAKE_SLICE,
 				FRENCH_FRIES, OLIVES, BUTTER, SPIRAL_COLORED_ICECREAM, PUDDING, CANDY_CONE,
 				CORN_DOG, STRAWBERRY_ICECREAM));
+		badItems = new ArrayList<>(Arrays.asList(SPEED_DOWN, CURSE_SKULL));
 	}
 
 	private int value;
-	private static List<ItemType> fullList, bombs, foods;
+	private static List<ItemType> fullList, bombs, foods, badItems;
 
 	@SuppressWarnings("serial")
 	private static Map<ItemType, Integer> itemScore = new HashMap<>() {{
@@ -139,6 +141,7 @@ public enum ItemType {
 		put(FIRE_IMMUNE, 50);
 		put(HYPER_GLOVE, 50);
 		put(HYPER_PUNCH, 50);
+		put(HYPER_KICK, 50);
 	}};
 
 	@SuppressWarnings("serial")
@@ -212,6 +215,10 @@ public enum ItemType {
 
 	public boolean isFood() {
 		return foods.contains(this);
+	}
+	
+	public boolean isBadItem() {
+		return badItems.contains(this);
 	}
 
 	public static BombType getBombTypeFromItemType(ItemType type) {

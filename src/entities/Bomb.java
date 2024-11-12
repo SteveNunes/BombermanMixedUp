@@ -2,6 +2,7 @@ package entities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +37,8 @@ public class Bomb extends Entity {
 	private static Map<TileCoord, Bomb> bombs = new HashMap<>();
 	private static List<Bomb> bombList = new ArrayList<>();
 
+	private boolean dangerMarked;
+	private boolean dangerMarked2;
 	private boolean nesBomb;
 	private Entity owner;
 	private BombType type;
@@ -45,6 +48,7 @@ public class Bomb extends Entity {
 	private boolean isActive;
 	private boolean isStucked;
 	private long setTime;
+	private double curseMulti;
 
 	public Bomb(Bomb bomb) {
 		super(bomb);
@@ -57,6 +61,8 @@ public class Bomb extends Entity {
 		isActive = bomb.isActive;
 		isStucked = bomb.isStucked;
 		setTime = bomb.setTime;
+		dangerMarked = bomb.dangerMarked;
+		dangerMarked2 = bomb.dangerMarked2;
 	}
 
 	public Bomb(TileCoord coord, BombType type, int fireDistance) {
@@ -68,6 +74,8 @@ public class Bomb extends Entity {
 		setTime = System.currentTimeMillis();
 		isActive = true;
 		isStucked = false;
+		dangerMarked = false;
+		dangerMarked2 = false;
 		nesBomb = type == BombType.NES || (owner instanceof BomberMan && ((BomberMan) owner).getBomberIndex() == 0);
 		if (type == BombType.P)
 			fireDistance = GameConfigs.MAX_EXPLOSION_DISTANCE;
@@ -75,6 +83,7 @@ public class Bomb extends Entity {
 		this.fireDistance = fireDistance;
 		this.owner = owner;
 		timer = type == BombType.SENSOR || type == BombType.REMOTE || type == BombType.SPIKED_REMOTE ? -1 : 180;
+		curseMulti = 1;
 		int ticksPerFrame = type == BombType.LAND_MINE ? 3 : 16;
 		ownerIsOver = owner != null && owner.getTileCoordFromCenter().equals(coord);
 		if (owner != null) {
@@ -83,11 +92,13 @@ public class Bomb extends Entity {
 					ticksPerFrame *= 2;
 					if (timer != -1)
 						timer = 270;
+					curseMulti = 1.5;
 				}
 				else if (((BomberMan) owner).getCurse() == Curse.FAST_EXPLODE_BOMB) {
 					ticksPerFrame /= 2;
 					if (timer != -1)
 						timer = 90;
+					curseMulti = 0.5;
 				}
 			}
 		}
@@ -111,7 +122,7 @@ public class Bomb extends Entity {
 		}
 		setPosition(coord.getPosition());
 		setPassThroughItem(true);
-		markTilesAsDanger();
+		setDangerMarks(timer == -1 ? TileProp.CPU_DANGER_2 : TileProp.CPU_DANGER);
 	}
 
 	public boolean isStucked() {
@@ -173,7 +184,13 @@ public class Bomb extends Entity {
 
 	public static void removeBomb(TileCoord coord) {
 		final Bomb bomb = bombs.get(coord);
-		TimerFX.createTimer("removeMarkTilesAsDanger-" + bomb.hashCode(), 400, () -> bomb.markTilesAsDanger(true));
+		if (bomb.dangerMarked || bomb.dangerMarked2)
+			TimerFX.createTimer("removeMarkTilesAsDanger-" + bomb.hashCode(), 1000, () -> {
+				if (bomb.dangerMarked)
+					bomb.removeDangerMarks(TileProp.CPU_DANGER);
+				if (bomb.dangerMarked2)
+					bomb.removeDangerMarks(TileProp.CPU_DANGER_2);
+			});
 		bombList.remove(bombs.get(coord));
 		bombs.remove(coord);
 	}
@@ -215,6 +232,11 @@ public class Bomb extends Entity {
 				if (x <= xx - Main.TILE_SIZE / 2 || x >= xx + Main.TILE_SIZE / 2 ||
 						y <= yy - Main.TILE_SIZE / 2 || y >= yy + Main.TILE_SIZE / 2)
 							bomb.ownerIsOver = false;
+			}
+			if ((!bomb.dangerMarked2 && bomb.getTimer() <= 60 * bomb.curseMulti) || MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.CPU_DANGER)) {
+				if (bomb.dangerMarked)
+					bomb.removeDangerMarks(TileProp.CPU_DANGER);
+				bomb.setDangerMarks(TileProp.CPU_DANGER_2);
 			}
 			if (bomb.getTimer() != -1 && !bomb.isBlockedMovement())
 				bomb.decTimer();
@@ -313,8 +335,9 @@ public class Bomb extends Entity {
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
 		if (getBombType() == BombType.FOLLOW && !isBlockedMovement() && getPathFinder() == null) {
-			TileCoord coord = Tools.findInRect(this, getTileCoordFromCenter(), owner, 4, FindType.PLAYER);
-			if (coord != null) {
+			List<FindProps> founds = Tools.findInRect(this, getTileCoordFromCenter(), owner, 4, FindType.PLAYER);
+			if (founds != null) {
+				TileCoord coord = founds.get(0).getCoord();
 				Function<TileCoord, Boolean> tileIsFree = t -> {
 					return MapSet.tileIsFree(t) || t.equals(coord) || t.equals(getTileCoordFromCenter());
 				};
@@ -331,11 +354,11 @@ public class Bomb extends Entity {
 			}
 		}
 		else if (getBombType() == BombType.MAGNET && !isBlockedMovement() && getFocusedOn() == null) {
-			FindProps find = Tools.findInLine(this, owner, getTileCoordFromCenter(), 5, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
-			if (find != null) {
-				Direction dir = getTileCoordFromCenter().get4wayDirectionToReach(find.getCoord());
-				if (!getTileCoordFromCenter().getNewInstance().incCoordsByDirection(dir).equals(find.getCoord())) {
-					setFocusedOn(Entity.getFirstEntityFromCoord(find.getCoord()));
+			List<FindProps> founds = Tools.findInLine(this, owner, getTileCoordFromCenter(), 5, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
+			if (founds != null) {
+				Direction dir = getTileCoordFromCenter().get4wayDirectionToReach(founds.get(0).getCoord());
+				if (!getTileCoordFromCenter().getNewInstance().incCoordsByDirection(dir).equals(founds.get(0).getCoord())) {
+					setFocusedOn(Entity.getFirstEntityFromCoord(founds.get(0).getCoord()));
 					kick(dir, 4, "MagnetBomb", "BombSlam");
 				}
 			}
@@ -351,8 +374,8 @@ public class Bomb extends Entity {
 			}
 		}
 		else if (getBombType() == BombType.SENSOR && !isBlockedMovement()) {
-			FindProps find = Tools.findInLine(this, owner, getTileCoordFromCenter(), 2, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
-			if (find != null)
+			List<FindProps> founds = Tools.findInLine(this, owner, getTileCoordFromCenter(), 2, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
+			if (founds != null)
 				detonate();
 		}
 		super.run(gc, isPaused);
@@ -474,6 +497,10 @@ public class Bomb extends Entity {
 
 	@Override
 	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {
+		if (getBombType() == BombType.RUBBER && MyMath.getRandom(1, 5) != 1) {
+			onJumpFallAtOccupedTileEvent(jumpMove);
+			return;
+		}
 		checkOutScreenCoords();
 		centerToTile();
 		if (checkEntitiesAbove()) {
@@ -506,7 +533,7 @@ public class Bomb extends Entity {
 			for (Entity entity : Entity.getEntityListFromCoord(getTileCoordFromCenter())) {
 				if (entity instanceof BomberMan) {
 					if (!entity.isBlockedMovement())
-						((BomberMan)entity).dropItem();
+						((BomberMan)entity).dropItem(true, false);
 					return true;
 				}
 				else if (entity instanceof Monster) {
@@ -522,18 +549,29 @@ public class Bomb extends Entity {
 		return false;
 	}
 
-	private void markTilesAsDanger() {
-		markTilesAsDanger(false);
+	private void removeDangerMarks(TileProp dangerProp) {
+		markTilesAsDanger(dangerProp, true);
 	}
 		
-	private void markTilesAsDanger(boolean remove) {
-		Set<PassThrough> passThrough = Set.of(PassThrough.PLAYER);
-		if (canPassThroughBricks())
-			passThrough.add(PassThrough.BRICK);
-		markTilesAsDanger(passThrough, getTileCoordFromCenter(), fireDistance, remove);
+	private void setDangerMarks(TileProp dangerProp) {
+		markTilesAsDanger(dangerProp, false);
+	}
+		
+	private void markTilesAsDanger(TileProp dangerProp, boolean remove) {
+		if ((dangerProp == TileProp.CPU_DANGER && dangerMarked != !remove) ||
+				(dangerProp == TileProp.CPU_DANGER_2 && dangerMarked2 != !remove)) {
+			if (dangerProp == TileProp.CPU_DANGER)
+				dangerMarked = !remove;
+			else
+				dangerMarked2 = !remove;
+			Set<PassThrough> passThrough = new HashSet<>(Set.of(PassThrough.PLAYER));
+			if (canPassThroughBricks())
+				passThrough.add(PassThrough.BRICK);
+			markTilesAsDanger(passThrough, getTileCoordFromCenter(), fireDistance, dangerProp, remove);
+		}
 	}
 	
-	public static void markTilesAsDanger(Set<PassThrough> passThrough, TileCoord coord, int distance, boolean remove) {
+	public static void markTilesAsDanger(Set<PassThrough> passThrough, TileCoord coord, int distance, TileProp dangerProp, boolean remove) {
 		TileCoord coord2 = new TileCoord();
 		Direction dir = Direction.LEFT;
 		for (int d = 0; d < 4; d++) {
@@ -542,9 +580,9 @@ public class Bomb extends Entity {
 			for (int x = 0; x <= distance; x++) {
 				if (MapSet.haveTilesOnCoord(coord2)) {
 					if (!remove)
-						MapSet.addTileProp(coord2, TileProp.CPU_DANGER);
+						MapSet.addTileProp(coord2, dangerProp);
 					else if (!MapSet.getCurrentLayer().getTileProps(coord2).contains(TileProp.GROUND_NO_FIRE))
-						MapSet.removeTileProp(coord2, TileProp.CPU_DANGER);
+						MapSet.removeTileProp(coord2, dangerProp);
 				}
 				if (x > 0 && (!MapSet.haveTilesOnCoord(coord2) || MapSet.getCurrentLayer().getTileProps(coord2).contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord2, passThrough)))
 					break;

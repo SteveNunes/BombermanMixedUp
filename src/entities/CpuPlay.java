@@ -1,27 +1,31 @@
 package entities;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import enums.BombType;
 import enums.CpuDificult;
 import enums.Direction;
+import enums.FindInRectType;
 import enums.FindType;
 import enums.GameInput;
+import enums.ItemType;
 import enums.PassThrough;
 import enums.TileProp;
 import gui.GameTikTok;
-import javafx.scene.paint.Color;
+import maps.Brick;
 import maps.MapSet;
 import objmoveutils.TileCoord;
 import pathfinder.PathFinder;
 import pathfinder.PathFinderDistance;
 import pathfinder.PathFinderOptmize;
-import tools.Draw;
 import tools.FindProps;
 import tools.Tools;
 import util.MyMath;
@@ -51,7 +55,7 @@ public class CpuPlay {
 	private PathFinder pathFinder;
 	private static long timerId = 0;
 
-	public static boolean justMark = true;
+	public static boolean markTargets = true;
 
 	public CpuPlay(BomberMan bomberMan, CpuDificult dificult) {
 		super();
@@ -62,11 +66,8 @@ public class CpuPlay {
 	}
 	
 	public void run() {
-		if (pauseInFrames == -1 && !justMark) {
-			pauseInFrames = 0;
-			Draw.clearFixedMarks();
-		}
 		if (!bomberMan.isBlockedMovement()) {
+			// Se estiver em um tile perigoso, tenta encontrar uma forma de sair dele
 			if (isOverDangerTile()) {
 				pauseInFrames = 0;
 				return;
@@ -75,31 +76,54 @@ public class CpuPlay {
 				pauseInFrames--;
 			else if (!isMoving() || isPerfectlyBlockedDir() || tileWasChanged()) {
 				releaseAllInputs();
+				// Se o PathFinder local estiver ativo, mas a próxima direção estiver bloqueada, desativa o PathFinder local.
+				if (Tools.getFreeDirections(bomberMan, getCurrentTileCoord()) == null)
+					setPathFinder(null);
+				// Se o PathFinder local estiver ativo, vira e anda para a próxima direção designada pelo PathFinder
 				if (tileWasChanged() && getPathFinder() != null) {
 					Direction dir = getPathFinder().getNextDirectionToGoAndRemove();
-					if (dir != null) {
-						echo("PathFinder: " + dir.name());
+					if (dir != null && tileIsFree(getCurrentTileCoord().getNewInstance().incCoordsByDirection(dir))) {
 						holdButton(dirToInput(dir));
 						return;
 					}
 					setPathFinder(null);
 				}
-				if (checkForBricksAround())			
-					return;
+				// PODE fazer uma pausa aleatoria
 				if (doRandomPause())			
 					return;
+				// Detona bombas do tipo REMOTE que a explosão não vá o acertar
+				if (tileIsSafe(getCurrentTileCoord()))
+					for (Bomb bomb : bomberMan.getBombs())
+						if (bomb.getBombType() == BombType.REMOTE || bomb.getBombType() == BombType.SPIKED_REMOTE) {
+							pressButton(GameInput.A);
+							pauseInFrames = 20;
+							return;
+						}
+				// Solta uma bomba se ele estiver invencivel em cima de uma explosão com algum player no alcance da explosão da bomba dele
+				if (isInvencible() && MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.EXPLOSION)) {
+					List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), FindType.PLAYER);
+					if (founds != null)
+						pressButton(GameInput.B);
+				}
+				// Procura por tijolos em linha reta para soltar uma bomba que o destrua.
+				if (checkForBricksAround())			
+					return;
+				// Procura por item ou tijolos proximos e vai em direção a eles
+				for (FindType findType : Arrays.asList(FindType.ITEM, FindType.BRICK))
+					if (checkForSomethingAround(findType, 5, FindInRectType.RECTANGLE_AREA))
+						return;
+				// Se não estiver focado em algum item ou tijolo, tenta chegar perto de algum jogador acessivel
+				for (Entity entity : Entity.getEntityList())
+					if (entity != bomberMan && entity instanceof BomberMan && setPathFinder(new PathFinder(getCurrentTileCoord(), entity.getTileCoordFromCenter(), getCurrentDir(), PathFinderDistance.SHORTEST, PathFinderOptmize.OPTIMIZED, t -> tileIsSafe(t))))
+						return;
 				goToRandomFreeDir();
 			}
 		}
 	}
 
 	private boolean isOverDangerTile() {
-		if (MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.CPU_DANGER)) {
-			echo("Over danger tile");
-			if (findSafeSpotAndGo(getCurrentTileCoord(), getCurrentDir(), true))
-				return true;
-		}
-		return false;
+		return MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.CPU_DANGER) &&
+						findSafeSpotAndGo(getCurrentTileCoord(), getCurrentDir(), true, t -> tileIsHalfSafe(t));
 	}
 
 	private boolean setPathFinder(PathFinder pathFinder) {
@@ -111,7 +135,6 @@ public class CpuPlay {
 				releaseAllInputs();
 				Direction dir = this.pathFinder.getNextDirectionToGoAndRemove();
 				holdButton(dirToInput(dir));
-				echo("Start PF to " + dir.name());
 				return true;
 			}
 		}
@@ -131,10 +154,8 @@ public class CpuPlay {
 					i = 0;
 			}
 			while (i != ii && !tileIsSafe(coord));
-			if (tileIsSafe(coord)) {
+			if (tileIsSafe(coord))
 				holdButton(dirToInput(dir));
-				echo("Random go to " + dir.name());
-			}
 		}
 	}
 	
@@ -144,68 +165,73 @@ public class CpuPlay {
 	}
 	
 	private boolean checkForBricksAround() {
-		if (bomberMan.getMaxBombs() == 0 || !tileIsSafe(getCurrentTileCoord()))
+		if (!canSetBomb())
 			return false;
-		FindProps find = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), FindType.BRICK);
-		if (find != null) {
-			echo("Brick found at " + find.getDir().name());
-			if (justMark) {
-				pauseInFrames = -1;
-				Draw.addFixedMarkTile(find.getCoord(), Color.ORANGE);
-			}
-			if (findSafeSpotAndGo(getCurrentTileCoord(), find.getDir(), getFireRange(), false, c -> {
-					if (justMark)
-						Draw.addFixedMarkTile(c, Color.LIGHTBLUE);
-					else
-						setBomb();
-				}))
+		List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), FindType.BRICK);
+		if (founds != null)
+			for (FindProps found : founds)
+				if (!MapSet.tileContainsProp(found.getCoord(), TileProp.CPU_DANGER) &&
+						!MapSet.tileContainsProp(found.getCoord(), TileProp.CPU_DANGER_2) &&
+						findSafeSpotAndGo(getCurrentTileCoord(), found.getDir(), getFireRange(), false, t -> pressButton(GameInput.B), t -> tileIsSafe(t)))
 					return true;
-		}
-		TileCoord coord = Tools.findInRect(getCurrentTileCoord(), null, 9, FindType.BRICK);
+		return false;
+	}
+	
+	private boolean checkForSomethingAround(FindType something, int radiusInTiles, FindInRectType rectType) {
+		List<FindProps> founds = Tools.findInRect(getCurrentTileCoord(), null, radiusInTiles, something);
 		Function<TileCoord, Boolean> tileIsFree = t -> {
-			return tileIsSafe(t) || t.equals(coord) || t.equals(getCurrentTileCoord());
+			return tileIsSafe(t) || t.equals(founds.get(0).getCoord()) || t.equals(getCurrentTileCoord());
 		};
-		return coord != null && setPathFinder(new PathFinder(getCurrentTileCoord(), coord, getCurrentDir(), PathFinderDistance.SHORTEST, PathFinderOptmize.OPTIMIZED, tileIsFree));
+		return founds != null && getPathFinder() == null && setPathFinder(new PathFinder(getCurrentTileCoord(), founds.get(0).getCoord(), getCurrentDir(), PathFinderDistance.SHORTEST, PathFinderOptmize.OPTIMIZED, tileIsFree));
 	}
 
 	private boolean findSafeSpotAndGo(TileCoord coord, Direction direction, boolean ignoreUnsafeSpots) {
-		return findSafeSpotAndGo(coord, direction, 0, ignoreUnsafeSpots, null);
-	}
-
-	private boolean findSafeSpotAndGo(TileCoord coord, Direction direction, boolean ignoreUnsafeSpots, Consumer<TileCoord> onLeaveTileEvent) {
-		return findSafeSpotAndGo(coord, direction, 0, ignoreUnsafeSpots, onLeaveTileEvent);
-	}
-	
-	private boolean findSafeSpotAndGo(TileCoord coord, Direction direction, int minTileDistanceFromCoord, boolean ignoreUnsafeSpots) {
-		return findSafeSpotAndGo(coord, direction, minTileDistanceFromCoord, ignoreUnsafeSpots, null);
+		return findSafeSpotAndGo(coord, direction, 0, ignoreUnsafeSpots, null, null);
 	}
 
 	private boolean findSafeSpotAndGo(TileCoord coord, Direction direction, int minTileDistanceFromCoord, boolean ignoreUnsafeSpots, Consumer<TileCoord> onLeaveTileEvent) {
+		return findSafeSpotAndGo(coord, direction, 0, ignoreUnsafeSpots, onLeaveTileEvent, null);
+	}
+
+	private boolean findSafeSpotAndGo(TileCoord coord, Direction direction, boolean ignoreUnsafeSpots, Function<TileCoord, Boolean> tileIsFreeFuncForPathFinder) {
+		return findSafeSpotAndGo(coord, direction, 0, ignoreUnsafeSpots, null, tileIsFreeFuncForPathFinder);
+	}
+
+	private boolean findSafeSpotAndGo(TileCoord coord, Direction direction, int minTileDistanceFromCoord, boolean ignoreUnsafeSpots, Consumer<TileCoord> onLeaveTileEvent, Function<TileCoord, Boolean> tileIsFreeFuncForPathFinder) {
 		coord = coord.getNewInstance();
 		TileCoord start = coord.getNewInstance();
+		setDangerMarks(start, minTileDistanceFromCoord);
 		for (int n = 0; n < 4; n++) {
 			coord.setCoords(start);
-			while ((ignoreUnsafeSpots && tileIsFree(coord)) || (!ignoreUnsafeSpots && tileIsSafe(coord))) {
+			while (tileIsFree(coord)) {
 				List<Direction> dirs = Tools.getFreeDirections(bomberMan, coord, passThrough());
-				if (n > minTileDistanceFromCoord || dirs != null) {
+				if (tileIsSafe(coord) || dirs != null) {
 					Direction dir3 = null;
 					TileCoord coord3 = null;
-					if (n > minTileDistanceFromCoord) {
+					if (tileIsSafe(coord)) {
 						dir3 = direction;
 						coord3 = coord.getNewInstance();
 					}
-					else if (dirs != null)
+					else if (dirs != null) {
 						for (Direction dir2 : dirs) {
 							TileCoord coord2 = coord.getNewInstance().incCoordsByDirection(dir2);
 							if (tileIsSafe(coord2)) {
 								dir3 = dir2;
-								coord3 = coord2.getNewInstance();
+								coord3 = coord2;
 								break;
 							}
 						}
-					else
+						if (coord3 == null) {
+							coord.incCoordsByDirection(direction);
+							continue;
+						}
+					}
+					else {
+						coord.incCoordsByDirection(direction);
 						continue;
-					if (setPathFinder(new PathFinder(start.getNewInstance(), coord3, dir3, PathFinderDistance.SHORTEST, PathFinderOptmize.OPTIMIZED, t -> (ignoreUnsafeSpots && tileIsFree(t)) || (!ignoreUnsafeSpots && tileIsSafe(t))))) {
+					}
+					unsetDangerMarks(start, minTileDistanceFromCoord);
+					if (setPathFinder(new PathFinder(start.getNewInstance(), coord3.getNewInstance(), dir3, PathFinderDistance.SHORTEST, PathFinderOptmize.OPTIMIZED, tileIsFreeFuncForPathFinder == null ? t -> tileIsSafe(t) : tileIsFreeFuncForPathFinder))) {
 						if (onLeaveTileEvent != null)
 							onLeaveTileEvent.accept(coord3);
 						return true;
@@ -215,25 +241,46 @@ public class CpuPlay {
 			}
 			direction = direction.getNext4WayClockwiseDirection();
 		}
+		if (getPathFinder() == null)
+			releaseAllInputs();
+		unsetDangerMarks(start, minTileDistanceFromCoord);
 		return false;
 	}
 	
+	private void setDangerMarks(TileCoord coord, int distance) {
+		markTilesAsDanger(coord, distance, false);
+	}
+
+	private void unsetDangerMarks(TileCoord coord, int distance) {
+		markTilesAsDanger(coord, distance, true);
+	}
+
+	private void markTilesAsDanger(TileCoord coord, int distance, boolean remove) {
+		Set<PassThrough> passThrough = new HashSet<>(Set.of(PassThrough.PLAYER, PassThrough.MONSTER, PassThrough.HOLE));
+		if (bomberMan.getBombType() == BombType.SPIKED || bomberMan.getBombType() == BombType.SPIKED_REMOTE) {
+			passThrough.add(PassThrough.BRICK);
+			passThrough.add(PassThrough.ITEM);
+		}
+		Bomb.markTilesAsDanger(passThrough, coord, distance, TileProp.CPU_DANGER, remove);		
+	}
+
 	private boolean doRandomPause() {
 		if (tileWasChanged() && (int)MyMath.getRandom(0, 10) == 0) {
 			pauseInFrames = (int)MyMath.getRandom(30, 180);
-			echo("Doing pause " + pauseInFrames);
 			return true;
 		}
 		return false;
 	}
-
-	private void setBomb() {
-		pressButton(GameInput.B);
-		echo("Set Bomb");
-	}
-
-	private Set<PassThrough> explosionPassThrough() {
-		return Set.of(PassThrough.PLAYER, PassThrough.MONSTER, PassThrough.HOLE, PassThrough.ITEM);
+	
+	private boolean canSetBomb() {
+		boolean haveGlove = bomberMan.haveItem(ItemType.POWER_GLOVE);
+		boolean haveHyperGlove = bomberMan.haveItem(ItemType.HYPER_GLOVE);
+		boolean haveAnyGlove = haveGlove || haveHyperGlove;
+		return bomberMan.getMaxBombs() > 0 &&
+				tileIsSafe(getCurrentTileCoord()) &&
+				(!haveAnyGlove || !Entity.haveAnyEntityAtCoord(getCurrentTileCoord(), bomberMan)) &&
+				(!haveHyperGlove || !Brick.haveBrickAt(getCurrentTileCoord())) &&
+				(!haveAnyGlove || !Bomb.haveBombAt(getCurrentTileCoord()));
 	}
 
 	private void pressButton(GameInput button) {
@@ -251,15 +298,24 @@ public class CpuPlay {
 	private void releaseButton(GameInput button) {
 		bomberMan.keyRelease(button);
 	}
+	
+	private boolean isInvencible() {
+		return bomberMan.isInvenible();
+	}
 
+	private boolean tileIsHalfSafe(TileCoord coord) {
+		return (isInvencible() || !MapSet.tileContainsProp(coord, TileProp.CPU_DANGER_2)) && tileIsFree(coord);
+	}
+	
 	private boolean tileIsSafe(TileCoord coord) {
-		return !MapSet.tileContainsProp(coord, TileProp.CPU_DANGER) && tileIsFree(coord);
+		return (isInvencible() || !MapSet.tileContainsProp(coord, TileProp.CPU_DANGER)) && tileIsHalfSafe(coord);
 	}
 	
 	private boolean tileIsFree(TileCoord coord) {
-		return !MapSet.tileContainsProp(coord, TileProp.DAMAGE_PLAYER) &&
-					 !MapSet.tileContainsProp(coord, TileProp.EXPLOSION) &&
-					 	MapSet.tileIsFree(bomberMan, coord, passThrough());
+		return (isInvencible() ||  
+						(!MapSet.tileContainsProp(coord, TileProp.DAMAGE_PLAYER) &&
+						 !MapSet.tileContainsProp(coord, TileProp.EXPLOSION))) &&
+							MapSet.tileIsFree(bomberMan, coord, passThrough());
 	}
 
 	private int getFireRange() {

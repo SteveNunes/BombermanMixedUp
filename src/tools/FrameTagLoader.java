@@ -382,6 +382,8 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new SetSprFrontValue(s));
 			else if (tag.equals("IncSprFrontValue"))
 				tags.addTag(newTag = new IncSprFrontValue(s));
+			else if (tag.equals("SetDisabled"))
+				tags.addTag(newTag = new SetDisabled(s));
 			if (delay > 0)
 				newTag.setTriggerDelay(delay);
 		}

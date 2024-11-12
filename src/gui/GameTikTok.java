@@ -44,6 +44,7 @@ public class GameTikTok {
 	private Position canvasTileCoord;
 	private Font font;
 	private static List<String> echos = new ArrayList<>();
+	private boolean showBlockMarks;
 
 	public void init() {
 		font = new Font("Lucida Console", 9);
@@ -59,7 +60,21 @@ public class GameTikTok {
 		Player.getPlayer(0).setInputMode(GameInputMode.KEYBOARD);
 		Player.getPlayer(0).setBomberMan(BomberMan.getBomberMan(0));
 		MapSet.loadMap("TikTok-Battle-01");
+		fillWithCpu(1);
 		mainLoop();
+		showBlockMarks = false;
+	}
+	
+	private void fillWithCpu(int total) { // TEMP
+		for (int n = 1; n <= total; n++) {
+			Player.addPlayer();
+			Player player = Player.getPlayer(n);
+			BomberMan bomber = BomberMan.addBomberMan(1, BomberMan.getTotalBomberMans());
+			bomber.setPosition(MapSet.getInitialPlayerPosition(BomberMan.getTotalBomberMans() - 1));
+			player.setBomberMan(bomber);
+			player.setInputMode(GameInputMode.CPU);
+			player.getBomberMan().setCpuPlay(new CpuPlay(player.getBomberMan(), CpuDificult.EASY));
+		}
 	}
 
 	private Integer[] setInputKeys = new Integer[] {
@@ -69,19 +84,19 @@ public class GameTikTok {
 	
 	void setEvents() {
 		Main.sceneMain.setOnKeyPressed(e -> {
-			Player.convertOnKeyPressEvent(e);
 			holdedKeys.add(e.getCode());
 			if (e.getCode() == KeyCode.SPACE)
-				CpuPlay.justMark = !CpuPlay.justMark; 
+				CpuPlay.markTargets = !CpuPlay.markTargets; 
 			if (e.getCode() == KeyCode.ESCAPE)
 				Main.close();
 			for (int n = 0; n < setInputKeys.length; n++)
 				if (e.getCode().getCode() == setInputKeys[n])					
 					openInputSetup(n, canvasTileCoord.getTileCoord());
+			Player.convertOnKeyPressEvent(e);
 		});
 		Main.sceneMain.setOnKeyReleased(e -> {
-			Player.convertOnKeyReleaseEvent(e);
 			holdedKeys.add(e.getCode());
+			Player.convertOnKeyReleaseEvent(e);
 		});
 		canvasMain.setOnMouseMoved(e -> canvasTileCoord.setPosition((e.getX() + 32 * ZOOM) / ZOOM, (e.getY() + 32 * ZOOM) / ZOOM));
 	}
@@ -100,8 +115,16 @@ public class GameTikTok {
 		stage.setTitle("Input config (Player " + (n + 1) + ")");
 		VBox vBox = new VBox();
 		Scene scene = new Scene(vBox);
+		GameInputMode prevInputMode = player.getInputMode();
 		scene.setOnKeyPressed(e -> {
-			if (player.getInputMode() == GameInputMode.DETECTING)
+			if (e.getCode() == KeyCode.ESCAPE) {
+				TimerFX.stopTimer("WaitForDevice");
+				player.setOnPressInputEvent(null);
+				player.setMappingMode(false);
+				player.setInputMode(prevInputMode);
+				stage.close();
+			}
+			else if (player.getInputMode() == GameInputMode.DETECTING)
 				player.setInputMode(GameInputMode.KEYBOARD);
 			else
 				player.pressInput(e.getCode().getCode(), e.getCode().getName());
@@ -110,11 +133,11 @@ public class GameTikTok {
 		vBox.setPrefSize(400, 240);
 		vBox.setPadding(new Insets(10, 10, 10, 10));
 		vBox.setAlignment(Pos.TOP_CENTER);
-		Text text = new Text("Pressione um botão para\nidentificar o dispositivo...");
+		Text text = new Text("Pressione um botão para\nidentificar o dispositivo,\nou pressione ESC para\nmanter configuração atual.");
 		text.setFont(new Font("Lucida Console", 20));
 		text.setTextAlignment(TextAlignment.CENTER);
 		vBox.getChildren().add(text);
-		Text[] texts = {new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text("")};
+		Text[] texts = {new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text("")};
 		for (Text t : texts) {
 			t.setFont(new Font("Lucida Console", 15));
 			t.setTextAlignment(TextAlignment.LEFT);
@@ -151,7 +174,7 @@ public class GameTikTok {
 				stage.close();
 			}
 			else if (player.getNextMappingInput() == null) {
-				texts[10].setText("\nConfiguração concluida!");
+				texts[texts.length - 1].setText("\nConfiguração concluida!");
 				done[0] = true;
 			}
 		});
@@ -183,7 +206,8 @@ public class GameTikTok {
 			for (String s : echos) {
 				gcMain.fillText(s, canvasMain.getWidth() - 120, y -= 11);
 			}
-			//showBlockMarks(); // TEMP
+			if (showBlockMarks) // TEMP
+				showBlockMarks();
 			if (!Main.close)
 				Platform.runLater(() -> {
 					String title = "BomberMan Mixed Up!     FPS: " + Tools.getFPSHandler().getFPS() + "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();

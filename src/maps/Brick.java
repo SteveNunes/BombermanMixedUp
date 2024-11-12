@@ -288,7 +288,7 @@ public class Brick extends Entity {
 			for (Entity entity : Entity.getEntityListFromCoord(getTileCoordFromCenter())) {
 				if (!entity.isBlockedMovement()) {
 					if (entity instanceof BomberMan)
-							((BomberMan)entity).dropItem();
+							((BomberMan)entity).dropItem(true, false);
 					else if (entity instanceof Monster) {
 						entity.setCurse(Curse.STUNNED);
 						entity.setCurseDuration(120);

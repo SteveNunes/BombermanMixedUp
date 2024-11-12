@@ -316,7 +316,7 @@ public class Player {
 			String str = ini.read(inputType, "" + playerId);
 			if (str == null)
 				continue;
-			String[] split = str.split(" ");
+			String[] split = str.split("\\|");
 			for (String s : split) {
 				String[] split2 = s.split(":");
 				if (split2.length < 3)
@@ -348,7 +348,7 @@ public class Player {
 				sb = new StringBuilder();
 				for (GameInput i : buttonsInfos.get(inputMode).keySet()) {
 					if (!sb.isEmpty())
-						sb.append(" ");
+						sb.append("|");
 					sb.append(buttonsInfos.get(inputMode).get(i).getId() + ":" + i + ":" + buttonsInfos.get(inputMode).get(i).getName());
 				}
 				ini.write(inputMode.name(), "" + playerId, sb.toString());

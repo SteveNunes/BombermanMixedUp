@@ -20,8 +20,6 @@ import entities.Effect;
 import entities.Entity;
 import enums.BombType;
 import enums.Direction;
-import enums.FindInRectType;
-import enums.FindType;
 import enums.GameInput;
 import enums.GameInputMode;
 import enums.Icons;
@@ -1093,12 +1091,6 @@ public class MapEditor {
 			gcMain.setStroke(Color.ALICEBLUE);
 			for (Item item : Item.getItemMap().values())
 				gcMain.strokeRect(item.getX() * zoomMain + offsetX(), item.getY() * zoomMain + offsetY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
-		}
-		TileCoord c = Tools.findInRect(bomber, bomber.getTileCoordFromCenter(), null, FindInRectType.CIRCLE_AREA, 3, FindType.BOMB);
-		if (c != null) {
-			gcMain.setLineWidth(4);
-			gcMain.setStroke(Color.PINK);
-			gcMain.strokeRect(c.getX() * Main.TILE_SIZE * zoomMain + offsetX(), c.getY() * Main.TILE_SIZE * zoomMain + offsetY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
 		}
 		drawBlockTypeMark();
 		drawGridAndAim();
