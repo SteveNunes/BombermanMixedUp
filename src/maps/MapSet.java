@@ -75,7 +75,6 @@ public abstract class MapSet {
 		if (!IniFiles.stages.sectionExists(iniMapName))
 			throw new RuntimeException("Unable to load map \"" + iniMapName + "\" (Map not found on Stages.cfg)");
 		System.out.println("Carregando mapa " + iniMapName + " ...");
-		Effect.clearTempEffects();
 		Materials.tempSprites.clear();
 		MapSet.iniMapName = iniMapName;
 		bricksRegenTimeInFrames = 0;
@@ -153,9 +152,6 @@ public abstract class MapSet {
 			FrameSet frameSet = new FrameSet();
 			frameSet.loadFromString(iniFileMap.read("TAGS", item));
 			preLoadedStageTags.put(item, frameSet);
-		});
-		iniFileMap.getItemList("EFFECTS").forEach(item -> {
-			Effect.addNewTempEffect(item, iniFileMap.read("EFFECTS", item));
 		});
 		resetMapFrameSets();
 		for (int p = 0; p < initialPlayerCoords.size() && p < BomberMan.getTotalBomberMans(); p++)
@@ -325,7 +321,7 @@ public abstract class MapSet {
 		stageIsCleared = false;
 		mapFrameSets = new Entity();
 		for (String item : iniFileMap.getItemList("FRAMESETS"))
-			mapFrameSets.addNewFrameSetFromString(item, iniFileMap.read("FRAMESETS", item));
+			mapFrameSets.addNewFrameSetFromIniFile(item, iniFileMap.fileName(), "FRAMESETS", item);
 		if (mapFrameSets.haveFrameSet("StageIntro"))
 			mapFrameSets.setFrameSet("StageIntro");
 		else if (mapFrameSets.haveFrameSet("Default"))

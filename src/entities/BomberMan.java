@@ -80,7 +80,7 @@ public class BomberMan extends Entity {
 			setDefaultTags(Tags.loadTagsFromString(IniFiles.characters.read(section, "DefaultTags")));
 		for (String item : IniFiles.characters.getItemList(section)) {
 			if (item.length() > 9 && item.substring(0, 9).equals("FrameSet."))
-				addNewFrameSetFromString(item.substring(9), IniFiles.characters.read(section, item));
+				addNewFrameSetFromIniFile(item.substring(9), "Characters", section, item);
 		}
 		setBombSound = IniFiles.characters.read(section, "SetBombSound");
 		if (setBombSound == null)
@@ -428,6 +428,10 @@ public class BomberMan extends Entity {
 		ItemType type = item.getItemType();
 		if (item.isCurse())
 			setCurse(item.getCurse());
+		else if (isCursed()) {
+			setCurse(null);
+			Item.addItem(getTileCoordFromCenter(), ItemType.CURSE_SKULL, true);
+		}
 		else if (type == ItemType.ARMOR) {
 			setInvencibleFrames(3000);
 			setBlinkingFrames(3000);
@@ -506,18 +510,22 @@ public class BomberMan extends Entity {
 				setPassThroughBrick(true);
 		}
 		setSpeed(speed);
-		super.removeCurse();
+		updateStatusByCurse();
 	}
 
 	@Override
 	public void setCurse(Curse curse) { // FALTA: Implementar BLINDNESS e SWAP_PLAYERS
 		super.setCurse(curse);
-		if (getCurse() == null) {
-			if (curse == Curse.MIN_BOMB)
+		updateStatusByCurse();
+	}
+	
+	private void updateStatusByCurse() {
+		if (getCurse() != null) {
+			if (getCurse() == Curse.MIN_BOMB)
 				maxBombs = 1;
-			else if (curse == Curse.MIN_FIRE)
+			else if (getCurse() == Curse.MIN_FIRE)
 				fireRange = 1;
-			else if (curse == Curse.NO_BOMB)
+			else if (getCurse() == Curse.NO_BOMB)
 				maxBombs = 0;
 		}
 	}

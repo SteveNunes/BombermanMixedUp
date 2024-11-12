@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import application.Main;
+import drawimage_stuffs.DrawImageEffects;
 import entityTools.PushEntity;
 import entityTools.ShakeEntity;
 import enums.BombType;
@@ -26,6 +27,7 @@ import enums.TileProp;
 import frameset.FrameSet;
 import frameset.Tags;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.paint.Color;
 import maps.Brick;
 import maps.Item;
@@ -38,6 +40,7 @@ import pathfinder.PathFinder;
 import tools.Draw;
 import tools.GameConfigs;
 import tools.Sound;
+import util.Misc;
 
 public class Entity extends Position {
 
@@ -87,6 +90,10 @@ public class Entity extends Position {
 	public Double ghostingOpacityDec;
 	private JumpMove jumpMove;
 	private GotoMove gotoMove;
+	private DrawImageEffects previewImageEffects;
+	private DrawImageEffects imageEffects;
+	private boolean disableEffect;
+	private boolean previewDisableEffect;
 	private Consumer<Entity> consumerWhenFrameSetEnds;
 
 	public Entity(Entity entity) {
@@ -108,6 +115,7 @@ public class Entity extends Position {
 		elevation = entity.elevation;
 		noMove = entity.noMove;
 		isDisabled = entity.isDisabled;
+		disableEffect = entity.disableEffect;
 		blockedMovement = entity.blockedMovement;
 		shadowOpacity = entity.shadowOpacity;
 		elapsedSteps = entity.elapsedSteps;
@@ -117,6 +125,7 @@ public class Entity extends Position {
 		defaultTags = entity.defaultTags == null ? null : new Tags(defaultTags);
 		pushEntity = entity.pushEntity == null ? null : new PushEntity(entity.pushEntity);
 		shake = entity.shake == null ? null : new ShakeEntity(entity.shake);
+		imageEffects = entity.imageEffects;
 		linkedEntityInfos = new LinkedList<>();
 		linkedEntityBack = null;
 		linkedEntityFront = null;
@@ -161,6 +170,7 @@ public class Entity extends Position {
 		jumpMove = null;
 		gotoMove = null;
 		focusedOn = null;
+		imageEffects = null;
 		this.direction = direction;
 		speed = 0;
 		pushing = 0;
@@ -177,6 +187,7 @@ public class Entity extends Position {
 		isDisabled = false;
 		blockedMovement = false;
 		tileWasChanged = false;
+		disableEffect = false;
 		previewTileCoord = null;
 		tileChangedCoord = null;
 		ghostingDistance = 0;
@@ -188,6 +199,26 @@ public class Entity extends Position {
 		pathFinder = null;
 	}
 	
+	public void setDisabledImageEffects(boolean state) {
+		disableEffect = state;
+	}
+	
+	public void disableImageEffects() {
+		disableEffect = true;
+	}
+	
+	public void enableImageEffects() {
+		disableEffect = false;
+	}
+	
+	public DrawImageEffects getImageEffect() {
+		return disableEffect ? null : imageEffects;
+	}
+
+	public void setImageEffect(DrawImageEffects effect) {
+		this.imageEffects = effect;
+	}
+
 	public void setHeight(int height) {
 		currentHeight = height;
 	}
@@ -763,6 +794,13 @@ public class Entity extends Position {
 		if (curse == Curse.INVISIBLE)
 			setVisible(true);
 		curse = null;
+		setImageEffect(previewImageEffects);
+		if (!previewDisableEffect)
+			enableImageEffects();
+	}
+	
+	public boolean isCursed() {
+		return getCurse() != null;
 	}
 
 	public Curse getCurse() {
@@ -780,6 +818,10 @@ public class Entity extends Position {
 	public void setCurse(Curse curse) { // FALTA: Implementar BLINDNESS e SWAP_PLAYERS
 		if (curse != null) {
 			removeCurse();
+			previewDisableEffect = disableEffect;
+			previewImageEffects = imageEffects;
+			setImageEffect(new DrawImageEffects());
+			getImageEffect().setColorTint(0, 0, 0, 1, BlendMode.SRC_ATOP);
 			this.curse = curse;
 			curseDuration = Curse.getDuration(curse);
 			if (curse == Curse.INVISIBLE)
@@ -791,12 +833,14 @@ public class Entity extends Position {
 			else if (curse == Curse.INVISIBLE)
 				setVisible(false);
 			else if (curse == Curse.STUNNED) {
-				Effect.runEffect(MapSet.getInitialPlayerPosition(0), "STUN")
+				Effect.runEffect(MapSet.getInitialPlayerPosition(0), "Stun")
 					.setClosingPredicate(this, e -> e.isDead() || e.getCurse() != Curse.STUNNED)
 					.linkTo(this, 0, getHeight());
 
 			}
 		}
+		else
+			removeCurse();
 	}
 	
 	public void run() {
@@ -816,8 +860,12 @@ public class Entity extends Position {
 			return;
 		if (!(this instanceof Effect))
 			removeEntityFromList(getTileCoordFromCenter(), this);
-		if (curse != null && --curseDuration == 0)
-			removeCurse();
+		if (getCurse() != null) {
+			if (--curseDuration == 0)
+				removeCurse();
+			else
+				setDisabledImageEffects(Misc.blink(100));
+		}
 		if (blinkingFrames != 0)
 			blinkingFrames--;
 		if (invencibleFrames != 0)
@@ -1266,26 +1314,31 @@ public class Entity extends Position {
 		return shadow != null;
 	}
 
-	public void addNewFrameSetFromString(String frameSetName, String stringWithFrameTags) {
+	public void addNewFrameSetFromIniFile(String frameSetName, String file, String section, String item) {
 		FrameSet frameSet;
-		if (frameSets.containsKey(stringWithFrameTags))
-			frameSet = new FrameSet(frameSets.get(stringWithFrameTags), this);
+		if (frameSets.containsKey(frameSetName))
+			frameSet = new FrameSet(frameSets.get(frameSetName), this);
 		else {
 			frameSet = new FrameSet(this);
-			frameSet.loadFromString(stringWithFrameTags);
+			frameSet.loadFromIni(this, file, section, item);
 		}
 		addFrameSet(frameSetName, frameSet);
 	}
 
-	public void replaceFrameSetFromString(String existingFrameSetName, String stringWithFrameTags) {
+	public void replaceFrameSetFromIniFile(String existingFrameSetName, String file, String section, String item) {
 		FrameSet frameSet;
-		if (frameSets.containsKey(stringWithFrameTags))
-			frameSet = new FrameSet(frameSets.get(stringWithFrameTags), this);
+		if (frameSets.containsKey(existingFrameSetName))
+			frameSet = new FrameSet(frameSets.get(existingFrameSetName), this);
 		else {
 			frameSet = new FrameSet(this);
-			frameSet.loadFromString(stringWithFrameTags);
+			frameSet.loadFromIni(this, file, section, item);
 		}
 		replaceFrameSet(existingFrameSetName, frameSet);
+	}
+
+	public void replaceFrameSetFromString(String frameSetName, String str) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	public boolean canCross(TileCoord coord) {

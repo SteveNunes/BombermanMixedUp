@@ -24,6 +24,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import maps.Brick;
+import maps.Item;
 import maps.MapSet;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
@@ -60,7 +62,7 @@ public class GameTikTok {
 		Player.getPlayer(0).setInputMode(GameInputMode.KEYBOARD);
 		Player.getPlayer(0).setBomberMan(BomberMan.getBomberMan(0));
 		MapSet.loadMap("TikTok-Battle-01");
-		fillWithCpu(1);
+		fillWithCpu(0);
 		mainLoop();
 		showBlockMarks = false;
 	}
@@ -85,6 +87,12 @@ public class GameTikTok {
 	void setEvents() {
 		Main.sceneMain.setOnKeyPressed(e -> {
 			holdedKeys.add(e.getCode());
+			if (e.getCode() == KeyCode.P) {
+				for (Brick brick : new ArrayList<>(Brick.getBricks()))
+					brick.destroy();
+				for (Item item : new ArrayList<>(Item.getItems()))
+					item.destroy();
+			}
 			if (e.getCode() == KeyCode.SPACE)
 				CpuPlay.markTargets = !CpuPlay.markTargets; 
 			if (e.getCode() == KeyCode.ESCAPE)

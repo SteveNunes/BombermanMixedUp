@@ -1,8 +1,11 @@
 package frameset;
 
 import java.awt.Rectangle;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import entities.Entity;
 import frameset_tags.FrameTag;
@@ -12,9 +15,12 @@ import javafx.scene.canvas.GraphicsContext;
 import objmoveutils.Position;
 import tools.FrameTagLoader;
 import tools.Tools;
+import util.IniFile;
 
 public class FrameSet extends Position {
 
+	private static Map<String, FrameSet> preLoadedFrameSets = new HashMap<>();
+	
 	private Entity sourceEntity;
 	private List<Sprite> sprites;
 	private List<Frame> frames;
@@ -439,16 +445,51 @@ public class FrameSet extends Position {
 		return frames.isEmpty();
 	}
 
-	public void loadFromString(String tags) {
-		if (tags == null)
-			throw new RuntimeException("Unable to load FrameSet from String because its null");
+	public void loadFromIni(Entity entity, String file, String section, String item) {
+		if (file == null)
+			throw new RuntimeException("Unable to load FrameSet from String because 'file' null");
+		if (!file.contains("/") && !file.contains("\\"))
+			file = "./appdata/configs/" + file + ".ini";
+		file.replace("\\", "/");
+		String shortName = file.substring(file.lastIndexOf("/appdata/") + 9);
+		if (preLoadedFrameSets.containsKey(shortName + "¡" + section + "¡" + item)) {
+			FrameSet frameSet = new FrameSet(preLoadedFrameSets.get(shortName + "¡" + section + "¡" + item));
+			sprites = new ArrayList<>();
+			frames = new ArrayList<>();
+			sourceEntity = entity;
+			framesPerTick = 1;
+			changedIndex = false;
+			stop = false;
+			currentFrameIndex = 0;
+			ticks = 0;
+			frameSet.sprites.forEach(sprite -> sprites.add(sprite = new Sprite(sprite, this)));
+			frameSet.frames.forEach(frame -> frames.add(frame = new Frame(frame, this)));
+			return;
+		}
+		if (!new File(file).exists())
+			throw new RuntimeException("Unable find file \"" + file + "\"");
+		IniFile ini = IniFile.getNewIniFileInstance(file);
+		if (section == null)
+			throw new RuntimeException("Unable to load FrameSet from String because 'section' null");
+		if (!ini.sectionExists(section))
+			throw new RuntimeException("Invalid section (" + section + ") on file \"" + file + "\"");
+		if (item == null)
+			throw new RuntimeException("Unable to load FrameSet from String because 'item' null");
+		if (!ini.itemExists(section, item))
+			throw new RuntimeException("Invalid item (" + item + ") in section \"" + section + "\" on file \"" + file + "\"");
+		loadFromString(ini.read(section, item));
+		setEntity(entity);
+		preLoadedFrameSets.put(shortName + "¡" + section + "¡" + item, new FrameSet(this, getSourceEntity()));
+	}
+	
+	public void loadFromString(String stringTileTags) {
 		sprites.clear();
 		frames.clear();
 		currentFrameIndex = 0;
 		ticks = 0;
 		changedIndex = false;
 		stop = false;
-		String[] frames = tags.split("\\|"); // Divisor de frames
+		String[] frames = stringTileTags.split("\\|"); // Divisor de frames
 		boolean first = true;
 		for (String s1 : frames) {
 			Frame frame = new Frame(this);
@@ -463,7 +504,6 @@ public class FrameSet extends Position {
 			for (String s2 : sprites)
 				FrameTagLoader.loadToTags(s2, frame.getFrameSetTagsList().get(n++));
 		}
-
 	}
 
 	public String getStringFromFrameSetTags() {

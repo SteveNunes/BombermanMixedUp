@@ -77,7 +77,6 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import maps.MapSet;
 import tools.Draw;
-import tools.IniFiles;
 import tools.Tools;
 import util.Misc;
 import util.MyMath;
@@ -149,13 +148,13 @@ public class FrameSetEditor {
 		currentEntity = new Entity();
 		currentEntity.setPosition(centerX, centerY);
 
-		currentEntity.addNewFrameSetFromString("MovingFrames.LEFT", IniFiles.monsters.read("2", "MovingFrames.LEFT"));
-		currentEntity.addNewFrameSetFromString("MovingFrames.RIGHT", IniFiles.monsters.read("2", "MovingFrames.RIGHT"));
-		currentEntity.addNewFrameSetFromString("MovingFrames.UP", IniFiles.monsters.read("2", "MovingFrames.UP"));
-		currentEntity.addNewFrameSetFromString("MovingFrames.DOWN", IniFiles.monsters.read("2", "MovingFrames.DOWN"));
+		currentEntity.addNewFrameSetFromIniFile("MovingFrames.LEFT", "Monsters", "2", "MovingFrames.LEFT");
+		currentEntity.addNewFrameSetFromIniFile("MovingFrames.LEFT", "Monsters", "2", "MovingFrames.RIGHT");
+		currentEntity.addNewFrameSetFromIniFile("MovingFrames.LEFT", "Monsters", "2", "MovingFrames.UP");
+		currentEntity.addNewFrameSetFromIniFile("MovingFrames.LEFT", "Monsters", "2", "MovingFrames.DOWN");
 
-		currentEntity.addNewFrameSetFromString("IntroFrames", IniFiles.monsters.read("1000", "IntroFrames"));
-		currentEntity.addNewFrameSetFromString("MovingFrames", IniFiles.monsters.read("1000", "MovingFrames"));
+		currentEntity.addNewFrameSetFromIniFile("IntroFrames", "Monsters", "1000", "IntroFrames");
+		currentEntity.addNewFrameSetFromIniFile("MovingFrames", "Monsters", "1000", "MovingFrames");
 		currentEntity.setFrameSet("MovingFrames");
 
 		setDefaultContextMenu();

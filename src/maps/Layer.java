@@ -309,8 +309,6 @@ public class Layer {
 		frameSet.loadFromString(stringTileTags);
 		frameSet.getSprite(0).setOutputSpritePos(new Rectangle(x, y, 0, 0));
 		tilesTags.put(coord.getNewInstance(), frameSet);
-		if (tile != null)
-			tile.stringTileTags = stringTileTags;
 	}
 
 	public void setTileTags(TileCoord coord, Tags tags) {
@@ -336,7 +334,6 @@ public class Layer {
 	}
 
 	public void clearTileTags(TileCoord coord) {
-		getFirstBottomTileFromCoord(coord).stringTileTags = null;
 		tilesTags.remove(coord);
 	}
 

@@ -46,7 +46,11 @@ public class Brick extends Entity {
 		this.item = item;
 		Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet", "BrickRollingFrameSet").forEach(frameSet -> {
 			String s = MapSet.getTileSetIniFile().read("CONFIG", frameSet);
-			addNewFrameSetFromString(frameSet, s == null ? "" : (s.equals("BrickBreakFrameSet") ? "{SetSprFrontValue;2}," + s : s));
+			if (s != null) {
+				addNewFrameSetFromIniFile(frameSet, MapSet.getTileSetIniFile().fileName(), "CONFIG", frameSet);
+				if (s.equals("BrickBreakFrameSet"))
+					getFrameSet(frameSet).getFrameSetTagsFrom(0).addTagsFromString("{SetSprFrontValue;2}");
+			}
 		});
 		setFrameSet("BrickStandFrameSet");
 		setPassThroughItem(true);
@@ -154,7 +158,7 @@ public class Brick extends Entity {
 			if (!cFSet.equals("BrickBreakFrameSet")) {
 				if (MapSet.tileContainsProp(brick.getTileCoordFromCenter(), TileProp.DAMAGE_BRICK) ||
 						MapSet.tileContainsProp(brick.getTileCoordFromCenter(), TileProp.EXPLOSION))
-							brick.breakIt();
+							brick.destroy();
 				else if (cFSet.equals("BrickRegenFrameSet") && !brick.getCurrentFrameSet().isRunning()) {
 					brick.setFrameSet("BrickStandFrameSet");
 					brick.setBrickShadow();
@@ -194,7 +198,7 @@ public class Brick extends Entity {
 		}
 	}
 
-	public void breakIt() {
+	public void destroy() {
 		if (!getCurrentFrameSetName().equals("BrickBreakFrameSet")) {
 			removeThisFromTile(getTileCoordFromCenter());
 			setFrameSet("BrickBreakFrameSet");
@@ -296,7 +300,7 @@ public class Brick extends Entity {
 				}
 			}
 		Sound.playWav("BrickDrop");
-		breakIt();
+		destroy();
 	}
 
 	@Override
@@ -308,9 +312,9 @@ public class Brick extends Entity {
 		else if (Item.haveItemAt(getTileCoordFromCenter()))
 			Item.getItemAt(getTileCoordFromCenter()).destroy();
 		if (bricks.containsKey(getTileCoordFromCenter()))
-			bricks.get(getTileCoordFromCenter()).breakIt();
+			bricks.get(getTileCoordFromCenter()).destroy();
 		Sound.playWav("BrickDrop");
-		breakIt();
+		destroy();
 	}
 
 }

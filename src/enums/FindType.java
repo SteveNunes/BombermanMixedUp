@@ -6,6 +6,8 @@ public enum FindType {
 	MONSTER,
 	BOMB,
 	ITEM,
+	GOOD_ITEM,
+	BAD_ITEM,
 	BRICK,
 	WALL,
 	EMPTY;

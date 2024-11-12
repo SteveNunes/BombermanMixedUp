@@ -29,7 +29,6 @@ public class Tile {
 	public int rotate;
 	public double opacity;
 	public DrawImageEffects effects;
-	public String stringTileTags;
 	public TileCoord tileCoord;
 
 	public Tile(Tile tile) {
@@ -44,7 +43,6 @@ public class Tile {
 		originLayer = tile.originLayer;
 		opacity = tile.opacity;
 		effects = tile.effects == null ? null : new DrawImageEffects(tile.effects);
-		stringTileTags = tile.stringTileTags;
 		tileCoord = coord.getNewInstance();
 		outX = (int)coord.getPosition().getX();
 		outY = (int)coord.getPosition().getY();
@@ -60,7 +58,6 @@ public class Tile {
 		this.originLayer = originLayer;
 		opacity = tile.opacity;
 		effects = tile.effects == null ? null : new DrawImageEffects(tile.effects);
-		stringTileTags = tile.stringTileTags;
 		tileCoord = tile.tileCoord.getNewInstance();
 		setCoords(tile.getTileCoord());
 		setTileProps(new ArrayList<>(tile.getTileProps()));
@@ -90,7 +87,6 @@ public class Tile {
 		this.opacity = opacity;
 		this.effects = effects;
 		this.originLayer = originLayer;
-		this.stringTileTags = null;
 		tileCoord = new TileCoord(outX / Main.TILE_SIZE, outY / Main.TILE_SIZE);
 	}
 
@@ -126,7 +122,6 @@ public class Tile {
 				}
 			opacity = Double.parseDouble(split[++n]);
 			effects = Tools.loadEffectsFromString(MyConverters.arrayToString(split, ++n));
-			stringTileTags = null;
 			if (split.length > 9 && !getOriginLayer().haveTilesOnCoord(getTileCoord()))
 				setTileTagsFromString(MyConverters.arrayToString(split, 9));
 		}
@@ -307,7 +302,7 @@ public class Tile {
 	public String getStringTags() {
 		if (getOriginLayer().tileHaveTags(getTileCoord()))
 			return getOriginLayer().getTileTags(getTileCoord()).toString();
-		return stringTileTags;
+		return null;
 	}
 
 	public FrameSet getTileTagsFrameSet() {

@@ -166,6 +166,10 @@ public class Sprite extends Position {
 	public void unsetShake() {
 		shake = null;
 	}
+	
+	public DrawImageEffects getSpriteEffects() {
+		return getSourceEntity().getImageEffect() != null ? getSourceEntity().getImageEffect() : spriteEffects;
+	}
 
 	public void setGhosting(int ghostingDistance, double ghostingOpacityDec) {
 		this.ghostingDistance = ghostingDistance;
@@ -677,9 +681,9 @@ public class Sprite extends Position {
 			}
 
 			if (gc != null)
-				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int) getOriginSpriteWidth(), (int) getOriginSpriteHeight(), tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
+				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int) getOriginSpriteWidth(), (int) getOriginSpriteHeight(), tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, getSpriteEffects());
 			else {
-				DrawParams drawParams = Draw.addDrawQueue((int) getSourceEntity().getY() + frontValue2, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int) getOriginSpriteWidth(), (int) getOriginSpriteHeight(), tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, spriteEffects);
+				DrawParams drawParams = Draw.addDrawQueue((int) getSourceEntity().getY() + frontValue2, layerType, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int) getOriginSpriteWidth(), (int) getOriginSpriteHeight(), tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, getSpriteEffects());
 				if (getSourceEntity().ghostingOpacityDec != null)
 					drawParams.setGhosting(getSourceEntity().ghostingDistance, getSourceEntity().ghostingOpacityDec);
 				else if (ghostingOpacityDec != null)

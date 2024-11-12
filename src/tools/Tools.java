@@ -128,6 +128,8 @@ public abstract class Tools {
 				if (!MapSet.tileIsFree(c, ignores)) {
 					if ((types.contains(FindType.BOMB) && Bomb.haveBombAt(entity, c)) ||
 							(types.contains(FindType.BRICK) && Brick.haveBrickAt(c)) ||
+							(types.contains(FindType.GOOD_ITEM) && Item.haveItemAt(c) && !Item.getItemAt(c).getItemType().isBadItem()) ||
+							(types.contains(FindType.BAD_ITEM) && Item.haveItemAt(c) && Item.getItemAt(c).getItemType().isBadItem()) ||
 							(types.contains(FindType.ITEM) && Item.haveItemAt(c)) ||
 							(types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, Monster.class)) ||
 							(types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, BomberMan.class)))

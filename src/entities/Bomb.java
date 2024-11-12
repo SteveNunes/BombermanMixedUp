@@ -17,6 +17,12 @@ import enums.Direction;
 import enums.FindType;
 import enums.PassThrough;
 import enums.TileProp;
+import frameset.Frame;
+import frameset.FrameSet;
+import frameset.Tags;
+import frameset_tags.FrameTag;
+import frameset_tags.SetSprSource;
+import frameset_tags.SetTicksPerFrame;
 import javafx.scene.canvas.GraphicsContext;
 import maps.Item;
 import maps.MapSet;
@@ -104,25 +110,32 @@ public class Bomb extends Entity {
 		}
 		int y = 16 * type.getValue();
 		if (type == BombType.LAND_MINE) {
-			String frameSet = "{SetSprSource;Bombs;0;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0},{PlayWav;Mine}|{SetSprIndex;-}|{SetSprIndex;1}|{SetSprIndex;-}|{SetSprIndex;2}|{SetSprIndex;-}|{SetSprIndex;3}|{SetSprIndex;-}|{SetSprIndex;0}|{Goto;1;1}|{SetFrameSet;LandedFrames}";
-			addNewFrameSetFromString("LandingFrames", frameSet);
+			addNewFrameSetFromIniFile("LandingFrames", "FrameSets", "LAND_MINE_BOMB", "LandingFrames");
 			setFrameSet("LandingFrames");
-			frameSet = "{SetSprSource;Bombs;0;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;-}|{}|{Goto;-1}";
-			addNewFrameSetFromString("LandedFrames", frameSet);
-			frameSet = "{SetSprSource;Bombs;0;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0},{PlayWav;Mine}|{SetSprIndex;-}|{SetSprIndex;1}|{SetSprIndex;-}|{SetSprIndex;2}|{SetSprIndex;-}|{SetSprIndex;3}|{SetSprIndex;-}|{SetSprIndex;0}|{Goto;1;1}|{ExplodeBomb}";
-			addNewFrameSetFromString("UnlandingFrames", frameSet);
+			addNewFrameSetFromIniFile("LandedFrames", "FrameSets", "LAND_MINE_BOMB", "LandedFrames");
+			addNewFrameSetFromIniFile("UnlandingFrames", "FrameSets", "LAND_MINE_BOMB", "UnlandingFrames");
 		}
 		else {
-			String frameSet = "{SetSprSource;Bombs;0;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}";
-			addNewFrameSetFromString("StandFrames", frameSet);
+			addNewFrameSetFromIniFile("StandFrames", "FrameSets", "BOMB", "StandFrames");
 			setFrameSet("StandFrames");
-			frameSet = "{SetSprSource;Bombs;0;" + y + ";16;16;0;0;0;0;16;16},{SetTicksPerFrame;" + ticksPerFrame + "},{SetSprIndex;0},{SetEntityShadow;0;0;16;8;0.35}|{SetSprIndex;1}|{SetSprIndex;2}|{SetSprIndex;3}|{Goto;0}";
-			addNewFrameSetFromString("JumpingFrames", frameSet);
-			setFrameSet("JumpingFrames");
+			addNewFrameSetFromIniFile("JumpingFrames", "FrameSets", "BOMB", "JumpingFrames");
+			for (FrameSet frameSet : getFrameSets()) {
+				Tags tags = frameSet.getFrameSetTagsFrom(0);
+				for (FrameTag tag : tags.getTags())
+					if (tag instanceof SetSprSource)
+						((SetSprSource)tag).originSprSizePos.setLocation(0, y);
+			}
 		}
 		setPosition(coord.getPosition());
 		setPassThroughItem(true);
 		setDangerMarks(timer == -1 ? TileProp.CPU_DANGER_2 : TileProp.CPU_DANGER);
+		for (FrameSet frameSet : getFrameSets()) {
+			for (Frame frame : frameSet.getFrames())
+				for (Tags tags : frame.getFrameSetTagsList())
+					for (FrameTag tag : tags.getTags())
+						if (tag instanceof SetTicksPerFrame)
+							((SetTicksPerFrame)tag).value = ticksPerFrame;
+		}
 	}
 
 	public boolean isStucked() {

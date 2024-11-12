@@ -1,7 +1,6 @@
 package entities;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -105,13 +104,12 @@ public class CpuPlay {
 					if (founds != null)
 						pressButton(GameInput.B);
 				}
-				// Procura por tijolos em linha reta para soltar uma bomba que o destrua.
-				if (checkForBricksAround())			
+				// Procura por outros jogadores ou tijolos ou itens ruins em linha reta para soltar uma bomba que o destrua.
+				if (checkForBricksAndBadItemsAndPlayersAround())			
 					return;
 				// Procura por item ou tijolos proximos e vai em direção a eles
-				for (FindType findType : Arrays.asList(FindType.ITEM, FindType.BRICK))
-					if (checkForSomethingAround(findType, 5, FindInRectType.RECTANGLE_AREA))
-						return;
+				if (checkForSomethingAround(Set.of(FindType.GOOD_ITEM, FindType.BRICK), 5, FindInRectType.RECTANGLE_AREA))
+					return;
 				// Se não estiver focado em algum item ou tijolo, tenta chegar perto de algum jogador acessivel
 				for (Entity entity : Entity.getEntityList())
 					if (entity != bomberMan && entity instanceof BomberMan && setPathFinder(new PathFinder(getCurrentTileCoord(), entity.getTileCoordFromCenter(), getCurrentDir(), PathFinderDistance.SHORTEST, PathFinderOptmize.OPTIMIZED, t -> tileIsSafe(t))))
@@ -164,10 +162,10 @@ public class CpuPlay {
 		System.out.println(string);
 	}
 	
-	private boolean checkForBricksAround() {
+	private boolean checkForBricksAndBadItemsAndPlayersAround() {
 		if (!canSetBomb())
 			return false;
-		List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), FindType.BRICK);
+		List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), Set.of(FindType.PLAYER, FindType.BRICK, FindType.BAD_ITEM));
 		if (founds != null)
 			for (FindProps found : founds)
 				if (!MapSet.tileContainsProp(found.getCoord(), TileProp.CPU_DANGER) &&
@@ -176,9 +174,13 @@ public class CpuPlay {
 					return true;
 		return false;
 	}
-	
+
 	private boolean checkForSomethingAround(FindType something, int radiusInTiles, FindInRectType rectType) {
-		List<FindProps> founds = Tools.findInRect(getCurrentTileCoord(), null, radiusInTiles, something);
+		return checkForSomethingAround(Set.of(something), radiusInTiles, rectType);
+	}
+
+	private boolean checkForSomethingAround(Set<FindType> somethings, int radiusInTiles, FindInRectType rectType) {
+		List<FindProps> founds = Tools.findInRect(getCurrentTileCoord(), null, radiusInTiles, somethings);
 		Function<TileCoord, Boolean> tileIsFree = t -> {
 			return tileIsSafe(t) || t.equals(founds.get(0).getCoord()) || t.equals(getCurrentTileCoord());
 		};

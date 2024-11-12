@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import application.Main;
-import entities.Effect;
+import entities.BomberMan;
+import entities.Entity;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -14,7 +15,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import maps.Item;
 import util.FindFile;
+import util.IniFile;
 
 public abstract class Materials {
 
@@ -78,10 +81,11 @@ public abstract class Materials {
 		thunders = loadImage("Thunders", Color.valueOf("#03E313"));
 		hud = loadImage("HUD", Color.valueOf("#03E313"));
 		generateExplosionImage();
-		Effect.loadEffects();
 		FindFile.findFile("./appdata/sprites/tileset", "Tile*.png").forEach(file -> {
 			tileSets.put(file.getName().replace(".png", ""), loadImage("/tileset/" + file.getName().replace(".png", ""), Color.valueOf("#FF00FF")));
 		});
+		Item.createItemEdgeImage();
+		loadFrameSets();
 		System.out.println("... Concluido em " + (System.currentTimeMillis() - ms) + "ms");
 	}
 
@@ -145,6 +149,26 @@ public abstract class Materials {
 		}
 		// ImageUtils.saveImageToFile(exp3, "D:\\Java\\Bomberman - Mixed
 		// Up!\\appdata\\sprites\\Explosions2.png");
+	}
+	
+	private static void loadFrameSets() {
+		Entity entity = new Entity();
+		IniFiles.characters.getSectionList().forEach(section -> new BomberMan(0, Integer.parseInt(section), 0));
+		IniFiles.frameSets.getSectionList().forEach(section -> {
+			IniFiles.frameSets.getItemList(section).forEach(item -> {
+				entity.addNewFrameSetFromIniFile(item, IniFiles.frameSets.fileName(), section, item);
+			});
+		});
+		FindFile.findFile("./appdata/tileset/","*.tiles").forEach(file -> {
+			Entity entity2 = new Entity();
+			IniFile ini = IniFile.getNewIniFileInstance(file.getAbsolutePath());
+			if (ini.sectionExists("CONFIG"))
+				ini.getItemList("CONFIG").forEach(item -> {
+					if (item.contains("FrameSet"))
+						entity2.addNewFrameSetFromIniFile(item, ini.fileName(), "CONFIG", item);
+				});
+			ini.closeFile();
+		});
 	}
 
 	public static WritableImage loadImage(String imagePartialPath, Color removeColor) throws RuntimeException { // Informe apenas o nome do arquivo (com pasta ou nao) a partir da pasta

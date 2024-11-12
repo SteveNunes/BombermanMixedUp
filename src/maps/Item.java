@@ -12,6 +12,11 @@ import enums.Curse;
 import enums.Direction;
 import enums.ItemType;
 import enums.TileProp;
+import frameset.Frame;
+import frameset.FrameSet;
+import frameset.Tags;
+import frameset_tags.FrameTag;
+import frameset_tags.SetSprIndex;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
@@ -34,7 +39,7 @@ public class Item extends Entity {
 	private ItemType itemType;
 	private int startInvFrames;
 
-	static {
+	public static void createItemEdgeImage() {
 		Materials.loadedSprites.put("ItemEdge", new WritableImage(18, 18));
 		itemEdigeColor = new RGBColor(20);
 	}
@@ -63,17 +68,26 @@ public class Item extends Entity {
 		setPosition(new Position(position));
 		this.itemType = itemType;
 		startInvFrames = 10;
-		int itemIndex = itemType.getValue() - 1;
-		String itemStandFrameSet = "{SetSprSource;ItemEdge;0;0;18;18;0;0;0;0;18;18},{SetEntityShadow;0;0;18;4;0},{SetTicksPerFrame;1},{SetSprIndex;0},{SetOutputSprPos;-2;-13},{SetJumpMove;1;1.1;50},{SetSprFrontValue;1},,{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{SetOutputSprPos;-1;-12},{SetSprFrontValue;1}|{SetSprIndex;1},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;2},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;0},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{Goto;-3;2}|{},,{SetSprIndex;85}|{SetSprIndex;1},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{SetSprIndex;2},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{SetSprIndex;0},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{Goto;-3;2}|{SetSprIndex;1},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;2},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{SetSprIndex;0},{IncOutputSprWidth;-2},{IncOutputSprX;1},,{IncOutputSprWidth;-2},{IncOutputSprX;1}|{Goto;-3;2}|{},,{SetSprIndex;" + itemIndex + "}|{SetSprIndex;1},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{SetSprIndex;2},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{SetSprIndex;0},{IncOutputSprWidth;2},{IncOutputSprX;-1},,{IncOutputSprWidth;2},{IncOutputSprX;-1}|{Goto;-3;2}|{SetTicksPerFrame;5}|{SetSprIndex;1},{IncOutputSprY;1},,{IncOutputSprY;1}|{SetSprIndex;2}|{}|{SetSprIndex;0}|{Goto;-4;1}|{SetSprIndex;1},{IncOutputSprY;1},,{IncOutputSprY;1}|{SetSprIndex;2}|{}|{SetSprIndex;0}|{Goto;-4;1}|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{}|{SetSprIndex;0}|{Goto;-4;1}|{SetSprIndex;1},{IncOutputSprY;-1},,{IncOutputSprY;-1}|{SetSprIndex;2}|{}|{SetSprIndex;0}|{Goto;-4;1}|{Goto;0}";
-		addNewFrameSetFromString("ItemStandFrameSet", itemStandFrameSet);
-		String itemJumpingFrameSet = "{SetSprSource;MainSprites;1344;16;16;16;0;0;0;0;16;16},{SetEntityShadow;0;0;14;7;0},{SetTicksPerFrame;1},{SetSprIndex;0},{IncSprFrontValue;2},{SetSprAlign;BOTTOM}|{IncOutputSprWidth;-2}|{Goto;-1;7}|{IncOutputSprWidth;2},{SetSprFlip;HORIZONTAL}|{Goto;-1;7}|{IncOutputSprWidth;-2}|{Goto;-1;7}|{IncOutputSprWidth;2},{SetSprFlip;NONE}|{Goto;-1;7}|{Goto;-8}";
-		addNewFrameSetFromString("ItemJumpingFrameSet", itemJumpingFrameSet);
+		addNewFrameSetFromIniFile("StandFrameSet", "FrameSets", "ITEM", "StandFrameSet");
+		addNewFrameSetFromIniFile("JumpingFrameSet", "FrameSets", "ITEM", "JumpingFrameSet");
 		setUpItemPickUpFrameSet();
-		setFrameSet("ItemStandFrameSet");
+		setFrameSet("StandFrameSet");
 		if (itemType == ItemType.CURSE_SKULL)
 			curse = Curse.getRandom();
 		else
 			curse = null;
+	}
+	
+	@Override
+	public void setFrameSet(String frameSetName) {
+		super.setFrameSet(frameSetName);
+		int itemIndex = itemType.getValue() - 1;
+		FrameSet frameSet = getFrameSet(frameSetName);
+		for (Frame frame : frameSet.getFrames())
+			for (Tags tags : frame.getFrameSetTagsList())
+				for (FrameTag tag : tags.getTags())
+					if (tag instanceof SetSprIndex && ((SetSprIndex)tag).value == -1)
+						((SetSprIndex)tag).value = itemIndex;
 	}
 	
 	public void jumpToRandomTileAround(int radius) {
@@ -82,17 +96,15 @@ public class Item extends Entity {
 	}
 
 	public void jumpTo(TileCoord coord) {
-		setFrameSet("ItemJumpingFrameSet");
+		setFrameSet("JumpingFrameSet");
 		jumpTo(this, coord, 6, 1.2, 20);
 	}
 
 	private void setUpItemPickUpFrameSet() {
-		int itemIndex = itemType.getValue() - 1;
-		String itemPickUpFrameSet = "{SetSprSource;MainSprites;0;16;16;16;0;0;0;0;16;16},{SetSprIndex;" + itemIndex + "},{SetTicksPerFrame;3},{IncOutputSprY;-12}" + "|{SetSprIndex;-},{IncOutputSprY;-1}|{SetSprIndex;" + itemIndex + "},{IncOutputSprY;-2}|{Goto;-2;7}";
-		if (haveFrameSet("ItemPickedUpFrameSet"))
-			replaceFrameSetFromString("ItemPickedUpFrameSet", itemPickUpFrameSet);
+		if (haveFrameSet("PickedUpFrameSet"))
+			replaceFrameSetFromIniFile("PickedUpFrameSet", "FrameSets", "ITEM", "PickedUpFrameSet");
 		else
-			addNewFrameSetFromString("ItemPickedUpFrameSet", itemPickUpFrameSet);
+			addNewFrameSetFromIniFile("PickedUpFrameSet", "FrameSets", "ITEM", "PickedUpFrameSet");
 	}
 
 	public boolean isCurse() {
@@ -190,11 +202,11 @@ public class Item extends Entity {
 		}
 
 		for (Item item : tempItems) {
-			if (--item.startInvFrames <= 0 && item.getCurrentFrameSetName().equals("ItemStandFrameSet") &&
+			if (--item.startInvFrames <= 0 && item.getCurrentFrameSetName().equals("StandFrameSet") &&
 					(MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM) ||
 					 MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.EXPLOSION)))
 						item.destroy();
-			else if (!item.getCurrentFrameSetName().equals("ItemStandFrameSet") && !item.getCurrentFrameSet().isRunning())
+			else if (!item.getCurrentFrameSetName().equals("StandFrameSet") && !item.getCurrentFrameSet().isRunning())
 				removeItem(item);
 			else
 				item.run();
@@ -203,7 +215,10 @@ public class Item extends Entity {
 
 	public void destroy() {
 		removeItem(this);
-		Effect.runEffect(getPosition(), "FIRE_SKULL_EXPLOSION");
+		if (getItemType() == ItemType.CURSE_SKULL)
+			Item.addItem(getTileCoordFromCenter(), ItemType.CURSE_SKULL, true);
+		else
+			Effect.runEffect(getPosition(), "FireSkullExplosion");
 	}
 
 	@Override
@@ -218,7 +233,7 @@ public class Item extends Entity {
 			if (!items.containsKey(coord))
 				items.put(coord, this);
 		}
-		if (getCurrentFrameSetName().equals("ItemStandFrameSet") && Entity.haveAnyEntityAtCoord(coord))
+		if (getCurrentFrameSetName().equals("StandFrameSet") && Entity.haveAnyEntityAtCoord(coord))
 			for (Entity entity : Entity.getEntityListFromCoord(coord))
 				if (entity instanceof BomberMan)
 						((BomberMan)entity).pickItem(this);
@@ -229,8 +244,8 @@ public class Item extends Entity {
 			itemType = ItemType.getRandom();
 			setUpItemPickUpFrameSet();
 		}
-		if (getCurrentFrameSetName().equals("ItemStandFrameSet")) {
-			setFrameSet("ItemPickedUpFrameSet");
+		if (getCurrentFrameSetName().equals("StandFrameSet")) {
+			setFrameSet("PickedUpFrameSet");
 			if (itemType.getSound() == null || itemType.getSoundDelay() > 0)
 				Sound.playWav("ItemPickUp");
 			if (itemType.getSound() != null)
@@ -287,7 +302,7 @@ public class Item extends Entity {
 		Sound.playWav("ItemBounce");
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		items.put(coord, this);
-		setFrameSet("ItemStandFrameSet");
+		setFrameSet("StandFrameSet");
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
 	}
 

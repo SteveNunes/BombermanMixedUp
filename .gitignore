@@ -24,8 +24,8 @@ hs_err_pid*
 
 # My Stuffs #
 /bin/
-/appdata/savegame/
-/appdata/maps2/
+./appdata/savegame/
+./appdata/maps2/
 /src/Backup/
 /src/Config/
 /.settings/

@@ -34,6 +34,12 @@ public abstract class FrameTag {
 		return validateStringTags(clazz, tags, -1);
 	}
 
+	/*
+	 * PRE_CARREGAR OS FRAMESETS
+	 * ITEM NAO TA ALTERANDO IMAGEM
+	 * 
+	 */
+	
 	static <T> String[] validateStringTags(T clazz, String tags, int totalParams) {
 		String thisClass = getClassName(clazz);
 		if (tags.length() < thisClass.length() + 2 || tags.charAt(0) != '{' || tags.charAt(tags.length() - 1) != '}')
