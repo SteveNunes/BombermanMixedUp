@@ -229,6 +229,7 @@ public class MapEditor {
 	private int bomberColor;
 	private TileCoord hoveredInitialCoord;
 	private Layer copyLayer;
+	private int clickToSetNewInitialCoord;
 
 	public void init() {
 		canvasMouseDraw = new CanvasMouse(true);
@@ -245,6 +246,7 @@ public class MapEditor {
 		controlledBomberIndex = 0;
 		bomberColor = -1;
 		playing = false;
+		clickToSetNewInitialCoord = -1;
 		editable = true;
 		pathFinder = null;
 		copyLayer = null;
@@ -274,8 +276,10 @@ public class MapEditor {
 
 	void setAllCanvas() {
 		canvasList = new Canvas[] { canvasBrickStand, canvasBrickBreaking, canvasBrickRegen, canvasWallSprite, canvasGroundSprite, canvasGroundWithWallShadow, canvasGroundWithBrickShadow, canvasRollingTile };
-		for (Canvas canvas : canvasList)
+		for (Canvas canvas : canvasList) {
 			canvas.getGraphicsContext2D().setImageSmoothing(false);
+			canvas.getParent().requestFocus();
+		}
 		gcMain = canvasMain.getGraphicsContext2D();
 		gcMain.setImageSmoothing(false);
 	}
@@ -812,6 +816,7 @@ public class MapEditor {
 		scrollPane.setPrefSize(w, h);
 		scrollPane.setMaxSize(w, h);
 		hBoxTileSet.getChildren().add(scrollPane);
+		scrollPane.requestFocus();
 		setTileSetCanvasMouseEvents();
 	}
 
@@ -904,6 +909,15 @@ public class MapEditor {
 				contextMenu.hide();
 				return;
 			}
+			if (clickToSetNewInitialCoord != -1) {
+				int n = clickToSetNewInitialCoord >= 1000 ? clickToSetNewInitialCoord - 1000 : clickToSetNewInitialCoord;
+				if (clickToSetNewInitialCoord < 1000)
+					MapSet.getInitialPlayerPositions().set(n, canvasMouseDraw.tileCoord.getNewInstance());
+				else
+					MapSet.getInitialMonsterPositions().set(n, canvasMouseDraw.tileCoord.getNewInstance());
+				clickToSetNewInitialCoord = -1;
+				return;
+			}
 			if (e.getButton() == MouseButton.PRIMARY && !isAltHold()) {
 				selection = null;
 				if (editable && isNoHolds())
@@ -927,10 +941,6 @@ public class MapEditor {
 		canvasMain.setOnMouseClicked(e -> {
 			alreadySetTiles.clear();
 			canvasMouseDraw.tileCoord.setCoords(((int) e.getX() - offsetX()) / (Main.TILE_SIZE * zoomMain), ((int) e.getY() - offsetY()) / (Main.TILE_SIZE * zoomMain));
-			if (e.getButton() == MouseButton.PRIMARY) {
-				if (playing && isAltHold() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord))
-					Bomb.addBomb(new Bomb(null, canvasMouseDraw.tileCoord, BombType.NORMAL, 5));
-			}
 		});
 	}
 
@@ -1059,7 +1069,6 @@ public class MapEditor {
 	}
 
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
-		BomberMan bomber = getCurrentBomber();
 		Draw.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, offsetX(), offsetY());
 
 		if (pathFinder != null) {
@@ -1126,7 +1135,7 @@ public class MapEditor {
 				GraphicsContext gc = rect == selection ? gcMain : gcTileSet;
 				gc.setStroke(Misc.blink(50) ? Color.GREEN : Color.YELLOW);
 				int z = rect == selection ? zoomMain : zoomTileSet, x = (int) rect.getMinX() * Main.TILE_SIZE * z, y = (int) rect.getMinY() * Main.TILE_SIZE * z, w = (int) rect.getWidth() * Main.TILE_SIZE * z, h = (int) rect.getHeight() * Main.TILE_SIZE * z;
-				gc.strokeRect(x + offsetX(), y + offsetY(), w, h);
+				gc.strokeRect(x + (rect == selection ? offsetX() : 0), y + (rect == selection ? offsetY() : 0), w, h);
 			}
 		});
 	}
@@ -1245,7 +1254,18 @@ public class MapEditor {
 				menuItem.setDisable(list.contains(coord));
 				menu2.getItems().add(menuItem);
 				menuItem.setOnAction(e -> list.remove(coord));
-				Menu menu3 = new Menu("Remover da lista geral");
+				Menu menu3 = new Menu("Editar da lista geral");
+				menu2.getItems().add(menu3);
+				for (TileCoord t : list) {
+					Label label = new Label(t.toString());
+					CustomMenuItem cMenuItem = new CustomMenuItem(label);
+					final int n3 = list.indexOf(t) + 1000 * n;
+					cMenuItem.setOnAction(e -> clickToSetNewInitialCoord = n3);
+					label.setOnMouseEntered(e -> hoveredInitialCoord = t.getNewInstance());
+					label.setOnMouseExited(e -> hoveredInitialCoord = null);
+					menu3.getItems().add(cMenuItem);
+				}
+				menu3 = new Menu("Remover da lista geral");
 				menu2.getItems().add(menu3);
 				for (TileCoord t : list) {
 					Label label = new Label(t.toString());
