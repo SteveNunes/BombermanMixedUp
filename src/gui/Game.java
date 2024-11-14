@@ -1,11 +1,12 @@
 package gui;
 
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
 import application.Main;
 import entities.BomberMan;
+import entities.CpuPlay;
+import enums.CpuDificult;
 import enums.GameInput;
 import enums.GameInputMode;
 import javafx.application.Platform;
@@ -16,14 +17,13 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import maps.MapSet;
-import objmoveutils.Position;
-import objmoveutils.TileCoord;
 import player.Player;
 import tools.Draw;
 import tools.Tools;
@@ -38,7 +38,6 @@ public class Game {
 	@FXML
 	private Canvas canvasMain;
 	private GraphicsContext gcMain;
-	private Position canvasTileCoord;
 	private Font font;
 
 	public void init() {
@@ -48,7 +47,6 @@ public class Game {
 		gcMain = canvasMain.getGraphicsContext2D();
 		gcMain.setImageSmoothing(false);
 		holdedKeys = new ArrayList<>();
-		canvasTileCoord = new Position();
 		setEvents();
 		BomberMan.addBomberMan(1, 0);
 		Player.addPlayer();
@@ -58,10 +56,9 @@ public class Game {
 		mainLoop();
 	}
 
-	private Integer[] setInputKeys = new Integer[] {
-			KeyEvent.VK_F1, KeyEvent.VK_F2, KeyEvent.VK_F3, KeyEvent.VK_F4, 
-			KeyEvent.VK_F5, KeyEvent.VK_F6, KeyEvent.VK_F7, KeyEvent.VK_F8, 
-			KeyEvent.VK_F9, KeyEvent.VK_F10, KeyEvent.VK_F11, KeyEvent.VK_F12};
+	static KeyCode[] setInputKeys = new KeyCode[] {
+			KeyCode.F1, KeyCode.F2, KeyCode.F3, KeyCode.F4, KeyCode.F5, KeyCode.F6,
+			KeyCode.F7, KeyCode.F8, KeyCode.F9, KeyCode.F10, KeyCode.F11, KeyCode.F12};
 	
 	void setEvents() {
 		Main.sceneMain.setOnKeyPressed(e -> {
@@ -70,33 +67,42 @@ public class Game {
 			if (e.getCode() == KeyCode.ESCAPE)
 				Main.close();
 			for (int n = 0; n < setInputKeys.length; n++)
-				if (e.getCode().getCode() == setInputKeys[n])					
-					openInputSetup(n, canvasTileCoord.getTileCoord());
+				if (e.getCode() == setInputKeys[n])					
+					openInputSetup(n);
 		});
 		Main.sceneMain.setOnKeyReleased(e -> {
 			Player.convertOnKeyReleaseEvent(e);
 			holdedKeys.add(e.getCode());
 		});
-		canvasMain.setOnMouseMoved(e -> canvasTileCoord.setPosition((e.getX() + 32 * ZOOM) / ZOOM, (e.getY() + 32 * ZOOM) / ZOOM));
 	}
 	
-	private void openInputSetup(int n, TileCoord coord) {
+	static void openInputSetup(int n) {
 		BomberMan bomber;
 		while (n >= Player.getTotalPlayers())
 			Player.addPlayer();
 		Player player = Player.getPlayer(n);
 		if ((bomber = player.getBomberMan()) == null) {
 			bomber = BomberMan.addBomberMan(1, BomberMan.getTotalBomberMans());
-			bomber.setPosition(coord.getPosition());
+			bomber.setPosition(MapSet.getInitialPlayerPosition(BomberMan.getTotalBomberMans() - 1));
 			player.setBomberMan(bomber);
 		}
 		Stage stage = new Stage();
 		stage.setTitle("Input config (Player " + (n + 1) + ")");
 		VBox vBox = new VBox();
 		Scene scene = new Scene(vBox);
+		GameInputMode prevInputMode = player.getInputMode();
 		scene.setOnKeyPressed(e -> {
-			if (player.getInputMode() == GameInputMode.DETECTING)
+			if (e.getCode() == KeyCode.ESCAPE) {
+				TimerFX.stopTimer("WaitForDevice");
+				player.setOnPressInputEvent(null);
+				player.setMappingMode(false);
+				player.setInputMode(prevInputMode);
+				stage.close();
+			}
+			else if (player.isDetectingInput()) {
 				player.setInputMode(GameInputMode.KEYBOARD);
+				player.setDetectingInput(false);
+			}
 			else
 				player.pressInput(e.getCode().getCode(), e.getCode().getName());
 		});
@@ -104,11 +110,11 @@ public class Game {
 		vBox.setPrefSize(400, 240);
 		vBox.setPadding(new Insets(10, 10, 10, 10));
 		vBox.setAlignment(Pos.TOP_CENTER);
-		Text text = new Text("Pressione um botão para\nidentificar o dispositivo...");
+		Text text = new Text("Pressione um botão para\nidentificar o dispositivo,\nou pressione ESC para\nmanter configuração atual.");
 		text.setFont(new Font("Lucida Console", 20));
 		text.setTextAlignment(TextAlignment.CENTER);
 		vBox.getChildren().add(text);
-		Text[] texts = {new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text("")};
+		Text[] texts = {new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text(""), new Text("")};
 		for (Text t : texts) {
 			t.setFont(new Font("Lucida Console", 15));
 			t.setTextAlignment(TextAlignment.LEFT);
@@ -119,7 +125,7 @@ public class Game {
 		int[] nextText = { 0 };
 		GameInput[] inputs = GameInput.values();
 		TimerFX.createTimer("WaitForDevice", 20, 0, () -> {
-			if (player.getInputMode() != GameInputMode.DETECTING) {
+			if (!player.isDetectingInput()) {
 				String str;
 				if (player.getInputMode() == GameInputMode.XINPUT)
 					str = player.getXinputDevice().getJoystickName(); 
@@ -138,18 +144,25 @@ public class Game {
 				if (player.getNextMappingInput() != null && !done[0] && z == nextText[0])
 					texts[z].setText("Pressione para definir: " + player.getNextMappingInput().name());
 				else if (z < 10)
-					texts[z].setText(inputs[z] + " = " + (!player.getButtonInfosMap().containsKey(inputs[z]) ? "-" : player.getButtonInfosMap().get(inputs[z]).getName()));
+					texts[z].setText(inputs[z].getName() + " = " + (!player.getButtonInfosMap().containsKey(inputs[z]) ? "-" : player.getButtonInfosMap().get(inputs[z]).getName()));
 			}
 			if (done[0]) {
 				player.setOnPressInputEvent(null);
 				stage.close();
 			}
 			else if (player.getNextMappingInput() == null) {
-				texts[10].setText("\nConfiguração concluida!");
+				texts[texts.length - 1].setText("\nConfiguração concluida!");
 				done[0] = true;
 			}
 		});
-		stage.setOnCloseRequest(e -> player.setMappingMode(false));
+		stage.setOnCloseRequest(e -> {
+			player.setMappingMode(false);
+			TimerFX.stopTimer("WaitForDevice");
+			if (player.isDetectingInput()) {
+				player.setInputMode(GameInputMode.CPU);
+				player.getBomberMan().setCpuPlay(new CpuPlay(player.getBomberMan(), CpuDificult.EASY));
+			}
+		});
 		stage.showAndWait();
 	}
 
@@ -192,5 +205,11 @@ public class Game {
 	}
 
 	void close() {}
+
+	public static void checkFunctionKeys(KeyEvent e) {
+		for (int n = 0; n < setInputKeys.length; n++)
+			if (e.getCode() == setInputKeys[n])					
+				Game.openInputSetup(n);
+	}
 
 }

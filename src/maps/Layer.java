@@ -306,7 +306,7 @@ public class Layer {
 		tilesTags.remove(coord);
 		int x = coord.getX() * Main.TILE_SIZE, y = coord.getY() * Main.TILE_SIZE;
 		FrameSet frameSet = new FrameSet(new Position(x, y));
-		frameSet.loadFromString(stringTileTags);
+		frameSet.loadFromString(frameSet.getSourceEntity(), stringTileTags);
 		frameSet.getSprite(0).setOutputSpritePos(new Rectangle(x, y, 0, 0));
 		tilesTags.put(coord.getNewInstance(), frameSet);
 	}

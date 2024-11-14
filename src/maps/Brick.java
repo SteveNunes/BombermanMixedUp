@@ -47,7 +47,7 @@ public class Brick extends Entity {
 		Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet", "BrickRollingFrameSet").forEach(frameSet -> {
 			String s = MapSet.getTileSetIniFile().read("CONFIG", frameSet);
 			if (s != null) {
-				addNewFrameSetFromIniFile(frameSet, MapSet.getTileSetIniFile().fileName(), "CONFIG", frameSet);
+				addNewFrameSetFromIniFile(this, frameSet, MapSet.getTileSetIniFile().fileName(), "CONFIG", frameSet);
 				if (s.equals("BrickBreakFrameSet"))
 					getFrameSet(frameSet).getFrameSetTagsFrom(0).addTagsFromString("{SetSprFrontValue;2}");
 			}
@@ -238,6 +238,7 @@ public class Brick extends Entity {
 				setShake(2d, -0.05, 0d);
 				unsetGhosting();
 				bricks.put(getTileCoordFromCenter(), this);
+				setBrickShadow();
 				TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction);
 				if (haveBrickAt(coord))
 					Brick.getBrickAt(coord).kick(direction, speed, kickSound, slamSound);
@@ -256,7 +257,7 @@ public class Brick extends Entity {
 	@Override
 	public void onBeingHoldEvent(Entity holder) {
 		removeThisFromTile(getTileCoordFromCenter());
-		Tile.removeTileShadow(getTileCoordFromCenter().getNewInstance().incCoordsByDirection(Direction.DOWN));
+		unsetBrickShadow();
 	}
 
 	private void removeThisFromTile(TileCoord coord) {
@@ -267,21 +268,25 @@ public class Brick extends Entity {
 	@Override
 	public void onSetPushEntityTrigger() {
 		removeThisFromTile(getTileCoordFromCenter());
+		unsetBrickShadow();
 	}
 
 	@Override
 	public void onSetGotoMoveTrigger() {
 		removeThisFromTile(getTileCoordFromCenter());
+		unsetBrickShadow();
 	}
 	
 	@Override
 	public void onSetJumpMoveTrigger() {
 		removeThisFromTile(getTileCoordFromCenter());
+		unsetBrickShadow();
 	}
 
 	@Override
 	public void onPushEntityStop() {
 		bricks.put(getTileCoordFromCenter(), this);
+		setBrickShadow();
 	}
 
 	@Override

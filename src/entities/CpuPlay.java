@@ -67,17 +67,20 @@ public class CpuPlay {
 	public void run() {
 		if (!bomberMan.isBlockedMovement()) {
 			// Se estiver em um tile perigoso, tenta encontrar uma forma de sair dele
-			if (isOverDangerTile()) {
+			if (!isStucked() && isOverDangerTile()) {
 				pauseInFrames = 0;
 				return;
 			}
 			if (pauseInFrames > 0)
 				pauseInFrames--;
+			else if (isStucked()) {
+				releaseAllInputs();
+				setPathFinder(null); // Se o PathFinder local estiver ativo, mas o personagem estiver preso, desativa o PathFinder local.
+				if (isInvencible()) // Se tiver preso e invencivel, soltar uma bomba para tentar se desprender
+					pressButton(GameInput.B);
+			}
 			else if (!isMoving() || isPerfectlyBlockedDir() || tileWasChanged()) {
 				releaseAllInputs();
-				// Se o PathFinder local estiver ativo, mas a próxima direção estiver bloqueada, desativa o PathFinder local.
-				if (Tools.getFreeDirections(bomberMan, getCurrentTileCoord()) == null)
-					setPathFinder(null);
 				// Se o PathFinder local estiver ativo, vira e anda para a próxima direção designada pelo PathFinder
 				if (tileWasChanged() && getPathFinder() != null) {
 					Direction dir = getPathFinder().getNextDirectionToGoAndRemove();
@@ -117,6 +120,16 @@ public class CpuPlay {
 				goToRandomFreeDir();
 			}
 		}
+	}
+
+	private boolean isStucked() {
+		List<TileCoord> coords = Tools.getFreeTileCoordsAround(bomberMan, getCurrentTileCoord());
+		if (coords == null)
+			return true;
+		for (TileCoord coord : coords)
+			if (tileIsHalfSafe(coord))
+				return false;
+		return true;
 	}
 
 	private boolean isOverDangerTile() {
@@ -278,11 +291,9 @@ public class CpuPlay {
 		boolean haveGlove = bomberMan.haveItem(ItemType.POWER_GLOVE);
 		boolean haveHyperGlove = bomberMan.haveItem(ItemType.HYPER_GLOVE);
 		boolean haveAnyGlove = haveGlove || haveHyperGlove;
-		return bomberMan.getMaxBombs() > 0 &&
-				tileIsSafe(getCurrentTileCoord()) &&
+		return bomberMan.getMaxBombs() > 0 && !Bomb.haveBombAt(getCurrentTileCoord()) && tileIsSafe(getCurrentTileCoord()) &&
 				(!haveAnyGlove || !Entity.haveAnyEntityAtCoord(getCurrentTileCoord(), bomberMan)) &&
-				(!haveHyperGlove || !Brick.haveBrickAt(getCurrentTileCoord())) &&
-				(!haveAnyGlove || !Bomb.haveBombAt(getCurrentTileCoord()));
+				(!haveHyperGlove || !Brick.haveBrickAt(getCurrentTileCoord()));
 	}
 
 	private void pressButton(GameInput button) {

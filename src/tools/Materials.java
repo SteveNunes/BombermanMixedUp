@@ -152,20 +152,19 @@ public abstract class Materials {
 	}
 	
 	private static void loadFrameSets() {
-		Entity entity = new Entity();
 		IniFiles.characters.getSectionList().forEach(section -> new BomberMan(0, Integer.parseInt(section), 0));
 		IniFiles.frameSets.getSectionList().forEach(section -> {
-			IniFiles.frameSets.getItemList(section).forEach(item -> {
-				entity.addNewFrameSetFromIniFile(item, IniFiles.frameSets.fileName(), section, item);
-			});
+			Entity entity = new Entity();
+			IniFiles.frameSets.getItemList(section).forEach(item ->
+				entity.addNewFrameSetFromIniFile(entity, item, IniFiles.frameSets.fileName(), section, item));
 		});
 		FindFile.findFile("./appdata/tileset/","*.tiles").forEach(file -> {
-			Entity entity2 = new Entity();
+			Entity entity = new Entity();
 			IniFile ini = IniFile.getNewIniFileInstance(file.getAbsolutePath());
 			if (ini.sectionExists("CONFIG"))
 				ini.getItemList("CONFIG").forEach(item -> {
 					if (item.contains("FrameSet"))
-						entity2.addNewFrameSetFromIniFile(item, ini.fileName(), "CONFIG", item);
+						entity.addNewFrameSetFromIniFile(entity, item, ini.fileName(), "CONFIG", item);
 				});
 			ini.closeFile();
 		});

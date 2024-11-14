@@ -14,13 +14,11 @@ import entityTools.PushEntity;
 import enums.BombType;
 import enums.Curse;
 import enums.Direction;
+import enums.Elevation;
 import enums.FindType;
 import enums.PassThrough;
 import enums.TileProp;
-import frameset.Frame;
 import frameset.FrameSet;
-import frameset.Tags;
-import frameset_tags.FrameTag;
 import frameset_tags.SetSprSource;
 import frameset_tags.SetTicksPerFrame;
 import javafx.scene.canvas.GraphicsContext;
@@ -90,8 +88,27 @@ public class Bomb extends Entity {
 		this.owner = owner;
 		timer = type == BombType.SENSOR || type == BombType.REMOTE || type == BombType.SPIKED_REMOTE ? -1 : 180;
 		curseMulti = 1;
-		int ticksPerFrame = type == BombType.LAND_MINE ? 3 : 16;
 		ownerIsOver = owner != null && owner.getTileCoordFromCenter().equals(coord);
+		if (type == BombType.LAND_MINE) {
+			addNewFrameSetFromIniFile(this, "LandingFrames", "FrameSets", "LAND_MINE_BOMB", "LandingFrames");
+			addNewFrameSetFromIniFile(this, "LandedFrames", "FrameSets", "LAND_MINE_BOMB", "LandedFrames");
+			addNewFrameSetFromIniFile(this, "UnlandingFrames", "FrameSets", "LAND_MINE_BOMB", "UnlandingFrames");
+			setFrameSet("LandingFrames");
+		}
+		else {
+			addNewFrameSetFromIniFile(this, "StandFrames", "FrameSets", "BOMB", "StandFrames");
+			addNewFrameSetFromIniFile(this, "JumpingFrames", "FrameSets", "BOMB", "JumpingFrames");
+			setFrameSet("StandFrames");
+		}
+		setPosition(coord.getPosition());
+		setPassThroughItem(true);
+		setDangerMarks(timer == -1 ? TileProp.CPU_DANGER_2 : TileProp.CPU_DANGER);
+	}
+	
+	@Override
+	public void setFrameSet(String frameSetName) {
+		super.setFrameSet(frameSetName);
+		int ticksPerFrame = type == BombType.LAND_MINE ? 3 : 16;
 		if (owner != null) {
 			if (owner instanceof BomberMan) {
 				if (((BomberMan) owner).getCurse() == Curse.SLOW_EXPLODE_BOMB) {
@@ -108,34 +125,15 @@ public class Bomb extends Entity {
 				}
 			}
 		}
-		int y = 16 * type.getValue();
-		if (type == BombType.LAND_MINE) {
-			addNewFrameSetFromIniFile("LandingFrames", "FrameSets", "LAND_MINE_BOMB", "LandingFrames");
-			setFrameSet("LandingFrames");
-			addNewFrameSetFromIniFile("LandedFrames", "FrameSets", "LAND_MINE_BOMB", "LandedFrames");
-			addNewFrameSetFromIniFile("UnlandingFrames", "FrameSets", "LAND_MINE_BOMB", "UnlandingFrames");
-		}
-		else {
-			addNewFrameSetFromIniFile("StandFrames", "FrameSets", "BOMB", "StandFrames");
-			setFrameSet("StandFrames");
-			addNewFrameSetFromIniFile("JumpingFrames", "FrameSets", "BOMB", "JumpingFrames");
-			for (FrameSet frameSet : getFrameSets()) {
-				Tags tags = frameSet.getFrameSetTagsFrom(0);
-				for (FrameTag tag : tags.getTags())
-					if (tag instanceof SetSprSource)
-						((SetSprSource)tag).originSprSizePos.setLocation(0, y);
-			}
-		}
-		setPosition(coord.getPosition());
-		setPassThroughItem(true);
-		setDangerMarks(timer == -1 ? TileProp.CPU_DANGER_2 : TileProp.CPU_DANGER);
-		for (FrameSet frameSet : getFrameSets()) {
-			for (Frame frame : frameSet.getFrames())
-				for (Tags tags : frame.getFrameSetTagsList())
-					for (FrameTag tag : tags.getTags())
-						if (tag instanceof SetTicksPerFrame)
-							((SetTicksPerFrame)tag).value = ticksPerFrame;
-		}
+		final int tpf = ticksPerFrame;
+		final int y = 16 * type.getValue();
+		for (FrameSet frameSet : getFrameSets())
+			frameSet.changeTagValues(tag -> {
+				if (tag instanceof SetSprSource)
+					((SetSprSource)tag).originSprSizePos.y = y;
+				if (tag instanceof SetTicksPerFrame)
+					((SetTicksPerFrame)tag).value = tpf;
+			});
 	}
 
 	public boolean isStucked() {
@@ -192,20 +190,21 @@ public class Bomb extends Entity {
 	}
 
 	public static void removeBomb(Bomb bomb) {
-		removeBomb(bomb.getTileCoordFromCenter());
+		if (bomb != null) {
+			if (bomb.dangerMarked || bomb.dangerMarked2)
+				TimerFX.createTimer("removeMarkTilesAsDanger-" + bomb.hashCode(), 1000, () -> {
+					if (bomb.dangerMarked)
+						bomb.removeDangerMarks(TileProp.CPU_DANGER);
+					if (bomb.dangerMarked2)
+						bomb.removeDangerMarks(TileProp.CPU_DANGER_2);
+				});
+			bombList.remove(bomb);
+			bombs.remove(bomb.getTileCoordFromCenter());
+		}
 	}
 
 	public static void removeBomb(TileCoord coord) {
-		final Bomb bomb = bombs.get(coord);
-		if (bomb.dangerMarked || bomb.dangerMarked2)
-			TimerFX.createTimer("removeMarkTilesAsDanger-" + bomb.hashCode(), 1000, () -> {
-				if (bomb.dangerMarked)
-					bomb.removeDangerMarks(TileProp.CPU_DANGER);
-				if (bomb.dangerMarked2)
-					bomb.removeDangerMarks(TileProp.CPU_DANGER_2);
-			});
-		bombList.remove(bombs.get(coord));
-		bombs.remove(coord);
+		removeBomb(getBombAt(coord));
 	}
 
 	public static void clearBombs() {
@@ -510,12 +509,13 @@ public class Bomb extends Entity {
 
 	@Override
 	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {
-		if (getBombType() == BombType.RUBBER && MyMath.getRandom(1, 5) != 1) {
+		checkOutScreenCoords();
+		centerToTile();
+		if (getBombType() == BombType.RUBBER && (int)MyMath.getRandom(1, 5) != 1) {
+			setElevation(Elevation.FLYING);
 			onJumpFallAtOccupedTileEvent(jumpMove);
 			return;
 		}
-		checkOutScreenCoords();
-		centerToTile();
 		if (checkEntitiesAbove()) {
 			onJumpFallAtOccupedTileEvent(jumpMove);
 			return;

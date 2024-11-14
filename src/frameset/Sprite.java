@@ -61,7 +61,7 @@ public class Sprite extends Position {
 
 	public Sprite(Sprite sprite, FrameSet mainFrameSet) {
 		super(sprite);
-		this.sourceFrameSet = mainFrameSet;
+		sourceFrameSet = mainFrameSet;
 		originSpriteSizePos = new Rectangle(sprite.originSpriteSizePos);
 		outputSpriteSizePos = new Rectangle(sprite.outputSpriteSizePos);
 		spriteEffects = new DrawImageEffects(sprite.spriteEffects);
@@ -399,7 +399,7 @@ public class Sprite extends Position {
 	}
 
 	public void setOutputSpritePos(Rectangle outputSpriteSizePos) {
-		this.outputSpriteSizePos.setBounds((int) outputSpriteSizePos.getX(), (int) outputSpriteSizePos.getY(), (int) outputSpriteSizePos.getWidth(), (int) outputSpriteSizePos.getHeight());
+		this.outputSpriteSizePos.setBounds(outputSpriteSizePos);
 		setPosition(outputSpriteSizePos.getX(), outputSpriteSizePos.getY());
 		updateOutputDrawCoords();
 	}
@@ -457,7 +457,7 @@ public class Sprite extends Position {
 	}
 
 	public void setOriginSpritePos(Rectangle originSpriteSizePos) {
-		this.originSpriteSizePos.setBounds((int) originSpriteSizePos.getX(), (int) originSpriteSizePos.getY(), (int) originSpriteSizePos.getWidth(), (int) originSpriteSizePos.getHeight());
+		this.originSpriteSizePos.setBounds(originSpriteSizePos);
 	}
 
 	public int getOutputWidth() {
@@ -513,7 +513,7 @@ public class Sprite extends Position {
 		return sourceFrameSet;
 	}
 
-	public void setMainFrameSet(FrameSet frameSet) {
+	public void setSourceFrameSet(FrameSet frameSet) {
 		sourceFrameSet = frameSet;
 	}
 

@@ -1,6 +1,5 @@
 package player;
 
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +9,7 @@ import java.util.function.Consumer;
 import entities.BomberMan;
 import enums.GameInput;
 import enums.GameInputMode;
+import javafx.scene.input.KeyCode;
 import joystick.JInputEX;
 import joystick.JXInputEX;
 import util.IniFile;
@@ -21,8 +21,8 @@ import util.IniFile;
  * Pegue um Player com 'Player player = Player.getPlayer(0)';
  * 
  * Se não for teclado, use um dos 2 métodos abaixo:
- * 		'player.setXinputDevice(JXInputEX xinput);'
- * 		'player.setDinputDevice(JInputEX dinput);'
+ * 		'player.setXInputDevice(JXInputEX xinput);'
+ * 		'player.setDInputDevice(JInputEX dinput);'
  * 
  * Use o método 'player.setGameInputMode();' para definir o tipo de entrada.
  * 
@@ -48,20 +48,26 @@ public class Player {
 	private Consumer<enums.GameInput> onPressInputEvent;
 	private Consumer<enums.GameInput> onReleaseInputEvent;
 	private Map<GameInputMode, Map<enums.GameInput, ButtonInfos>> buttonsInfos;
-	private JXInputEX xinputDevice;
-	private JInputEX dinputDevice;
+	private JXInputEX xInputDevice;
+	private JInputEX dInputDevice;
 	private GameInputMode inputMode;
 	private BomberMan bomberMan;
 	private int mappingIndex;
+	private int dInputDeviceId;
+	private int xInputDeviceId;
+	boolean isDetectingInput;
 	
 	private Player(int playerId) {
 		this.playerId = playerId;
-		xinputDevice = null;
-		dinputDevice = null;
+		xInputDevice = null;
+		dInputDevice = null;
+		dInputDeviceId = -1;
+		xInputDeviceId = -1;
 		inputMode = GameInputMode.KEYBOARD;
 		bomberMan = null;
 		onPressInputEvent = null;
 		onReleaseInputEvent = null;
+		isDetectingInput = false;
 		xinputButtonToGameInputMap = new HashMap<>();
 		xinputGameInputToButtonMap = new HashMap<>();
 		dinputButtonToGameInputMap = new HashMap<>();
@@ -73,16 +79,18 @@ public class Player {
 		loadConfigs();
 		// Teclas padrão do jogador 1
 		if (playerId == 0 && keyboardKeyToGameInputMap.isEmpty()) {
-			mapGameInput(KeyEvent.VK_A, GameInput.LEFT, "Left");
-			mapGameInput(KeyEvent.VK_W, GameInput.UP, "Up");
-			mapGameInput(KeyEvent.VK_D, GameInput.RIGHT, "Right");
-			mapGameInput(KeyEvent.VK_S, GameInput.DOWN, "Down");
-			mapGameInput(KeyEvent.VK_ENTER, GameInput.START, "Enter");
-			mapGameInput(KeyEvent.VK_SPACE, GameInput.SELECT, "Space");
-			mapGameInput(KeyEvent.VK_DELETE, GameInput.A, "Delete");
-			mapGameInput(KeyEvent.VK_END, GameInput.B, "End");
-			mapGameInput(KeyEvent.VK_INSERT, GameInput.C, "Insert");
-			mapGameInput(KeyEvent.VK_HOME, GameInput.D, "Home");
+			mapGameInput(KeyCode.A.getCode(), GameInput.LEFT, KeyCode.A.getName());
+			mapGameInput(KeyCode.W.getCode(), GameInput.UP, KeyCode.W.getName());
+			mapGameInput(KeyCode.D.getCode(), GameInput.RIGHT, KeyCode.D.getName());
+			mapGameInput(KeyCode.S.getCode(), GameInput.DOWN, KeyCode.S.getName());
+			mapGameInput(KeyCode.ENTER.getCode(), GameInput.START, KeyCode.ENTER.getName());
+			mapGameInput(KeyCode.SPACE.getCode(), GameInput.SELECT, KeyCode.SPACE.getName());
+			mapGameInput(KeyCode.DELETE.getCode(), GameInput.A, KeyCode.DELETE.getName());
+			mapGameInput(KeyCode.END.getCode(), GameInput.B, KeyCode.END.getName());
+			mapGameInput(KeyCode.INSERT.getCode(), GameInput.C, KeyCode.INSERT.getName());
+			mapGameInput(KeyCode.HOME.getCode(), GameInput.D, KeyCode.HOME.getName());
+			mapGameInput(KeyCode.PAGE_UP.getCode(), GameInput.E, KeyCode.PAGE_UP.getName());
+			mapGameInput(KeyCode.PAGE_DOWN.getCode(), GameInput.F, KeyCode.PAGE_DOWN.getName());
 		}
 	}
 	
@@ -92,6 +100,10 @@ public class Player {
 
 	public void setInputMode(GameInputMode inputMode) {
 		this.inputMode = inputMode;
+		if (inputMode == GameInputMode.XINPUT && xInputDevice != null)
+			setXInputDevice(xInputDevice);
+		else if (inputMode == GameInputMode.DINPUT && dInputDevice != null)
+			setDInputDevice(dInputDevice);
 	}
 
 	public static int getTotalPlayers() {
@@ -120,34 +132,58 @@ public class Player {
 	}
 
 	public JXInputEX getXinputDevice() {
-		return xinputDevice;
+		return xInputDevice;
 	}
 
 	public JInputEX getDinputDevice() {
-		return dinputDevice;
+		return dInputDevice;
 	}
 
-	public void setXinputDevice(JXInputEX xinputDevice) {
-		this.dinputDevice = null;
-		this.xinputDevice = xinputDevice;
-		setInputMode(GameInputMode.XINPUT);
-		this.xinputDevice.setOnPressAnyComponentEvent((i, s) -> pressInput(i, s));
-		this.xinputDevice.setOnReleaseAnyComponentEvent((i, l) -> releaseInput(i.getKey(), i.getValue()));
+	public void setXInputDeviceId(int xInputDeviceId) {
+		this.xInputDeviceId = xInputDeviceId;
+		setXInputDevice(player.GameInput.getXinput(xInputDeviceId));
 	}
 
-	public void setDinputDevice(JInputEX dinputDevice) {
-		this.xinputDevice = null;
-		this.dinputDevice = dinputDevice;
-		setInputMode(GameInputMode.DINPUT);
-		this.dinputDevice.setOnPressComponentEvent((j, c) -> pressInput(c.getButtonId(), c.getName()));
-		this.dinputDevice.setOnReleaseComponentEvent((j, c) -> releaseInput(c.getButtonId(), c.getName()));
+	public void setXInputDevice(JXInputEX xInputDevice) {
+		this.xInputDevice = xInputDevice;
+		xInputDeviceId = xInputDevice == null ? -1 : player.GameInput.getXInputId(xInputDevice);
+		if (xInputDevice != null) {
+			inputMode = GameInputMode.XINPUT;
+			this.xInputDevice.setOnPressAnyComponentEvent((i, s) -> pressInput(i, s));
+			this.xInputDevice.setOnReleaseAnyComponentEvent((i, l) -> releaseInput(i.getKey(), i.getValue()));
+			if (dInputDevice != null) {
+				dInputDevice.setOnPressComponentEvent(null);
+				dInputDevice.setOnReleaseComponentEvent(null);
+			}
+		}
+	}
+	
+	public void setDInputDeviceId(int dInputDeviceId) {
+		this.dInputDeviceId = dInputDeviceId;
+		setDInputDevice(player.GameInput.getDinput(dInputDeviceId));
+	}
+
+	public void setDInputDevice(JInputEX dInputDevice) {
+		this.dInputDevice = dInputDevice;
+		dInputDeviceId = dInputDevice == null ? -1 : player.GameInput.getDInputId(dInputDevice);
+		if (dInputDevice != null) {
+			inputMode = GameInputMode.DINPUT;
+			this.dInputDevice.setOnPressComponentEvent((j, c) -> pressInput(c.getComponentId(), c.getName()));
+			this.dInputDevice.setOnReleaseComponentEvent((j, c) -> releaseInput(c.getComponentId(), c.getName()));
+			if (xInputDevice != null) {
+				xInputDevice.setOnPressAnyComponentEvent(null);
+				xInputDevice.setOnReleaseAnyComponentEvent(null);
+			}
+		}
 	}
 	
 	public static void convertOnKeyPressEvent(javafx.scene.input.KeyEvent keyEvent) {
 		int keyCode = keyEvent.getCode().getCode();
 		if (keyOwner.containsKey(keyCode)) {
-			if (keyOwner.get(keyCode).getInputMode() == GameInputMode.DETECTING)
+			if (keyOwner.get(keyCode).isDetectingInput()) {
 				keyOwner.get(keyCode).setInputMode(GameInputMode.KEYBOARD);
+				keyOwner.get(keyCode).setDetectingInput(false);
+			}
 			keyOwner.get(keyCode).pressInput(keyCode, keyEvent.getCode().getName());
 		}
 	}
@@ -164,10 +200,9 @@ public class Player {
 	
 	public void setMappingMode(boolean state) {
 		mappingIndex = state ? 0 : -1;
-		if (state) {
-			inputMode = GameInputMode.DETECTING;
+		isDetectingInput = state;
+		if (state)
 			player.GameInput.refreshJoysticks();
-		}
 	}
 
 	public enums.GameInput getNextMappingInput() {
@@ -302,17 +337,19 @@ public class Player {
 	
 	public void loadConfigs() {
 		IniFile ini = IniFile.getNewIniFileInstance("appdata/configs/Inputs.ini");
-		if (ini.read("INPUT_MODE", "" + playerId) != null) {
+		if (ini.read("DEVICE_ID", "" + playerId) != null) {
 			try {
-				GameInputMode mode = GameInputMode.valueOf(ini.getLastReadVal());
-				setInputMode(mode);
+				String[] split = ini.getLastReadVal().split(" ");
+				dInputDeviceId = Integer.parseInt(split[0]);
+				xInputDeviceId = Integer.parseInt(split[1]);
 			}
-			catch (Exception e) {
-				throw new RuntimeException(ini.getLastReadVal() + " - Invalid GameInputMode name");
+			catch (Exception e) { e.printStackTrace();
+				throw new RuntimeException(ini.getLastReadVal() + " - Invalid value in DEVICE_ID section, item " + playerId);
 			}
 		}
 		String[] inputTypes = { "DINPUT", "XINPUT", "KEYBOARD" };
 		for (String inputType : inputTypes) {
+			setInputMode(GameInputMode.valueOf(inputType));
 			String str = ini.read(inputType, "" + playerId);
 			if (str == null)
 				continue;
@@ -326,10 +363,10 @@ public class Player {
 				String name = null;
 				try {
 					buttonId = Integer.parseInt(split2[0]); 
-					input = GameInput.valueOf(split2[1]); 
+					input = split2[1].equals("null") ? null : GameInput.valueOf(split2[1]); 
 					name = split2[2]; 
 				}
-				catch (Exception e) {
+				catch (Exception e) { e.printStackTrace();
 					if (buttonId == -1)
 						throw new RuntimeException(s + " - Invalid integer value at left (" + split2[0] + ") ([" + inputType + "] section, " + playerId + "= item)");
 					throw new RuntimeException(s + " - Invalid integer value at middle (" + split2[1] + ") ([" + inputType + "] section, " + playerId + "= item)");
@@ -337,7 +374,21 @@ public class Player {
 				mapGameInput(buttonId, input, name);
 			}
 		}
-
+		if (ini.read("INPUT_MODE", "" + playerId) != null) {
+			try {
+				GameInputMode mode = GameInputMode.valueOf(ini.getLastReadVal());
+				setInputMode(mode);
+			}
+			catch (Exception e) {
+				throw new RuntimeException(ini.getLastReadVal() + " - Invalid GameInputMode name");
+			}
+		}
+		if (getInputMode() != GameInputMode.KEYBOARD && dInputDeviceId == -1 && xInputDeviceId == -1)
+			setInputMode(GameInputMode.KEYBOARD);
+		else if (xInputDeviceId > -1)
+			setXInputDeviceId(xInputDeviceId);
+		else if (dInputDeviceId > -1)
+			setDInputDeviceId(dInputDeviceId);
 	}
 
 	public void saveConfigs() {
@@ -354,6 +405,14 @@ public class Player {
 				ini.write(inputMode.name(), "" + playerId, sb.toString());
 			}
 		ini.write("INPUT_MODE", "" + playerId, getInputMode().name());
+		ini.write("DEVICE_ID", "" + playerId, dInputDeviceId + " " + xInputDeviceId);
 	}
-	
+
+	public boolean isDetectingInput() {
+		return isDetectingInput;
+	}
+
+	public void setDetectingInput(boolean state) {
+		isDetectingInput = false;
+	}
 }

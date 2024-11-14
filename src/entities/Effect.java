@@ -28,7 +28,7 @@ public class Effect extends Entity {
 		super();
 		closingPredicate = null;
 		owner = null;
-		addNewFrameSetFromIniFile(effectName, "FrameSets", "EFFECTS", effectName);
+		addNewFrameSetFromIniFile(this, effectName, "FrameSets", "EFFECTS", effectName);
 		setFrameSet(effectName);
 	}
 

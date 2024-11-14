@@ -10,12 +10,10 @@ import entities.Effect;
 import entities.Entity;
 import enums.Curse;
 import enums.Direction;
+import enums.Elevation;
 import enums.ItemType;
 import enums.TileProp;
-import frameset.Frame;
 import frameset.FrameSet;
-import frameset.Tags;
-import frameset_tags.FrameTag;
 import frameset_tags.SetSprIndex;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
@@ -68,8 +66,8 @@ public class Item extends Entity {
 		setPosition(new Position(position));
 		this.itemType = itemType;
 		startInvFrames = 10;
-		addNewFrameSetFromIniFile("StandFrameSet", "FrameSets", "ITEM", "StandFrameSet");
-		addNewFrameSetFromIniFile("JumpingFrameSet", "FrameSets", "ITEM", "JumpingFrameSet");
+		addNewFrameSetFromIniFile(this, "StandFrameSet", "FrameSets", "ITEM", "StandFrameSet");
+		addNewFrameSetFromIniFile(this, "JumpingFrameSet", "FrameSets", "ITEM", "JumpingFrameSet");
 		setUpItemPickUpFrameSet();
 		setFrameSet("StandFrameSet");
 		if (itemType == ItemType.CURSE_SKULL)
@@ -83,11 +81,10 @@ public class Item extends Entity {
 		super.setFrameSet(frameSetName);
 		int itemIndex = itemType.getValue() - 1;
 		FrameSet frameSet = getFrameSet(frameSetName);
-		for (Frame frame : frameSet.getFrames())
-			for (Tags tags : frame.getFrameSetTagsList())
-				for (FrameTag tag : tags.getTags())
-					if (tag instanceof SetSprIndex && ((SetSprIndex)tag).value != null && ((SetSprIndex)tag).value == -1)
-						((SetSprIndex)tag).value = itemIndex;
+			frameSet.changeTagValues(tag -> {
+				if (tag instanceof SetSprIndex && ((SetSprIndex)tag).value != null && ((SetSprIndex)tag).value == -1)
+					((SetSprIndex)tag).value = itemIndex;
+			});
 	}
 	
 	public void jumpToRandomTileAround(int radius) {
@@ -102,9 +99,9 @@ public class Item extends Entity {
 
 	private void setUpItemPickUpFrameSet() {
 		if (haveFrameSet("PickedUpFrameSet"))
-			replaceFrameSetFromIniFile("PickedUpFrameSet", "FrameSets", "ITEM", "PickedUpFrameSet");
+			replaceFrameSetFromIniFile(this, "PickedUpFrameSet", "FrameSets", "ITEM", "PickedUpFrameSet");
 		else
-			addNewFrameSetFromIniFile("PickedUpFrameSet", "FrameSets", "ITEM", "PickedUpFrameSet");
+			addNewFrameSetFromIniFile(this, "PickedUpFrameSet", "FrameSets", "ITEM", "PickedUpFrameSet");
 	}
 
 	public boolean isCurse() {
@@ -244,13 +241,11 @@ public class Item extends Entity {
 			itemType = ItemType.getRandom();
 			setUpItemPickUpFrameSet();
 		}
-		if (getCurrentFrameSetName().equals("StandFrameSet")) {
-			setFrameSet("PickedUpFrameSet");
-			if (itemType.getSound() == null || itemType.getSoundDelay() > 0)
-				Sound.playWav("ItemPickUp");
-			if (itemType.getSound() != null)
-				TimerFX.createTimer("ItemPickUp@" + hashCode(), itemType.getSoundDelay(), () -> Sound.playWav(itemType.getSound()));
-		}
+		setFrameSet("PickedUpFrameSet");
+		if (itemType.getSound() == null || itemType.getSoundDelay() > 0)
+			Sound.playWav("ItemPickUp");
+		if (itemType.getSound() != null)
+			TimerFX.createTimer("ItemPickUp@" + hashCode(), itemType.getSoundDelay(), () -> Sound.playWav(itemType.getSound()));
 	}
 
 	public static boolean haveItemAt(TileCoord coord) {
@@ -283,7 +278,8 @@ public class Item extends Entity {
 	
 	@Override
 	public void onSetJumpMoveTrigger() {
-		removeThisFromTile(getTileCoordFromCenter());
+		if (!currentFrameSetNameIsEqual("StandFrameSet"))
+			removeThisFromTile(getTileCoordFromCenter());
 	}
 
 	@Override
@@ -296,6 +292,7 @@ public class Item extends Entity {
 		checkOutScreenCoords();
 		centerToTile();
 		if (haveItemAt(getTileCoordFromCenter())) {
+			setElevation(Elevation.FLYING);
 			onJumpFallAtOccupedTileEvent(jumpMove);
 			return;
 		}

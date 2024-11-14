@@ -222,7 +222,7 @@ public class MapEditor {
 	private int ctrlZPos;
 	private long resetBricks;
 	private Set<TileCoord> alreadySetTiles;
-	private String defaultMap = "TikTok-Battle-01";
+	private String defaultMap = "TikTok-Small-Battle-01";
 	public boolean playing;
 	public boolean editable;
 	private int controlledBomberIndex;
@@ -363,7 +363,7 @@ public class MapEditor {
 				if (str != null) {
 					try {
 						for (Brick brick : Brick.getBricks())
-							brick.replaceFrameSetFromString(frameSetName, str);
+							brick.replaceFrameSetFromString(brick, frameSetName, str);
 					}
 					catch (Exception ex) {
 						Alerts.error("Erro", "O FrameSet informado é inválido ou contém erros");
@@ -605,7 +605,8 @@ public class MapEditor {
 		bricks[0].setFrameSet("BrickStandFrameSet");
 		bricks[1].setFrameSet("BrickBreakFrameSet");
 		bricks[2].setFrameSet("BrickRegenFrameSet");
-		bricks[3].setFrameSet("BrickRollingFrameSet");
+		if (MapSet.mapFrameSets.haveFrameSet("BrickRollingFrameSet"))
+			bricks[3].setFrameSet("BrickRollingFrameSet");
 	}
 
 	void setKeyboardEvents() {

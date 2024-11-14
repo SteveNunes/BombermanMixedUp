@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import entities.Entity;
 import frameset_tags.FrameTag;
@@ -44,15 +45,15 @@ public class FrameSet extends Position {
 
 	public FrameSet(FrameSet frameSet, Position position, Entity entity) {
 		this(entity, position);
-		frameSet.sprites.forEach(sprite -> sprites.add(sprite = new Sprite(sprite, this)));
-		frameSet.frames.forEach(frame -> frames.add(frame = new Frame(frame, this)));
+		frameSet.sprites.forEach(sprite -> sprites.add(new Sprite(sprite, this)));
+		frameSet.frames.forEach(frame -> frames.add(new Frame(frame, this)));
 	}
 
 	public FrameSet(Entity entity, Position position) {
 		super(position);
 		sprites = new ArrayList<>();
 		frames = new ArrayList<>();
-		this.sourceEntity = entity;
+		sourceEntity = entity;
 		framesPerTick = 1;
 		changedIndex = false;
 		stop = false;
@@ -369,7 +370,7 @@ public class FrameSet extends Position {
 	public void addSpriteAt(int index, Sprite sprite) {
 		if (index < 0 || (getTotalSprites() > 0 && index > getTotalSprites()))
 			throw new RuntimeException(index + " - Invalid Index (Min: 0, Max: " + (getTotalSprites() - 1) + ")");
-		sprite.setMainFrameSet(this);
+		sprite.setSourceFrameSet(this);
 		if (getTotalSprites() == 0 || index == getTotalSprites()) {
 			sprites.add(sprite);
 			frames.forEach(frame -> frame.getFrameSetTagsList().add(new Tags(sprite)));
@@ -451,19 +452,20 @@ public class FrameSet extends Position {
 		if (!file.contains("/") && !file.contains("\\"))
 			file = "./appdata/configs/" + file + ".ini";
 		file.replace("\\", "/");
-		String shortName = file.substring(file.lastIndexOf("/appdata/") + 9);
-		if (preLoadedFrameSets.containsKey(shortName + "¡" + section + "¡" + item)) {
-			FrameSet frameSet = new FrameSet(preLoadedFrameSets.get(shortName + "¡" + section + "¡" + item));
-			sprites = new ArrayList<>();
-			frames = new ArrayList<>();
-			sourceEntity = entity;
-			framesPerTick = 1;
-			changedIndex = false;
-			stop = false;
+		String shortName = file.substring(file.lastIndexOf("/appdata/") + 9) + "¡" + section + "¡" + item;
+		if (preLoadedFrameSets.containsKey(shortName)) {
+			FrameSet frameSet = preLoadedFrameSets.get(shortName);
+			sprites.clear();
+			frames.clear();
 			currentFrameIndex = 0;
 			ticks = 0;
-			frameSet.sprites.forEach(sprite -> sprites.add(sprite = new Sprite(sprite, this)));
-			frameSet.frames.forEach(frame -> frames.add(frame = new Frame(frame, this)));
+			changedIndex = false;
+			stop = false;
+			framesPerTick = 1;
+			setEntity(entity);
+			frameSet.setEntity(entity);
+			frameSet.sprites.forEach(sprite -> sprites.add(new Sprite(sprite, this)));
+			frameSet.frames.forEach(frame -> frames.add(new Frame(frame, this)));
 			return;
 		}
 		if (!new File(file).exists())
@@ -477,18 +479,20 @@ public class FrameSet extends Position {
 			throw new RuntimeException("Unable to load FrameSet from String because 'item' null");
 		if (!ini.itemExists(section, item))
 			throw new RuntimeException("Invalid item (" + item + ") in section \"" + section + "\" on file \"" + file + "\"");
-		loadFromString(ini.read(section, item));
+		loadFromString(entity, ini.read(section, item));
 		setEntity(entity);
-		preLoadedFrameSets.put(shortName + "¡" + section + "¡" + item, new FrameSet(this, getSourceEntity()));
+		preLoadedFrameSets.put(shortName, new FrameSet(this, getSourceEntity()));
 	}
 	
-	public void loadFromString(String stringTileTags) {
+	public void loadFromString(Entity entity, String stringTileTags) {
 		sprites.clear();
 		frames.clear();
 		currentFrameIndex = 0;
 		ticks = 0;
 		changedIndex = false;
 		stop = false;
+		framesPerTick = 1;
+		setEntity(entity);
 		String[] frames = stringTileTags.split("\\|"); // Divisor de frames
 		boolean first = true;
 		for (String s1 : frames) {
@@ -522,8 +526,15 @@ public class FrameSet extends Position {
 		}
 		return fSet;
 	}
+	
+	public void changeTagValues(Consumer<FrameTag> consumer) {
+		for (Frame frame : getFrames())
+			for (Tags tags : frame.getFrameSetTagsList())
+				for (FrameTag tag : tags.getTags())
+					consumer.accept(tag);
+	}
 
-	public void TEMPresetTags() { // AParentemente nao esta em uso entao apagar se confirmado
+	public void TEMPresetTags() { // TEMP: AParentemente nao esta em uso entao apagar se confirmado
 		frames.forEach(frame -> {
 			for (Tags tags : frame.getFrameSetTagsList())
 				for (FrameTag tag : tags.getTags()) {

@@ -19,8 +19,8 @@ public class SetSprSource extends FrameTag {
 	public SetSprSource(String spriteSourceName, Rectangle originSprSizePos, Rectangle outputSprSizePos, int spriteIndex, int spritesPerLine) {
 		originalSpriteSourceName = spriteSourceName;
 		spriteSourceName = null;
-		this.originSprSizePos = originSprSizePos;
-		this.outputSprSizePos = outputSprSizePos;
+		this.originSprSizePos = new Rectangle(originSprSizePos);
+		this.outputSprSizePos = new Rectangle(outputSprSizePos);
 		this.spritesPerLine = spritesPerLine;
 		this.spriteIndex = spriteIndex;
 		deleteMeAfterFirstRead = true;

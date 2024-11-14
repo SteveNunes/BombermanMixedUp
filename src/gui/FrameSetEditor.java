@@ -148,13 +148,13 @@ public class FrameSetEditor {
 		currentEntity = new Entity();
 		currentEntity.setPosition(centerX, centerY);
 
-		currentEntity.addNewFrameSetFromIniFile("MovingFrames.LEFT", "Monsters", "2", "MovingFrames.LEFT");
-		currentEntity.addNewFrameSetFromIniFile("MovingFrames.LEFT", "Monsters", "2", "MovingFrames.RIGHT");
-		currentEntity.addNewFrameSetFromIniFile("MovingFrames.LEFT", "Monsters", "2", "MovingFrames.UP");
-		currentEntity.addNewFrameSetFromIniFile("MovingFrames.LEFT", "Monsters", "2", "MovingFrames.DOWN");
+		currentEntity.addNewFrameSetFromIniFile(currentEntity, "MovingFrames.LEFT", "Monsters", "2", "MovingFrames.LEFT");
+		currentEntity.addNewFrameSetFromIniFile(currentEntity, "MovingFrames.LEFT", "Monsters", "2", "MovingFrames.RIGHT");
+		currentEntity.addNewFrameSetFromIniFile(currentEntity, "MovingFrames.LEFT", "Monsters", "2", "MovingFrames.UP");
+		currentEntity.addNewFrameSetFromIniFile(currentEntity, "MovingFrames.LEFT", "Monsters", "2", "MovingFrames.DOWN");
 
-		currentEntity.addNewFrameSetFromIniFile("IntroFrames", "Monsters", "1000", "IntroFrames");
-		currentEntity.addNewFrameSetFromIniFile("MovingFrames", "Monsters", "1000", "MovingFrames");
+		currentEntity.addNewFrameSetFromIniFile(currentEntity, "IntroFrames", "Monsters", "1000", "IntroFrames");
+		currentEntity.addNewFrameSetFromIniFile(currentEntity, "MovingFrames", "Monsters", "1000", "MovingFrames");
 		currentEntity.setFrameSet("MovingFrames");
 
 		setDefaultContextMenu();

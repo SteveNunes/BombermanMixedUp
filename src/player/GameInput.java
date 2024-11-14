@@ -2,7 +2,6 @@ package player;
 
 import java.util.List;
 
-import enums.GameInputMode;
 import joystick.JInputEX;
 import joystick.JXInputEX;
 import util.TimerFX;
@@ -39,7 +38,7 @@ public class GameInput {
 		TimerFX.stopTimer("PoolJoysticksTimer");
 		JInputEX.init();
 		JXInputEX.refreshJoysticks();
-		xinputList = JXInputEX.getJoystickList();
+		xinputList = null;//JXInputEX.getJoystickList();
 		dinputList = JInputEX.getJoysticks();
 		TimerFX.createTimer("PoolJoysticksTimer", 1, 0, () -> {
 			JInputEX.pollAllJoysticks();
@@ -53,24 +52,37 @@ public class GameInput {
 			for (JXInputEX x : xinputList)
 				x.setOnPressAnyComponentEvent((i, s) -> {
 					for (Player player : Player.getPlayers())
-						if (player.getInputMode() == GameInputMode.DETECTING)
-							player.setXinputDevice(x);
+						if (player.isDetectingInput()) {
+							player.setXInputDevice(x);
+							player.setDetectingInput(false);
+						}
 				});
 		if (dinputList != null)
-			for (JInputEX d : dinputList)
+			for (JInputEX d : dinputList) {
 				d.setOnPressComponentEvent((j, c) -> {
 					for (Player player : Player.getPlayers())
-						if (player.getInputMode() == GameInputMode.DETECTING)
-							player.setDinputDevice(d);
+						if (player.isDetectingInput()) {
+							player.setDInputDevice(d);
+							player.setDetectingInput(false);
+						}
 				});
+			}
 	}
 	
 	public static int getTotalXinputs() {
 		return xinputList.size();
 	}
 	
+	public static int getXInputId(JXInputEX xinput) {
+		return xinputList.indexOf(xinput);
+	}
+	
+	public static int getDInputId(JInputEX dinput) {
+		return dinputList.indexOf(dinput);
+	}
+	
 	public static JXInputEX getXinput(int index) {
-		return xinputList.get(index);
+		return xinputList == null || index < 0 || index >= xinputList.size() || xinputList.isEmpty() ? null : xinputList.get(index);
 	}
 	
 	public static int getTotalDinputs() {
@@ -78,7 +90,7 @@ public class GameInput {
 	}
 	
 	public static JInputEX getDinput(int index) {
-		return dinputList.get(index);
+		return dinputList == null || index < 0 || index >= dinputList.size() || dinputList.isEmpty() ? null : dinputList.get(index);
 	}
 	
 }

@@ -829,7 +829,6 @@ public class Entity extends Position {
 
 	public void setCurse(Curse curse) { // FALTA: Implementar BLINDNESS e SWAP_PLAYERS
 		if (curse != null) {
-			curse = Curse.STUNNED;
 			removeCurse();
 			previewDisableEffect = disableEffect;
 			previewImageEffects = imageEffects;
@@ -1062,7 +1061,7 @@ public class Entity extends Position {
 			Position lu = cornersPositions[0], ru = cornersPositions[1], ld = cornersPositions[2], rd = cornersPositions[3];
 			boolean[] freeCorners = getFreeCorners(direction);
 			int z = 10, prevX = (int) getX() / Main.TILE_SIZE, prevY = (int) getY() / Main.TILE_SIZE;
-			if (direction == Direction.UP) {
+			if (direction == Direction.UP || direction == Direction.UP_RIGHT || direction == Direction.UP_LEFT) {
 				if (freeCorners[0] && freeCorners[1]) {
 					incPositionByDirection(direction, speed);
 					if (isPerfectlyBlockedDir(direction))
@@ -1080,7 +1079,7 @@ public class Entity extends Position {
 						centerXToTile();
 				}
 			}
-			else if (direction == Direction.DOWN) {
+			else if (direction == Direction.DOWN || direction == Direction.DOWN_LEFT || direction == Direction.DOWN_RIGHT) {
 				if (freeCorners[2] && freeCorners[3]) {
 					incPositionByDirection(direction, speed);
 					if (isPerfectlyBlockedDir(direction))
@@ -1326,31 +1325,30 @@ public class Entity extends Position {
 		return shadow != null;
 	}
 
-	public void addNewFrameSetFromIniFile(String frameSetName, String file, String section, String item) {
+	public void addNewFrameSetFromIniFile(Entity entity, String frameSetName, String file, String section, String item) {
 		FrameSet frameSet;
 		if (frameSets.containsKey(frameSetName))
-			frameSet = new FrameSet(frameSets.get(frameSetName), this);
+			frameSet = new FrameSet(frameSets.get(frameSetName), entity);
 		else {
-			frameSet = new FrameSet(this);
-			frameSet.loadFromIni(this, file, section, item);
+			frameSet = new FrameSet(entity);
+			frameSet.loadFromIni(entity, file, section, item);
 		}
 		addFrameSet(frameSetName, frameSet);
 	}
 
-	public void replaceFrameSetFromIniFile(String existingFrameSetName, String file, String section, String item) {
+	public void replaceFrameSetFromIniFile(Entity entity, String existingFrameSetName, String file, String section, String item) {
 		FrameSet frameSet;
 		if (frameSets.containsKey(existingFrameSetName))
-			frameSet = new FrameSet(frameSets.get(existingFrameSetName), this);
+			frameSet = new FrameSet(frameSets.get(existingFrameSetName), entity);
 		else {
-			frameSet = new FrameSet(this);
-			frameSet.loadFromIni(this, file, section, item);
+			frameSet = new FrameSet(entity);
+			frameSet.loadFromIni(entity, file, section, item);
 		}
 		replaceFrameSet(existingFrameSetName, frameSet);
 	}
 
-	public void replaceFrameSetFromString(String frameSetName, String str) {
-		// TODO Auto-generated method stub
-		
+	public void replaceFrameSetFromString(Entity entity, String frameSetName, String frameSetTags) {
+		getFrameSet(frameSetName).loadFromString(entity, frameSetTags);
 	}
 
 	public boolean canCross(TileCoord coord) {

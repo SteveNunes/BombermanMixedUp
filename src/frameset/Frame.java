@@ -21,7 +21,7 @@ public class Frame {
 		int[] n = { 0 };
 		frame.frameSetTagsList.forEach(tags -> {
 			frameSetTagsList.add(tags = new Tags(tags));
-			tags.setRootSprite(this.sourceFrameSet.getSprite(n[0]++));
+			tags.setRootSprite(sourceFrameSet.getSprite(n[0]++));
 		});
 	}
 
@@ -41,7 +41,7 @@ public class Frame {
 		return frameSetTagsList.size();
 	}
 
-	public void setMainFrameSet(FrameSet mainFrameSet) {
+	public void setSourceFrameSet(FrameSet mainFrameSet) {
 		this.sourceFrameSet = mainFrameSet;
 	}
 

@@ -80,7 +80,7 @@ public class BomberMan extends Entity {
 			setDefaultTags(Tags.loadTagsFromString(IniFiles.characters.read(section, "DefaultTags")));
 		for (String item : IniFiles.characters.getItemList(section)) {
 			if (item.length() > 9 && item.substring(0, 9).equals("FrameSet."))
-				addNewFrameSetFromIniFile(item.substring(9), "Characters", section, item);
+				addNewFrameSetFromIniFile(this, item.substring(9), "Characters", section, item);
 		}
 		setBombSound = IniFiles.characters.read(section, "SetBombSound");
 		if (setBombSound == null)
@@ -199,7 +199,7 @@ public class BomberMan extends Entity {
 		}
 		else if (input == GameInput.B) {
 			if (getHoldingEntity() == null && haveFrameSet("HoldingStart")) {
-				if (haveItem(ItemType.POWER_GLOVE) || haveItem(ItemType.HYPER_GLOVE)) {
+				if (haveItem(ItemType.POWER_GLOVE)) {
 					for (Entity entity : Entity.getEntityListFromCoord(getTileCoordFromCenter()))
 						if (entity != this && !entity.isBlockedMovement())
 							setFrameSet("HoldingStart");
@@ -226,7 +226,7 @@ public class BomberMan extends Entity {
 				return;
 			}
 			for (int n = 0; n < 2; n++, coord.incCoordsByDirection(getDirection())) {
-				if ((haveItem(ItemType.PUNCH_BOMB) || haveItem(ItemType.HYPER_PUNCH)) && Bomb.haveBombAt(this, coord) && !Bomb.getBombAt(coord).isBlockedMovement() && haveFrameSet("PunchBomb"))
+				if (haveItem(ItemType.PUNCH_BOMB) && Bomb.haveBombAt(this, coord) && !Bomb.getBombAt(coord).isBlockedMovement() && haveFrameSet("PunchBomb"))
 					setFrameSet("PunchBomb");
 				else if (haveItem(ItemType.HYPER_PUNCH) && Brick.haveBrickAt(coord) && haveFrameSet("PunchBomb"))
 					setFrameSet("PunchBrick");
@@ -237,11 +237,11 @@ public class BomberMan extends Entity {
 		else if (input == GameInput.D) {
 			
 		}
-		else if (input == GameInput.L) {
+		else if (input == GameInput.E) {
 			if (!gotItems.isEmpty())
 				dropItem(1, false, true, true);
 		}
-		else if (input == GameInput.R) {
+		else if (input == GameInput.F) {
 			
 		}
 		else {
@@ -341,8 +341,16 @@ public class BomberMan extends Entity {
 			if (getPushingValue() > 5 && haveItem(ItemType.KICK_BOMB) && Bomb.haveBombAt(this, frontTile) && !Bomb.getBombAt(frontTile).isBlockedMovement()) {
 				TileCoord nextCoord = frontTile.getNewInstance().incCoordsByDirection(getDirection());
 				if (MapSet.tileIsFree(nextCoord, Set.of())) {
+					if (bombs.size() > 1 && bombs.get(0) != Bomb.getBombAt(frontTile))
+						bombs.get(0).kick(getDirection().getReverseDirection(), 4);
 					Bomb.getBombAt(frontTile).kick(getDirection(), 4);
-					Bomb.getBombs().get(0).kick(getDirection().getReverseDirection(), 4);
+					setPushingValue(0);
+				}
+			}
+			if (getPushingValue() > 5 && haveItem(ItemType.HYPER_KICK) && Brick.haveBrickAt(frontTile) && !Brick.getBrickAt(frontTile).isBlockedMovement()) {
+				TileCoord nextCoord = frontTile.getNewInstance().incCoordsByDirection(getDirection());
+				if (MapSet.tileIsFree(nextCoord, Set.of())) {
+					Brick.getBrickAt(frontTile).kick(getDirection(), 4);
 					setPushingValue(0);
 				}
 			}
@@ -405,7 +413,10 @@ public class BomberMan extends Entity {
 	}
 	
 	public BombType getBombType() {
-		return !gotItems.isEmpty() && gotItems.get(0).isBomb() ? ItemType.getBombTypeFromItemType(gotItems.get(0)) : BombType.NORMAL;
+		for (int n = gotItems.size() - 1; n >= 0; n--)
+			if (gotItems.get(n).isBomb())
+				return ItemType.getBombTypeFromItemType(gotItems.get(n));
+		return BombType.NORMAL;
 	}
 
 	public Bomb setBomb(boolean noCd, TileCoord coord) {
@@ -443,20 +454,8 @@ public class BomberMan extends Entity {
 			incLives();
 		else if (type == ItemType.HEART_UP)
 			incHitPoints();
-		else {
-			if (item.getItemType().isBomb()) {
-				if (!gotItems.isEmpty()) {
-					if (gotItems.get(0).isBomb())
-						gotItems.set(0, type);
-					else
-						gotItems.add(0, type);
-				}
-				else
-					gotItems.add(type);
-			}
-			else
-				gotItems.add(type);
-		}
+		else
+			gotItems.add(type);
 		updateStatusByItems();
 	}
 	
@@ -486,13 +485,22 @@ public class BomberMan extends Entity {
 		fireRange = GameConfigs.STARTING_FIRE;
 		maxBombs = GameConfigs.STARTING_BOMBS;
 		double speed = GameConfigs.INITIAL_PLAYER_SPEED;
+		if (getPlayerId() == 9990 && gotItems.isEmpty()) { // TEMP
+			gotItems.add(ItemType.SPIKE_REMOTE_BOMB);
+			gotItems.add(ItemType.POWER_GLOVE);
+			gotItems.add(ItemType.KICK_BOMB);
+			for (int n = 0; n < 9; n++)
+				gotItems.add(ItemType.BOMB_UP);
+		}
 		if (!Misc.alwaysTrue())
 			if (getPlayerId() == 0 && gotItems.isEmpty()) { // TEMP
 				gotItems.add(ItemType.REMOTE_BOMB);
+				gotItems.add(ItemType.HYPER_KICK);
 				gotItems.add(ItemType.HYPER_GLOVE);
 				gotItems.add(ItemType.HYPER_PUNCH);
+				gotItems.add(ItemType.POWER_GLOVE);
+				gotItems.add(ItemType.PUNCH_BOMB);
 				gotItems.add(ItemType.PUSH_POWER);
-				gotItems.add(ItemType.KICK_BOMB);
 				gotItems.add(ItemType.PASS_BRICK);
 				gotItems.add(ItemType.LINED_BOMBS);
 				for (int n = 0; n < 9; n++)
@@ -608,6 +616,14 @@ public class BomberMan extends Entity {
 			if (!ignoreBadItens || !item.isBadItem()) {
 				gotItems.remove(item);
 				Item.addItem(getTileCoordFromCenter(), item, true);
+				if (!Misc.alwaysTrue() && item.isBomb()) {
+					for (ItemType t : gotItems)
+						if (t.isBomb()) {
+							gotItems.remove(t);
+							gotItems.add(0, t);
+							break;
+						}
+				}
 			}
 			else
 				quantityToDrop++;

@@ -150,7 +150,7 @@ public abstract class MapSet {
 			setBricks();
 		iniFileMap.getItemList("TAGS").forEach(item -> {
 			FrameSet frameSet = new FrameSet();
-			frameSet.loadFromString(iniFileMap.read("TAGS", item));
+			frameSet.loadFromString(mapFrameSets, iniFileMap.read("TAGS", item));
 			preLoadedStageTags.put(item, frameSet);
 		});
 		resetMapFrameSets();
@@ -321,7 +321,7 @@ public abstract class MapSet {
 		stageIsCleared = false;
 		mapFrameSets = new Entity();
 		for (String item : iniFileMap.getItemList("FRAMESETS"))
-			mapFrameSets.addNewFrameSetFromIniFile(item, iniFileMap.fileName(), "FRAMESETS", item);
+			mapFrameSets.addNewFrameSetFromIniFile(mapFrameSets, item, iniFileMap.fileName(), "FRAMESETS", item);
 		if (mapFrameSets.haveFrameSet("StageIntro"))
 			mapFrameSets.setFrameSet("StageIntro");
 		else if (mapFrameSets.haveFrameSet("Default"))
