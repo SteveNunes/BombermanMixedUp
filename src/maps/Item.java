@@ -12,6 +12,7 @@ import enums.Curse;
 import enums.Direction;
 import enums.Elevation;
 import enums.ItemType;
+import enums.PassThrough;
 import enums.TileProp;
 import frameset.FrameSet;
 import frameset_tags.SetSprIndex;
@@ -65,11 +66,12 @@ public class Item extends Entity {
 	public Item(Position position, ItemType itemType) {
 		setPosition(new Position(position));
 		this.itemType = itemType;
-		startInvFrames = 10;
+		startInvFrames = 20;
 		addNewFrameSetFromIniFile(this, "StandFrameSet", "FrameSets", "ITEM", "StandFrameSet");
 		addNewFrameSetFromIniFile(this, "JumpingFrameSet", "FrameSets", "ITEM", "JumpingFrameSet");
 		setUpItemPickUpFrameSet();
 		setFrameSet("StandFrameSet");
+		setPassThroughs(true, PassThrough.MONSTER, PassThrough.PLAYER);
 		if (itemType == ItemType.CURSE_SKULL)
 			curse = Curse.getRandom();
 		else
@@ -95,6 +97,7 @@ public class Item extends Entity {
 	public void jumpTo(TileCoord coord) {
 		setFrameSet("JumpingFrameSet");
 		jumpTo(this, coord, 6, 1.2, 20);
+		startInvFrames = 30;
 	}
 
 	private void setUpItemPickUpFrameSet() {
@@ -133,7 +136,7 @@ public class Item extends Entity {
 	}
 
 	public static void addItem(Item item) {
-		addItem(item, false);
+		itemList.add(item);
 	}
 	
 	public static void addItem(TileCoord coord, boolean startJumpingAround) {
@@ -147,10 +150,14 @@ public class Item extends Entity {
 	public static void addItem(Item item, boolean startJumpingAround) {
 		if (startJumpingAround || !haveItemAt(item.getTileCoordFromCenter())) {
 			itemList.add(item);
-			if (startJumpingAround || !MapSet.tileIsFree(item.getTileCoordFromCenter()))
+			if (!item.tileIsFree(item.getTileCoordFromCenter()) &&
+					(MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM) ||
+					 MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.EXPLOSION)))
+						item.destroy();
+			else if (startJumpingAround || !MapSet.tileIsFree(item.getTileCoordFromCenter()))
 				item.jumpToRandomTileAround(2);
 			else {
-				items.put(item.getTileCoordFromCenter().getNewInstance(), item);
+				putOnMap(item.getTileCoordFromCenter().getNewInstance(), item);
 				MapSet.checkTileTrigger(item, item.getTileCoordFromCenter(), TileProp.TRIGGER_BY_ITEM);
 			}
 		}
@@ -228,7 +235,7 @@ public class Item extends Entity {
 			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_ITEM, true);
 			removeThisFromTile(prevCoord);
 			if (!items.containsKey(coord))
-				items.put(coord, this);
+				putOnMap(coord, this);
 		}
 		if (getCurrentFrameSetName().equals("StandFrameSet") && Entity.haveAnyEntityAtCoord(coord))
 			for (Entity entity : Entity.getEntityListFromCoord(coord))
@@ -284,34 +291,65 @@ public class Item extends Entity {
 
 	@Override
 	public void onPushEntityStop() {
-		items.put(getTileCoordFromCenter(), this);
+		putOnMap(getTileCoordFromCenter(), this);
 	}
 
 	@Override
 	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {
-		checkOutScreenCoords();
 		centerToTile();
-		if (haveItemAt(getTileCoordFromCenter())) {
+		if (haveItemAt(getTileCoordFromCenter()) && getItemAt(getTileCoordFromCenter()) != this) {
 			setElevation(Elevation.FLYING);
 			onJumpFallAtOccupedTileEvent(jumpMove);
 			return;
 		}
 		Sound.playWav("ItemBounce");
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
-		items.put(coord, this);
+		putOnMap(coord, this);
 		setFrameSet("StandFrameSet");
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
 	}
 
 	@Override
 	public void onJumpFallAtOccupedTileEvent(JumpMove jumpMove) {
-		checkOutScreenCoords();
 		centerToTile();
 		forceDirection(getDirection().getNext8WayClockwiseDirection((int)(1 - MyMath.getRandom(0, 2))));
 		Sound.playWav("ItemBounce");
 		jumpMove.resetJump(4, 1.2, 14);
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		setGotoMove(coord.incCoordsByDirection(getDirection()).getPosition(), jumpMove.getDurationFrames());
+	}
+
+	private static void putOnMap(TileCoord coord, Item item) {
+		if (item.getElevation() == Elevation.ON_GROUND)
+			items.put(coord, item);
+	}
+
+	public static Item dropItemFromSky(TileCoord coord) {
+		return dropItemFromSky(coord, ItemType.getRandom());
+	}
+
+	public static Item dropItemFromSky(TileCoord coord, ItemType itemType) {
+		Item item = new Item(coord, itemType);
+		Item.addItem(item);
+		item.setFrameSet("JumpingFrameSet");
+		item.setJumpMove(8, 0, 80);
+		item.getJumpMove().skipToFall();
+		item.setShadow(0, 0, -12 ,-6 ,0.35f);
+		item.setGhosting(2, 0.2);
+		item.getJumpMove().setOnCycleCompleteEvent(e -> {
+			item.setElevation(Elevation.ON_GROUND);
+			if (item.tileIsFree(item.getTileCoordFromCenter())) {
+				item.setShake(2d, -0.05, 0d);
+				item.removeShadow();
+				item.unsetGhosting();
+				Sound.playWav(item, "ItemBounce");
+				items.put(coord, item);
+				item.setFrameSet("StandFrameSet");
+			}
+			else
+				item.onJumpFallAtOccupedTileEvent(item.getJumpMove());
+		});
+		return item;
 	}
 
 }

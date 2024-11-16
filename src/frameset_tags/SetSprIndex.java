@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import entities.Bomb;
 import frameset.Sprite;
 
 public class SetSprIndex extends FrameTag {

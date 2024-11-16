@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 
 import application.Main;
 import damage.Explosion;
@@ -100,7 +102,7 @@ public abstract class MapSet {
 			throw new RuntimeException("Unable to find \"CopyImageLayer\" item at \"SETUP\" section from \"" + iniFileMap.fileName() + "\"");
 		copyImageLayerIndex = iniFileMap.readAsInteger("SETUP", "CopyImageLayer", null);
 		if (iniFileMap.read("SETUP", "BrickRegenTimer") != null)
-			MapSet.setBricksRegenTime(Integer.parseInt(iniFileMap.getLastReadVal()));
+			setBricksRegenTime(Integer.parseInt(iniFileMap.getLastReadVal()));
 		if (iniFileMap.read("SETUP", "PortalCriteria") != null) {
 			stageClearCriterias = new ArrayList<>();
 			leftStageClearCriterias = new ArrayList<>();
@@ -346,7 +348,7 @@ public abstract class MapSet {
 		System.out.print("Definindo tijolos aleatórios... ");
 		Brick.clearBricks();
 		for (TileCoord coord : getTilePropsMap().keySet())
-			if (MapSet.getTileProps(coord).contains(TileProp.FIXED_BRICK))
+			if (getTileProps(coord).contains(TileProp.FIXED_BRICK))
 				Brick.addBrick(coord.getNewInstance());
 		if (IniFiles.stages.read(iniMapName, "Blocks") != null && !IniFiles.stages.read(iniMapName, "Blocks").equals("0")) {
 			int totalBricks = 0, bricksQuant = 0;
@@ -356,7 +358,7 @@ public abstract class MapSet {
 				int minBricks = Integer.parseInt(split[0]), maxBricks = Integer.parseInt(split[split.length == 1 ? 0 : 1]);
 				totalBricks = (int) MyMath.getRandom(minBricks, maxBricks);
 				for (TileCoord coord : getTilePropsMap().keySet()) {
-					MapSet.getTileProps(coord).forEach(prop -> {
+					getTileProps(coord).forEach(prop -> {
 						if (prop == TileProp.BRICK_RANDOM_SPAWNER && !Brick.haveBrickAt(coord))
 							totalBrickSpawners[0]++;
 					});
@@ -367,7 +369,7 @@ public abstract class MapSet {
 			}
 			List<TileCoord> coords = new ArrayList<>();
 			for (TileCoord coord : getLayer(26).getTilesMap().keySet())
-				if (!Brick.haveBrickAt(coord) && MapSet.tileContainsProp(coord, TileProp.BRICK_RANDOM_SPAWNER) && MapSet.tileIsFree(coord, Set.of(PassThrough.PLAYER)))
+				if (!Brick.haveBrickAt(coord) && tileContainsProp(coord, TileProp.BRICK_RANDOM_SPAWNER) && tileIsFree(coord, Set.of(PassThrough.PLAYER)))
 					coords.add(coord.getNewInstance());
 			done:
 			while (!coords.isEmpty() && totalBricks > 0)
@@ -428,7 +430,7 @@ public abstract class MapSet {
 			}
 			List<TileCoord> coords = new ArrayList<>();
 			for (TileCoord coord : getLayer(26).getTilesMap().keySet())
-				if (MapSet.getTileProps(coord).contains(TileProp.GROUND) && MapSet.tileIsFree(coord, Set.of(PassThrough.PLAYER)))
+				if (getTileProps(coord).contains(TileProp.GROUND) && tileIsFree(coord, Set.of(PassThrough.PLAYER)))
 					coords.add(coord.getNewInstance());
 			done:
 			while (!coords.isEmpty() && totalWalls > 0) {
@@ -436,11 +438,11 @@ public abstract class MapSet {
 					if ((int) MyMath.getRandom(0, 9) == 0) {
 						coords.remove(coord);
 						if (testCoordForInsertFixedBlock(coord)) {
-							MapSet.getLayer(26).setTileProps(coord.getNewInstance(), new ArrayList<>(Arrays.asList(TileProp.WALL)));
-							MapSet.getFirstBottomTileFromCoord(coord).spriteX = (int) wallTile.getX();
-							MapSet.getFirstBottomTileFromCoord(coord).spriteY = (int) wallTile.getY();
+							getLayer(26).setTileProps(coord.getNewInstance(), new ArrayList<>(Arrays.asList(TileProp.WALL)));
+							getFirstBottomTileFromCoord(coord).spriteX = (int) wallTile.getX();
+							getFirstBottomTileFromCoord(coord).spriteY = (int) wallTile.getY();
 							coord.incY(1);
-							if (MapSet.tileIsFree(coord))
+							if (tileIsFree(coord))
 								Tile.addTileShadow(groundWithWallShadow, coord);
 							if (coords.isEmpty() || --totalWalls == 0)
 								break done;
@@ -453,24 +455,28 @@ public abstract class MapSet {
 	}
 
 	private static boolean testCoordForInsertFixedBlock(TileCoord coord) {
+		return testCoordForInsertFixedBlock(coord, Set.of(PassThrough.BRICK, PassThrough.ITEM, PassThrough.BOMB, PassThrough.PLAYER));
+	}
+
+	private static boolean testCoordForInsertFixedBlock(TileCoord coord, Set<PassThrough> passThrough) {
 		List<TileCoord> checks = new ArrayList<>(initialPlayerCoords);
-		MapSet.getLayer(26).addTileProp(coord, TileProp.WALL);
+		getLayer(26).addTileProp(coord, TileProp.WALL);
 		TileCoord coord1 = new TileCoord();
 		Direction dir1 = Direction.LEFT;
 		for (int n = 0; n < 4; n++) {
 			dir1 = dir1.getNext4WayClockwiseDirection();
 			coord1.setCoords(coord);
 			coord1.incCoordsByDirection(dir1);
-			if (tileIsFree(coord1, Set.of(PassThrough.BRICK, PassThrough.PLAYER)))
+			if (tileIsFree(coord1, passThrough))
 				for (TileCoord target : checks) {
-					PathFinder pf = new PathFinder(coord1.getNewInstance(), target.getNewInstance(), dir1, t -> tileIsFree(t, Set.of(PassThrough.BRICK, PassThrough.PLAYER)));
+					PathFinder pf = new PathFinder(coord1.getNewInstance(), target.getNewInstance(), dir1, t -> tileIsFree(t, passThrough));
 					if (!pf.pathWasFound()) {
-						MapSet.getLayer(26).removeTileProp(coord, TileProp.WALL);
+						getLayer(26).removeTileProp(coord, TileProp.WALL);
 						return false;
 					}
 				}
 		}
-		MapSet.getLayer(26).removeTileProp(coord, TileProp.WALL);
+		getLayer(26).removeTileProp(coord, TileProp.WALL);
 		return true;
 	}
 	
@@ -539,19 +545,19 @@ public abstract class MapSet {
 	}
 
 	public static void setGroundTile(Position groundTile) {
-		MapSet.groundTile = new Position(groundTile);
+		groundTile = new Position(groundTile);
 	}
 
 	public static void setWallTile(Position wallTile) {
-		MapSet.wallTile = new Position(wallTile);
+		wallTile = new Position(wallTile);
 	}
 
 	public static void setGroundWithBrickShadow(Position groundWithBrickShadow) {
-		MapSet.groundWithBrickShadow = new Position(groundWithBrickShadow);
+		groundWithBrickShadow = new Position(groundWithBrickShadow);
 	}
 
 	public static void setGroundWithWallShadow(Position groundWithWallShadow) {
-		MapSet.groundWithWallShadow = new Position(groundWithWallShadow);
+		groundWithWallShadow = new Position(groundWithWallShadow);
 	}
 
 	public static Map<Integer, Layer> getLayersMap() {
@@ -680,7 +686,7 @@ public abstract class MapSet {
 	public static boolean tileIsFree(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
 		if (!haveTilesOnCoord(coord))
 			return false;
-		Entity en = Entity.haveAnyEntityAtCoord(coord) ? Entity.getFirstEntityFromCoord(coord) : null;
+		Entity en = Entity.haveAnyEntityAtCoord(coord, entity) ? Entity.getFirstEntityFromCoord(coord) : null;
 		for (TileProp prop : getTileProps(coord)) {
 			if (entity != null && entity.getElevation() == Elevation.ON_GROUND) {
 				if ((entity instanceof Bomb && prop == TileProp.GROUND_NO_BOMB) ||
@@ -696,9 +702,9 @@ public abstract class MapSet {
 					((prop == TileProp.WATER || prop == TileProp.DEEP_WATER) && (passThrough == null || !passThrough.contains(PassThrough.WATER))) ||
 					(en != null && en instanceof BomberMan && passThrough != null && !passThrough.contains(PassThrough.PLAYER)) ||
 					(en != null && en instanceof Monster && passThrough != null && !passThrough.contains(PassThrough.MONSTER)) ||
-					(Item.haveItemAt(coord) && passThrough != null && !passThrough.contains(PassThrough.ITEM)) ||
-					(Brick.haveBrickAt(coord) && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
-					(Bomb.haveBombAt(entity, coord) && Bomb.getBombAt(coord).getBombType() != BombType.LAND_MINE && (passThrough == null || !passThrough.contains(PassThrough.BOMB))) ||
+					(Item.haveItemAt(coord) && Item.getItemAt(coord) != entity && passThrough != null && !passThrough.contains(PassThrough.ITEM)) ||
+					(Brick.haveBrickAt(coord) && Brick.getBrickAt(coord) != entity && (passThrough == null || !passThrough.contains(PassThrough.BRICK))) ||
+					(Bomb.haveBombAt(entity, coord) && Bomb.getBombAt(coord) != entity && Bomb.getBombAt(coord).getBombType() != BombType.LAND_MINE && (passThrough == null || !passThrough.contains(PassThrough.BOMB))) ||
 					TileProp.getCantCrossList(entity == null ? Elevation.ON_GROUND : entity.getElevation()).contains(prop)))
 						return false;
 		}
@@ -804,6 +810,86 @@ public abstract class MapSet {
 
 	public static void clearTileTags(TileCoord coord) {
 		getCurrentLayer().clearTileTags(coord);
+	}
+
+	public static CompletableFuture<TileCoord> getRandomFreeTileAsync() {
+		return getRandomFreeTileAsync(null, false, null);
+	}
+	
+	public static CompletableFuture<TileCoord> getRandomFreeTileAsync(boolean test) {
+		return getRandomFreeTileAsync(null, test, null);
+	}
+	
+	public static CompletableFuture<TileCoord> getRandomFreeTileAsync(Predicate<TileCoord> extraTileIsFreeVerification) {
+		return getRandomFreeTileAsync(null, false, extraTileIsFreeVerification);
+	}
+	
+	public static CompletableFuture<TileCoord> getRandomFreeTileAsync(boolean test, Predicate<TileCoord> extraTileIsFreeVerification) {
+		return getRandomFreeTileAsync(null, test, extraTileIsFreeVerification);
+	}
+	
+	public static CompletableFuture<TileCoord> getRandomFreeTileAsync(Set<PassThrough> passThrough) {
+		return getRandomFreeTileAsync(passThrough, false, null);
+	}
+	
+	public static CompletableFuture<TileCoord> getRandomFreeTileAsync(Set<PassThrough> passThrough, boolean test) {
+		return getRandomFreeTileAsync(passThrough, test, null);
+	}
+	
+	public static CompletableFuture<TileCoord> getRandomFreeTileAsync(Set<PassThrough> passThrough, Predicate<TileCoord> extraTileIsFreeVerification) {
+		return getRandomFreeTileAsync(passThrough, false, extraTileIsFreeVerification);
+	}
+	
+	public static CompletableFuture<TileCoord> getRandomFreeTileAsync(Set<PassThrough> passThrough, boolean test, Predicate<TileCoord> extraTileIsFreeVerification) {
+		return CompletableFuture.supplyAsync(() -> {
+			return getRandomFreeTile(passThrough, test, extraTileIsFreeVerification);
+		});
+	}
+	
+	public static TileCoord getRandomFreeTile() {
+		return getRandomFreeTile(null, false, null);
+	}
+	
+	public static TileCoord getRandomFreeTile(boolean test) {
+		return getRandomFreeTile(null, test, null);
+	}
+	
+	public static TileCoord getRandomFreeTile(Predicate<TileCoord> extraTileIsFreeVerification) {
+		return getRandomFreeTile(null, false, extraTileIsFreeVerification);
+	}
+	
+	public static TileCoord getRandomFreeTile(boolean test, Predicate<TileCoord> extraTileIsFreeVerification) {
+		return getRandomFreeTile(null, test, extraTileIsFreeVerification);
+	}
+	
+	public static TileCoord getRandomFreeTile(Set<PassThrough> passThrough) {
+		return getRandomFreeTile(passThrough, false, null);
+	}
+	
+	public static TileCoord getRandomFreeTile(Set<PassThrough> passThrough, boolean test) {
+		return getRandomFreeTile(passThrough, test, null);
+	}
+	
+	public static TileCoord getRandomFreeTile(Set<PassThrough> passThrough, Predicate<TileCoord> extraTileIsFreeVerification) {
+		return getRandomFreeTile(passThrough, false, extraTileIsFreeVerification);
+	}
+	
+	public static TileCoord getRandomFreeTile(Set<PassThrough> passThrough, boolean test, Predicate<TileCoord> extraTileIsFreeVerification) {
+		List<Tile> list = new ArrayList<>(MapSet.getTileListFromCurrentLayer());
+		for (int n = (int)MyMath.getRandom(0, list.size() - 1); !list.isEmpty(); n++) {
+			if (n == list.size())
+				n = 0;
+			TileCoord coord = list.get(n).getTileCoord().getNewInstance();
+			if ((!test || testCoordForInsertFixedBlock(coord)) &&
+					tileIsFree(coord, passThrough) && (extraTileIsFreeVerification == null || extraTileIsFreeVerification.test(coord)))
+						return coord;
+			list.remove(n--);
+		}
+		return null;
+	}
+
+	public static Brick dropWallFromSky(TileCoord coord) {
+		return Brick.dropBrickFromSky(coord, null, true);
 	}
 
 }

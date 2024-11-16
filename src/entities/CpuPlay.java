@@ -123,12 +123,13 @@ public class CpuPlay {
 	}
 
 	private boolean isStucked() {
-		List<TileCoord> coords = Tools.getFreeTileCoordsAround(bomberMan, getCurrentTileCoord());
+		List<TileCoord> coords = Tools.getFreeTileCoordsAround(bomberMan, getCurrentTileCoord(), passThrough());
 		if (coords == null)
 			return true;
 		for (TileCoord coord : coords)
-			if (tileIsHalfSafe(coord))
+			if (tileIsSafe(coord))
 				return false;
+		System.out.println("STUCKED B");
 		return true;
 	}
 
@@ -317,7 +318,7 @@ public class CpuPlay {
 	}
 
 	private boolean tileIsHalfSafe(TileCoord coord) {
-		return (isInvencible() || !MapSet.tileContainsProp(coord, TileProp.CPU_DANGER_2)) && tileIsFree(coord);
+		return (isInvencible() || !MapSet.tileContainsProp(coord, TileProp.CPU_DANGER_2) || MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.CPU_DANGER_2)) && tileIsFree(coord);
 	}
 	
 	private boolean tileIsSafe(TileCoord coord) {

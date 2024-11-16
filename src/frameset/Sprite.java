@@ -653,7 +653,7 @@ public class Sprite extends Position {
 			if (getSourceEntity().getHolder() != null) {
 				tx += getSourceEntity().getHolderDesloc().getX();
 				ty += getSourceEntity().getHolderDesloc().getY();
-				frontValue2++;
+				frontValue2 += 3;
 			}
 			ShakeEntity shake;
 			if ((shake = MapSet.getShake()) != null || (shake = getSourceEntity().getShake()) != null || (shake = this.shake) != null) {

@@ -64,6 +64,7 @@ public class Entity extends Position {
 	private Entity focusedOn;
 	private Entity holder; // Entity que está segurando o objeto
 	private Entity holding; // Objeto que a entity está segurando
+	private Entity targeting;
 	private long holdingCTime; // Momento em que a entity segurou o objeto
 	private Position holderDesloc; // Deslocamento do sprite do objeto que está sendo segurado
 	private Position linkedEntityOffset;
@@ -354,8 +355,6 @@ public class Entity extends Position {
 	}
 
 	public void unsetJumpMove() {
-		if (jumpMove != null)
-			checkOutScreenCoords();
 		jumpMove = null;
 	}
 
@@ -384,12 +383,13 @@ public class Entity extends Position {
 	public void jumpTo(Entity entity, TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
 		if (jumpSound != null)
 			Sound.playWav(entity, jumpSound);
-		final JumpMove jumpMove = setJumpMove(jumpStrenght, strenghtMultipiler, durationFrames);
+		setElevation(Elevation.FLYING);
 		onSetJumpMoveTrigger();
+		JumpMove jumpMove = setJumpMove(jumpStrenght, strenghtMultipiler, durationFrames);
 		jumpMove.setOnCycleCompleteEvent(e -> {
 			TileCoord coord2 = getTileCoordFromCenter();
 			setElevation(Elevation.ON_GROUND);
-			if (!MapSet.tileIsFree(entity, coord2, entity.passThrough)) {
+			if (!MapSet.tileIsFree(this, coord2, getPassThrough())) {
 				setElevation(Elevation.FLYING);
 				onJumpFallAtOccupedTileEvent(jumpMove);
 			}
@@ -399,14 +399,11 @@ public class Entity extends Position {
 		setGotoMove(coord.getPosition(), durationFrames - 1);
 	}
 
-	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {
-		checkOutScreenCoords();
-	}
+	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {}
 
 	public void onJumpFallAtOccupedTileEvent(JumpMove jumpMove) {
 		Sound.playWav("TileSlam");
 		jumpMove.resetJump(4, 1.2, 14);
-		checkOutScreenCoords();
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		setGotoMove(coord.incCoordsByDirection(getDirection()).getPosition(), jumpMove.getDurationFrames());
 	}
@@ -710,6 +707,18 @@ public class Entity extends Position {
 			holding.unsetHolder();
 		holding = null;
 	}
+	
+	public Entity getTargetingEntity() {
+		return targeting;
+	}
+	
+	public void setTargetingEntity(Entity entity) {
+		targeting = entity;
+	}
+	
+	public void unsetTargetingEntity() {
+		targeting = null;
+	}
 
 	public long getHoldingCTime() {
 		return holdingCTime;
@@ -902,10 +911,8 @@ public class Entity extends Position {
 		}
 		if (getGotoMove() != null) {
 			getGotoMove().move();
-			if (getGotoMove().isCycleCompleted()) {
+			if (getGotoMove().isCycleCompleted())
 				unsetGotoMove();
-				checkOutScreenCoords();
-			}
 			else {
 				incPosition(getGotoMove().getIncrements());
 				boolean[] corners = getFreeCorners();
@@ -921,7 +928,6 @@ public class Entity extends Position {
 			if (!getPushEntity().isActive()) {
 				unsetPushEntity();
 				setBlockedMovement(false);
-				checkOutScreenCoords();
 			}
 		}
 		if (getHolder() != null) {
@@ -943,6 +949,7 @@ public class Entity extends Position {
 		if (!(this instanceof Effect) && !isDead())
 			addEntityToList(getTileCoordFromCenter(), this);
 		setHeight((jumpMove == null ? 0 : -((int)jumpMove.getIncrements().getY()) + (int)getCurrentFrameSet().getY()));
+		checkOutScreenCoords();
 	}
 
 	private void processLinkedEntity() {
@@ -998,7 +1005,7 @@ public class Entity extends Position {
 			freeCorners[++z] = tileIsFree(pos.getTileCoord());
 			for (int n = 0; freeCorners[z] && n < 3; n++)
 				for (Entity entity : n == 0 ? Brick.getBricks() : n == 1 ? Bomb.getBombs() : Monster.getMonsters()) {
-					if (entity != this && entity.getElevation() == getElevation() &&
+					if (entity != this && entity.getElevation() == getElevation() && entity.getElevation() == Elevation.ON_GROUND &&
 							((n == 0 && !canPassThroughBrick()) ||
 							(n == 1 && ((Bomb) entity).getBombType() != BombType.LAND_MINE && !((Bomb) entity).ownerIsOver(this) && !canPassThroughBomb()) ||
 							(n == 2 && !canPassThroughMonster()))) {
@@ -1133,7 +1140,6 @@ public class Entity extends Position {
 						centerYToTile();
 				}
 			}
-			checkOutScreenCoords();
 			if (!getTileCoordFromCenter().equals(tileChangedCoord)) {
 				Position pos = getTileCoordFromCenter().getPosition();
 				int x = (int) getX() + Main.TILE_SIZE / 2, y = (int) getY() + Main.TILE_SIZE / 2, xx = (int) pos.getX() + Main.TILE_SIZE / 2, yy = (int) pos.getY() + Main.TILE_SIZE / 2;
@@ -1148,19 +1154,19 @@ public class Entity extends Position {
 	}
 	
 	public void checkOutScreenCoords() {
-		int minX = (int)MapSet.getMapMinLimit().getX() + Main.TILE_SIZE / 2;
-		int maxX = (int)MapSet.getMapMaxLimit().getX() + Main.TILE_SIZE / 2;
-		int minY = (int)MapSet.getMapMinLimit().getY();
-		int maxY = (int)MapSet.getMapMaxLimit().getY() + Main.TILE_SIZE;
-		if (getX() < minX)
-			setX(maxX);
-		else if (getX() > maxX) {
-			setX(minX);
-		}
-		if (getY() < minY)
-			setY(maxY);
-		else if (getY() > maxY) {
-			setY(minY);
+		if (this instanceof Bomb || this instanceof Brick || this instanceof Item || this instanceof BomberMan || this instanceof Monster) {
+			int minX = (int)MapSet.getMapMinLimit().getX() + Main.TILE_SIZE / 2;
+			int maxX = (int)MapSet.getMapMaxLimit().getX() + Main.TILE_SIZE / 2;
+			int minY = (int)MapSet.getMapMinLimit().getY();
+			int maxY = (int)MapSet.getMapMaxLimit().getY() + Main.TILE_SIZE;
+			if (getX() <= minX)
+				setX(maxX - 1);
+			else if (getX() >= maxX)
+				setX(minX + 1);
+			if (getY() <= minY)
+				setY(maxY - 1);
+			else if (getY() >= maxY)
+				setY(minY + 1);
 		}
 	}
 
@@ -1283,12 +1289,16 @@ public class Entity extends Position {
 
 	public int getShadowWidth() {
 		int w = shadow == null ? 0 : (int) shadow.getWidth();
+		if (w < 0)
+			return Math.abs(w);
 		int hh = -((int)getCurrentFrameSet().getSprite(0).outputSpriteSizePos.getY()) + getHeight();
 		return w - hh / 5;
 	}
 
 	public int getShadowHeight() {
 		int h = shadow == null ? 0 : (int) shadow.getHeight();
+		if (h < 0)
+			return Math.abs(h);
 		int hh = -((int)getCurrentFrameSet().getSprite(0).outputSpriteSizePos.getY()) + getHeight();
 		return h - hh / 5;
 	}
@@ -1373,8 +1383,10 @@ public class Entity extends Position {
 				unsetHoldingEntity();
 			if (--hitPoints == 0) {
 				setFrameSet("Dead");
-				if (this instanceof BomberMan)
+				if (this instanceof BomberMan) {
 					((BomberMan) this).decLives();
+					((BomberMan) this).dropAllItems();
+				}
 			}
 			else if (haveFrameSet("TakingDamage"))
 				setFrameSet("TakingDamage");
@@ -1461,7 +1473,7 @@ public class Entity extends Position {
 			entity.setPushEntity(pushEntity);
 		entity.setGhosting(2, 0.2);
 	}
-
+	
 }
 
 class LinkedEntityInfos {

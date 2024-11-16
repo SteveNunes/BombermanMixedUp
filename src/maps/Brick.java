@@ -12,12 +12,16 @@ import entities.Entity;
 import entities.Monster;
 import enums.Curse;
 import enums.Direction;
+import enums.Elevation;
 import enums.ItemType;
 import enums.TileProp;
+import frameset_tags.SetSprIndex;
+import frameset_tags.SetSprSource;
 import javafx.scene.canvas.GraphicsContext;
 import objmoveutils.JumpMove;
 import objmoveutils.TileCoord;
 import tools.Sound;
+import util.TimerFX;
 
 public class Brick extends Entity {
 
@@ -25,6 +29,7 @@ public class Brick extends Entity {
 	private static List<Brick> brickList = new ArrayList<>();
 	private ItemType item;
 	private int regenTimeInFrames;
+	private boolean isWall;
 
 	public Brick(Brick brick) {
 		super(brick);
@@ -38,12 +43,13 @@ public class Brick extends Entity {
 	public Brick(TileCoord coord) {
 		this(coord, null);
 	}
-
+	
 	public Brick(TileCoord coord, ItemType item) {
 		super();
 		setPosition(coord.getPosition());
 		regenTimeInFrames = 0;
 		this.item = item;
+		isWall = false;
 		Arrays.asList("BrickStandFrameSet", "BrickBreakFrameSet", "BrickRegenFrameSet", "BrickRollingFrameSet").forEach(frameSet -> {
 			String s = MapSet.getTileSetIniFile().read("CONFIG", frameSet);
 			if (s != null) {
@@ -89,14 +95,14 @@ public class Brick extends Entity {
 	}
 
 	public static void addBrick(Brick brick) {
-		addBrick(brick, true);
+		brickList.add(brick);
 	}
 
 	public static void addBrick(Brick brick, boolean updateLayer) {
 		TileCoord coord = brick.getTileCoordFromCenter().getNewInstance();
 		if (!haveBrickAt(coord, false)) {
 			brick.setPosition(coord.getPosition());
-			bricks.put(coord, brick);
+			putOnMap(coord, brick);
 			brickList.add(brick);
 			brick.setBrickShadow();
 			MapSet.checkTileTrigger(brick, coord, TileProp.TRIGGER_BY_BRICK);
@@ -230,18 +236,19 @@ public class Brick extends Entity {
 	}
 
 	public void kick(Direction direction, double speed, String kickSound, String slamSound) {
-		if (getPushEntity() == null && MapSet.tileIsFree(getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction))) {
+		TileCoord c = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction);
+		if (getPushEntity() == null && (Brick.haveBrickAt(c) || MapSet.tileIsFree(c))) {
 			Sound.playWav(kickSound);
 			entityTools.PushEntity pushEntity = new entityTools.PushEntity(this, speed, direction);
 			pushEntity.setOnStopEvent(e -> {
 				Sound.playWav(slamSound);
 				setShake(2d, -0.05, 0d);
 				unsetGhosting();
-				bricks.put(getTileCoordFromCenter(), this);
+				putOnMap(getTileCoordFromCenter(), this);
 				setBrickShadow();
 				TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction);
 				if (haveBrickAt(coord))
-					Brick.getBrickAt(coord).kick(direction, speed, kickSound, slamSound);
+					TimerFX.createTimer("chainKickBrick" + hashCode(), 5, () -> Brick.getBrickAt(coord).kick(direction, speed, kickSound, slamSound));
 			});
 			setPushEntity(pushEntity);
 			setGhosting(2, 0.2);
@@ -285,41 +292,131 @@ public class Brick extends Entity {
 
 	@Override
 	public void onPushEntityStop() {
-		bricks.put(getTileCoordFromCenter(), this);
+		putOnMap(getTileCoordFromCenter(), this);
 		setBrickShadow();
 	}
 
 	@Override
 	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {
-		checkOutScreenCoords();
 		centerToTile();
-		if (Entity.haveAnyEntityAtCoord(getTileCoordFromCenter()))
-			for (Entity entity : Entity.getEntityListFromCoord(getTileCoordFromCenter())) {
-				if (!entity.isBlockedMovement()) {
-					if (entity instanceof BomberMan)
-							((BomberMan)entity).dropItem(true, false);
-					else if (entity instanceof Monster) {
-						entity.setCurse(Curse.STUNNED);
-						entity.setCurseDuration(120);
-					}
-				}
-			}
+		checkEntitiesAbove();
 		Sound.playWav("BrickDrop");
 		destroy();
 	}
 
 	@Override
 	public void onJumpFallAtOccupedTileEvent(JumpMove jumpMove) {
-		checkOutScreenCoords();
 		centerToTile();
 		if (Bomb.haveBombAt(getTileCoordFromCenter()))
 			Bomb.getBombAt(getTileCoordFromCenter()).detonate();
 		else if (Item.haveItemAt(getTileCoordFromCenter()))
 			Item.getItemAt(getTileCoordFromCenter()).destroy();
-		if (bricks.containsKey(getTileCoordFromCenter()))
+		if (bricks.containsKey(getTileCoordFromCenter()) && getBrickAt(getTileCoordFromCenter()) != this)
 			bricks.get(getTileCoordFromCenter()).destroy();
 		Sound.playWav("BrickDrop");
 		destroy();
+	}
+	
+	public boolean checkEntitiesAbove() {
+		if (Entity.haveAnyEntityAtCoord(getTileCoordFromCenter()))
+			for (Entity entity : Entity.getEntityListFromCoord(getTileCoordFromCenter())) {
+				if (entity instanceof BomberMan) {
+					if (!entity.isBlockedMovement())
+						((BomberMan)entity).dropItem(true, false);
+					return true;
+				}
+				else if (entity instanceof Monster) {
+					if (!entity.isBlockedMovement()) {
+						entity.setCurse(Curse.STUNNED);
+						entity.setCurseDuration(120);
+					}
+					return true;
+				}
+			}
+		if (Item.haveItemAt(getTileCoordFromCenter()))
+			Item.getItemAt(getTileCoordFromCenter()).destroy();
+		return false;
+	}
+
+	public void checkEntitiesAboveWallVersion() {
+		if (Entity.haveAnyEntityAtCoord(getTileCoordFromCenter()))
+			for (Entity entity : Entity.getEntityListFromCoord(getTileCoordFromCenter()))
+				if (entity instanceof BomberMan || entity instanceof Monster) {
+					if (!entity.isBlockedMovement()) {
+						entity.setHitPoints(1);
+						entity.takeDamage();
+					}
+				}
+		if (Item.haveItemAt(getTileCoordFromCenter()))
+			Item.getItemAt(getTileCoordFromCenter()).destroy();
+		if (haveBrickAt(getTileCoordFromCenter()))
+			getBrickAt(getTileCoordFromCenter()).destroy();
+	}
+
+	private static void putOnMap(TileCoord coord, Brick brick) {
+		if (brick.getElevation() == Elevation.ON_GROUND)
+			bricks.put(coord, brick);
+	}
+
+	public static Brick dropBrickFromSky(TileCoord coord) {
+		return dropBrickFromSky(coord, null, false);
+	}
+
+	public static Brick dropBrickFromSky(TileCoord coord, ItemType itemType) {
+		return dropBrickFromSky(coord, itemType, false);
+	}
+
+	static Brick dropBrickFromSky(TileCoord coord, ItemType itemType, boolean isWall) {
+		Brick brick = new Brick(coord, itemType);
+		Brick.addBrick(brick);
+		if (isWall) {
+			brick.getCurrentFrameSet().changeTagValues(tag -> {
+				if (tag instanceof SetSprSource) {
+					((SetSprSource)tag).originSprSizePos.x = (int)MapSet.getWallTile().getX();
+					((SetSprSource)tag).originSprSizePos.y = (int)MapSet.getWallTile().getY();
+				}
+				else if (tag instanceof SetSprIndex)
+					((SetSprIndex)tag).value = 0;
+			});
+		}
+		brick.setJumpMove(8, 0, 80);
+		brick.getJumpMove().skipToFall();
+		brick.setShadow(0, 0, -12 ,-6 ,0.35f);
+		brick.setGhosting(2, 0.2);
+		brick.getJumpMove().setOnCycleCompleteEvent(e -> {
+			if (isWall) {
+				brickList.remove(brick);
+				MapSet.getCurrentLayer().removeAllTilesFromCoord(coord);
+				Tile tile = new Tile(MapSet.getCurrentLayer(), (int)MapSet.getWallTile().getX(), (int)MapSet.getWallTile().getY(), (int)coord.getPosition().getX(), (int)coord.getPosition().getY());
+				MapSet.getCurrentLayer().addTile(tile);
+				MapSet.getCurrentLayer().addTileProp(coord, TileProp.WALL);
+				if (MapSet.getCurrentLayer().tileHaveTags(coord))
+					MapSet.getCurrentLayer().clearTileTags(coord);
+				MapSet.getCurrentLayer().buildLayer();
+				Sound.playWav(brick, "BlockSlam");
+				brick.checkEntitiesAboveWallVersion();
+				MapSet.addTileProp(coord, TileProp.EXPLOSION);
+				TimerFX.createTimer("removeTempWallDamage@" + brick.hashCode(), 2000, () -> MapSet.removeTileProp(coord, TileProp.EXPLOSION));
+				return;
+			}
+			brick.setElevation(Elevation.ON_GROUND);
+			if (brick.checkEntitiesAbove())
+				brick.destroy();
+			else if (haveBrickAt(coord)) {
+				getBrickAt(coord).destroy();
+				brick.destroy();
+			}
+			else if (brick.tileIsFree(brick.getTileCoordFromCenter())) {
+				brick.setShake(2d, -0.05, 0d);
+				brick.removeShadow();
+				brick.unsetGhosting();
+				Sound.playWav(brick, "BrickDrop");
+				bricks.put(coord, brick);
+			}
+			else
+				brick.onJumpFallAtOccupedTileEvent(brick.getJumpMove());
+		});
+		return brick;
 	}
 
 }

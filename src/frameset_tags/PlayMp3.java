@@ -32,9 +32,9 @@ public class PlayMp3 extends FrameTag {
 			n++;
 			rate = params.length <= n || params[n].equals("-") ? 1 : Double.parseDouble(params[n]);
 			n++;
-			balance = params.length <= n || params[n].equals("-") ? 1 : Double.parseDouble(params[n]);
+			balance = params.length <= n || params[n].equals("-") ? 0 : Double.parseDouble(params[n]);
 			n++;
-			volume = params.length <= n || params[n].equals("-") ? 1 : Double.parseDouble(params[n]);
+			volume = params.length <= n || params[n].equals("-") ? Sound.getMasterGain() : Double.parseDouble(params[n]);
 			n++;
 			stopCurrent = params.length <= n || params[n].equals("-") ? false : Boolean.parseBoolean(params[n]);
 		}

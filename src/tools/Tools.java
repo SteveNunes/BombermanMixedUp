@@ -270,7 +270,10 @@ public abstract class Tools {
 
 	public static List<TileCoord> getFreeTileCoordsAround(Entity entity, TileCoord coord, Set<Direction> ignoreDirections, Set<PassThrough> passThrough) {
 		List<TileCoord> freeTileCoords = new ArrayList<>();
-		for (Direction dir : getFreeDirections(entity, coord, ignoreDirections, passThrough))
+		List<Direction> tiles = getFreeDirections(entity, coord, ignoreDirections, passThrough);
+		if (tiles == null)
+			return null;
+		for (Direction dir : tiles)
 			freeTileCoords.add(coord.getNewInstance().incCoordsByDirection(dir));
 		return freeTileCoords.isEmpty() ? null : freeTileCoords;
 	}

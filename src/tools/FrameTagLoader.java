@@ -384,6 +384,20 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new IncSprFrontValue(s));
 			else if (tag.equals("SetDisabled"))
 				tags.addTag(newTag = new SetDisabled(s));
+			else if (tag.equals("SetBomb"))
+				tags.addTag(newTag = new SetBomb(s));
+			else if (tag.equals("SetJumpingBomb"))
+				tags.addTag(newTag = new SetJumpingBomb(s));
+			else if (tag.equals("SetJumpToCoord"))
+				tags.addTag(newTag = new SetJumpToCoord(s));
+			else if (tag.equals("SetFallingBomb"))
+				tags.addTag(newTag = new SetFallingBomb(s));
+			else if (tag.equals("SetFallingBrick"))
+				tags.addTag(newTag = new SetFallingBrick(s));
+			else if (tag.equals("SetFallingItem"))
+				tags.addTag(newTag = new SetFallingItem(s));
+			else if (tag.equals("SetFallingWall"))
+				tags.addTag(newTag = new SetFallingWall(s));
 			if (delay > 0)
 				newTag.setTriggerDelay(delay);
 		}

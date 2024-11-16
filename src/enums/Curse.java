@@ -33,10 +33,10 @@ public enum Curse {
 		put(SLOW_EXPLODE_BOMB, 600);
 		put(FAST_EXPLODE_BOMB, 600);
 		put(BLINDNESS, 600);
-		put(INVISIBLE, 600);
+		put(INVISIBLE, 300);
 		put(REVERSED, 600);
-		put(SWAP_PLAYERS, 600);
-		put(STUNNED, 600);
+		put(SWAP_PLAYERS, 0);
+		put(STUNNED, 150);
 		put(SPAM_BOMB, 600);
 	}};
 

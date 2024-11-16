@@ -157,7 +157,6 @@ public enum ItemType {
 		put(PUSH_POWER, new Object[] { 150, "/voices/Item-Special" });
 		put(EXTRA_LIVE, new Object[] { 0, "LiveUp" });
 		put(FIRE_MAX, new Object[] { 150, "/voices/Item-FireUp" });
-		put(CURSE_SKULL, new Object[] { 0, "Curse" });
 	}};
 
 	ItemType(int value) {

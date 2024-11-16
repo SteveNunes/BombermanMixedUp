@@ -97,6 +97,7 @@ public class Game {
 				player.setOnPressInputEvent(null);
 				player.setMappingMode(false);
 				player.setInputMode(prevInputMode);
+				player.getBomberMan().setCpuPlay(null);
 				stage.close();
 			}
 			else if (player.isDetectingInput()) {

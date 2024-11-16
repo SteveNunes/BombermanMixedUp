@@ -2,6 +2,7 @@ package damage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -23,6 +24,7 @@ public class Explosion {
 	private int tileRange;
 	private boolean passThroughAllBricks;
 	private boolean passThroughAny;
+	private Set<PassThrough> passThrough;
 	private TileCoord centerCoord;
 	private Entity owner;
 	private int count;
@@ -41,6 +43,9 @@ public class Explosion {
 		passThroughAny = false;
 		fireDis = new int[] { 0, 0, 0, 0 };
 		count = 0;
+		passThrough = new HashSet<>(Set.of(PassThrough.HOLE, PassThrough.WATER, PassThrough.PLAYER, PassThrough.MONSTER, PassThrough.ITEM));
+		if (passThroughAllBricks)
+			passThrough.add(PassThrough.BRICK);
 	}
 	
 	public void setPassThroughAny(boolean state) {
@@ -111,7 +116,7 @@ public class Explosion {
 					if (ex.directions.contains(dir))
 						for (int n = 0; n < ex.tileRange; n++) {
 							coord.incCoordsByDirection(dir);
-							if (ex.passThroughAny || (MapSet.tileHaveProps(coord) && !MapSet.getTileProps(coord).contains(TileProp.GROUND_NO_FIRE) && MapSet.tileIsFree(coord, ex.passThroughAllBricks ? Set.of(PassThrough.BRICK) : null)))
+							if (ex.passThroughAny || (MapSet.tileHaveProps(coord) && !MapSet.getTileProps(coord).contains(TileProp.GROUND_NO_FIRE) && MapSet.tileIsFree(coord, ex.passThrough)))
 								ex.fireDis[d]++;
 							else
 								break;
@@ -154,10 +159,10 @@ public class Explosion {
 						coord.incCoordsByDirection(dir);
 					if (x > 0 || directions.size() == 4) {
 						if (MapSet.haveTilesOnCoord(coord) && !remove) {
-							TileDamage.addTileDamage(coord.getNewInstance(), 44).addDamageTileProps(TileProp.EXPLOSION);
+							TileDamage.addTileDamage(coord.getNewInstance(), 40).addDamageTileProps(TileProp.EXPLOSION);
 							MapSet.checkTileTrigger(owner, coord.getNewInstance(), TileProp.TRIGGER_BY_EXPLOSION);
 						}
-						if (x > 0 && (!MapSet.haveTilesOnCoord(coord) || MapSet.getCurrentLayer().getTileProps(coord).contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord, passThroughAllBricks ? Set.of(PassThrough.BRICK) : null)))
+						if (x > 0 && (!MapSet.haveTilesOnCoord(coord) || MapSet.getCurrentLayer().getTileProps(coord).contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord, passThrough)))
 							break;
 					}
 				}

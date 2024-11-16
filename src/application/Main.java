@@ -16,6 +16,7 @@ import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import player.GameInput;
 import tools.Materials;
+import tools.Sound;
 import tools.Tools;
 import util.IniFile;
 import util.TimerFX;
@@ -23,7 +24,7 @@ import util.TimerFX;
 public class Main extends Application {
 
 	public final static int TILE_SIZE = 16;
-	public final static GameMode GAME_MODE = GameMode.MAP_EDITOR;
+	public final static GameMode GAME_MODE = GameMode.GAME_TIKTOK;
 
 	public static FrameSetEditor frameSetEditor = null;
 	public static PalleteEditor palleteEditor = null;
@@ -39,6 +40,7 @@ public class Main extends Application {
 	public void start(Stage stage) {
 		try {
 			stageMain = stage;
+			Sound.setMasterGain(0.25);
 			Position.setGlobalTileSize(TILE_SIZE);
 			TileCoord.setGlobalTileSize(TILE_SIZE);
 			Materials.loadFromFiles();
@@ -94,7 +96,9 @@ public class Main extends Application {
 	public static void close() {
 		close = true;
 		GameInput.close();
-		TimerFX.stopAllTimers();
+		TimerFX.close();
+		if (gameTikTok != null)
+			gameTikTok.disconnectTikTokLive();
 		Platform.exit();
 		IniFile.closeAllOpenedIniFiles();
 	}

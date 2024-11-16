@@ -705,11 +705,10 @@ public class MapEditor {
 								tile.setCoords(tileCoord);
 							tilesMap.put(new TileCoord(tileCoord), new ArrayList<>(tiles));
 						}
-						List<Brick> bricks = Brick.getBricks();
-						bricks.forEach(brick -> Brick.removeBrick(brick));
+						List<Brick> bricks = new ArrayList<>(Brick.getBricks());
+						bricks.forEach(brick -> Brick.removeBrick(brick.getTileCoordFromCenter()));
 						bricks.forEach(brick -> {
-							brick.incPositionByDirection(dir);
-							Brick.addBrick(brick);
+							Brick.addBrick(brick.getTileCoordFromCenter(), false);
 						});
 						getCurrentLayer().setTilesMap(tilesMap);
 					}
@@ -736,7 +735,7 @@ public class MapEditor {
 							for (Tile tile : tilesMap.get(coord))
 								getCurrentLayer().addTile(tile, coord);
 						}
-						bricks.forEach(brick -> Brick.addBrick(brick));
+						bricks.forEach(brick -> Brick.addBrick(brick.getTileCoordFromCenter()));
 						int x = (int) selection.getX(), y = (int) selection.getY(), w = (int) selection.getWidth(), h = (int) selection.getHeight();
 						x += dir == Direction.LEFT ? -1 : dir == Direction.RIGHT ? 1 : 0;
 						y += dir == Direction.UP ? -1 : dir == Direction.DOWN ? 1 : 0;

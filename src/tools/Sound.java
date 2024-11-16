@@ -19,6 +19,15 @@ public abstract class Sound {
 	private static MediaPlayer lastPlayedMediaPlayer = null;
 	private static Map<String, AudioClip> waves = new LinkedHashMap<>();
 	private static Map<String, MediaPlayer> mp3s = new LinkedHashMap<>();
+	private static double masterGain = 1;
+	
+	public static double getMasterGain() {
+		return masterGain;
+	}
+	
+	public static void setMasterGain(double gain) {
+		masterGain = gain;
+	}
 
 	// ============================ PLAY Mp3 =====================================
 
@@ -35,11 +44,11 @@ public abstract class Sound {
 	}
 
 	public static void playMp3(String mp3Path) {
-		playMp3(mp3Path, 1, 0, 1, false);
+		playMp3(mp3Path, 1, 0, masterGain, false);
 	}
 
 	public static void playMp3(String mp3Path, boolean stopCurrent) {
-		playMp3(mp3Path, 1, 0, 1, stopCurrent);
+		playMp3(mp3Path, 1, 0, masterGain, stopCurrent);
 	}
 
 	public static void playMp3(String mp3Path, double rate, double balance, double volume) {
@@ -101,11 +110,11 @@ public abstract class Sound {
 	}
 
 	public static void playWav(String wavPath) {
-		playWav(null, wavPath, 1, 0, 0, 1, false);
+		playWav(null, wavPath, 1, 0, 0, masterGain, false);
 	}
 
 	public static void playWav(String wavPath, boolean stopCurrent) {
-		playWav(null, wavPath, 1, 0, 0, 1, stopCurrent);
+		playWav(null, wavPath, 1, 0, 0, masterGain, stopCurrent);
 	}
 
 	public static void playWav(final String wavPath, double rate, double pan, double balance, double volume) {
@@ -117,11 +126,11 @@ public abstract class Sound {
 	}
 
 	public static void playWav(Entity entity, String wavPath) {
-		playWav(entity, wavPath, 1, 0, 0, 1, false);
+		playWav(entity, wavPath, 1, 0, 0, masterGain, false);
 	}
 
 	public static void playWav(Entity entity, String wavPath, boolean stopCurrent) {
-		playWav(entity, wavPath, 1, 0, 0, 1, stopCurrent);
+		playWav(entity, wavPath, 1, 0, 0, masterGain, stopCurrent);
 	}
 
 	public static void playWav(Entity entity, final String wavPath, double rate, double pan, double balance, double volume) {
