@@ -260,6 +260,7 @@ public class MapEditor {
 		bombType = BombType.NORMAL;
 		canvasMain.setWidth(320 * zoomMain - 16 * zoomMain * 3);
 		canvasMain.setHeight(240 * zoomMain - 16 * zoomMain);
+		Main.setMainCanvas(canvasMain);
 		listenerHandleComboBoxMapFrameSets = new ListenerHandle<>(comboBoxMapFrameSets.valueProperty(), (o, oldValue, newValue) -> MapSet.mapFrameSets.setFrameSet(comboBoxMapFrameSets.getSelectionModel().getSelectedItem()));
 		BomberMan.addBomberMan(1, 0);
 		Player.addPlayer();
@@ -513,9 +514,6 @@ public class MapEditor {
 	}
 
 	void loadMap(String mapName, boolean resetCurrentLayerIndex) {
-		Brick.clearBricks();
-		Bomb.clearBombs();
-		Item.clearItems();
 		if (mapName == null)
 			throw new RuntimeException("Unable to load map because 'mapName' is null");
 		if (defaultMap != null) {

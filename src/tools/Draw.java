@@ -550,6 +550,26 @@ public abstract class Draw {
 		return drawParams;
 	}
 
+	public static DrawParams addDrawQueue(SpriteLayerType layerType, DrawType drawType, Font font) {
+		return addDrawQueue(0, layerType, drawType, null, font, null, null);
+	}
+	
+	public static DrawParams addDrawQueue(int frontValue, SpriteLayerType layerType, DrawType drawType, Font font) {
+		return addDrawQueue(frontValue, layerType, drawType, null, font, null, null);
+	}
+	
+	public static DrawParams addDrawQueue(SpriteLayerType layerType, DrawType drawType, Color color, Font font, String text, double... params) {
+		return addDrawQueue(0, layerType, drawType, color, font, text, params);
+	}
+
+	public static DrawParams addDrawQueue(int frontValue, SpriteLayerType layerType, DrawType drawType, Color color, Font font, String text, double... params) {
+		if (!drawParamsList.containsKey(layerType))
+			drawParamsList.put(layerType, new ArrayList<>());
+		DrawParams drawParams = new DrawParams(frontValue, drawType, color, font, text, params);
+		drawParamsList.get(layerType).add(drawParams);
+		return drawParams;
+	}
+
 	public static void drawBlockTypeMarks(GraphicsContext gc, int zoom, boolean showTilesWith2OrMoreSprites) {
 		drawBlockTypeMarks(gc, 0, 0, zoom, showTilesWith2OrMoreSprites, null);
 	}

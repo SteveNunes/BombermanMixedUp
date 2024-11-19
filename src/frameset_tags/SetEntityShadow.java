@@ -29,15 +29,11 @@ public class SetEntityShadow extends FrameTag {
 			throw new RuntimeException(tags + " - Too much parameters");
 		int n = 0;
 		try {
-			offsetX = n <= params.length || params[n].equals("-") ? 0 : Integer.parseInt(params[n]);
-			n++;
-			offsetY = n <= params.length || params[n].equals("-") ? -3 : Integer.parseInt(params[n]);
-			n++;
-			width = n <= params.length || params[n].equals("-") ? 14 : Integer.parseInt(params[n]);
-			n++;
-			height = n <= params.length || params[n].equals("-") ? 6 : Integer.parseInt(params[n]);
-			n++;
-			opacity = n <= params.length || params[n].equals("-") ? 0.5f : Float.parseFloat(params[n]);
+			offsetX = n >= params.length || params[n].equals("-") ? 0 : Integer.parseInt(params[n]);
+			offsetY = ++n >= params.length || params[n].equals("-") ? -3 : Integer.parseInt(params[n]);
+			width = ++n >= params.length || params[n].equals("-") ? 14 : Integer.parseInt(params[n]);
+			height = ++n >= params.length || params[n].equals("-") ? 6 : Integer.parseInt(params[n]);
+			opacity = ++n >= params.length || params[n].equals("-") ? 0.5f : Float.parseFloat(params[n]);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(params[--n] + " - Invalid parameter");

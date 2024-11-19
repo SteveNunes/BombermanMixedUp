@@ -20,6 +20,7 @@ import frameset_tags.SetSprSource;
 import javafx.scene.canvas.GraphicsContext;
 import objmoveutils.JumpMove;
 import objmoveutils.TileCoord;
+import tools.GameConfigs;
 import tools.Sound;
 import util.TimerFX;
 
@@ -205,7 +206,7 @@ public class Brick extends Entity {
 	}
 
 	public void destroy() {
-		if (!getCurrentFrameSetName().equals("BrickBreakFrameSet")) {
+		if (!isWall && !getCurrentFrameSetName().equals("BrickBreakFrameSet")) {
 			removeThisFromTile(getTileCoordFromCenter());
 			setFrameSet("BrickBreakFrameSet");
 		}
@@ -367,9 +368,13 @@ public class Brick extends Entity {
 	}
 
 	static Brick dropBrickFromSky(TileCoord coord, ItemType itemType, boolean isWall) {
+		coord = coord.getNewInstance();
+		final TileCoord coord2 = coord.getNewInstance(); 
 		Brick brick = new Brick(coord, itemType);
+		brick.isWall = isWall;
 		Brick.addBrick(brick);
 		if (isWall) {
+			MapSet.getCurrentLayer().addTileProp(coord2, TileProp.CPU_DANGER_2);
 			brick.getCurrentFrameSet().changeTagValues(tag -> {
 				if (tag instanceof SetSprSource) {
 					((SetSprSource)tag).originSprSizePos.x = (int)MapSet.getWallTile().getX();
@@ -379,31 +384,29 @@ public class Brick extends Entity {
 					((SetSprIndex)tag).value = 0;
 			});
 		}
-		brick.setJumpMove(8, 0, 80);
+		brick.setJumpMove(8, 0, GameConfigs.FALLING_FROM_SKY_STARTING_HEIGHT);
 		brick.getJumpMove().skipToFall();
 		brick.setShadow(0, 0, -12 ,-6 ,0.35f);
 		brick.setGhosting(2, 0.2);
 		brick.getJumpMove().setOnCycleCompleteEvent(e -> {
 			if (isWall) {
 				brickList.remove(brick);
-				MapSet.getCurrentLayer().removeAllTilesFromCoord(coord);
-				Tile tile = new Tile(MapSet.getCurrentLayer(), (int)MapSet.getWallTile().getX(), (int)MapSet.getWallTile().getY(), (int)coord.getPosition().getX(), (int)coord.getPosition().getY());
+				MapSet.getCurrentLayer().removeAllTilesFromCoord(coord2);
+				Tile tile = new Tile(MapSet.getCurrentLayer(), (int)MapSet.getWallTile().getX(), (int)MapSet.getWallTile().getY(), (int)coord2.getPosition().getX(), (int)coord2.getPosition().getY());
 				MapSet.getCurrentLayer().addTile(tile);
-				MapSet.getCurrentLayer().addTileProp(coord, TileProp.WALL);
-				if (MapSet.getCurrentLayer().tileHaveTags(coord))
-					MapSet.getCurrentLayer().clearTileTags(coord);
+				MapSet.getCurrentLayer().addTileProp(coord2, TileProp.WALL, TileProp.EXPLOSION);
+				if (MapSet.getCurrentLayer().tileHaveTags(coord2))
+					MapSet.getCurrentLayer().clearTileTags(coord2);
 				MapSet.getCurrentLayer().buildLayer();
 				Sound.playWav(brick, "BlockSlam");
 				brick.checkEntitiesAboveWallVersion();
-				MapSet.addTileProp(coord, TileProp.EXPLOSION);
-				TimerFX.createTimer("removeTempWallDamage@" + brick.hashCode(), 2000, () -> MapSet.removeTileProp(coord, TileProp.EXPLOSION));
 				return;
 			}
 			brick.setElevation(Elevation.ON_GROUND);
 			if (brick.checkEntitiesAbove())
 				brick.destroy();
-			else if (haveBrickAt(coord)) {
-				getBrickAt(coord).destroy();
+			else if (haveBrickAt(coord2)) {
+				getBrickAt(coord2).destroy();
 				brick.destroy();
 			}
 			else if (brick.tileIsFree(brick.getTileCoordFromCenter())) {
@@ -411,7 +414,7 @@ public class Brick extends Entity {
 				brick.removeShadow();
 				brick.unsetGhosting();
 				Sound.playWav(brick, "BrickDrop");
-				bricks.put(coord, brick);
+				bricks.put(coord2, brick);
 			}
 			else
 				brick.onJumpFallAtOccupedTileEvent(brick.getJumpMove());

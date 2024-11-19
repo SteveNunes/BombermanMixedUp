@@ -679,8 +679,8 @@ public class Sprite extends Position {
 				ty += (int) getSourceEntity().getJumpMove().getIncrements().getY();
 				frontValue2++;
 			}
-			if ((getSourceEntity().getY() - ty) > getSourceEntity().getEntityHeight())
-				getSourceEntity().setEntityHeight((int)(getSourceEntity().getY() - ty));
+			if ((getSourceEntity().getY() + Main.TILE_SIZE - ty) > getSourceEntity().getEntityHeight())
+				getSourceEntity().setEntityHeight((int)(getSourceEntity().getY() + Main.TILE_SIZE - ty));
 			if (gc != null)
 				ImageUtils.drawImage(gc, spriteIndex == null ? Materials.blankImage : getSpriteSource(), sx, sy, (int) getOriginSpriteWidth(), (int) getOriginSpriteHeight(), tx, ty, getOutputWidth(), getOutputHeight(), flip, rotation, localAlpha, getSpriteEffects());
 			else {

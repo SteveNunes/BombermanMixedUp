@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import util.CollectionUtils;
 import util.MyMath;
 
 public enum ItemType {
@@ -74,6 +75,11 @@ public enum ItemType {
 				SPIRAL_COLORED_ICECREAM, PUDDING, CANDY_CONE, BUTTER, CORN_DOG, OLIVES,
 				EXTINGUISHER, RANDOM, FIRE_MAX, SPEED_DOWN, CURSE_SKULL, STRAWBERRY_ICECREAM,
 				APPLE_2, FIRE_IMMUNE, HYPER_GLOVE, HYPER_PUNCH, HYPER_KICK));
+		forBattle = new ArrayList<>(Arrays.asList(BOMB_UP, FIRE_UP, SPEED_UP, SPIKE_BOMB,
+				REMOTE_BOMB, P_BOMB, LAND_MINE_BOMB, RUBBER_BOMB, FOLLOW_BOMB, MAGNET_BOMB,
+				MAGMA_BOMB, HEART_BOMB, SENSOR_BOMB, SPIKE_REMOTE_BOMB, PASS_BOMB, PASS_BRICK,
+				LINED_BOMBS, KICK_BOMB, PUNCH_BOMB, POWER_GLOVE, PUSH_POWER,
+				HEART_UP, FIRE_MAX, SPEED_DOWN, HYPER_GLOVE, HYPER_PUNCH, HYPER_KICK));
 		bombs = new ArrayList<>(Arrays.asList(FOLLOW_BOMB, HEART_BOMB, MAGMA_BOMB,
 				MAGNET_BOMB, P_BOMB, SENSOR_BOMB, LAND_MINE_BOMB, REMOTE_BOMB, RUBBER_BOMB,
 				SPIKE_BOMB, SPIKE_REMOTE_BOMB));
@@ -85,7 +91,7 @@ public enum ItemType {
 	}
 
 	private int value;
-	private static List<ItemType> fullList, bombs, foods, badItems;
+	private static List<ItemType> fullList, bombs, foods, badItems, forBattle;
 
 	@SuppressWarnings("serial")
 	private static Map<ItemType, Integer> itemScore = new HashMap<>() {{
@@ -188,6 +194,10 @@ public enum ItemType {
 		}
 		while (type == RANDOM);
 		return type;
+	}
+	
+	public static ItemType getRandomForBattle() {
+		return CollectionUtils.getRandomItemFromList(forBattle);
 	}
 
 	public static ItemType getItemById(int itemId) {

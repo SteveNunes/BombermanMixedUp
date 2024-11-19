@@ -44,6 +44,7 @@ public class Game {
 		font = new Font("Lucida Console", 15);
 		canvasMain.setWidth(WIN_W * ZOOM);
 		canvasMain.setHeight(WIN_H * ZOOM);
+		Main.setMainCanvas(canvasMain);
 		gcMain = canvasMain.getGraphicsContext2D();
 		gcMain.setImageSmoothing(false);
 		holdedKeys = new ArrayList<>();
@@ -76,7 +77,7 @@ public class Game {
 		});
 	}
 	
-	static void openInputSetup(int n) {
+	static BomberMan openInputSetup(int n) {
 		BomberMan bomber;
 		while (n >= Player.getTotalPlayers())
 			Player.addPlayer();
@@ -165,6 +166,7 @@ public class Game {
 			}
 		});
 		stage.showAndWait();
+		return bomber;
 	}
 
 	void mainLoop() {

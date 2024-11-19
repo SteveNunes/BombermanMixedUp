@@ -20,6 +20,7 @@ import enums.PassThrough;
 import enums.TileProp;
 import gui.GameTikTok;
 import maps.Brick;
+import maps.Item;
 import maps.MapSet;
 import objmoveutils.TileCoord;
 import pathfinder.PathFinder;
@@ -65,9 +66,9 @@ public class CpuPlay {
 	}
 	
 	public void run() {
-		if (!bomberMan.isBlockedMovement()) {
+		if (!MapSet.stageIsCleared() && !bomberMan.isBlockedMovement()) {
 			// Se estiver em um tile perigoso, tenta encontrar uma forma de sair dele
-			if (!isStucked() && isOverDangerTile()) {
+			if (isOverDangerTile()) {
 				pauseInFrames = 0;
 				return;
 			}
@@ -129,7 +130,6 @@ public class CpuPlay {
 		for (TileCoord coord : coords)
 			if (tileIsSafe(coord))
 				return false;
-		System.out.println("STUCKED B");
 		return true;
 	}
 
@@ -141,11 +141,15 @@ public class CpuPlay {
 	private boolean setPathFinder(PathFinder pathFinder) {
 		this.pathFinder = pathFinder;
 		if (pathFinder != null) {
-			if (!this.pathFinder.pathWasFound())
+			if (Brick.haveBrickAt(getPathFinder().getTargetCoord()) ||
+					Entity.haveAnyEntityAtCoord(getCurrentTileCoord(), bomberMan) ||
+					Item.haveItemAt(getPathFinder().getTargetCoord()))
+						getPathFinder().removeLastCoordFromPath();
+			if (!getPathFinder().pathWasFound())
 				this.pathFinder = null;
 			else {
 				releaseAllInputs();
-				Direction dir = this.pathFinder.getNextDirectionToGoAndRemove();
+				Direction dir = getPathFinder().getNextDirectionToGoAndRemove();
 				holdButton(dirToInput(dir));
 				return true;
 			}
@@ -185,7 +189,7 @@ public class CpuPlay {
 				if (!MapSet.tileContainsProp(found.getCoord(), TileProp.CPU_DANGER) &&
 						!MapSet.tileContainsProp(found.getCoord(), TileProp.CPU_DANGER_2) &&
 						findSafeSpotAndGo(getCurrentTileCoord(), found.getDir(), getFireRange(), false, t -> pressButton(GameInput.B), t -> tileIsSafe(t)))
-					return true;
+							return true;
 		return false;
 	}
 
@@ -194,7 +198,7 @@ public class CpuPlay {
 	}
 
 	private boolean checkForSomethingAround(Set<FindType> somethings, int radiusInTiles, FindInRectType rectType) {
-		List<FindProps> founds = Tools.findInRect(getCurrentTileCoord(), null, radiusInTiles, somethings);
+		List<FindProps> founds = Tools.findInRect(getCurrentTileCoord(), bomberMan, radiusInTiles, somethings);
 		Function<TileCoord, Boolean> tileIsFree = t -> {
 			return tileIsSafe(t) || t.equals(founds.get(0).getCoord()) || t.equals(getCurrentTileCoord());
 		};
@@ -273,7 +277,7 @@ public class CpuPlay {
 
 	private void markTilesAsDanger(TileCoord coord, int distance, boolean remove) {
 		Set<PassThrough> passThrough = new HashSet<>(Set.of(PassThrough.PLAYER, PassThrough.MONSTER, PassThrough.HOLE));
-		if (bomberMan.getBombType() == BombType.SPIKED || bomberMan.getBombType() == BombType.SPIKED_REMOTE) {
+		if (remove || bomberMan.getBombType() == BombType.SPIKED || bomberMan.getBombType() == BombType.SPIKED_REMOTE) {
 			passThrough.add(PassThrough.BRICK);
 			passThrough.add(PassThrough.ITEM);
 		}
@@ -314,7 +318,7 @@ public class CpuPlay {
 	}
 	
 	private boolean isInvencible() {
-		return bomberMan.isInvenible();
+		return bomberMan.isInvencible();
 	}
 
 	private boolean tileIsHalfSafe(TileCoord coord) {

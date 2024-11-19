@@ -123,23 +123,24 @@ public abstract class Tools {
 		List<FindProps> list = new ArrayList<>();
 		for (Direction dir : directions) {
 			int distance = distanceInTiles;
+			FindType findType = null;
 			out:
 			for (TileCoord c = coord.getNewInstance().incCoordsByDirection(dir); distance-- > 0 && MapSet.haveTilesOnCoord(c); c.incCoordsByDirection(dir)) {
 				if (!MapSet.tileIsFree(c, ignores)) {
-					if ((types.contains(FindType.BOMB) && Bomb.haveBombAt(entity, c)) ||
-							(types.contains(FindType.BRICK) && Brick.haveBrickAt(c)) ||
-							(types.contains(FindType.GOOD_ITEM) && Item.haveItemAt(c) && !Item.getItemAt(c).getItemType().isBadItem()) ||
-							(types.contains(FindType.BAD_ITEM) && Item.haveItemAt(c) && Item.getItemAt(c).getItemType().isBadItem()) ||
-							(types.contains(FindType.ITEM) && Item.haveItemAt(c)) ||
-							(types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, Monster.class)) ||
-							(types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, BomberMan.class)))
-								list.add(new FindProps(c.getNewInstance(), dir));
+					if ((types.contains(findType = FindType.BOMB) && Bomb.haveBombAt(entity, c)) ||
+							(types.contains(findType = FindType.BRICK) && Brick.haveBrickAt(c)) ||
+							(types.contains(findType = FindType.GOOD_ITEM) && Item.haveItemAt(c) && !Item.getItemAt(c).getItemType().isBadItem()) ||
+							(types.contains(findType = FindType.BAD_ITEM) && Item.haveItemAt(c) && Item.getItemAt(c).getItemType().isBadItem()) ||
+							(types.contains(findType = FindType.ITEM) && Item.haveItemAt(c)) ||
+							(types.contains(findType = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, Monster.class)) ||
+							(types.contains(findType = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, BomberMan.class)))
+								list.add(new FindProps(findType, c.getNewInstance(), dir));
 					break out;
 				}
-				else if (types.contains(FindType.EMPTY) ||
-						(types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof Monster) ||
-						(types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof BomberMan)) {
-							list.add(new FindProps(c.getNewInstance(), dir));
+				else if (types.contains(findType = FindType.EMPTY) ||
+						(types.contains(findType = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof Monster) ||
+						(types.contains(findType = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof BomberMan)) {
+							list.add(new FindProps(findType, c.getNewInstance(), dir));
 							break out;
 				}
 			}
@@ -217,14 +218,21 @@ public abstract class Tools {
 					if (x == coord.getX() - radius || x == coord.getX() + radius ||
 							y == coord.getY() - radius || y == coord.getY() + radius) {
 									int dx = x - coord.getX(), dy = y - coord.getY();
+									FindType ft = null; 
 									if (findType == null || findType == FindInRectType.RECTANGLE_AREA || (dx * dx) / (radiusInTiles * radiusInTiles) + (dy * dy) / (radiusInTiles * radiusInTiles) <= 1) {
 										coord2.setCoords(x, y);
 										boolean found = false;
 										if (!MapSet.tileIsFree(coord2, ignores)) {
-											if ((types.contains(FindType.BOMB) && Bomb.haveBombAt(entity, coord2)) || (types.contains(FindType.BRICK) && Brick.haveBrickAt(coord2)) || (types.contains(FindType.ITEM) && Item.haveItemAt(coord2)) || (types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, Monster.class)) || (types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, BomberMan.class)))
+											if ((types.contains(ft = FindType.BOMB) && Bomb.haveBombAt(entity, coord2)) ||
+													(types.contains(ft = FindType.BRICK) && Brick.haveBrickAt(coord2)) ||
+													(types.contains(ft = FindType.ITEM) && Item.haveItemAt(coord2)) ||
+													(types.contains(ft = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, Monster.class)) ||
+													(types.contains(ft = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, BomberMan.class)))
 												found = true;
 										}
-										else if (types.contains(FindType.EMPTY) || (types.contains(FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof Monster) || (types.contains(FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof BomberMan))
+										else if (types.contains(ft = FindType.EMPTY) ||
+												(types.contains(ft = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof Monster) ||
+												(types.contains(ft = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof BomberMan))
 											found = true;
 										if (found) {
 											Function<TileCoord, Boolean> tileIsFree = t -> {
@@ -232,7 +240,7 @@ public abstract class Tools {
 											};
 											PathFinder pf = new PathFinder(coord, coord2, Direction.DOWN, tileIsFree);
 											if (pf.pathWasFound())
-												list.add(new FindProps(coord2.getNewInstance(), pf.getNextDirectionToGo()));
+												list.add(new FindProps(ft, coord2.getNewInstance(), pf.getNextDirectionToGo()));
 										}
 									}
 			}

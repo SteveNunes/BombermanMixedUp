@@ -33,11 +33,13 @@ import tools.GameConfigs;
 import tools.Sound;
 import tools.Tools;
 import util.CollectionUtils;
+import util.Misc;
 import util.MyMath;
 import util.TimerFX;
 
 public class Bomb extends Entity {
 
+	private static final int TIMER_FOR_DANGER_2 = 60;
 	private static Map<TileCoord, Bomb> bombs = new HashMap<>();
 	private static List<Bomb> bombList = new ArrayList<>();
 
@@ -87,7 +89,7 @@ public class Bomb extends Entity {
 		this.type = type;
 		this.fireDistance = fireDistance;
 		this.owner = owner;
-		timer = type == BombType.SENSOR || type == BombType.REMOTE || type == BombType.SPIKED_REMOTE ? -1 : 180;
+		timer = type == BombType.LAND_MINE || type == BombType.SENSOR || type == BombType.REMOTE || type == BombType.SPIKED_REMOTE ? -1 : 180;
 		curseMulti = 1;
 		ownerIsOver = owner != null && owner.getTileCoordFromCenter().equals(coord);
 		if (type == BombType.LAND_MINE) {
@@ -103,7 +105,6 @@ public class Bomb extends Entity {
 		}
 		setPosition(coord.getPosition());
 		setPassThroughItem(true);
-		setDangerMarks(timer == -1 ? TileProp.CPU_DANGER_2 : TileProp.CPU_DANGER);
 	}
 	
 	@Override
@@ -188,13 +189,11 @@ public class Bomb extends Entity {
 
 	public static void removeBomb(Bomb bomb) {
 		if (bomb != null) {
-			if (bomb.dangerMarked || bomb.dangerMarked2)
-				TimerFX.createTimer("removeMarkTilesAsDanger-" + bomb.hashCode(), 1000, () -> {
-					if (bomb.dangerMarked)
-						bomb.removeDangerMarks(TileProp.CPU_DANGER);
-					if (bomb.dangerMarked2)
-						bomb.removeDangerMarks(TileProp.CPU_DANGER_2);
-				});
+			bomb.setDangerMarks(TileProp.CPU_DANGER_2);
+			TimerFX.createTimer("removeMarkTilesAsDanger-" + bomb.hashCode(), 800, () -> {
+				bomb.removeDangerMarks(TileProp.CPU_DANGER);
+				bomb.removeDangerMarks(TileProp.CPU_DANGER_2);
+			});
 			bombList.remove(bomb);
 			bombs.remove(bomb.getTileCoordFromCenter());
 		}
@@ -226,10 +225,8 @@ public class Bomb extends Entity {
 		for (Bomb bomb : bombs) {
 			if (bomb.type == BombType.LAND_MINE) {
 				bomb.run();
-				if (bomb.currentFrameSetNameIsEqual("LandedFrames") && Entity.haveAnyEntityAtCoord(bomb.getTileCoordFromCenter(), bomb)) {
+				if (bomb.currentFrameSetNameIsEqual("LandedFrames") && Entity.haveAnyEntityAtCoord(bomb.getTileCoordFromCenter(), bomb))
 					bomb.setFrameSet("UnlandingFrames");
-					bomb.setDangerMarks(TileProp.CPU_DANGER_2);
-				}
 				else if (MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB) ||
 								MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.EXPLOSION))
 									bomb.detonate();
@@ -243,11 +240,6 @@ public class Bomb extends Entity {
 				if (x <= xx - Main.TILE_SIZE / 2 || x >= xx + Main.TILE_SIZE / 2 ||
 						y <= yy - Main.TILE_SIZE / 2 || y >= yy + Main.TILE_SIZE / 2)
 							bomb.ownerIsOver = false;
-			}
-			if ((!bomb.dangerMarked2 && bomb.getTimer() <= 60 * bomb.curseMulti) || MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.CPU_DANGER)) {
-				if (bomb.dangerMarked)
-					bomb.removeDangerMarks(TileProp.CPU_DANGER);
-				bomb.setDangerMarks(TileProp.CPU_DANGER_2);
 			}
 			if (bomb.getTimer() != -1 && !bomb.isBlockedMovement())
 				bomb.decTimer();
@@ -345,6 +337,8 @@ public class Bomb extends Entity {
 
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
+		removeDangerMarks(TileProp.CPU_DANGER);
+		removeDangerMarks(TileProp.CPU_DANGER_2);
 		if (getBombType() == BombType.FOLLOW && !isBlockedMovement() && getPathFinder() == null) {
 			List<FindProps> founds = Tools.findInRect(this, getTileCoordFromCenter(), owner, 4, FindType.PLAYER);
 			if (getTargetingEntity() != null || founds != null) {
@@ -364,7 +358,7 @@ public class Bomb extends Entity {
 				}
 				else {
 					setTargetingEntity(Entity.getFirstEntityFromCoord(coord));
-					removeThisFromTile(getTileCoordFromCenter());
+					removeFromMap(getTileCoordFromCenter(), this);
 					setSpeed(0.5);
 				}
 			}
@@ -397,7 +391,7 @@ public class Bomb extends Entity {
 		super.run(gc, isPaused);
 		if (!isBlockedMovement() && tileWasChanged() && isActive()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
-			removeThisFromTile(prevCoord);
+			removeFromMap(prevCoord, this);
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
 			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
 			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
@@ -406,6 +400,10 @@ public class Bomb extends Entity {
 				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
 			}
 		}
+		if (!isBlockedMovement())
+			setDangerMarks(getTimer() <= TIMER_FOR_DANGER_2 * curseMulti || getBombType() == BombType.REMOTE ||
+					getBombType() == BombType.SPIKED_REMOTE || getBombType() == BombType.SENSOR
+					? TileProp.CPU_DANGER_2 : TileProp.CPU_DANGER);
 	}
 
 	public static boolean haveBombAt(TileCoord coord) {
@@ -473,30 +471,25 @@ public class Bomb extends Entity {
 		}
 	}
 
-	private void removeThisFromTile(TileCoord coord) {
-		if (bombs.containsKey(coord) && bombs.get(coord) == this)
-			bombs.remove(coord);
-	}
-	
 	@Override
 	public void onBeingHoldEvent(Entity holder) {
-		removeThisFromTile(getTileCoordFromCenter());
+		removeFromMap(getTileCoordFromCenter(), this);
 	}
 
 	@Override
 	public void onSetPushEntityTrigger() {
-		removeThisFromTile(getTileCoordFromCenter());
+		removeFromMap(getTileCoordFromCenter(), this);
 	}
 
 	@Override
 	public void onSetGotoMoveTrigger() {
-		removeThisFromTile(getTileCoordFromCenter());
+		removeFromMap(getTileCoordFromCenter(), this);
 	}
 	
 	@Override
 	public void onSetJumpMoveTrigger() {
 		setFrameSet("JumpingFrames");
-		removeThisFromTile(getTileCoordFromCenter());
+		removeFromMap(getTileCoordFromCenter(), this);
 	}
 
 	@Override
@@ -573,13 +566,13 @@ public class Bomb extends Entity {
 	}
 		
 	private void markTilesAsDanger(TileProp dangerProp, boolean remove) {
-		if ((dangerProp == TileProp.CPU_DANGER && dangerMarked != !remove) ||
-				(dangerProp == TileProp.CPU_DANGER_2 && dangerMarked2 != !remove)) {
+		if ((dangerProp == TileProp.CPU_DANGER && dangerMarked == remove) ||
+				(dangerProp == TileProp.CPU_DANGER_2 && dangerMarked2 == remove)) {
 			if (dangerProp == TileProp.CPU_DANGER)
 				dangerMarked = !remove;
 			else
 				dangerMarked2 = !remove;
-			passThrough = new HashSet<>(Set.of(PassThrough.HOLE, PassThrough.WATER, PassThrough.PLAYER, PassThrough.MONSTER, PassThrough.ITEM));
+			passThrough = new HashSet<>(Set.of(PassThrough.BOMB, PassThrough.HOLE, PassThrough.WATER, PassThrough.PLAYER, PassThrough.MONSTER, PassThrough.ITEM));
 			if (canPassThroughBrick())
 				passThrough.add(PassThrough.BRICK);
 			markTilesAsDanger(passThrough, getTileCoordFromCenter(), fireDistance, dangerProp, remove);
@@ -599,7 +592,7 @@ public class Bomb extends Entity {
 					else if (!MapSet.getCurrentLayer().getTileProps(coord2).contains(TileProp.GROUND_NO_FIRE))
 						MapSet.removeTileProp(coord2, dangerProp);
 				}
-				if (x > 0 && (!MapSet.haveTilesOnCoord(coord2) || MapSet.getCurrentLayer().getTileProps(coord2).contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord2, passThrough)))
+				if (x > 0 && (!MapSet.haveTilesOnCoord(coord2) || MapSet.getCurrentLayer().getTileProps(coord2).contains(TileProp.GROUND_NO_FIRE) || (!remove && !MapSet.tileIsFree(coord2, passThrough))))
 					break;
 				coord2.incCoordsByDirection(dir);
 			}
@@ -621,7 +614,7 @@ public class Bomb extends Entity {
 	public static Bomb dropBombFromSky(TileCoord coord, BombType bombType, int fireDistance) {
 		Bomb bomb = new Bomb(null, coord, bombType, fireDistance);
 		Bomb.addBomb(bomb);
-		bomb.setJumpMove(8, 0, 80);
+		bomb.setJumpMove(8, 0, GameConfigs.FALLING_FROM_SKY_STARTING_HEIGHT);
 		bomb.getJumpMove().skipToFall();
 		bomb.setShadow(0, 0, -12 ,-6 ,0.35f);
 		bomb.setGhosting(2, 0.2);
@@ -633,6 +626,7 @@ public class Bomb extends Entity {
 				bomb.unsetGhosting();
 				Sound.playWav(bomb, "BombSlam");
 				bombs.put(coord, bomb);
+				bomb.setFrameSet("StandFrames");
 			}
 			else {
 				bomb.setElevation(Elevation.FLYING);
@@ -640,6 +634,11 @@ public class Bomb extends Entity {
 			}
 		});
 		return bomb;
+	}
+	
+	private static void removeFromMap(TileCoord coord, Bomb bomb) {
+		if (bombs.containsKey(coord) && bombs.get(coord) == bomb)
+			bombs.remove(coord);
 	}
 
 	private static void putOnMap(TileCoord coord, Bomb bomb) {

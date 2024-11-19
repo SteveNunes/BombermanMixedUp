@@ -68,8 +68,8 @@ public abstract class Sound {
 				mp3 = mp3s.get(mp3Patch2);
 			else
 				mp3 = new MediaPlayer(new Media(file.toURI().toString()));
+			mp3s.put(mp3Patch2, mp3);
 			if (stopCurrent) {
-				mp3s.put(mp3Patch2, mp3);
 				lastPlayedMp3Path = mp3Patch2;
 				lastPlayedMediaPlayer = mp3;
 				mp3.setOnEndOfMedia(() -> {

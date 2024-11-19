@@ -1,6 +1,7 @@
 package fades;
 
 import enums.FadeState;
+import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -89,7 +90,7 @@ public class DefaultFade implements Fade {
 				fadeState = FadeState.DONE;
 				value = fadeState == FadeState.FADE_IN ? 0d : 1d;
 				if (onFadeDoneEvent != null)
-					onFadeDoneEvent.run();
+					Platform.runLater(() -> onFadeDoneEvent.run());
 			}
 			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 			gc.restore();

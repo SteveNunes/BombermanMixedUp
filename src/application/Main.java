@@ -11,10 +11,13 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.stage.Stage;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import player.GameInput;
+import tools.GameFonts;
 import tools.Materials;
 import tools.Sound;
 import tools.Tools;
@@ -35,15 +38,21 @@ public class Main extends Application {
 	public static Stage stageMain;
 	public static Scene sceneMain;
 	public static boolean close = false;
+	public static Long uniqueTimerId = 0L;
+	public static Canvas mainCanvas;
+	public static GraphicsContext mainGc;
 
 	@Override
 	public void start(Stage stage) {
 		try {
 			stageMain = stage;
-			Sound.setMasterGain(0.25);
+			mainCanvas = null;
+			mainGc = null;
+			Sound.setMasterGain(0.3);
 			Position.setGlobalTileSize(TILE_SIZE);
 			TileCoord.setGlobalTileSize(TILE_SIZE);
 			Materials.loadFromFiles();
+			GameFonts.loadFonts();
 			GameInput.init();
 			Tools.loadStuffs();
 			if (GAME_MODE == GameMode.FRAMESET_EDITOR) {
@@ -91,6 +100,19 @@ public class Main extends Application {
 			e.printStackTrace();
 			close();
 		}
+	}
+	
+	public static void setMainCanvas(Canvas canvas) {
+		mainCanvas = canvas;
+		mainGc = canvas.getGraphicsContext2D();
+	}
+	
+	public static Canvas getMainCanvas() {
+		return mainCanvas;
+	}
+
+	public static GraphicsContext getMainGraphicsContext() {
+		return mainGc;
 	}
 
 	public static void close() {

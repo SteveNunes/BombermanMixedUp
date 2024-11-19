@@ -7,6 +7,7 @@ import gui.util.ImageUtils;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
 public class DrawParams {
 
@@ -31,6 +32,18 @@ public class DrawParams {
 	private Double opacity;
 	private DrawImageEffects effects;
 	private int frontValue;
+	private Font font;
+	private String text;
+
+	DrawParams(int frontValue, DrawType drawType, Color color, Font font, String text, double... params) {
+		this.frontValue = frontValue;
+		this.font = font;
+		this.color = color;
+		this.text = text;
+		this.params = params;
+		this.drawType = drawType;
+		ghostingDistance = null;
+	}
 
 	DrawParams(int frontValue, DrawType drawType, Color color, double... params) {
 		this.frontValue = frontValue;
@@ -113,6 +126,12 @@ public class DrawParams {
 					gc.setStroke(color);
 				else if (drawType == DrawType.SET_LINE_WIDTH)
 					gc.setLineWidth(params[0]);
+				else if (drawType == DrawType.SET_FONT)
+					gc.setFont(font);
+				else if (drawType == DrawType.STROKE_TEXT)
+					gc.strokeText(text, params[0], params[1]);
+				else if (drawType == DrawType.FILL_TEXT)
+					gc.fillText(text, params[0], params[1]);
 				else if (drawType == DrawType.SAVE)
 					gc.save();
 				else if (drawType == DrawType.RESTORE)

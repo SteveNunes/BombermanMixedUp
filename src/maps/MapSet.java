@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import application.Main;
@@ -20,6 +21,7 @@ import entities.Monster;
 import entityTools.ShakeEntity;
 import enums.BombType;
 import enums.Direction;
+import enums.DrawType;
 import enums.Elevation;
 import enums.GameMode;
 import enums.ItemType;
@@ -32,15 +34,20 @@ import frameset.Tags;
 import frameset_tags.FrameTag;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import pathfinder.PathFinder;
+import tools.Draw;
+import tools.GameFonts;
 import tools.IniFiles;
 import tools.Materials;
 import tools.Sound;
 import util.IniFile;
 import util.Misc;
 import util.MyMath;
+import util.TimerFX;
 
 public abstract class MapSet {
 
@@ -67,12 +74,23 @@ public abstract class MapSet {
 	public static Map<String, FrameSet> runningStageTags;
 	private static Map<String, FrameSet> preLoadedStageTags;
 	private static int bricksRegenTimeInFrames;
+	private static long timeLimit;
 	private static Map<String, Integer> switches;
 	private static boolean stageIsCleared;
 	private static List<StageClearCriteria> stageClearCriterias;
 	private static List<StageClearCriteria> leftStageClearCriterias;
+	private static boolean hurryUpIsActive;
+	static TileCoord hurryUpMinFreeCoord;
+	static TileCoord hurryUpMaxFreeCoord;
+	private static TileCoord hurryUpNextCoord;
+	private static Direction hurryUpDirection;
+	private static Integer hurryUpDrawX;
+	private static Consumer<String> consumerWhenMapLoads = null;
+	private static Consumer<String> consumerWhenStageIsCleared = null;
+	private static Integer stageTimeInSecs = null;
 
 	public static void loadMap(String iniMapName) {
+		clearStuffs();
 		long ct = System.currentTimeMillis();
 		if (!IniFiles.stages.sectionExists(iniMapName))
 			throw new RuntimeException("Unable to load map \"" + iniMapName + "\" (Map not found on Stages.cfg)");
@@ -92,6 +110,13 @@ public abstract class MapSet {
 		mapName = IniFiles.stages.read(iniMapName, "File");
 		iniFileMap = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
 		shake = null;
+		hurryUpIsActive = false;
+		stageIsCleared = false;
+		hurryUpMinFreeCoord = new TileCoord(Integer.MAX_VALUE, Integer.MAX_VALUE);
+		hurryUpMaxFreeCoord = new TileCoord();
+		hurryUpNextCoord = new TileCoord();
+		hurryUpDirection = Direction.RIGHT;
+		hurryUpDrawX = null;
 		if (iniFileMap == null)
 			throw new RuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
 		if (iniFileMap.read("SETUP", "TileSet") == null)
@@ -159,6 +184,40 @@ public abstract class MapSet {
 		for (int p = 0; p < initialPlayerCoords.size() && p < BomberMan.getTotalBomberMans(); p++)
 			BomberMan.getBomberMan(p).setPosition(initialPlayerCoords.get(p).getPosition());
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
+		if (consumerWhenMapLoads != null)
+			consumerWhenMapLoads.accept(iniMapName);
+		timeLimit = stageTimeInSecs != null ? System.currentTimeMillis() + stageTimeInSecs * 1000 : -1;
+		BomberMan.setBomberAlives(0);
+		for (BomberMan bomber : BomberMan.getBomberManList())
+			bomber.clearItemsAndRevive();
+	}
+	
+	public static void clearStuffs() {
+		Brick.clearBricks();
+		Bomb.clearBombs();
+		Item.clearItems();
+		Effect.clearEffects();
+	}
+
+	public static void reloadMap() {
+		clearStuffs();
+		loadMap(iniMapName);
+	}
+	
+	public static void setStageTimeLimitInSecs(Integer timeLimit) {
+		stageTimeInSecs = timeLimit;
+	}
+	
+	public static boolean haveTimeLimit() {
+		return stageTimeInSecs != null;
+	}
+	
+	public static void setConsumerWhenMapLoads(Consumer<String> consumer) {
+		consumerWhenMapLoads = consumer;
+	}
+
+	public static void setConsumerWhenStageIsCleared(Consumer<String> consumer) {
+		consumerWhenStageIsCleared = consumer;
 	}
 
 	/*
@@ -178,7 +237,74 @@ public abstract class MapSet {
 		if (!runningStageTags.containsKey(stageTagsName))
 			runningStageTags.put(stageTagsName, new FrameSet(preLoadedStageTags.get(stageTagsName), tileCoord.getPosition(), whoTriggered));
 	}
+	
+	public static boolean hurryUpIsActive() {
+		return hurryUpIsActive;
+	}
+	
+	public static void setHurryUpState(boolean state) {
+		if (stageIsCleared())
+			return;
+		if (state != hurryUpIsActive && state) {
+			TimerFX.createTimer("HurryUp", 1, () -> {
+				Sound.playWav("");
+				Sound.stopAllMp3s();
+				Sound.playMp3("Battle-HurryUp1");
+				Sound.playWav("HurryUp");
+				Sound.playWav("voices/HurryUp");
+				hurryUpNextCoord.setCoords(hurryUpMinFreeCoord);
+				hurryUpDirection = Direction.RIGHT;
+				hurryUpDrawX = getMapLimitWidth() + 10;
+				dropNextHurryUpBlock();
+			});
+		}
+		hurryUpIsActive = state;
+	}
 
+	private static void dropNextHurryUpBlock() {
+		if (!MapSet.stageIsCleared)
+			TimerFX.createTimer("NextHurryUp" + Main.uniqueTimerId++, 250, () -> {
+				if (hurryUpMinFreeCoord.getY() != hurryUpMaxFreeCoord.getY()) {
+					do {
+						hurryUpNextCoord.incCoordsByDirection(hurryUpDirection);
+						if (hurryUpNextCoord.getX() == hurryUpMaxFreeCoord.getX() && hurryUpDirection == Direction.RIGHT) {
+							hurryUpMinFreeCoord.incY(1);
+							hurryUpDirection = Direction.DOWN;
+						}
+						else if (hurryUpNextCoord.getY() == hurryUpMaxFreeCoord.getY() && hurryUpDirection == Direction.DOWN) {
+							hurryUpMaxFreeCoord.decX(1);
+							hurryUpDirection = Direction.LEFT;
+						}
+						else if (hurryUpNextCoord.getX() == hurryUpMinFreeCoord.getX() && hurryUpDirection == Direction.LEFT) {
+							hurryUpMaxFreeCoord.decY(1);
+							hurryUpDirection = Direction.UP;
+						}
+						else if (hurryUpNextCoord.getY() == hurryUpMinFreeCoord.getY() && hurryUpDirection == Direction.UP) {
+							hurryUpMinFreeCoord.incX(1);
+							hurryUpDirection = Direction.RIGHT;
+						}
+						if (hurryUpMinFreeCoord.getY() == hurryUpMaxFreeCoord.getY()) {
+							hurryUpDirection = Direction.UP;
+							break;
+						}
+					}
+					while (!haveTilesOnCoord(hurryUpNextCoord) || tileContainsProp(hurryUpNextCoord, TileProp.WALL));
+				}
+				else {
+					hurryUpNextCoord.incCoordsByDirection(hurryUpDirection);
+					hurryUpDirection = Direction.RIGHT;
+					if (hurryUpNextCoord.getX() == hurryUpMaxFreeCoord.getX())
+						return;
+				}
+				dropWallFromSky(hurryUpNextCoord);
+				dropNextHurryUpBlock();
+			});
+	}
+
+	public static int getMapTimeLeftInSecs() {
+		return stageTimeInSecs == null ? -1 : (int)(timeLimit - System.currentTimeMillis()) / 1000;
+	}
+	
 	public static void runStageTag(String stageTagsName, TileCoord tileCoord) {
 		runStageTag(stageTagsName, tileCoord, new Entity());
 	}
@@ -192,13 +318,20 @@ public abstract class MapSet {
 	}
 
 	public static void setStageStatusToCleared() {
+		setStageStatusToCleared(true);
+	}
+
+	public static void setStageStatusToCleared(boolean playClearSound) {
 		if (!stageIsCleared) {
 			stageIsCleared = true;
 			if (preLoadedStageTags.containsKey("StageClear"))
 				runStageTag("StageClear");
 			if (mapFrameSets.haveFrameSet("StageClear"))
 				mapFrameSets.setFrameSet("StageClear");
-			Sound.playWav("StageClear");
+			if (playClearSound)
+				Sound.playWav("StageClear");
+			if (consumerWhenStageIsCleared != null)
+				consumerWhenStageIsCleared.accept(iniMapName);
 		}
 	}
 
@@ -643,6 +776,10 @@ public abstract class MapSet {
 	}
 
 	public static void run() {
+		if (!hurryUpIsActive() && stageTimeInSecs != null && getMapTimeLeftInSecs() <= 90)
+			setHurryUpState(true);
+		if (hurryUpIsActive())
+			drawHurryUpMessage();
 		if (shake != null) {
 			shake.proccess();
 			if (!shake.isActive())
@@ -670,6 +807,33 @@ public abstract class MapSet {
 		BomberMan.drawBomberMans();
 		removeStageTag.forEach(fs -> runningStageTags.remove(fs));
 	}
+	
+	public static int getMapLimitWidth() {
+		return (int)((MapSet.getMapMaxLimit().getX() - MapSet.getMapMinLimit().getX()) + MapSet.getMapMinLimit().getX() + Main.TILE_SIZE); 
+	}
+
+	public static int getMapLimitHeight() {
+		return (int)((MapSet.getMapMaxLimit().getY() - MapSet.getMapMinLimit().getY()) + MapSet.getMapMinLimit().getY() + Main.TILE_SIZE); 
+	}
+
+	private static void drawHurryUpMessage() {
+		if (hurryUpDrawX != null) {
+			if (Misc.blink(50)) {
+				Draw.addDrawQueue(1, SpriteLayerType.CLOUD, DrawType.SET_GLOBAL_ALPHA, 1);
+				Draw.addDrawQueue(1, SpriteLayerType.CLOUD, DrawType.SET_FONT, GameFonts.fontBomberMan40);
+				Draw.addDrawQueue(1, SpriteLayerType.CLOUD, DrawType.SET_LINE_WIDTH, 3);
+				Draw.addDrawQueue(2, SpriteLayerType.CLOUD, DrawType.SET_STROKE, Color.valueOf("#AAAAAA"));
+				Draw.addDrawQueue(3, SpriteLayerType.CLOUD, DrawType.SET_FILL, Color.valueOf("#FFFFFF"));
+				Draw.addDrawQueue(4, SpriteLayerType.CLOUD, DrawType.FILL_TEXT, null, null, "HURRY UP!", hurryUpDrawX, getMapLimitHeight() / 2 + 20);
+				Draw.addDrawQueue(5, SpriteLayerType.CLOUD, DrawType.STROKE_TEXT, null, null, "HURRY UP!", hurryUpDrawX, getMapLimitHeight() / 2 + 20);
+			}
+			Text text = new Text("HURRY UP!");
+			text.setFont(GameFonts.fontBomberMan40);
+			int x = (int)text.getLayoutBounds().getWidth();
+			if ((hurryUpDrawX -= 3) + x < 0)
+				hurryUpDrawX = null;
+		}
+	}
 
 	public static boolean tileIsFree(TileCoord coord) {
 		return tileIsFree(null, coord);
@@ -687,7 +851,7 @@ public abstract class MapSet {
 		if (!haveTilesOnCoord(coord))
 			return false;
 		Entity en = Entity.haveAnyEntityAtCoord(coord, entity) ? Entity.getFirstEntityFromCoord(coord) : null;
-		for (TileProp prop : getTileProps(coord)) {
+		for (TileProp prop : new ArrayList<>(getTileProps(coord))) {
 			if (entity != null && entity.getElevation() == Elevation.ON_GROUND) {
 				if ((entity instanceof Bomb && prop == TileProp.GROUND_NO_BOMB) ||
 						(entity instanceof Brick && prop == TileProp.GROUND_NO_BRICK) ||
@@ -876,20 +1040,23 @@ public abstract class MapSet {
 	
 	public static TileCoord getRandomFreeTile(Set<PassThrough> passThrough, boolean test, Predicate<TileCoord> extraTileIsFreeVerification) {
 		List<Tile> list = new ArrayList<>(MapSet.getTileListFromCurrentLayer());
-		for (int n = (int)MyMath.getRandom(0, list.size() - 1); !list.isEmpty(); n++) {
-			if (n == list.size())
-				n = 0;
+		for (int n = (int)MyMath.getRandom(0, list.size() - 1); !list.isEmpty();) {
 			TileCoord coord = list.get(n).getTileCoord().getNewInstance();
 			if ((!test || testCoordForInsertFixedBlock(coord)) &&
 					tileIsFree(coord, passThrough) && (extraTileIsFreeVerification == null || extraTileIsFreeVerification.test(coord)))
 						return coord;
-			list.remove(n--);
+			list.remove(n);
+			n = (int)MyMath.getRandom(0, list.size() - 1);
 		}
 		return null;
 	}
 
 	public static Brick dropWallFromSky(TileCoord coord) {
 		return Brick.dropBrickFromSky(coord, null, true);
+	}
+
+	public static boolean stageIsCleared() {
+		return stageIsCleared;
 	}
 
 }

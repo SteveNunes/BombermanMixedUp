@@ -22,6 +22,7 @@ import javafx.scene.paint.Color;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
+import tools.GameConfigs;
 import tools.Materials;
 import tools.RGBColor;
 import tools.Sound;
@@ -36,7 +37,6 @@ public class Item extends Entity {
 
 	private Curse curse;
 	private ItemType itemType;
-	private int startInvFrames;
 
 	public static void createItemEdgeImage() {
 		Materials.loadedSprites.put("ItemEdge", new WritableImage(18, 18));
@@ -66,9 +66,10 @@ public class Item extends Entity {
 	public Item(Position position, ItemType itemType) {
 		setPosition(new Position(position));
 		this.itemType = itemType;
-		startInvFrames = 20;
+		setInvencibleFrames(20);
 		addNewFrameSetFromIniFile(this, "StandFrameSet", "FrameSets", "ITEM", "StandFrameSet");
 		addNewFrameSetFromIniFile(this, "JumpingFrameSet", "FrameSets", "ITEM", "JumpingFrameSet");
+		addNewFrameSetFromIniFile(this, "FallingFromSky", "FrameSets", "ITEM", "FallingFromSky");
 		setUpItemPickUpFrameSet();
 		setFrameSet("StandFrameSet");
 		setPassThroughs(true, PassThrough.MONSTER, PassThrough.PLAYER);
@@ -97,7 +98,7 @@ public class Item extends Entity {
 	public void jumpTo(TileCoord coord) {
 		setFrameSet("JumpingFrameSet");
 		jumpTo(this, coord, 6, 1.2, 20);
-		startInvFrames = 30;
+		setInvencibleFrames(20);
 	}
 
 	private void setUpItemPickUpFrameSet() {
@@ -149,11 +150,12 @@ public class Item extends Entity {
 
 	public static void addItem(Item item, boolean startJumpingAround) {
 		if (startJumpingAround || !haveItemAt(item.getTileCoordFromCenter())) {
+			item.setInvencibleFrames(20);
 			itemList.add(item);
 			if (!item.tileIsFree(item.getTileCoordFromCenter()) &&
 					(MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM) ||
 					 MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.EXPLOSION)))
-						item.destroy();
+						item.forceDestroy();
 			else if (startJumpingAround || !MapSet.tileIsFree(item.getTileCoordFromCenter()))
 				item.jumpToRandomTileAround(2);
 			else {
@@ -206,7 +208,7 @@ public class Item extends Entity {
 		}
 
 		for (Item item : tempItems) {
-			if (--item.startInvFrames <= 0 && item.getCurrentFrameSetName().equals("StandFrameSet") &&
+			if (!item.isInvencible() && item.getCurrentFrameSetName().equals("StandFrameSet") &&
 					(MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM) ||
 					 MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.EXPLOSION)))
 						item.destroy();
@@ -216,10 +218,18 @@ public class Item extends Entity {
 				item.run();
 		}
 	}
-
+	
+	public void forceDestroy() {
+		destroy(true);
+	}
+	
 	public void destroy() {
+		destroy(false);
+	}
+
+	public void destroy(boolean forceDestroy) {
 		removeItem(this);
-		if (getItemType() == ItemType.CURSE_SKULL)
+		if (!forceDestroy && getItemType() == ItemType.CURSE_SKULL)
 			Item.addItem(getTileCoordFromCenter(), ItemType.CURSE_SKULL, true);
 		else
 			Effect.runEffect(getPosition(), "FireSkullExplosion");
@@ -331,10 +341,9 @@ public class Item extends Entity {
 	public static Item dropItemFromSky(TileCoord coord, ItemType itemType) {
 		Item item = new Item(coord, itemType);
 		Item.addItem(item);
-		item.setFrameSet("JumpingFrameSet");
-		item.setJumpMove(8, 0, 80);
+		item.setFrameSet("FallingFromSky");
+		item.setJumpMove(8, 0, GameConfigs.FALLING_FROM_SKY_STARTING_HEIGHT);
 		item.getJumpMove().skipToFall();
-		item.setShadow(0, 0, -12 ,-6 ,0.35f);
 		item.setGhosting(2, 0.2);
 		item.getJumpMove().setOnCycleCompleteEvent(e -> {
 			item.setElevation(Elevation.ON_GROUND);

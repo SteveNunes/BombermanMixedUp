@@ -105,6 +105,10 @@ public class Tile {
 			outX = Integer.parseInt(split2[0]) * Main.TILE_SIZE;
 			outY = Integer.parseInt(split2[1]) * Main.TILE_SIZE;
 			tileCoord = new TileCoord(outX / Main.TILE_SIZE, outY / Main.TILE_SIZE);
+			if (tileCoord.getX() < MapSet.hurryUpMinFreeCoord.getX() || tileCoord.getY() < MapSet.hurryUpMinFreeCoord.getY())
+				MapSet.hurryUpMinFreeCoord.setCoords(tileCoord);
+			if (tileCoord.getX() > MapSet.hurryUpMaxFreeCoord.getX() || tileCoord.getY() > MapSet.hurryUpMaxFreeCoord.getY())
+				MapSet.hurryUpMaxFreeCoord.setCoords(tileCoord);
 			flip = ImageFlip.valueOf(split[++n]);
 			rotate = Integer.parseInt(split[++n]);
 			split2 = split[++n].split("!");

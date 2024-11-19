@@ -23,6 +23,7 @@ import enums.DrawType;
 import enums.Elevation;
 import enums.PassThrough;
 import enums.SpriteLayerType;
+import enums.StageClearCriteria;
 import enums.TileProp;
 import frameset.FrameSet;
 import frameset.Tags;
@@ -41,6 +42,7 @@ import tools.Draw;
 import tools.GameConfigs;
 import tools.Sound;
 import util.Misc;
+import util.TimerFX;
 
 public class Entity extends Position {
 
@@ -97,6 +99,8 @@ public class Entity extends Position {
 	private boolean disableEffect;
 	private boolean previewDisableEffect;
 	private Consumer<Entity> consumerWhenFrameSetEnds;
+	private Consumer<Monster> consumerWhenMonsterDies;
+	private Consumer<BomberMan> consumerWhenBomberManDies;
 
 	public Entity(Entity entity) {
 		super(entity.getPosition());
@@ -258,6 +262,14 @@ public class Entity extends Position {
 	public void setOnFrameSetEndsEvent(Consumer<Entity> consumerWhenFrameSetEnds) {
 		this.consumerWhenFrameSetEnds = consumerWhenFrameSetEnds;
 	}
+	
+	public void setConsumerWhenMonsterDies(Consumer<Monster> consumerWhenMonsterDies) {
+		this.consumerWhenMonsterDies = consumerWhenMonsterDies;
+	}
+
+	public void setConsumerWhenBomberManDies(Consumer<BomberMan> consumerWhenBomberManDies) {
+		this.consumerWhenBomberManDies = consumerWhenBomberManDies;
+	}
 
 	public void setShake(Double incStrength, Double finalStrength) {
 		shake = new ShakeEntity(incStrength, incStrength, finalStrength, finalStrength);
@@ -322,8 +334,8 @@ public class Entity extends Position {
 		return hitPoints == 0;
 	}
 
-	public boolean isInvenible() {
-		return invencibleFrames != 0;
+	public boolean isInvencible() {
+		return MapSet.stageIsCleared() || invencibleFrames != 0;
 	}
 
 	public void setInvencibleFrames(int frames) {
@@ -426,7 +438,7 @@ public class Entity extends Position {
 	}
 
 	public boolean isVisible() {
-		return isVisible;
+		return isVisible && getCurrentFrameSet().isRunning() && !isDisabled;
 	}
 
 	public void setGhosting(int ghostingDistance, double ghostingOpacityDec) {
@@ -657,12 +669,13 @@ public class Entity extends Position {
 	
 	public void onPushEntityStop() {}
 	
-	private void unsetAllMovings() {
+	public void unsetAllMovings() {
 		unsetGotoMove();
 		unsetGhosting();
 		unsetJumpMove();
 		unsetPushEntity();
 		unsetShake();
+		unsetTargetingEntity();
 	}
 
 	public Position getHolderDesloc() {
@@ -876,6 +889,7 @@ public class Entity extends Position {
 	}
 
 	public void run(GraphicsContext gc, boolean isPaused) {
+		setEntityHeight(0);
 		if (isDisabled)
 			return;
 		if (!(this instanceof Effect))
@@ -1378,7 +1392,7 @@ public class Entity extends Position {
 	}
 
 	public void takeDamage() {
-		if (!isInvenible() && !isDead() && !(this instanceof Effect)) {
+		if (!isInvencible() && !isDead() && !(this instanceof Effect)) {
 			if (getHoldingEntity() != null)
 				unsetHoldingEntity();
 			if (--hitPoints == 0) {
@@ -1386,6 +1400,22 @@ public class Entity extends Position {
 				if (this instanceof BomberMan) {
 					((BomberMan) this).decLives();
 					((BomberMan) this).dropAllItems();
+					BomberMan.incBomberAlives(-1);
+					if (!MapSet.stageIsCleared()) {
+						if (BomberMan.getBomberAlives() <= 1 && MapSet.getLeftStageClearCriterias().contains(StageClearCriteria.BATTLE_MODE)) {
+							TimerFX.createTimer("EndOfBattle" + Main.uniqueTimerId++, 1000, () -> {
+								Sound.playWav("Roll3");
+								MapSet.setStageStatusToCleared(false);
+								BomberMan.setAllAliveBomberMansFrameSet("Victory");
+							});
+						}
+						if (consumerWhenBomberManDies != null)
+							consumerWhenBomberManDies.accept((BomberMan)this);
+					}
+				}
+				else if (this instanceof Monster) {
+					if (consumerWhenMonsterDies != null)
+						consumerWhenMonsterDies.accept((Monster)this);
 				}
 			}
 			else if (haveFrameSet("TakingDamage"))

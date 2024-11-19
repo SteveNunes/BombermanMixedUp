@@ -13,6 +13,9 @@ public enum DrawType {
 	STROKE_OVAL,
 	SET_FILL,
 	SET_STROKE,
+	SET_FONT,
+	STROKE_TEXT,
+	FILL_TEXT,
 	SET_LINE_WIDTH;
 
 }
