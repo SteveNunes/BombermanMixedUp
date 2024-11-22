@@ -570,11 +570,11 @@ public abstract class Draw {
 		return drawParams;
 	}
 
-	public static void drawBlockTypeMarks(GraphicsContext gc, int zoom, boolean showTilesWith2OrMoreSprites) {
-		drawBlockTypeMarks(gc, 0, 0, zoom, showTilesWith2OrMoreSprites, null);
+	public static void drawBlockTypeMarks(GraphicsContext gc, int zoom, boolean showTilesWith2OrMoreSprites, boolean showTilesWith2OrMoreProps, boolean showTilesWith2OrMoreTags) {
+		drawBlockTypeMarks(gc, 0, 0, zoom, showTilesWith2OrMoreSprites, showTilesWith2OrMoreProps, showTilesWith2OrMoreTags, null);
 	}
 
-	public static void drawBlockTypeMarks(GraphicsContext gc, int offsetX, int offsetY, int zoom, boolean showTilesWith2OrMoreSprites, Function<Tile, Color> consumerForExtraColors) {
+	public static void drawBlockTypeMarks(GraphicsContext gc, int offsetX, int offsetY, int zoom, boolean showTilesWith2OrMoreSprites, boolean showTilesWith2OrMoreProps, boolean showTilesWith2OrMoreTags, Function<Tile, Color> consumerForExtraColors) {
 		Set<TileCoord> ok = new HashSet<>();
 		gc.save();
 		MapSet.getTileListFromCurrentLayer().forEach(tile -> {
@@ -583,7 +583,7 @@ public abstract class Draw {
 				List<TileProp> tileProps = MapSet.getTileProps(tile.getTileCoord());
 				if (consumerForExtraColors != null && consumerForExtraColors.apply(tile) != null)
 					color = consumerForExtraColors.apply(tile);
-				if (tileProps.contains(TileProp.CPU_DANGER_2) || tileProps.contains(TileProp.EXPLOSION) || tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
+				else if (tileProps.contains(TileProp.CPU_DANGER_2) || tileProps.contains(TileProp.EXPLOSION) || tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
 					color = Color.INDIANRED;
 				else if (tileProps.contains(TileProp.CPU_DANGER))
 					color = Color.PALEVIOLETRED;
@@ -645,15 +645,27 @@ public abstract class Draw {
 				ok.add(tile.getTileCoord());
 			}
 			int totalTiles = MapSet.getTileListFromCoord(tile.getTileCoord()).size();
+			int totalProps = !MapSet.tileHaveProps(tile.getTileCoord()) ? 0 : MapSet.getTileProps(tile.getTileCoord()).size();
+			int totalTags = !MapSet.tileHaveTags(tile.getTileCoord()) ? 0 : MapSet.getTileTags(tile.getTileCoord()).size();
+			gc.setFill(Misc.blink(50) ? Color.LIGHTBLUE : Color.YELLOW);
+			gc.setStroke(Misc.blink(50) ? Color.LIGHTBLUE : Color.YELLOW);
+			gc.setLineWidth(1);
+			gc.setGlobalAlpha(1);
+			gc.setFont(new Font("Lucida Console", 20));
 			if (showTilesWith2OrMoreSprites && totalTiles > 1) {
-				gc.setFill(Misc.blink(50) ? Color.LIGHTBLUE : Color.YELLOW);
-				gc.setStroke(Misc.blink(50) ? Color.LIGHTBLUE : Color.YELLOW);
-				gc.setLineWidth(1);
-				gc.setGlobalAlpha(1);
-				gc.strokeRect(tile.getTileCoord().getX() * Main.TILE_SIZE * zoom + offsetX, tile.getTileCoord().getY() * Main.TILE_SIZE * zoom + offsetY, Main.TILE_SIZE * zoom, Main.TILE_SIZE * zoom);
-				gc.setFont(new Font("Lucida Console", 20));
 				gc.fillText("" + totalTiles, tile.getTileCoord().getX() * Main.TILE_SIZE * zoom + offsetX + Main.TILE_SIZE / 3 * zoom,
 																		 tile.getTileCoord().getY() * Main.TILE_SIZE * zoom + offsetY + Main.TILE_SIZE / 1.5 * zoom);
+				gc.strokeRect(tile.getTileCoord().getX() * Main.TILE_SIZE * zoom + offsetX, tile.getTileCoord().getY() * Main.TILE_SIZE * zoom + offsetY, Main.TILE_SIZE * zoom, Main.TILE_SIZE * zoom);
+			}
+			if (showTilesWith2OrMoreProps && totalProps > 1) {
+				gc.fillText("" + totalProps, tile.getTileCoord().getX() * Main.TILE_SIZE * zoom + offsetX + Main.TILE_SIZE / 3 * zoom,
+																		 tile.getTileCoord().getY() * Main.TILE_SIZE * zoom + offsetY + Main.TILE_SIZE / 1.5 * zoom);
+				gc.strokeRect(tile.getTileCoord().getX() * Main.TILE_SIZE * zoom + offsetX, tile.getTileCoord().getY() * Main.TILE_SIZE * zoom + offsetY, Main.TILE_SIZE * zoom, Main.TILE_SIZE * zoom);
+			}
+			if (showTilesWith2OrMoreTags && totalTags > 1) {
+				gc.fillText("" + totalTags, tile.getTileCoord().getX() * Main.TILE_SIZE * zoom + offsetX + Main.TILE_SIZE / 3 * zoom,
+																		 tile.getTileCoord().getY() * Main.TILE_SIZE * zoom + offsetY + Main.TILE_SIZE / 1.5 * zoom);
+				gc.strokeRect(tile.getTileCoord().getX() * Main.TILE_SIZE * zoom + offsetX, tile.getTileCoord().getY() * Main.TILE_SIZE * zoom + offsetY, Main.TILE_SIZE * zoom, Main.TILE_SIZE * zoom);
 			}
 		});
 		gc.restore();

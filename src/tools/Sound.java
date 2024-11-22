@@ -1,24 +1,27 @@
 package tools;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
+import application.Main;
 import entities.BomberMan;
 import entities.Entity;
-import javafx.concurrent.Task;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.util.Duration;
+import javafx.util.Pair;
+import util.DurationTimerFX;
 
 public abstract class Sound {
 
-	private static String lastPlayedWavPath = null;
-	private static String lastPlayedMp3Path = null;
-	private static AudioClip lastPlayedAudioClip = null;
-	private static MediaPlayer lastPlayedMediaPlayer = null;
+	private static MediaPlayer currentMediaPlayer = null;
 	private static Map<String, AudioClip> waves = new LinkedHashMap<>();
 	private static Map<String, MediaPlayer> mp3s = new LinkedHashMap<>();
+	private static Map<MediaPlayer, String> mp3Timers = new LinkedHashMap<>();
 	private static double masterGain = 1;
 	
 	public static double getMasterGain() {
@@ -30,69 +33,109 @@ public abstract class Sound {
 	}
 
 	// ============================ PLAY Mp3 =====================================
+	
+	public static MediaPlayer getCurrentMediaPlayer() {
+		return currentMediaPlayer;
+	}
 
 	public static MediaPlayer getMediaPlayer(String mp3Path) {
 		return mp3s.containsKey(mp3Path) ? mp3s.get(mp3Path) : null;
 	}
 
-	public static String getLastPlayedMp3Path() {
-		return lastPlayedMp3Path;
+	public static CompletableFuture<MediaPlayer> playMp3(String mp3Path) {
+		return playMp3(mp3Path, 1, 0, masterGain, false, null);
 	}
 
-	public static MediaPlayer getLastPlayedMediaPlayer() {
-		return lastPlayedMediaPlayer;
+	public static CompletableFuture<MediaPlayer> playMp3(String mp3Path, boolean stopCurrent) {
+		return playMp3(mp3Path, 1, 0, masterGain, stopCurrent, null);
 	}
 
-	public static void playMp3(String mp3Path) {
-		playMp3(mp3Path, 1, 0, masterGain, false);
+	public static CompletableFuture<MediaPlayer> playMp3(String mp3Path, double rate, double balance, double volume) {
+		return playMp3(mp3Path, rate, balance, volume, false, null);
 	}
 
-	public static void playMp3(String mp3Path, boolean stopCurrent) {
-		playMp3(mp3Path, 1, 0, masterGain, stopCurrent);
+	public static CompletableFuture<MediaPlayer> playMp3(String mp3Path, double rate, double balance, double volume, boolean stopCurrent) {
+		return playMp3(mp3Path, rate, balance, volume, stopCurrent, null);
+	}
+	
+	public static CompletableFuture<MediaPlayer> playMp3(String mp3Path, Pair<Duration, Duration> doLoop) {
+		return playMp3(mp3Path, 1, 0, masterGain, false, doLoop);
 	}
 
-	public static void playMp3(String mp3Path, double rate, double balance, double volume) {
-		playMp3(mp3Path, rate, balance, volume, false);
+	public static CompletableFuture<MediaPlayer> playMp3(String mp3Path, boolean stopCurrent, Pair<Duration, Duration> doLoop) {
+		return playMp3(mp3Path, 1, 0, masterGain, stopCurrent, doLoop);
 	}
 
-	public static void playMp3(String mp3Patch, double rate, double balance, double volume, boolean stopCurrent) {
-		final String mp3Patch2 = mp3Patch += ".mp3";
-		if (stopCurrent && mp3s.containsKey(mp3Patch2))
-			mp3s.get(mp3Patch2).stop();
-		File file = new File("appdata/musics/" + mp3Patch2);
+	public static CompletableFuture<MediaPlayer> playMp3(String mp3Path, double rate, double balance, double volume, Pair<Duration, Duration> doLoop) {
+		return playMp3(mp3Path, rate, balance, volume, false, doLoop);
+	}
+
+	public static CompletableFuture<MediaPlayer> playMp3(String mp3Path, double rate, double balance, double volume, boolean stopCurrent, Pair<Duration, Duration> doLoop) {
+		final String mp3Path2 = mp3Path += ".mp3";
+		if (stopCurrent && mp3s.containsKey(mp3Path2))
+			mp3s.get(mp3Path2).stop();
+		File file = new File("appdata/musics/" + mp3Path2);
 		if (!file.exists())
 			throw new RuntimeException("Não foi possível reproduzir o arquivo \"" + file.getName() + "\" Arquivo não encontrado no local informado.");
-		try {
-			MediaPlayer mp3;
-			if (mp3s.containsKey(mp3Patch2))
-				mp3 = mp3s.get(mp3Patch2);
-			else
-				mp3 = new MediaPlayer(new Media(file.toURI().toString()));
-			mp3s.put(mp3Patch2, mp3);
-			if (stopCurrent) {
-				lastPlayedMp3Path = mp3Patch2;
-				lastPlayedMediaPlayer = mp3;
-				mp3.setOnEndOfMedia(() -> {
-					mp3.dispose();
-					mp3s.remove(mp3Patch2);
-					if (lastPlayedMp3Path.equals(mp3Patch2))
-						lastPlayedMp3Path = null;
-				});
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				MediaPlayer mp3;
+				if (mp3s.containsKey(mp3Path2))
+					mp3 = mp3s.get(mp3Path2);
+				else
+					mp3 = new MediaPlayer(new Media(file.toURI().toString()));
+				currentMediaPlayer = mp3;
+				mp3s.put(mp3Path2, mp3);
+				if (stopCurrent) {
+					mp3.setOnEndOfMedia(() -> {
+						mp3.dispose();
+						mp3s.remove(mp3Path2);
+						mp3Timers.remove(mp3);
+					});
+				}
+				else
+					mp3.setOnEndOfMedia(() -> mp3.dispose());
+				mp3.setRate(rate);
+				mp3.setBalance(balance);
+				mp3.setVolume(volume);
+				if (doLoop != null)
+					mp3.setOnPlaying(() -> {
+						String timerName = "playMp3DoLoop@" + Main.uniqueTimerId++;
+						long seekEnd = (long)doLoop.getKey().toMillis();
+						long seekStart = (long)doLoop.getValue().toMillis();
+						mp3Timers.put(mp3, timerName);
+						if (seekEnd < 0)
+							seekEnd += (long)mp3.getTotalDuration().toMillis();
+						if (seekStart < 0)
+							seekStart += (long)mp3.getTotalDuration().toMillis();
+						final long seekEnd2 = seekEnd, seekStart2 = seekStart;
+						//mp3.seek(Duration.millis(seekEnd2 - 5000)); // Para testar o seek, isso faz pular direto 5 segundos antes do momentoi q vai dar seek pro ponto inicial
+						DurationTimerFX.createTimer(timerName, Duration.millis(20), 0, () -> {
+							if (mp3.getCurrentTime().toMillis() >= seekEnd2)
+								mp3.seek(Duration.millis(seekStart2));
+						}); 
+					});
+				mp3.play();
+				return mp3;
 			}
-			else
-				mp3.setOnEndOfMedia(() -> mp3.dispose());
-			mp3.setRate(rate);
-			mp3.setBalance(balance);
-			mp3.setVolume(volume);
-			mp3.play();
+			catch (Exception e) {
+				e.printStackTrace();
+				currentMediaPlayer = null;
+				return null;
+			}
+		});
+	}
+	
+	public static void stopMp3(String mp3Path) {
+		if (mp3Timers.containsKey(mp3s.get(mp3Path))) {
+			DurationTimerFX.stopTimer(mp3Timers.get(mp3s.get(mp3Path)));
+			mp3Timers.remove(mp3s.get(mp3Path));
 		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+		mp3s.get(mp3Path).stop();
 	}
 
 	public static void stopAllMp3s() {
-		mp3s.values().forEach(mp3 -> mp3.stop());
+		new ArrayList<>(mp3s.keySet()).forEach(mp3Path -> stopMp3(mp3Path));
 	}
 
 	// ============================ PLAY Wav =====================================
@@ -101,80 +144,64 @@ public abstract class Sound {
 		return waves.containsKey(wavPath) ? waves.get(wavPath) : null;
 	}
 
-	public static String getLastPlayedWavPath() {
-		return lastPlayedWavPath;
+	public static CompletableFuture<AudioClip> playWav(String wavPath) {
+		return playWav(null, wavPath, 1, 0, 0, masterGain, false);
 	}
 
-	public static AudioClip getLastPlayedAudioClip() {
-		return lastPlayedAudioClip;
+	public static CompletableFuture<AudioClip> playWav(String wavPath, boolean stopCurrent) {
+		return playWav(null, wavPath, 1, 0, 0, masterGain, stopCurrent);
 	}
 
-	public static void playWav(String wavPath) {
-		playWav(null, wavPath, 1, 0, 0, masterGain, false);
+	public static CompletableFuture<AudioClip> playWav(final String wavPath, double rate, double pan, double balance, double volume) {
+		return playWav(null, wavPath, rate, pan, balance, volume, false);
 	}
 
-	public static void playWav(String wavPath, boolean stopCurrent) {
-		playWav(null, wavPath, 1, 0, 0, masterGain, stopCurrent);
+	public static CompletableFuture<AudioClip> playWav(String wavPath, double rate, double pan, double balance, double volume, boolean stopCurrent) {
+		return playWav(null, wavPath, rate, pan, balance, volume, false);
 	}
 
-	public static void playWav(final String wavPath, double rate, double pan, double balance, double volume) {
-		playWav(null, wavPath, rate, pan, balance, volume, false);
+	public static CompletableFuture<AudioClip> playWav(Entity entity, String wavPath) {
+		return playWav(entity, wavPath, 1, 0, 0, masterGain, false);
 	}
 
-	public static void playWav(String wavPath, double rate, double pan, double balance, double volume, boolean stopCurrent) {
-		playWav(null, wavPath, rate, pan, balance, volume, false);
+	public static CompletableFuture<AudioClip> playWav(Entity entity, String wavPath, boolean stopCurrent) {
+		return playWav(entity, wavPath, 1, 0, 0, masterGain, stopCurrent);
 	}
 
-	public static void playWav(Entity entity, String wavPath) {
-		playWav(entity, wavPath, 1, 0, 0, masterGain, false);
+	public static CompletableFuture<AudioClip> playWav(Entity entity, final String wavPath, double rate, double pan, double balance, double volume) {
+		return playWav(entity, wavPath, rate, pan, balance, volume, false);
 	}
 
-	public static void playWav(Entity entity, String wavPath, boolean stopCurrent) {
-		playWav(entity, wavPath, 1, 0, 0, masterGain, stopCurrent);
-	}
-
-	public static void playWav(Entity entity, final String wavPath, double rate, double pan, double balance, double volume) {
-		playWav(entity, wavPath, rate, pan, balance, volume, false);
-	}
-
-	public static void playWav(Entity entity, String wavPath, double rate, double pan, double balance, double volume, boolean stopCurrent) {
+	public static CompletableFuture<AudioClip> playWav(Entity entity, String wavPath, double rate, double pan, double balance, double volume, boolean stopCurrent) {
 		if (wavPath.length() > 5 && entity != null && entity instanceof BomberMan && ((BomberMan) entity).getNameSound() != null && wavPath.substring(0, 5).equals("VOICE"))
 			wavPath = ((BomberMan) entity).getSoundByName(wavPath.replace("VOICE", ""));
 		String wavPath2 = wavPath + ".wav";
 		if (stopCurrent && waves.containsKey(wavPath2))
 			waves.get(wavPath2).stop();
-		Task<Void> task = new Task<>() {
-			@Override
-			protected Void call() throws Exception {
-				File file = new File("appdata/sounds/" + wavPath2);
-				if (!file.exists())
-					throw new RuntimeException("Não foi possível reproduzir o arquivo \"" + file.getName() + "\" Arquivo não encontrado no local informado.");
-				try {
-					final AudioClip clip;
-					if (waves.containsKey(wavPath2))
-						clip = waves.get(wavPath2);
-					else
-						clip = new AudioClip(file.toURI().toString());
-					if (stopCurrent) {
-						waves.put(wavPath2, clip);
-						lastPlayedWavPath = wavPath2;
-						lastPlayedAudioClip = clip;
-					}
-					clip.setRate(rate);
-					clip.setPan(pan);
-					clip.setBalance(balance);
-					clip.setVolume(volume);
-					clip.play();
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		return CompletableFuture.supplyAsync(() -> {
+			File file = new File("appdata/sounds/" + wavPath2);
+			if (!file.exists())
+				throw new RuntimeException("Não foi possível reproduzir o arquivo \"" + file.getName() + "\" Arquivo não encontrado no local informado.");
+			try {
+				final AudioClip clip;
+				if (waves.containsKey(wavPath2))
+					clip = waves.get(wavPath2);
+				else
+					clip = new AudioClip(file.toURI().toString());
+				if (stopCurrent)
+					waves.put(wavPath2, clip);
+				clip.setRate(rate);
+				clip.setPan(pan);
+				clip.setBalance(balance);
+				clip.setVolume(volume);
+				clip.play();
+				return clip;
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 				return null;
 			}
-		};
-		Thread thread = new Thread(task);
-		thread.setDaemon(true);
-		thread.start();
+		});
 	}
 
 	public static void stopAllWaves() {

@@ -1,15 +1,22 @@
 package player;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
+import javafx.util.Duration;
 import joystick.JInputEX;
+import joystick.JInputEXComponent;
 import joystick.JXInputEX;
-import util.TimerFX;
+import util.DurationTimerFX;
 
 public class GameInput {
 
 	private static List<JXInputEX> xinputList = null;
 	private static List<JInputEX> dinputList = null;
+	private static Map<JXInputEX, BiConsumer<Integer, String>> restoreJXInputBiConsumer = new HashMap<>();
+	private static Map<JInputEX, BiConsumer <JInputEX, JInputEXComponent>> restoreJInputBiConsumer = new HashMap<>();
 	
 	public static void init() {
 		JXInputEX.setOnJoystickConnectedEvent(x -> {
@@ -28,24 +35,32 @@ public class GameInput {
 	}
 	
 	public static void close() {
-		TimerFX.stopTimer("PoolJoysticksTimer");
+		DurationTimerFX.stopTimer("PoolJoysticksTimer");
 		for (Player player : Player.getPlayers())
 			player.saveConfigs();
 		JInputEX.closeAllJoysticks();
 	}
 	
 	public static void loadJoysticks() {
-		TimerFX.stopTimer("PoolJoysticksTimer");
+		DurationTimerFX.stopTimer("PoolJoysticksTimer");
 		JInputEX.init();
 		JXInputEX.refreshJoysticks();
 		xinputList = null;//JXInputEX.getJoystickList();
 		dinputList = JInputEX.getJoysticks();
-		TimerFX.createTimer("PoolJoysticksTimer", 1, 0, () -> {
+		DurationTimerFX.createTimer("PoolJoysticksTimer", Duration.millis(1), 0, () -> {
 			JInputEX.pollAllJoysticks();
 			JXInputEX.pollJoysticks();
 		});
 		refreshJoysticks();
 	}
+	
+	public static void saveCurrentXInputConsumer(JXInputEX device, BiConsumer<Integer, String> consumer) {
+		restoreJXInputBiConsumer.put(device, consumer);
+	}	
+	
+	public static void saveCurrentDInputConsumer(JInputEX device, BiConsumer<JInputEX, JInputEXComponent> consumer) {
+		restoreJInputBiConsumer.put(device, consumer);
+	}	
 	
 	public static void refreshJoysticks() {
 		if (xinputList != null)
@@ -55,6 +70,12 @@ public class GameInput {
 						if (player.isDetectingInput()) {
 							player.setXInputDevice(x);
 							player.setDetectingInput(false);
+							for (JXInputEX device : restoreJXInputBiConsumer.keySet())
+								if (device != x)
+									device.setOnPressAnyComponentEvent(restoreJXInputBiConsumer.get(device));
+							for (JInputEX device : restoreJInputBiConsumer.keySet())
+								device.setOnPressComponentEvent(restoreJInputBiConsumer.get(device));
+							return;
 						}
 				});
 		if (dinputList != null)
@@ -64,6 +85,12 @@ public class GameInput {
 						if (player.isDetectingInput()) {
 							player.setDInputDevice(d);
 							player.setDetectingInput(false);
+							for (JXInputEX device : restoreJXInputBiConsumer.keySet())
+									device.setOnPressAnyComponentEvent(restoreJXInputBiConsumer.get(device));
+							for (JInputEX device : restoreJInputBiConsumer.keySet())
+								if (device != d)
+									device.setOnPressComponentEvent(restoreJInputBiConsumer.get(device));
+							return;
 						}
 				});
 			}

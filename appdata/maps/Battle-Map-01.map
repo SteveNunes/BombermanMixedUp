@@ -1273,7 +1273,7 @@
 [SETUP]
 CopyImageLayer=27
 TileSet=Tile02
-PortalCriteria=BATTLE_MODE
+PortalCriteria=LAST_PLAYER_SURVIVOR
 PlayerInitialCoordsOrder=3!4
 
 [FRAMESETS]

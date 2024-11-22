@@ -12,6 +12,7 @@ public abstract class GameFonts {
 	
 	public static Font fontBomberMan20;
 	public static Font fontBomberMan40;
+	public static Font fontBomberMan60;
 	
 	public static void loadFonts() {
     InputStream fontStream;
@@ -20,6 +21,8 @@ public abstract class GameFonts {
 			fontBomberMan20 = Font.loadFont(fontStream, 20);
 			fontStream = new FileInputStream(new File("appdata/fonts/Bomberman.ttf"));
 			fontBomberMan40 = Font.loadFont(fontStream, 40);
+			fontStream = new FileInputStream(new File("appdata/fonts/Bomberman.ttf"));
+			fontBomberMan60 = Font.loadFont(fontStream, 60);
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace();

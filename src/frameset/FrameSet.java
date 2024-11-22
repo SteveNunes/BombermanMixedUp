@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import application.Main;
 import entities.Entity;
 import frameset_tags.FrameTag;
 import frameset_tags.Goto;
@@ -133,18 +134,10 @@ public class FrameSet extends Position {
 	}
 
 	public void run() {
-		run(null, false);
-	}
-
-	public void run(boolean isPaused) {
-		run(null, isPaused);
+		run(null);
 	}
 
 	public void run(GraphicsContext gc) {
-		run(gc, false);
-	}
-
-	public void run(GraphicsContext gc, boolean isPaused) {
 		if (!stop && getTotalFrames() > 0 && currentFrameIndex >= 0 && currentFrameIndex < getTotalFrames()) {
 			if (getSourceEntity().getShake() != null) {
 				getSourceEntity().getShake().proccess();
@@ -152,7 +145,7 @@ public class FrameSet extends Position {
 					getSourceEntity().unsetShake();
 			}
 			if (ticks == 0) {
-				if (isPaused)
+				if (Main.isFreeze())
 					ticks = 1;
 				if (currentFrameIndex == 0 && getSourceEntity().getDefaultTags() != null) {
 					getSourceEntity().getDefaultTags().setRootSprite(sprites.get(0));
@@ -162,7 +155,7 @@ public class FrameSet extends Position {
 			}
 			if (changedIndex) {
 				changedIndex = false;
-				run(gc, isPaused);
+				run(gc);
 				return;
 			}
 			if (getSourceEntity().isVisible())
@@ -171,7 +164,7 @@ public class FrameSet extends Position {
 						return;
 					sprite.draw(gc);
 				}
-			if (!isPaused && ++ticks >= framesPerTick) {
+			if (!Main.isFreeze() && ++ticks >= framesPerTick) {
 				ticks = 0;
 				currentFrameIndex++;
 			}

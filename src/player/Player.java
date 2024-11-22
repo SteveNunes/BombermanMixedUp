@@ -85,13 +85,17 @@ public class Player {
 			mapGameInput(KeyCode.S.getCode(), GameInput.DOWN, KeyCode.S.getName());
 			mapGameInput(KeyCode.ENTER.getCode(), GameInput.START, KeyCode.ENTER.getName());
 			mapGameInput(KeyCode.SPACE.getCode(), GameInput.SELECT, KeyCode.SPACE.getName());
-			mapGameInput(KeyCode.DELETE.getCode(), GameInput.A, KeyCode.DELETE.getName());
-			mapGameInput(KeyCode.END.getCode(), GameInput.B, KeyCode.END.getName());
-			mapGameInput(KeyCode.INSERT.getCode(), GameInput.C, KeyCode.INSERT.getName());
-			mapGameInput(KeyCode.HOME.getCode(), GameInput.D, KeyCode.HOME.getName());
-			mapGameInput(KeyCode.PAGE_UP.getCode(), GameInput.E, KeyCode.PAGE_UP.getName());
-			mapGameInput(KeyCode.PAGE_DOWN.getCode(), GameInput.F, KeyCode.PAGE_DOWN.getName());
+			mapGameInput(KeyCode.NUMPAD1.getCode(), GameInput.A, KeyCode.NUMPAD1.getName());
+			mapGameInput(KeyCode.NUMPAD2.getCode(), GameInput.B, KeyCode.NUMPAD2.getName());
+			mapGameInput(KeyCode.NUMPAD4.getCode(), GameInput.C, KeyCode.NUMPAD4.getName());
+			mapGameInput(KeyCode.NUMPAD5.getCode(), GameInput.D, KeyCode.NUMPAD5.getName());
+			mapGameInput(KeyCode.NUMPAD6.getCode(), GameInput.E, KeyCode.NUMPAD6.getName());
+			mapGameInput(KeyCode.NUMPAD3.getCode(), GameInput.F, KeyCode.NUMPAD3.getName());
 		}
+	}
+	
+	public int getPlayerId() {
+		return playerId;
 	}
 	
 	public GameInputMode getInputMode() {
@@ -115,7 +119,12 @@ public class Player {
 	}
 
 	public static void addPlayer() {
-		players.add(new Player(players.size()));
+		int playerId = 0;
+		for (playerId = 0; playerId < players.size(); playerId++) {
+			if (players.get(playerId).getPlayerId() != playerId)
+				break;
+		}
+		players.add(new Player(playerId));
 	}
 	
 	public static Player getPlayer(int playerIndex) {
@@ -149,6 +158,7 @@ public class Player {
 		xInputDeviceId = xInputDevice == null ? -1 : player.GameInput.getXInputId(xInputDevice);
 		if (xInputDevice != null) {
 			inputMode = GameInputMode.XINPUT;
+			player.GameInput.saveCurrentXInputConsumer(xInputDevice, (i, s) -> pressInput(i, s));
 			this.xInputDevice.setOnPressAnyComponentEvent((i, s) -> pressInput(i, s));
 			this.xInputDevice.setOnReleaseAnyComponentEvent((i, l) -> releaseInput(i.getKey(), i.getValue()));
 			if (dInputDevice != null) {
@@ -168,6 +178,7 @@ public class Player {
 		dInputDeviceId = dInputDevice == null ? -1 : player.GameInput.getDInputId(dInputDevice);
 		if (dInputDevice != null) {
 			inputMode = GameInputMode.DINPUT;
+			player.GameInput.saveCurrentDInputConsumer(dInputDevice, (j, c) -> pressInput(c.getComponentId(), c.getName()));
 			this.dInputDevice.setOnPressComponentEvent((j, c) -> pressInput(c.getComponentId(), c.getName()));
 			this.dInputDevice.setOnReleaseComponentEvent((j, c) -> releaseInput(c.getComponentId(), c.getName()));
 			if (xInputDevice != null) {
@@ -414,5 +425,10 @@ public class Player {
 
 	public void setDetectingInput(boolean state) {
 		isDetectingInput = false;
+	}
+
+	public static void removePlayer(Player player) {
+		players.remove(player);
+		player.getBomberMan().setPlayer(null);
 	}
 }

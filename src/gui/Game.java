@@ -9,6 +9,7 @@ import entities.CpuPlay;
 import enums.CpuDificult;
 import enums.GameInput;
 import enums.GameInputMode;
+import gui.util.Alerts;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -23,15 +24,15 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import maps.MapSet;
 import player.Player;
 import tools.Draw;
 import tools.Tools;
-import util.TimerFX;
+import util.DurationTimerFX;
 
 public class Game {
 
-	private final int ZOOM = 3;
 	private final int WIN_W = Main.TILE_SIZE * 17;
 	private final int WIN_H = Main.TILE_SIZE * 14;
 	private List<KeyCode> holdedKeys;
@@ -41,9 +42,10 @@ public class Game {
 	private Font font;
 
 	public void init() {
+		Main.setZoom(3);
 		font = new Font("Lucida Console", 15);
-		canvasMain.setWidth(WIN_W * ZOOM);
-		canvasMain.setHeight(WIN_H * ZOOM);
+		canvasMain.setWidth(WIN_W * Main.getZoom());
+		canvasMain.setHeight(WIN_H * Main.getZoom());
 		Main.setMainCanvas(canvasMain);
 		gcMain = canvasMain.getGraphicsContext2D();
 		gcMain.setImageSmoothing(false);
@@ -57,7 +59,7 @@ public class Game {
 		mainLoop();
 	}
 
-	static KeyCode[] setInputKeys = new KeyCode[] {
+	private static KeyCode[] setInputKeys = new KeyCode[] {
 			KeyCode.F1, KeyCode.F2, KeyCode.F3, KeyCode.F4, KeyCode.F5, KeyCode.F6,
 			KeyCode.F7, KeyCode.F8, KeyCode.F9, KeyCode.F10, KeyCode.F11, KeyCode.F12};
 	
@@ -77,28 +79,37 @@ public class Game {
 		});
 	}
 	
-	static BomberMan openInputSetup(int n) {
+	static void openInputSetup(int n) {
 		BomberMan bomber;
 		while (n >= Player.getTotalPlayers())
 			Player.addPlayer();
 		Player player = Player.getPlayer(n);
+		boolean[] done = { false };
 		if ((bomber = player.getBomberMan()) == null) {
 			bomber = BomberMan.addBomberMan(1, BomberMan.getTotalBomberMans());
 			bomber.setPosition(MapSet.getInitialPlayerPosition(BomberMan.getTotalBomberMans() - 1));
 			player.setBomberMan(bomber);
 		}
+		if (Main.gameTikTok != null && !Main.gameTikTok.addNewPlayer(bomber)) {
+			bomber.setCpuPlay(new CpuPlay(bomber, CpuDificult.VERY_HARD));
+			return;
+		}
 		Stage stage = new Stage();
 		stage.setTitle("Input config (Player " + (n + 1) + ")");
 		VBox vBox = new VBox();
 		Scene scene = new Scene(vBox);
-		GameInputMode prevInputMode = player.getInputMode();
+		final GameInputMode prevInputMode = player.getInputMode();
+		Runnable closeEvent = () -> {
+			DurationTimerFX.stopTimer("WaitForDevice");
+			player.setOnPressInputEvent(null);
+			player.setMappingMode(false);
+			player.setInputMode(prevInputMode);
+			confirmToDeletePlayer(n);
+		};
 		scene.setOnKeyPressed(e -> {
 			if (e.getCode() == KeyCode.ESCAPE) {
-				TimerFX.stopTimer("WaitForDevice");
-				player.setOnPressInputEvent(null);
-				player.setMappingMode(false);
-				player.setInputMode(prevInputMode);
-				player.getBomberMan().setCpuPlay(null);
+				done[0] = true;
+				Platform.runLater(closeEvent);
 				stage.close();
 			}
 			else if (player.isDetectingInput()) {
@@ -123,11 +134,12 @@ public class Game {
 			vBox.getChildren().add(t);
 		}
 		player.setMappingMode(true);
-		boolean[] done = { false };
 		int[] nextText = { 0 };
 		GameInput[] inputs = GameInput.values();
-		TimerFX.createTimer("WaitForDevice", 20, 0, () -> {
-			if (!player.isDetectingInput()) {
+		DurationTimerFX.createTimer("WaitForDevice", Duration.millis(20), 0, () -> {
+			if (Main.close)
+				DurationTimerFX.stopTimer("WaitForDevice");
+			else if (!done[0] && !player.isDetectingInput()) {
 				String str;
 				if (player.getInputMode() == GameInputMode.XINPUT)
 					str = player.getXinputDevice().getJoystickName(); 
@@ -135,16 +147,16 @@ public class Game {
 					str = player.getDinputDevice().getName(); 
 				else
 					str = "Teclado";
-				texts[0].setText("Pressione para definir: " + player.getNextMappingInput().name());
+				texts[0].setText("Pressione para definir: " + player.getNextMappingInput().getName());
 				text.setText(str + "\n");
-				TimerFX.stopTimer("WaitForDevice");
+				DurationTimerFX.stopTimer("WaitForDevice");
 			}
 		});
 		player.setOnPressInputEvent(i -> {
 			nextText[0]++;
 			for (int z = 0; z <= nextText[0]; z++) {
 				if (player.getNextMappingInput() != null && !done[0] && z == nextText[0])
-					texts[z].setText("Pressione para definir: " + player.getNextMappingInput().name());
+					texts[z].setText("Pressione para definir: " + player.getNextMappingInput().getName());
 				else if (z < 10)
 					texts[z].setText(inputs[z].getName() + " = " + (!player.getButtonInfosMap().containsKey(inputs[z]) ? "-" : player.getButtonInfosMap().get(inputs[z]).getName()));
 			}
@@ -157,23 +169,23 @@ public class Game {
 				done[0] = true;
 			}
 		});
-		stage.setOnCloseRequest(e -> {
-			player.setMappingMode(false);
-			TimerFX.stopTimer("WaitForDevice");
-			if (player.isDetectingInput()) {
-				player.setInputMode(GameInputMode.CPU);
-				player.getBomberMan().setCpuPlay(new CpuPlay(player.getBomberMan(), CpuDificult.EASY));
-			}
+		stage.setOnCloseRequest(e -> { 
+			done[0] = true;
+			Platform.runLater(closeEvent);
 		});
 		stage.showAndWait();
-		return bomber;
+	}
+	
+	private static void confirmToDeletePlayer(int bomberIndex) {
+		if (Alerts.confirmation("Confirmação", "Deseja mesmo excluir o bomberman " + (bomberIndex + 1) + "?"))
+			BomberMan.removeBomberMan(bomberIndex);
 	}
 
 	void mainLoop() {
 		try {
 			Tools.getFPSHandler().fpsCounter();
 			MapSet.run();
-			Draw.applyAllDraws(canvasMain, ZOOM, -32 * ZOOM, -32 * ZOOM);
+			Draw.applyAllDraws(canvasMain, Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
 			if (!Main.close)
 				Platform.runLater(() -> {
 					String title = "BomberMan Mixed Up!     FPS: " + Tools.getFPSHandler().getFPS() + "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();

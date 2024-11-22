@@ -22,6 +22,7 @@ import frameset.FrameSet;
 import frameset_tags.SetSprSource;
 import frameset_tags.SetTicksPerFrame;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.util.Duration;
 import maps.Item;
 import maps.MapSet;
 import objmoveutils.JumpMove;
@@ -33,9 +34,8 @@ import tools.GameConfigs;
 import tools.Sound;
 import tools.Tools;
 import util.CollectionUtils;
-import util.Misc;
+import util.DurationTimerFX;
 import util.MyMath;
-import util.TimerFX;
 
 public class Bomb extends Entity {
 
@@ -190,7 +190,7 @@ public class Bomb extends Entity {
 	public static void removeBomb(Bomb bomb) {
 		if (bomb != null) {
 			bomb.setDangerMarks(TileProp.CPU_DANGER_2);
-			TimerFX.createTimer("removeMarkTilesAsDanger-" + bomb.hashCode(), 800, () -> {
+			DurationTimerFX.createTimer("removeMarkTilesAsDanger-" + bomb.hashCode(), Duration.millis(800), () -> {
 				bomb.removeDangerMarks(TileProp.CPU_DANGER);
 				bomb.removeDangerMarks(TileProp.CPU_DANGER_2);
 			});
@@ -339,7 +339,7 @@ public class Bomb extends Entity {
 	public void run(GraphicsContext gc, boolean isPaused) {
 		removeDangerMarks(TileProp.CPU_DANGER);
 		removeDangerMarks(TileProp.CPU_DANGER_2);
-		if (getBombType() == BombType.FOLLOW && !isBlockedMovement() && getPathFinder() == null) {
+		if (getBombType() == BombType.FOLLOW && !isBlockedMovement() && !isMoving() && getPathFinder() == null) {
 			List<FindProps> founds = Tools.findInRect(this, getTileCoordFromCenter(), owner, 4, FindType.PLAYER);
 			if (getTargetingEntity() != null || founds != null) {
 				TileCoord coord = (getTargetingEntity() != null ? getTargetingEntity().getTileCoordFromCenter() : founds.get(0).getCoord()).getNewInstance();
@@ -388,6 +388,8 @@ public class Bomb extends Entity {
 			if (founds != null)
 				detonate();
 		}
+		if (getTargetingEntity() != null && getPathFinder() != null)
+			getPathFinder().recalculatePath(getTileCoordFromCenter(), getTargetingEntity().getTileCoordFromCenter(), getDirection());
 		super.run(gc, isPaused);
 		if (!isBlockedMovement() && tileWasChanged() && isActive()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
@@ -400,10 +402,8 @@ public class Bomb extends Entity {
 				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
 			}
 		}
-		if (!isBlockedMovement())
-			setDangerMarks(getTimer() <= TIMER_FOR_DANGER_2 * curseMulti || getBombType() == BombType.REMOTE ||
-					getBombType() == BombType.SPIKED_REMOTE || getBombType() == BombType.SENSOR
-					? TileProp.CPU_DANGER_2 : TileProp.CPU_DANGER);
+		if (!isBlockedMovement() && (getBombType() != BombType.LAND_MINE || currentFrameSetNameIsEqual("UnlandingFrames")))
+			setDangerMarks(getTimer() <= TIMER_FOR_DANGER_2 * curseMulti ? TileProp.CPU_DANGER_2 : TileProp.CPU_DANGER);
 	}
 
 	public static boolean haveBombAt(TileCoord coord) {
@@ -462,7 +462,7 @@ public class Bomb extends Entity {
 							return;
 						}
 						if (!bomb.isBlockedMovement())
-							TimerFX.createTimer("chainKickBomb" + hashCode(), 5, () -> bomb.kick(direction, speed, kickSound, slamSound));
+							DurationTimerFX.createTimer("chainKickBomb" + hashCode(), Duration.millis(50), () -> bomb.kick(direction, speed, kickSound, slamSound));
 					}
 				}
 			});

@@ -1,5 +1,6 @@
 package maps;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import application.Main;
@@ -27,27 +27,30 @@ import enums.GameMode;
 import enums.ItemType;
 import enums.PassThrough;
 import enums.SpriteLayerType;
-import enums.StageClearCriteria;
+import enums.StageObjectives;
 import enums.TileProp;
+import fades.DefaultFade;
 import frameset.FrameSet;
 import frameset.Tags;
 import frameset_tags.FrameTag;
+import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
+import javafx.util.Pair;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import pathfinder.PathFinder;
 import tools.Draw;
 import tools.GameFonts;
-import tools.IniFiles;
 import tools.Materials;
 import tools.Sound;
+import util.DurationTimerFX;
 import util.IniFile;
 import util.Misc;
 import util.MyMath;
-import util.TimerFX;
 
 public abstract class MapSet {
 
@@ -56,12 +59,13 @@ public abstract class MapSet {
 	private static List<TileCoord> initialMonsterCoords;
 	private static ShakeEntity shake;
 	public static Entity mapFrameSets;
-	private static IniFile iniFileMap;
+	private static IniFile iniFile;
 	private static IniFile iniFileTileSet;
 	private static Image tileSetImage;
 	private static Integer copyImageLayerIndex;
 	private static Integer currentLayerIndex;
 	private static String mapName;
+	private static String nextMapName;
 	private static String iniMapName;
 	private static String tileSetName;
 	private static Position groundTile;
@@ -74,29 +78,41 @@ public abstract class MapSet {
 	public static Map<String, FrameSet> runningStageTags;
 	private static Map<String, FrameSet> preLoadedStageTags;
 	private static int bricksRegenTimeInFrames;
-	private static long timeLimit;
 	private static Map<String, Integer> switches;
+	private static boolean stageObjectiveIsCleared;
 	private static boolean stageIsCleared;
-	private static List<StageClearCriteria> stageClearCriterias;
-	private static List<StageClearCriteria> leftStageClearCriterias;
+	private static List<StageObjectives> stageClearCriterias;
+	private static List<StageObjectives> leftStageClearCriterias;
 	private static boolean hurryUpIsActive;
+	private static int stageTimerPauseDuration;
 	static TileCoord hurryUpMinFreeCoord;
 	static TileCoord hurryUpMaxFreeCoord;
 	private static TileCoord hurryUpNextCoord;
 	private static Direction hurryUpDirection;
 	private static Integer hurryUpDrawX;
-	private static Consumer<String> consumerWhenMapLoads = null;
-	private static Consumer<String> consumerWhenStageIsCleared = null;
-	private static Integer stageTimeInSecs = null;
+	private static Integer stageTimeInSecs;
+	private static Integer hurryUpTimeInSecs;
+	private static String stageStartMusic;
+	private static String stageBGM;
+	private static String stageClearSound;
+	private static String stageClearBGM;
+	private static Runnable onStageClearEvent = null;
+	private static Runnable onStageObjectiveClearEvent = null;
+	private static Runnable onBeforeMapLoadEvent = null;
+	private static Runnable onAfterMapLoadEvent = null;
 
-	public static void loadMap(String iniMapName) {
-		clearStuffs();
+	public static void loadMap(String mapName) {
 		long ct = System.currentTimeMillis();
-		if (!IniFiles.stages.sectionExists(iniMapName))
-			throw new RuntimeException("Unable to load map \"" + iniMapName + "\" (Map not found on Stages.cfg)");
-		System.out.println("Carregando mapa " + iniMapName + " ...");
+		if (!new File("appdata/maps/" + mapName + ".map").exists())
+			throw new RuntimeException("Unable to load map file \"appdata/maps/" + mapName + ".map\" (File not found)");
+		System.out.println("Carregando mapa " + mapName + " ...");
+		if (onBeforeMapLoadEvent != null)
+			Platform.runLater(onBeforeMapLoadEvent);
+		clearStuffs();
+		iniFile = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
 		Materials.tempSprites.clear();
-		MapSet.iniMapName = iniMapName;
+		MapSet.mapName = mapName;
+		nextMapName = iniFile.read("SETUP", "NextMap", mapName);
 		bricksRegenTimeInFrames = 0;
 		layers = new HashMap<>();
 		switches = new HashMap<>();
@@ -107,89 +123,126 @@ public abstract class MapSet {
 		mapMove = new Position();
 		mapMinLimit = new Position();
 		mapMaxLimit = new Position();
-		mapName = IniFiles.stages.read(iniMapName, "File");
-		iniFileMap = IniFile.getNewIniFileInstance("appdata/maps/" + mapName + ".map");
+		stageStartMusic = iniFile.read("SETUP", "StageStartMusic");
+		stageBGM = iniFile.read("SETUP", "StageBGM");
+		if (stageBGM != null)
+			Sound.stopAllMp3s();
+		stageClearSound = iniFile.read("SETUP", "StageClearSound");
+		setStageTimeLimitInSecs(iniFile.readAsInteger("SETUP", "TimeLimitInSecs", null));
+		setHurryUpTimeInSecs(iniFile.readAsInteger("SETUP", "HurryUpTime", null));
 		shake = null;
 		hurryUpIsActive = false;
+		stageObjectiveIsCleared = false;
 		stageIsCleared = false;
 		hurryUpMinFreeCoord = new TileCoord(Integer.MAX_VALUE, Integer.MAX_VALUE);
 		hurryUpMaxFreeCoord = new TileCoord();
 		hurryUpNextCoord = new TileCoord();
 		hurryUpDirection = Direction.RIGHT;
 		hurryUpDrawX = null;
-		if (iniFileMap == null)
+		if (iniFile == null)
 			throw new RuntimeException("Unable to load map \"" + mapName + "\" (File not found)");
-		if (iniFileMap.read("SETUP", "TileSet") == null)
-			throw new RuntimeException("Unable to find \"TileSet\" item at \"SETUP\" section from \"" + iniFileMap.fileName() + "\"");
-		setTileSet(iniFileMap.getLastReadVal());
+		if (iniFile.read("SETUP", "TileSet") == null)
+			throw new RuntimeException("Unable to find \"TileSet\" item at \"SETUP\" section from \"" + iniFile.fileName() + "\"");
+		setTileSet(iniFile.getLastReadVal());
 		Map<Integer, List<String>> tileInfos = new HashMap<>();
-		if (iniFileMap.read("SETUP", "CopyImageLayer") == null)
-			throw new RuntimeException("Unable to find \"CopyImageLayer\" item at \"SETUP\" section from \"" + iniFileMap.fileName() + "\"");
-		copyImageLayerIndex = iniFileMap.readAsInteger("SETUP", "CopyImageLayer", null);
-		if (iniFileMap.read("SETUP", "BrickRegenTimer") != null)
-			setBricksRegenTime(Integer.parseInt(iniFileMap.getLastReadVal()));
-		if (iniFileMap.read("SETUP", "PortalCriteria") != null) {
+		if (iniFile.read("SETUP", "CopyImageLayer") == null)
+			throw new RuntimeException("Unable to find \"CopyImageLayer\" item at \"SETUP\" section from \"" + iniFile.fileName() + "\"");
+		copyImageLayerIndex = iniFile.readAsInteger("SETUP", "CopyImageLayer", null);
+		if (iniFile.read("SETUP", "BrickRegenTimer") != null)
+			setBricksRegenTime(Integer.parseInt(iniFile.getLastReadVal()));
+		if (iniFile.read("SETUP", "PortalCriteria") != null) {
 			stageClearCriterias = new ArrayList<>();
 			leftStageClearCriterias = new ArrayList<>();
-			for (String s : iniFileMap.getLastReadVal().split(" ")) {
-				stageClearCriterias.add(StageClearCriteria.valueOf(s));
-				leftStageClearCriterias.add(StageClearCriteria.valueOf(s));
+			for (String s : iniFile.getLastReadVal().split(" ")) {
+				stageClearCriterias.add(StageObjectives.valueOf(s));
+				leftStageClearCriterias.add(StageObjectives.valueOf(s));
 			}
 		}
 		else
 			leftStageClearCriterias = null;
-		if (!iniFileMap.sectionExists("TILES"))
-			throw new RuntimeException("Unable to find \"TILES\" section from \"" + iniFileMap.fileName() + "\"");
-		iniFileMap.getItemList("TILES").forEach(item -> {
-			int layerIndex = Integer.parseInt(iniFileMap.read("TILES", item).split(" ")[0]);
+		if (!iniFile.sectionExists("TILES"))
+			throw new RuntimeException("Unable to find \"TILES\" section from \"" + iniFile.fileName() + "\"");
+		iniFile.getItemList("TILES").forEach(item -> {
+			int layerIndex = Integer.parseInt(iniFile.read("TILES", item).split(" ")[0]);
 			if (!tileInfos.containsKey(layerIndex))
 				tileInfos.put(layerIndex, new ArrayList<>());
-			tileInfos.get(layerIndex).add(iniFileMap.getLastReadVal());
+			tileInfos.get(layerIndex).add(iniFile.getLastReadVal());
 		});
 		tileInfos.keySet().forEach(i -> {
 			Layer layer = new Layer(tileInfos.get(i));
 			layers.put(i, layer);
 		});
 		for (int n = 0; n < 2; n++)
-			if (iniFileMap.read("SETUP", n == 0 ? "MonsterInitialCoordsOrder" : "PlayerInitialCoordsOrder") != null) {
+			if (iniFile.read("SETUP", n == 0 ? "MonsterInitialCoordsOrder" : "PlayerInitialCoordsOrder") != null) {
 				try {
-					String[] split = iniFileMap.getLastReadVal().split(" ");
+					String[] split = iniFile.getLastReadVal().split(" ");
 					for (String s : split) {
 						String[] split2 = s.split("!");
 						initialPlayerCoords.add(new TileCoord(Integer.parseInt(split2[0]), Integer.parseInt(split2[1])));
 					}
 				}
 				catch (Exception e) {
-					throw new RuntimeException("Invalid format at [SETUP], '" + (n == 0 ? "MonsterInitialCoordsOrder" : "PlayerInitialCoordsOrder") + "' -> " + iniFileMap.getLastReadVal());
+					throw new RuntimeException("Invalid format at [SETUP], '" + (n == 0 ? "MonsterInitialCoordsOrder" : "PlayerInitialCoordsOrder") + "' -> " + iniFile.getLastReadVal());
 				}
 			}
 		if (initialPlayerCoords.isEmpty())
 			throw new RuntimeException("Unable to find any initial player spots on this map");
-		groundTile = getTilePositionFromIni(iniFileMap, "GroundTile");
-		groundWithBrickShadow = Misc.notNull(getTilePositionFromIni(iniFileMap, "GroundWithBrickShadow"), new Position(groundTile));
-		groundWithWallShadow = Misc.notNull(getTilePositionFromIni(iniFileMap, "GroundWithWallShadow"), new Position(groundTile));
-		wallTile = getTilePositionFromIni(iniFileMap, "WallTile");
+		groundTile = getTilePositionFromIni(iniFile, "GroundTile");
+		groundWithBrickShadow = Misc.notNull(getTilePositionFromIni(iniFile, "GroundWithBrickShadow"), new Position(groundTile));
+		groundWithWallShadow = Misc.notNull(getTilePositionFromIni(iniFile, "GroundWithWallShadow"), new Position(groundTile));
+		wallTile = getTilePositionFromIni(iniFile, "WallTile");
 		currentLayerIndex = 26;
 		if (Main.GAME_MODE != GameMode.MAP_EDITOR || Main.mapEditor.playing)
 			setRandomWalls();
 		rebuildAllLayers();
 		if (Main.GAME_MODE != GameMode.MAP_EDITOR || Main.mapEditor.playing)
 			setBricks();
-		iniFileMap.getItemList("TAGS").forEach(item -> {
+		iniFile.getItemList("TAGS").forEach(item -> {
 			FrameSet frameSet = new FrameSet();
-			frameSet.loadFromString(mapFrameSets, iniFileMap.read("TAGS", item));
+			frameSet.loadFromString(mapFrameSets, iniFile.read("TAGS", item));
 			preLoadedStageTags.put(item, frameSet);
 		});
 		resetMapFrameSets();
 		for (int p = 0; p < initialPlayerCoords.size() && p < BomberMan.getTotalBomberMans(); p++)
 			BomberMan.getBomberMan(p).setPosition(initialPlayerCoords.get(p).getPosition());
+		if (preLoadedStageTags.containsKey("AfterMapLoad"))
+			runStageTag("AfterMapLoad");
+		if (onAfterMapLoadEvent != null)
+			Platform.runLater(onAfterMapLoadEvent);
+		if (preLoadedStageTags.containsKey("AfterMapLoad"))
+			runStageTag("AfterMapLoad");
+		else {
+			if (stageStartMusic != null)
+				Main.freezeAll();
+			Draw.setFade(new DefaultFade(0.005).fadeIn().setOnFadeDoneEvent(() -> Draw.setFade(null)));
+			Runnable event = () -> {
+				if (stageBGM != null) {
+					String[] split = stageBGM.split(" ");
+					if (split.length == 1)
+						Sound.playMp3(stageBGM).thenAccept(mp3 -> mp3.setOnEndOfMedia(() -> mp3.play()));
+					else {
+						try {
+							final int end = Integer.parseInt(split[1]);
+							final int start = split.length == 2 ? 0 : Integer.parseInt(split[2]);
+							Sound.playMp3(split[0], new Pair<>(Duration.millis(end), Duration.millis(start)));
+						}
+						catch (Exception e) {
+							throw new RuntimeException("Invalid format for string: " + stageBGM + "\n\t(Expected: [MP3_NAME] or [MP3_NAME END_POS] or [MP3_NAME END_POS START_POS])");
+						}
+					}
+				}
+			};
+			if (stageStartMusic != null)
+				Sound.playMp3(stageStartMusic).thenAcceptAsync(mp3 ->	mp3.setOnEndOfMedia(() ->	{
+					Main.unFreezeAll();
+					Platform.runLater(event);
+				}));
+			else {
+				Main.unFreezeAll();
+				Platform.runLater(event);
+			}
+		}
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
-		if (consumerWhenMapLoads != null)
-			consumerWhenMapLoads.accept(iniMapName);
-		timeLimit = stageTimeInSecs != null ? System.currentTimeMillis() + stageTimeInSecs * 1000 : -1;
-		BomberMan.setBomberAlives(0);
-		for (BomberMan bomber : BomberMan.getBomberManList())
-			bomber.clearItemsAndRevive();
 	}
 	
 	public static void clearStuffs() {
@@ -197,29 +250,44 @@ public abstract class MapSet {
 		Bomb.clearBombs();
 		Item.clearItems();
 		Effect.clearEffects();
+		BomberMan.setBomberAlives(0);
 	}
 
 	public static void reloadMap() {
-		clearStuffs();
-		loadMap(iniMapName);
+		loadMap(mapName);
 	}
 	
 	public static void setStageTimeLimitInSecs(Integer timeLimit) {
 		stageTimeInSecs = timeLimit;
+		if (timeLimit != null)
+			DurationTimerFX.createTimer("StageTimer", Duration.ZERO, Duration.seconds(1), 0, () -> {
+				if (stageTimerPauseDuration > 0)
+					stageTimerPauseDuration--;
+				else if (stageTimeInSecs > 0)
+					stageTimeInSecs--;
+				if (getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && !hurryUpIsActive() && stageTimeInSecs != null && hurryUpTimeInSecs != null && getMapTimeLeftInSecs() <= hurryUpTimeInSecs)
+					setHurryUpState(true);
+			});
+		else
+			DurationTimerFX.stopTimer("StageTimer");
+	}
+	
+	public static void addStageTimePauseDuration(int timePauseDurationToAdd) {
+		stageTimerPauseDuration += timePauseDurationToAdd;
+	}
+	
+	public static boolean stageTimerIspaused() {
+		return stageTimerPauseDuration != 0;
+	}
+
+	public static void setHurryUpTimeInSecs(Integer time) {
+		hurryUpTimeInSecs = time;
 	}
 	
 	public static boolean haveTimeLimit() {
 		return stageTimeInSecs != null;
 	}
 	
-	public static void setConsumerWhenMapLoads(Consumer<String> consumer) {
-		consumerWhenMapLoads = consumer;
-	}
-
-	public static void setConsumerWhenStageIsCleared(Consumer<String> consumer) {
-		consumerWhenStageIsCleared = consumer;
-	}
-
 	/*
 	 * tileCoord - Coordenada do tile que disparou a tag (se for disparado de algum
 	 * tile) whoTriggered - A entity que disparou o stageTag (O jogador/mob/bomba
@@ -243,18 +311,16 @@ public abstract class MapSet {
 	}
 	
 	public static void setHurryUpState(boolean state) {
-		if (stageIsCleared())
+		if (stageObjectiveIsCleared())
 			return;
 		if (state != hurryUpIsActive && state) {
-			TimerFX.createTimer("HurryUp", 1, () -> {
-				Sound.playWav("");
-				Sound.stopAllMp3s();
-				Sound.playMp3("Battle-HurryUp1");
+			DurationTimerFX.createTimer("HurryUp", Duration.millis(1), () -> {
+				Sound.getCurrentMediaPlayer().setRate(1.2);
 				Sound.playWav("HurryUp");
 				Sound.playWav("voices/HurryUp");
 				hurryUpNextCoord.setCoords(hurryUpMinFreeCoord);
 				hurryUpDirection = Direction.RIGHT;
-				hurryUpDrawX = getMapLimitWidth() + 10;
+				hurryUpDrawX = (int)Main.getMainCanvas().getWidth() / Main.getZoom() + 10;
 				dropNextHurryUpBlock();
 			});
 		}
@@ -262,8 +328,8 @@ public abstract class MapSet {
 	}
 
 	private static void dropNextHurryUpBlock() {
-		if (!MapSet.stageIsCleared)
-			TimerFX.createTimer("NextHurryUp" + Main.uniqueTimerId++, 250, () -> {
+		if (!MapSet.stageObjectiveIsCleared && !MapSet.stageIsCleared)
+			DurationTimerFX.createTimer("NextHurryUp" + Main.uniqueTimerId++, Duration.millis(250), () -> {
 				if (hurryUpMinFreeCoord.getY() != hurryUpMaxFreeCoord.getY()) {
 					do {
 						hurryUpNextCoord.incCoordsByDirection(hurryUpDirection);
@@ -302,7 +368,7 @@ public abstract class MapSet {
 	}
 
 	public static int getMapTimeLeftInSecs() {
-		return stageTimeInSecs == null ? -1 : (int)(timeLimit - System.currentTimeMillis()) / 1000;
+		return stageTimeInSecs == null ? -1 : stageTimeInSecs;
 	}
 	
 	public static void runStageTag(String stageTagsName, TileCoord tileCoord) {
@@ -317,22 +383,44 @@ public abstract class MapSet {
 		runStageTag(stageTagsName, new TileCoord(), new Entity());
 	}
 
-	public static void setStageStatusToCleared() {
-		setStageStatusToCleared(true);
+	public static void setStageObjectiveAsClear() {
+		if (!stageObjectiveIsCleared) {
+			stageObjectiveIsCleared = true;
+			if (preLoadedStageTags.containsKey("StageObjectiveCleared"))
+				runStageTag("StageObjectiveCleared");
+			if (mapFrameSets.haveFrameSet("StageObjectiveCleared"))
+				mapFrameSets.setFrameSet("StageObjectiveCleared");
+			else if (stageClearSound != null)
+				Sound.playWav(stageClearSound).thenAccept(c -> setStageAsClear());
+			if (onStageObjectiveClearEvent != null)
+				Platform.runLater(onStageObjectiveClearEvent);
+		}
 	}
 
-	public static void setStageStatusToCleared(boolean playClearSound) {
+	public static void setStageAsClear() {
 		if (!stageIsCleared) {
 			stageIsCleared = true;
-			if (preLoadedStageTags.containsKey("StageClear"))
-				runStageTag("StageClear");
-			if (mapFrameSets.haveFrameSet("StageClear"))
-				mapFrameSets.setFrameSet("StageClear");
-			if (playClearSound)
-				Sound.playWav("StageClear");
-			if (consumerWhenStageIsCleared != null)
-				consumerWhenStageIsCleared.accept(iniMapName);
+			if (preLoadedStageTags.containsKey("StageCleared"))
+				runStageTag("StageCleared");
+			if (mapFrameSets.haveFrameSet("StageCleared"))
+				mapFrameSets.setFrameSet("StageCleared");
+			Runnable event = () -> {
+				if (preLoadedStageTags.containsKey("StageClearFadeOut"))
+					runStageTag("StageClearFadeOut");
+				else
+					Draw.setFade(new DefaultFade(0.01).fadeOut().setOnFadeDoneEvent(() -> loadNextMap()));
+			};
+			if (onStageClearEvent != null)
+				Platform.runLater(onStageClearEvent);
+			if (stageClearBGM != null)
+				Sound.playMp3(stageClearBGM).thenAcceptAsync(mp3 ->	mp3.setOnEndOfMedia(() ->	Platform.runLater(event)));
+			else
+				Platform.runLater(event);
 		}
+	}
+
+	private static void loadNextMap() {
+		loadMap(nextMapName);
 	}
 
 	public static void addLayer(int layerIndex) {
@@ -378,11 +466,11 @@ public abstract class MapSet {
 	public static void setSwitchValue(String switchName, int value) {
 		int oldValue = !switches.containsKey(switchName) ? -1 : switches.get(switchName);
 		switches.put(switchName, value);
-		if (!stageIsCleared && switchName.equals("StageClear")) {
+		if (!stageObjectiveIsCleared && switchName.equals("StageClear")) {
 			if (oldValue > 0 && getSwitchValue(switchName) == 0)
-				removeStageClearCriteria(StageClearCriteria.ACTIVATING_SWITCHES);
+				removeStageClearCriteria(StageObjectives.ACTIVATING_SWITCHES);
 			else if (oldValue == 0 && getSwitchValue(switchName) > 0)
-				addStageClearCriteria(StageClearCriteria.ACTIVATING_SWITCHES);
+				addStageClearCriteria(StageObjectives.ACTIVATING_SWITCHES);
 		}
 	}
 
@@ -402,11 +490,11 @@ public abstract class MapSet {
 		mapMaxLimit.setPosition(x, y);
 	}
 
-	public static List<StageClearCriteria> getStageClearCriterias() {
+	public static List<StageObjectives> getStageClearCriterias() {
 		return stageClearCriterias;
 	}
 
-	public static List<StageClearCriteria> getLeftStageClearCriterias() {
+	public static List<StageObjectives> getLeftStageClearCriterias() {
 		return leftStageClearCriterias;
 	}
 
@@ -434,17 +522,17 @@ public abstract class MapSet {
 		return shake;
 	}
 
-	private static void addStageClearCriteria(StageClearCriteria criteria) {
+	public static void addStageClearCriteria(StageObjectives criteria) {
 		if (leftStageClearCriterias != null)
 			leftStageClearCriterias.add(criteria);
 	}
 
-	private static void removeStageClearCriteria(StageClearCriteria criteria) {
+	public static void removeStageClearCriteria(StageObjectives criteria) {
 		if (leftStageClearCriterias != null) {
 			leftStageClearCriterias.remove(criteria);
-			boolean temp = leftStageClearCriterias.size() == 1 && leftStageClearCriterias.get(0) == StageClearCriteria.KILLING_ALL_MOBS;
+			boolean temp = leftStageClearCriterias.size() == 1 && leftStageClearCriterias.get(0) == StageObjectives.KILLING_ALL_MOBS;
 			if (temp || leftStageClearCriterias.isEmpty()) // NOTA: remover temp quando os mobs tiverem sido implementados
-				setStageStatusToCleared();
+				setStageObjectiveAsClear();
 		}
 	}
 
@@ -453,10 +541,10 @@ public abstract class MapSet {
 	}
 
 	public static void resetMapFrameSets() {
-		stageIsCleared = false;
+		stageObjectiveIsCleared = false;
 		mapFrameSets = new Entity();
-		for (String item : iniFileMap.getItemList("FRAMESETS"))
-			mapFrameSets.addNewFrameSetFromIniFile(mapFrameSets, item, iniFileMap.fileName(), "FRAMESETS", item);
+		for (String item : iniFile.getItemList("FRAMESETS"))
+			mapFrameSets.addNewFrameSetFromIniFile(mapFrameSets, item, iniFile.fileName(), "FRAMESETS", item);
 		if (mapFrameSets.haveFrameSet("StageIntro"))
 			mapFrameSets.setFrameSet("StageIntro");
 		else if (mapFrameSets.haveFrameSet("Default"))
@@ -483,11 +571,11 @@ public abstract class MapSet {
 		for (TileCoord coord : getTilePropsMap().keySet())
 			if (getTileProps(coord).contains(TileProp.FIXED_BRICK))
 				Brick.addBrick(coord.getNewInstance());
-		if (IniFiles.stages.read(iniMapName, "Blocks") != null && !IniFiles.stages.read(iniMapName, "Blocks").equals("0")) {
+		if (iniFile.read("SETUP", "Blocks") != null && !iniFile.read("SETUP", "Blocks").equals("0")) {
 			int totalBricks = 0, bricksQuant = 0;
 			int[] totalBrickSpawners = { 0 };
 			try {
-				String[] split = IniFiles.stages.read(iniMapName, "Blocks").split("!");
+				String[] split = iniFile.read("SETUP", "Blocks").split("!");
 				int minBricks = Integer.parseInt(split[0]), maxBricks = Integer.parseInt(split[split.length == 1 ? 0 : 1]);
 				totalBricks = (int) MyMath.getRandom(minBricks, maxBricks);
 				for (TileCoord coord : getTilePropsMap().keySet()) {
@@ -498,7 +586,7 @@ public abstract class MapSet {
 				}
 			}
 			catch (Exception e) {
-				throw new RuntimeException(IniFiles.stages.read(iniMapName, "Blocks") + " - Wrong data for this item");
+				throw new RuntimeException(iniFile.read("SETUP", "Blocks") + " - Wrong data for this item");
 			}
 			List<TileCoord> coords = new ArrayList<>();
 			for (TileCoord coord : getLayer(26).getTilesMap().keySet())
@@ -528,8 +616,8 @@ public abstract class MapSet {
 	}
 
 	private static void addItemsToBricks() {
-		if (IniFiles.stages.read(iniMapName, "Items") != null && !IniFiles.stages.read(iniMapName, "Items").equals("0")) {
-			String[] split = IniFiles.stages.read(iniMapName, "Items").split(" ");
+		if (iniFile.read("SETUP", "Items") != null && !iniFile.read("SETUP", "Items").equals("0")) {
+			String[] split = iniFile.read("SETUP", "Items").split(" ");
 			try {
 				for (int n = 0; n < split.length && n < Brick.totalBricks(); n++) {
 					int itemId = Integer.parseInt(split[n]);
@@ -543,23 +631,23 @@ public abstract class MapSet {
 			}
 			catch (Exception e) {
 				e.printStackTrace();
-				throw new RuntimeException(IniFiles.stages.read(iniMapName, "Items") + " - Wrong data for this item");
+				throw new RuntimeException(iniFile.read("SETUP", "Items") + " - Wrong data for this item");
 			}
 		}
 	}
 
 	public static void setRandomWalls() {
-		if (IniFiles.stages.read(iniMapName, "FixedBlocks") != null && !IniFiles.stages.read(iniMapName, "FixedBlocks").equals("0")) {
+		if (iniFile.read("SETUP", "FixedBlocks") != null && !iniFile.read("SETUP", "FixedBlocks").equals("0")) {
 			long cTime = System.currentTimeMillis();
 			System.out.print("Definindo paredes aleatórias... ");
 			int totalWalls = 0;
 			try {
-				String[] split = IniFiles.stages.read(iniMapName, "FixedBlocks").split("!");
+				String[] split = iniFile.read("SETUP", "FixedBlocks").split("!");
 				int minWalls = Integer.parseInt(split[0]), maxWalls = Integer.parseInt(split[split.length == 1 ? 0 : 1]);
 				totalWalls = (int) MyMath.getRandom(minWalls, maxWalls);
 			}
 			catch (Exception e) {
-				throw new RuntimeException(IniFiles.stages.read(iniMapName, "FixedBlocks") + " - Wrong data for this item");
+				throw new RuntimeException(iniFile.read("SETUP", "FixedBlocks") + " - Wrong data for this item");
 			}
 			List<TileCoord> coords = new ArrayList<>();
 			for (TileCoord coord : getLayer(26).getTilesMap().keySet())
@@ -634,7 +722,7 @@ public abstract class MapSet {
 	}
 
 	public static IniFile getMapIniFile() {
-		return iniFileMap;
+		return iniFile;
 	}
 
 	public static IniFile getTileSetIniFile() {
@@ -776,8 +864,6 @@ public abstract class MapSet {
 	}
 
 	public static void run() {
-		if (!hurryUpIsActive() && stageTimeInSecs != null && getMapTimeLeftInSecs() <= 90)
-			setHurryUpState(true);
 		if (hurryUpIsActive())
 			drawHurryUpMessage();
 		if (shake != null) {
@@ -818,19 +904,19 @@ public abstract class MapSet {
 
 	private static void drawHurryUpMessage() {
 		if (hurryUpDrawX != null) {
-			if (Misc.blink(50)) {
+			if (Misc.blink(25)) {
 				Draw.addDrawQueue(1, SpriteLayerType.CLOUD, DrawType.SET_GLOBAL_ALPHA, 1);
-				Draw.addDrawQueue(1, SpriteLayerType.CLOUD, DrawType.SET_FONT, GameFonts.fontBomberMan40);
+				Draw.addDrawQueue(1, SpriteLayerType.CLOUD, DrawType.SET_FONT, GameFonts.fontBomberMan60);
 				Draw.addDrawQueue(1, SpriteLayerType.CLOUD, DrawType.SET_LINE_WIDTH, 3);
 				Draw.addDrawQueue(2, SpriteLayerType.CLOUD, DrawType.SET_STROKE, Color.valueOf("#AAAAAA"));
 				Draw.addDrawQueue(3, SpriteLayerType.CLOUD, DrawType.SET_FILL, Color.valueOf("#FFFFFF"));
-				Draw.addDrawQueue(4, SpriteLayerType.CLOUD, DrawType.FILL_TEXT, null, null, "HURRY UP!", hurryUpDrawX, getMapLimitHeight() / 2 + 20);
-				Draw.addDrawQueue(5, SpriteLayerType.CLOUD, DrawType.STROKE_TEXT, null, null, "HURRY UP!", hurryUpDrawX, getMapLimitHeight() / 2 + 20);
+				Draw.addDrawQueue(4, SpriteLayerType.CLOUD, DrawType.FILL_TEXT, null, null, "HURRY UP!", hurryUpDrawX, Main.getMainCanvas().getHeight() / 2 / Main.getZoom() + 32 * Main.zoom - 30);
+				Draw.addDrawQueue(5, SpriteLayerType.CLOUD, DrawType.STROKE_TEXT, null, null, "HURRY UP!", hurryUpDrawX, Main.getMainCanvas().getHeight() / 2 / Main.getZoom() + 32 * Main.zoom - 30);
 			}
 			Text text = new Text("HURRY UP!");
-			text.setFont(GameFonts.fontBomberMan40);
+			text.setFont(GameFonts.fontBomberMan60);
 			int x = (int)text.getLayoutBounds().getWidth();
-			if ((hurryUpDrawX -= 3) + x < 0)
+			if ((hurryUpDrawX -= 4) + x < 0)
 				hurryUpDrawX = null;
 		}
 	}
@@ -1055,8 +1141,20 @@ public abstract class MapSet {
 		return Brick.dropBrickFromSky(coord, null, true);
 	}
 
+	public static boolean stageObjectiveIsCleared() {
+		return stageObjectiveIsCleared;
+	}
+
 	public static boolean stageIsCleared() {
 		return stageIsCleared;
+	}
+
+	public static void setOnMapLoadEvent(Runnable runnable) {
+		onAfterMapLoadEvent = runnable;		
+	}
+
+	public static void setOnStageObjectiveClearEvent(Runnable runnable) {
+		onStageObjectiveClearEvent = runnable;		
 	}
 
 }

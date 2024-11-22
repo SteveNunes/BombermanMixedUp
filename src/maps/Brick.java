@@ -18,11 +18,12 @@ import enums.TileProp;
 import frameset_tags.SetSprIndex;
 import frameset_tags.SetSprSource;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.util.Duration;
 import objmoveutils.JumpMove;
 import objmoveutils.TileCoord;
 import tools.GameConfigs;
 import tools.Sound;
-import util.TimerFX;
+import util.DurationTimerFX;
 
 public class Brick extends Entity {
 
@@ -249,7 +250,7 @@ public class Brick extends Entity {
 				setBrickShadow();
 				TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction);
 				if (haveBrickAt(coord))
-					TimerFX.createTimer("chainKickBrick" + hashCode(), 5, () -> Brick.getBrickAt(coord).kick(direction, speed, kickSound, slamSound));
+					DurationTimerFX.createTimer("chainKickBrick" + hashCode(), Duration.millis(50), () -> Brick.getBrickAt(coord).kick(direction, speed, kickSound, slamSound));
 			});
 			setPushEntity(pushEntity);
 			setGhosting(2, 0.2);

@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import frameset_tags.DelayTags;
+import frameset_tags.DelayInFramesTags;
+import frameset_tags.DelayInMillisTags;
 import frameset_tags.FrameTag;
+import javafx.util.Duration;
 import tools.FrameTagLoader;
-import util.TimerFX;
+import util.DurationTimerFX;
+import util.FrameTimerFX;
 
 public class Tags {
 
@@ -25,6 +28,8 @@ public class Tags {
 			this.tags.add(tag2 = tag.getNewInstanceOfThis());
 			tag2.setTriggerDelay(tag.getTriggerDelay());
 			tag2.deleteMeAfterFirstRead = tag.deleteMeAfterFirstRead;
+			tag2.triggerDelay = tag.triggerDelay;
+			tag2.triggerDelayInFrames = tag.triggerDelayInFrames;
 		}
 		rootSprite = tags.rootSprite;
 	}
@@ -105,23 +110,37 @@ public class Tags {
 	public void run() {
 		if ((rootSprite != null && rootSprite.getSourceFrameSet().isStopped()))
 			return;
-		if (getTotalTags() > 0 && getTags().get(0) instanceof DelayTags) {
+		if (getTotalTags() > 0 && getTags().get(0) instanceof DelayInFramesTags) {
 			final Tags tags2 = new Tags(this);
-			DelayTags delay = (DelayTags) tags2.getTags().get(0);
+			DelayInFramesTags delay = (DelayInFramesTags) tags2.getTags().get(0);
 			tags2.getTags().remove(0);
 			if (getTotalTags() > 0)
-				TimerFX.createTimer("delayedProcessTags " + tags2.hashCode(), delay.value, () -> tags2.run());
+				FrameTimerFX.createTimer("delayedProcessTags " + tags2.hashCode(), delay.value, () -> tags2.run());
+			return;
+		}
+		if (getTotalTags() > 0 && getTags().get(0) instanceof DelayInMillisTags) {
+			final Tags tags2 = new Tags(this);
+			DelayInFramesTags delay = (DelayInFramesTags) tags2.getTags().get(0);
+			tags2.getTags().remove(0);
+			if (getTotalTags() > 0)
+				DurationTimerFX.createTimer("delayedProcessTags " + tags2.hashCode(), Duration.millis(delay.value), () -> tags2.run());
 			return;
 		}
 		for (int n = 0; n < getTotalTags(); n++) {
 			FrameTag tag = getTags().get(n);
 			if (tag.deleteMeAfterFirstRead)
 				getTags().remove(n--);
-			if (tag.getTriggerDelay() > 0) {
+			if (tag.getTriggerDelayInFrames() != null) {
 				final FrameTag tag2 = tag.getNewInstanceOfThis();
-				int delay = tag.getTriggerDelay();
-				tag2.setTriggerDelay(0);
-				TimerFX.createTimer("delayedRunTag " + tag2.hashCode(), delay, () -> tag2.process(rootSprite));
+				int delay = tag.getTriggerDelayInFrames();
+				tag2.setTriggerDelayInFrames(null);
+				FrameTimerFX.createTimer("delayedRunTag " + tag2.hashCode(), delay, () -> tag2.process(rootSprite));
+			}
+			else if (tag.getTriggerDelay() != null) {
+				final FrameTag tag2 = tag.getNewInstanceOfThis();
+				Duration delay = tag.getTriggerDelay();
+				tag2.setTriggerDelayInFrames(null);
+				DurationTimerFX.createTimer("delayedRunTag " + tag2.hashCode(), delay, () -> tag2.process(rootSprite));
 			}
 			else
 				tag.process(rootSprite);

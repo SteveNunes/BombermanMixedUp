@@ -26,7 +26,7 @@ import enums.Icons;
 import enums.ImageFlip;
 import enums.ItemType;
 import enums.SpriteLayerType;
-import enums.StageClearCriteria;
+import enums.StageObjectives;
 import enums.TileProp;
 import frameset.Tags;
 import gui.util.Alerts;
@@ -71,7 +71,6 @@ import pathfinder.PathFinder;
 import pathfinder.PathFinderOptmize;
 import player.Player;
 import tools.Draw;
-import tools.IniFiles;
 import tools.Materials;
 import tools.Tools;
 import util.FindFile;
@@ -146,6 +145,10 @@ public class MapEditor {
 	@FXML
 	private CheckBox checkBoxShowTilesWith2Sprites;
 	@FXML
+	private CheckBox checkBoxShowTilesWith2Props;
+	@FXML
+	private CheckBox checkBoxShowTilesWith2Tags;
+	@FXML
 	private CheckBox checkBoxShowAim;
 	@FXML
 	private CheckBox checkBoxShowGrid;
@@ -217,7 +220,6 @@ public class MapEditor {
 	private CanvasMouse canvasMouseTileSet;
 	private ItemType itemType;
 	private BombType bombType;
-	public static int zoomMain;
 	private int zoomTileSet;
 	private int ctrlZPos;
 	private long resetBricks;
@@ -241,7 +243,7 @@ public class MapEditor {
 		alreadySetTiles = new HashSet<>();
 		font = new Font("Lucida Console", 15);
 		resetBricks = System.currentTimeMillis();
-		zoomMain = 3;
+		Main.setZoom(3);
 		zoomTileSet = 1;
 		controlledBomberIndex = 0;
 		bomberColor = -1;
@@ -258,8 +260,8 @@ public class MapEditor {
 		copyTags = null;
 		itemType = ItemType.BOMB_UP;
 		bombType = BombType.NORMAL;
-		canvasMain.setWidth(320 * zoomMain - 16 * zoomMain * 3);
-		canvasMain.setHeight(240 * zoomMain - 16 * zoomMain);
+		canvasMain.setWidth(320 * Main.getZoom() - 16 * Main.getZoom() * 3);
+		canvasMain.setHeight(240 * Main.getZoom() - 16 * Main.getZoom());
 		Main.setMainCanvas(canvasMain);
 		listenerHandleComboBoxMapFrameSets = new ListenerHandle<>(comboBoxMapFrameSets.valueProperty(), (o, oldValue, newValue) -> MapSet.mapFrameSets.setFrameSet(comboBoxMapFrameSets.getSelectionModel().getSelectedItem()));
 		BomberMan.addBomberMan(1, 0);
@@ -267,9 +269,10 @@ public class MapEditor {
 		Player.getPlayer(0).setInputMode(GameInputMode.KEYBOARD);
 		Player.getPlayer(0).setBomberMan(BomberMan.getBomberMan(0));
 		setAllCanvas();
-		defineControls();
 		setKeyboardEvents();
 		setMainCanvasMouseEvents();
+		loadMap(defaultMap);
+		defineControls();
 		rebuildTileSetCanvas();
 		updateTileSelectionArray();
 		mainLoop();
@@ -409,9 +412,9 @@ public class MapEditor {
 		for (TileProp type : TileProp.getList())
 			comboBoxTileType.getItems().add(type);
 		comboBoxTileType.getSelectionModel().select(0);
-		comboBoxMapList.getItems().addAll(IniFiles.stages.getSectionList());
-		comboBoxMapList.valueProperty().addListener((obs, oldV, newV) -> loadMap(newV));
+		comboBoxMapList.getItems().addAll(MapSet.getMapIniFile().getSectionList());
 		comboBoxMapList.getSelectionModel().select(0);
+		comboBoxMapList.valueProperty().addListener((obs, oldV, newV) -> loadMap(newV));
 		for (ImageFlip flip : ImageFlip.values())
 			comboBoxTileFlip.getItems().add(flip);
 		comboBoxTileFlip.getSelectionModel().select(0);
@@ -456,7 +459,7 @@ public class MapEditor {
 			Tools.getFPSHandler().fpsCounter();
 			if (!Main.close)
 				Platform.runLater(() -> {
-					String title = "Map Editor" + "     FPS: " + Tools.getFPSHandler().getFPS() + "     " + canvasMouseDraw.tileCoord + "     " + canvasMouseDraw.tileCoord.getPosition() + "     (Sprites: " + (getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord) == null ? "0" : getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord).size()) + "," + "     " + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BRICKED") + ")" + "     Zoom: x" + zoomMain + "     Tileset Zoom: x" + zoomTileSet + "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
+					String title = "Map Editor" + "     FPS: " + Tools.getFPSHandler().getFPS() + "     " + canvasMouseDraw.tileCoord + "     " + canvasMouseDraw.tileCoord.getPosition() + "     (Sprites: " + (getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord) == null ? "0" : getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord).size()) + "," + "     " + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BRICKED") + ")" + "     Zoom: x" + Main.getZoom() + "     Tileset Zoom: x" + zoomTileSet + "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
 					Main.stageMain.setTitle(title);
 					mainLoop();
 				});
@@ -858,8 +861,8 @@ public class MapEditor {
 	void setMainCanvasMouseEvents() {
 		canvasMain.setOnScroll(e -> {
 			int inc = (isShiftHold() ? e.getDeltaX() : e.getDeltaY()) < 0 ? -1 : 1;
-			if (isNoHolds() && (zoomMain + inc <= 10 && zoomMain + inc >= 1))
-				zoomMain += inc;
+			if (isNoHolds() && (Main.getZoom() + inc <= 10 && Main.getZoom() + inc >= 1))
+				Main.setZoom(Main.getZoom() + inc);
 		});
 		canvasMain.setOnMouseDragged(e -> {
 			if (contextMenu != null && contextMenu.isShowing())
@@ -867,7 +870,7 @@ public class MapEditor {
 			canvasMouseDraw.x = (int) e.getX() + offsetX();
 			canvasMouseDraw.y = (int) e.getY() + offsetY();
 			TileCoord prevCoord = canvasMouseDraw.tileCoord.getNewInstance();
-			canvasMouseDraw.tileCoord.setCoords(((int) e.getX() - offsetX()) / (Main.TILE_SIZE * zoomMain), ((int) e.getY() - offsetY()) / (Main.TILE_SIZE * zoomMain));
+			canvasMouseDraw.tileCoord.setCoords(((int) e.getX() - offsetX()) / (Main.TILE_SIZE * Main.getZoom()), ((int) e.getY() - offsetY()) / (Main.TILE_SIZE * Main.getZoom()));
 			if (editable && e.getButton() == MouseButton.PRIMARY) {
 				if (selection == null && !prevCoord.equals(canvasMouseDraw.tileCoord))
 					addSelectedTileOnCurrentCursorPosition();
@@ -888,7 +891,7 @@ public class MapEditor {
 				return;
 			canvasMouseDraw.x = (int) e.getX() + offsetX();
 			canvasMouseDraw.y = (int) e.getY() + offsetY();
-			canvasMouseDraw.tileCoord.setCoords(((int) e.getX() - offsetX()) / (Main.TILE_SIZE * zoomMain), ((int) e.getY() - offsetY()) / (Main.TILE_SIZE * zoomMain));
+			canvasMouseDraw.tileCoord.setCoords(((int) e.getX() - offsetX()) / (Main.TILE_SIZE * Main.getZoom()), ((int) e.getY() - offsetY()) / (Main.TILE_SIZE * Main.getZoom()));
 		});
 		canvasMain.setOnMousePressed(e -> {
 			if (e.getButton() == MouseButton.PRIMARY && selection != null) {
@@ -937,7 +940,7 @@ public class MapEditor {
 		});
 		canvasMain.setOnMouseClicked(e -> {
 			alreadySetTiles.clear();
-			canvasMouseDraw.tileCoord.setCoords(((int) e.getX() - offsetX()) / (Main.TILE_SIZE * zoomMain), ((int) e.getY() - offsetY()) / (Main.TILE_SIZE * zoomMain));
+			canvasMouseDraw.tileCoord.setCoords(((int) e.getX() - offsetX()) / (Main.TILE_SIZE * Main.getZoom()), ((int) e.getY() - offsetY()) / (Main.TILE_SIZE * Main.getZoom()));
 		});
 	}
 
@@ -1066,7 +1069,7 @@ public class MapEditor {
 	}
 
 	void drawMainCanvas() { // Coisas que serão desenhadas no Canvas frontal (maior resolucao)
-		Draw.applyAllDraws(canvasMain, Color.DIMGRAY, zoomMain, offsetX(), offsetY());
+		Draw.applyAllDraws(canvasMain, Color.DIMGRAY, Main.getZoom(), offsetX(), offsetY());
 
 		if (pathFinder != null) {
 			pathFinder.recalculatePath(getCurrentBomber().getTileCoordFromCenter(), canvasMouseDraw.tileCoord, getCurrentBomber().getDirection());
@@ -1074,30 +1077,30 @@ public class MapEditor {
 				for (Pair<TileCoord, Direction> path : pathFinder.getCurrentPath()) {
 					Direction dir = path.getValue();
 					int x = (int) path.getKey().getPosition().getX(), y = (int) path.getKey().getPosition().getY();
-					gcMain.drawImage(Materials.hud, 1025 + dir.get4DirValue() * 16, 760, 16, 16, x * zoomMain + offsetX(), y * zoomMain + offsetY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+					gcMain.drawImage(Materials.hud, 1025 + dir.get4DirValue() * 16, 760, 16, 16, x * Main.getZoom() + offsetX(), y * Main.getZoom() + offsetY(), Main.TILE_SIZE * Main.getZoom(), Main.TILE_SIZE * Main.getZoom());
 				}
 		}
 		if (checkBoxMarkEntity.isSelected()) {
 			gcMain.setLineWidth(4);
 			gcMain.setStroke(Color.RED);
 			for (Entity entity : Entity.getEntityList())
-				gcMain.strokeRect(entity.getX() * zoomMain + offsetX(), entity.getY() * zoomMain + offsetY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+				gcMain.strokeRect(entity.getX() * Main.getZoom() + offsetX(), entity.getY() * Main.getZoom() + offsetY(), Main.TILE_SIZE * Main.getZoom(), Main.TILE_SIZE * Main.getZoom());
 			gcMain.setStroke(Color.MEDIUMVIOLETRED);
 		}
 		if (checkBoxMarkBomb.isSelected()) {
 			gcMain.setStroke(Color.ORANGE);
 			for (Bomb bomb : Bomb.getBombMap().values())
-				gcMain.strokeRect(bomb.getX() * zoomMain + offsetX(), bomb.getY() * zoomMain + offsetY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+				gcMain.strokeRect(bomb.getX() * Main.getZoom() + offsetX(), bomb.getY() * Main.getZoom() + offsetY(), Main.TILE_SIZE * Main.getZoom(), Main.TILE_SIZE * Main.getZoom());
 		}
 		if (checkBoxMarkBrick.isSelected()) {
 			gcMain.setStroke(Color.GREENYELLOW);
 			for (Brick brick : Brick.getBrickMap().values())
-				gcMain.strokeRect(brick.getX() * zoomMain + offsetX(), brick.getY() * zoomMain + offsetY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+				gcMain.strokeRect(brick.getX() * Main.getZoom() + offsetX(), brick.getY() * Main.getZoom() + offsetY(), Main.TILE_SIZE * Main.getZoom(), Main.TILE_SIZE * Main.getZoom());
 		}
 		if (checkBoxMarkItem.isSelected()) {
 			gcMain.setStroke(Color.ALICEBLUE);
-			for (Item item : Item.getItemMap().values())
-				gcMain.strokeRect(item.getX() * zoomMain + offsetX(), item.getY() * zoomMain + offsetY(), Main.TILE_SIZE * zoomMain, Main.TILE_SIZE * zoomMain);
+			for (TileCoord coord : Item.getItemMap().keySet())
+				gcMain.strokeRect(coord.getX() * Main.TILE_SIZE * Main.getZoom() + offsetX(), coord.getY() * Main.TILE_SIZE * Main.getZoom() + offsetY(), Main.TILE_SIZE * Main.getZoom(), Main.TILE_SIZE * Main.getZoom());
 		}
 		drawBlockTypeMark();
 		drawGridAndAim();
@@ -1106,7 +1109,7 @@ public class MapEditor {
 		if (checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
 			Tile tile = MapSet.getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
 			if (tile != null) {
-				int x, y = tile.outY * zoomMain + (Main.TILE_SIZE * zoomMain) / 2 - 20 + offsetY();
+				int x, y = tile.outY * Main.getZoom() + (Main.TILE_SIZE * Main.getZoom()) / 2 - 20 + offsetY();
 				gcMain.setFill(Color.LIGHTBLUE);
 				gcMain.setStroke(Color.BLACK);
 				gcMain.setFont(font);
@@ -1117,7 +1120,7 @@ public class MapEditor {
 					String s = prop.name();
 					Text text = new Text(s);
 					ControllerUtils.setNodeFont(text, "Lucida Console", 15);
-					x = tile.outX * zoomMain + offsetX();
+					x = tile.outX * Main.getZoom() + offsetX();
 					while (x + (int) text.getBoundsInLocal().getWidth() + 60 >= canvasMain.getWidth())
 						x -= 20;
 					gcMain.strokeText(s, x, y += 20);
@@ -1131,7 +1134,7 @@ public class MapEditor {
 			if (rect != null) {
 				GraphicsContext gc = rect == selection ? gcMain : gcTileSet;
 				gc.setStroke(Misc.blink(50) ? Color.GREEN : Color.YELLOW);
-				int z = rect == selection ? zoomMain : zoomTileSet, x = (int) rect.getMinX() * Main.TILE_SIZE * z, y = (int) rect.getMinY() * Main.TILE_SIZE * z, w = (int) rect.getWidth() * Main.TILE_SIZE * z, h = (int) rect.getHeight() * Main.TILE_SIZE * z;
+				int z = rect == selection ? Main.getZoom() : zoomTileSet, x = (int) rect.getMinX() * Main.TILE_SIZE * z, y = (int) rect.getMinY() * Main.TILE_SIZE * z, w = (int) rect.getWidth() * Main.TILE_SIZE * z, h = (int) rect.getHeight() * Main.TILE_SIZE * z;
 				gc.strokeRect(x + (rect == selection ? offsetX() : 0), y + (rect == selection ? offsetY() : 0), w, h);
 			}
 		});
@@ -1178,7 +1181,7 @@ public class MapEditor {
 				if (haveTilesOnCoord(coord) && getCurrentLayer().tileHaveTags(coord)) {
 					gcMain.setStroke(Color.WHITESMOKE);
 					gcMain.setLineWidth(2);
-					gcMain.strokeRect(x * zoomMain * Main.TILE_SIZE + offsetX(), y * zoomMain * Main.TILE_SIZE + offsetY(), 16 * zoomMain, 16 * zoomMain);
+					gcMain.strokeRect(x * Main.getZoom() * Main.TILE_SIZE + offsetX(), y * Main.getZoom() * Main.TILE_SIZE + offsetY(), 16 * Main.getZoom(), 16 * Main.getZoom());
 				}
 			}
 		if (!checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
@@ -1210,7 +1213,7 @@ public class MapEditor {
 			}
 			gcMain.setStroke(Color.GREENYELLOW);
 			gcMain.setLineWidth(2);
-			gcMain.strokeRect(canvasMouseDraw.getCoordX() * zoomMain * Main.TILE_SIZE + offsetX(), canvasMouseDraw.getCoordY() * zoomMain * Main.TILE_SIZE + offsetY(), 16 * zoomMain, 16 * zoomMain);
+			gcMain.strokeRect(canvasMouseDraw.getCoordX() * Main.getZoom() * Main.TILE_SIZE + offsetX(), canvasMouseDraw.getCoordY() * Main.getZoom() * Main.TILE_SIZE + offsetY(), 16 * Main.getZoom(), 16 * Main.getZoom());
 		}
 	}
 
@@ -1524,7 +1527,7 @@ public class MapEditor {
 	
 	void drawBlockTypeMark() {
 		if (checkBoxShowBlockType.isSelected())
-			Draw.drawBlockTypeMarks(gcMain, offsetX(), offsetY(), zoomMain, checkBoxShowTilesWith2Sprites.isSelected(), t -> {
+			Draw.drawBlockTypeMarks(gcMain, offsetX(), offsetY(), Main.getZoom(), checkBoxShowTilesWith2Sprites.isSelected(), checkBoxShowTilesWith2Props.isSelected(), checkBoxShowTilesWith2Tags.isSelected(), t -> {
 				if (hoveredInitialCoord != null && t.getTileCoord().equals(hoveredInitialCoord) && Misc.blink(100))
 					return Color.GOLD;
 				return null;
@@ -1542,18 +1545,18 @@ public class MapEditor {
 		gcMain.setLineWidth(1);
 		if (checkBoxShowGrid.isSelected()) {
 			gcMain.setStroke(Color.RED);
-			for (int y = 0; y < canvasMain.getHeight(); y += Main.TILE_SIZE * zoomMain)
-				gcMain.strokeRect(0, y, canvasMain.getWidth(), y + Main.TILE_SIZE * zoomMain - 1);
-			for (int x = 0; x < canvasMain.getWidth(); x += Main.TILE_SIZE * zoomMain)
-				gcMain.strokeRect(x, 0, x + Main.TILE_SIZE * zoomMain - 1, canvasMain.getHeight());
+			for (int y = 0; y < canvasMain.getHeight(); y += Main.TILE_SIZE * Main.getZoom())
+				gcMain.strokeRect(0, y, canvasMain.getWidth(), y + Main.TILE_SIZE * Main.getZoom() - 1);
+			for (int x = 0; x < canvasMain.getWidth(); x += Main.TILE_SIZE * Main.getZoom())
+				gcMain.strokeRect(x, 0, x + Main.TILE_SIZE * Main.getZoom() - 1, canvasMain.getHeight());
 		}
 		if (checkBoxShowAim.isSelected()) {
 			gcMain.setStroke(Color.YELLOW);
-			int x = canvasMouseDraw.getCoordX() * Main.TILE_SIZE * zoomMain, y = canvasMouseDraw.getCoordY() * Main.TILE_SIZE * zoomMain;
-			gcMain.strokeRect(x, 0, Main.TILE_SIZE * zoomMain - 1, canvasMain.getHeight());
-			gcMain.strokeRect(0, y, canvasMain.getWidth(), Main.TILE_SIZE * zoomMain - 1);
+			int x = canvasMouseDraw.getCoordX() * Main.TILE_SIZE * Main.getZoom(), y = canvasMouseDraw.getCoordY() * Main.TILE_SIZE * Main.getZoom();
+			gcMain.strokeRect(x, 0, Main.TILE_SIZE * Main.getZoom() - 1, canvasMain.getHeight());
+			gcMain.strokeRect(0, y, canvasMain.getWidth(), Main.TILE_SIZE * Main.getZoom() - 1);
 			gcMain.setStroke(Color.LIGHTBLUE);
-			gcMain.strokeRect(x, y, Main.TILE_SIZE * zoomMain - 1, Main.TILE_SIZE * zoomMain - 1);
+			gcMain.strokeRect(x, y, Main.TILE_SIZE * Main.getZoom() - 1, Main.TILE_SIZE * Main.getZoom() - 1);
 		}
 	}
 
@@ -1604,7 +1607,7 @@ public class MapEditor {
 		MapSet.getMapIniFile().write("SETUP", "CopyImageLayer", "" + MapSet.getCopyImageLayerIndex());
 		MapSet.getMapIniFile().write("SETUP", "TileSet", MapSet.getTileSetName());
 		String criterias = "";
-		for (StageClearCriteria criteria : MapSet.getStageClearCriterias()) {
+		for (StageObjectives criteria : MapSet.getStageClearCriterias()) {
 			if (!criterias.isBlank())
 				criterias += " ";
 			criterias += criteria.name();
@@ -1659,10 +1662,10 @@ class CanvasMouse {
 		y = 0;
 		dragX = 0;
 		dragY = 0;
-		movedX = offset ? -32 * MapEditor.zoomMain : 0;
-		movedY = offset ? -32 * MapEditor.zoomMain : 0;
-		startDragX = offset ? 32 * MapEditor.zoomMain : 0;
-		startDragY = offset ? 32 * MapEditor.zoomMain : 0;
+		movedX = offset ? -32 * Main.getZoom() : 0;
+		movedY = offset ? -32 * Main.getZoom() : 0;
+		startDragX = offset ? 32 * Main.getZoom() : 0;
+		startDragY = offset ? 32 * Main.getZoom() : 0;
 		startDragDX = 0;
 		startDragDY = 0;
 	}

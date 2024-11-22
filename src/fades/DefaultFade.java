@@ -87,8 +87,8 @@ public class DefaultFade implements Fade {
 			gc.setFill(color);
 			gc.setGlobalAlpha(value);
 			if (fadeState != FadeState.DONE && ((value += valueInc) > 1 || value < 0d)) {
-				fadeState = FadeState.DONE;
 				value = fadeState == FadeState.FADE_IN ? 0d : 1d;
+				fadeState = FadeState.DONE;
 				if (onFadeDoneEvent != null)
 					Platform.runLater(() -> onFadeDoneEvent.run());
 			}

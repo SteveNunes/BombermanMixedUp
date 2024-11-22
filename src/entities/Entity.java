@@ -23,7 +23,7 @@ import enums.DrawType;
 import enums.Elevation;
 import enums.PassThrough;
 import enums.SpriteLayerType;
-import enums.StageClearCriteria;
+import enums.StageObjectives;
 import enums.TileProp;
 import frameset.FrameSet;
 import frameset.Tags;
@@ -42,7 +42,6 @@ import tools.Draw;
 import tools.GameConfigs;
 import tools.Sound;
 import util.Misc;
-import util.TimerFX;
 
 public class Entity extends Position {
 
@@ -347,7 +346,7 @@ public class Entity extends Position {
 	}
 
 	public boolean isBlockedMovement() {
-		return blockedMovement || isDead() || getPathFinder() != null ||
+		return blockedMovement || isDead() || getPathFinder() != null || Draw.getFade() != null ||
 				getPushEntity() != null || getJumpMove() != null || getGotoMove() != null ||
 				getHolder() != null || getCurse() == Curse.STUNNED;
 	}
@@ -438,7 +437,7 @@ public class Entity extends Position {
 	}
 
 	public boolean isVisible() {
-		return isVisible && getCurrentFrameSet().isRunning() && !isDisabled;
+		return isVisible && (getCurrentFrameSet() == null || getCurrentFrameSet().isRunning()) && !isDisabled;
 	}
 
 	public void setGhosting(int ghostingDistance, double ghostingOpacityDec) {
@@ -955,7 +954,7 @@ public class Entity extends Position {
 			if (!isBlockedMovement())
 				moveEntity();
 			applyShadow();
-			frameSets.get(currentFrameSetName).run(gc, isPaused);
+			frameSets.get(currentFrameSetName).run(gc);
 		}
 		elapsedFrames++;
 		if (!getCurrentFrameSet().isRunning() && consumerWhenFrameSetEnds != null)
@@ -1401,14 +1400,9 @@ public class Entity extends Position {
 					((BomberMan) this).decLives();
 					((BomberMan) this).dropAllItems();
 					BomberMan.incBomberAlives(-1);
-					if (!MapSet.stageIsCleared()) {
-						if (BomberMan.getBomberAlives() <= 1 && MapSet.getLeftStageClearCriterias().contains(StageClearCriteria.BATTLE_MODE)) {
-							TimerFX.createTimer("EndOfBattle" + Main.uniqueTimerId++, 1000, () -> {
-								Sound.playWav("Roll3");
-								MapSet.setStageStatusToCleared(false);
-								BomberMan.setAllAliveBomberMansFrameSet("Victory");
-							});
-						}
+					if (!MapSet.stageObjectiveIsCleared()) {
+						if (BomberMan.getBomberAlives() <= 1 && MapSet.getLeftStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR))
+							MapSet.removeStageClearCriteria(StageObjectives.LAST_PLAYER_SURVIVOR);
 						if (consumerWhenBomberManDies != null)
 							consumerWhenBomberManDies.accept((BomberMan)this);
 					}

@@ -1,5 +1,6 @@
 package fades;
 
+
 import enums.Direction;
 import enums.FadeState;
 import javafx.scene.canvas.Canvas;

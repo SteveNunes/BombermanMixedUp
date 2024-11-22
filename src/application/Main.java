@@ -5,6 +5,7 @@ import gui.ExplosionEditor;
 import gui.FrameSetEditor;
 import gui.Game;
 import gui.GameTikTok;
+import gui.GiftViewer;
 import gui.MapEditor;
 import gui.PalleteEditor;
 import javafx.application.Application;
@@ -21,8 +22,9 @@ import tools.GameFonts;
 import tools.Materials;
 import tools.Sound;
 import tools.Tools;
+import util.DurationTimerFX;
+import util.FrameTimerFX;
 import util.IniFile;
-import util.TimerFX;
 
 public class Main extends Application {
 
@@ -35,9 +37,12 @@ public class Main extends Application {
 	public static MapEditor mapEditor = null;
 	public static Game game = null;
 	public static GameTikTok gameTikTok = null;
+	public static GiftViewer giftViewer = null;
 	public static Stage stageMain;
 	public static Scene sceneMain;
 	public static boolean close = false;
+	public static boolean freezeAll = false;
+	public static int zoom = 3;
 	public static Long uniqueTimerId = 0L;
 	public static Canvas mainCanvas;
 	public static GraphicsContext mainGc;
@@ -48,7 +53,7 @@ public class Main extends Application {
 			stageMain = stage;
 			mainCanvas = null;
 			mainGc = null;
-			Sound.setMasterGain(0.3);
+			Sound.setMasterGain(0.5);
 			Position.setGlobalTileSize(TILE_SIZE);
 			TileCoord.setGlobalTileSize(TILE_SIZE);
 			Materials.loadFromFiles();
@@ -85,6 +90,12 @@ public class Main extends Application {
 				gameTikTok = loader.getController();
 				gameTikTok.init();
 			}
+			else if (GAME_MODE == GameMode.GIFT_VIEWER) {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GiftViewerView.fxml"));
+				sceneMain = new Scene(loader.load());
+				giftViewer = loader.getController();
+				giftViewer.init();
+			}
 			else {
 				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameView.fxml"));
 				sceneMain = new Scene(loader.load());
@@ -100,6 +111,30 @@ public class Main extends Application {
 			e.printStackTrace();
 			close();
 		}
+	}
+	
+	public static boolean frameSetEditorIsPaused() {
+		return (frameSetEditor != null && frameSetEditor.isPaused);
+	}
+
+	public static int getZoom() {
+		return zoom;
+	}
+	
+	public static void setZoom(int zoom) {
+		Main.zoom = zoom;
+	}
+
+	public static void freezeAll() {
+		freezeAll = true;
+	}
+	
+	public static void unFreezeAll() {
+		freezeAll = false;
+	}
+	
+	public static boolean isFreeze() {
+		return freezeAll;
 	}
 	
 	public static void setMainCanvas(Canvas canvas) {
@@ -118,7 +153,8 @@ public class Main extends Application {
 	public static void close() {
 		close = true;
 		GameInput.close();
-		TimerFX.close();
+		DurationTimerFX.close();
+		FrameTimerFX.close();
 		if (gameTikTok != null)
 			gameTikTok.disconnectTikTokLive();
 		Platform.exit();
@@ -127,10 +163,6 @@ public class Main extends Application {
 
 	public static void main(String[] args) {
 		launch(args);
-	}
-
-	public static boolean frameSetEditorIsPaused() {
-		return (frameSetEditor != null && frameSetEditor.isPaused);
 	}
 
 }

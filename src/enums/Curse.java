@@ -8,18 +8,21 @@ import util.CollectionUtils;
 public enum Curse {
 
 	NO_BOMB(0),
-	MIN_FIRE(1),
-	MIN_BOMB(2),
-	MIN_SPEED(3),
-	ULTRA_SPEED(4),
-	SLOW_EXPLODE_BOMB(5),
-	FAST_EXPLODE_BOMB(6),
-	BLINDNESS(7),
-	INVISIBLE(8),
-	REVERSED(9),
-	SWAP_PLAYERS(10),
-	STUNNED(11),
-	SPAM_BOMB(12);
+	CONFUSED_1(1),
+	CONFUSED_2(2),
+	CONFUSED_3(3),
+	MIN_FIRE(4),
+	MIN_BOMB(5),
+	MIN_SPEED(6),
+	ULTRA_SPEED(7),
+	SLOW_EXPLODE_BOMB(8),
+	FAST_EXPLODE_BOMB(9),
+	BLINDNESS(10),
+	INVISIBLE(11),
+	SWAP_PLAYERS(12),
+	STUNNED(13),
+	SPAM_BOMB(14),
+	CANT_STOP(15);
 
 	private int value;
 	
@@ -34,7 +37,10 @@ public enum Curse {
 		put(FAST_EXPLODE_BOMB, 600);
 		put(BLINDNESS, 600);
 		put(INVISIBLE, 300);
-		put(REVERSED, 600);
+		put(CONFUSED_1, 600);
+		put(CONFUSED_2, 600);
+		put(CONFUSED_3, 600);
+		put(CANT_STOP, 600);
 		put(SWAP_PLAYERS, 0);
 		put(STUNNED, 150);
 		put(SPAM_BOMB, 600);

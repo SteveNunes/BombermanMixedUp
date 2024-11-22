@@ -87,9 +87,9 @@
                         </VBox>
                         <VBox alignment="CENTER_LEFT" spacing="2.0">
                            <children>
-                              <CheckBox fx:id="checkBoxShowItems" maxWidth="100.0" minWidth="100.0" mnemonicParsing="false" prefWidth="100.0" text="Exibir itens" />
-                              <CheckBox fx:id="checkBoxShowBlockType" maxWidth="140.0" minWidth="140.0" mnemonicParsing="false" prefWidth="140.0" text="Exibir tipo de bloco" />
                               <CheckBox fx:id="checkBoxShowTilesWith2Sprites" maxWidth="170.0" minWidth="170.0" mnemonicParsing="false" prefWidth="170.0" text="Exibir tiles com 2+ sprites" />
+                              <CheckBox fx:id="checkBoxShowTilesWith2Props" maxWidth="170.0" minWidth="170.0" mnemonicParsing="false" prefWidth="170.0" text="Exibir tiles com 2+ props" />
+                              <CheckBox fx:id="checkBoxShowTilesWith2Tags" maxWidth="170.0" minWidth="170.0" mnemonicParsing="false" prefWidth="170.0" text="Exibir tiles com 2+ tags" />
                            </children>
                         </VBox>
                         <HBox alignment="TOP_CENTER" spacing="20.0">
@@ -108,7 +108,7 @@
                               </VBox>
                            </children>
                         </HBox>
-                        <VBox spacing="2.0">
+                        <VBox alignment="CENTER_LEFT" spacing="2.0">
                            <children>
                               <RadioButton fx:id="radioCtrlModeTiles" mnemonicParsing="false" selected="true" text="CTRL+C/V (Tiles)">
                                  <toggleGroup>
@@ -117,6 +117,12 @@
                               </RadioButton>
                               <RadioButton fx:id="radioCtrlModeProps" mnemonicParsing="false" text="CTRL+C/V (Props)" toggleGroup="$groupCtrlMode" />
                               <RadioButton fx:id="radioCtrlModeTags" mnemonicParsing="false" text="CTRL+C/V (Tags)" toggleGroup="$groupCtrlMode" />
+                           </children>
+                        </VBox>
+                        <VBox alignment="CENTER_LEFT" spacing="2.0">
+                           <children>
+                              <CheckBox fx:id="checkBoxShowItems" maxWidth="100.0" minWidth="100.0" mnemonicParsing="false" prefWidth="100.0" text="Exibir itens" />
+                              <CheckBox fx:id="checkBoxShowBlockType" maxWidth="140.0" minWidth="140.0" mnemonicParsing="false" prefWidth="140.0" text="Exibir tipo de bloco" />
                            </children>
                         </VBox>
                      </children>

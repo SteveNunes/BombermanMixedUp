@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import application.Main;
 import enums.BombType;
 import enums.CpuDificult;
 import enums.Direction;
@@ -19,6 +20,7 @@ import enums.ItemType;
 import enums.PassThrough;
 import enums.TileProp;
 import gui.GameTikTok;
+import javafx.util.Duration;
 import maps.Brick;
 import maps.Item;
 import maps.MapSet;
@@ -28,8 +30,8 @@ import pathfinder.PathFinderDistance;
 import pathfinder.PathFinderOptmize;
 import tools.FindProps;
 import tools.Tools;
+import util.DurationTimerFX;
 import util.MyMath;
-import util.TimerFX;
 
 public class CpuPlay {
 	
@@ -66,7 +68,7 @@ public class CpuPlay {
 	}
 	
 	public void run() {
-		if (!MapSet.stageIsCleared() && !bomberMan.isBlockedMovement()) {
+		if (!Main.isFreeze() && !MapSet.stageObjectiveIsCleared() && !bomberMan.isBlockedMovement()) {
 			// Se estiver em um tile perigoso, tenta encontrar uma forma de sair dele
 			if (isOverDangerTile()) {
 				pauseInFrames = 0;
@@ -304,7 +306,7 @@ public class CpuPlay {
 	private void pressButton(GameInput button) {
 		if (pauseInFrames == 0) {
 			bomberMan.keyPress(button);
-			TimerFX.createTimer("releaseButton-" + timerId++, 10, () -> releaseButton(button));
+			DurationTimerFX.createTimer("releaseButton-" + timerId++, Duration.millis(25), () -> releaseButton(button));
 		}
 	}
 
@@ -376,5 +378,5 @@ public class CpuPlay {
 	private GameInput dirToInput(Direction dir) {
 		return dirToInput.get(dir);
 	}
-	
+
 }

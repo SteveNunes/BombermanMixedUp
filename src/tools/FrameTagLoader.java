@@ -2,6 +2,7 @@ package tools;
 
 import frameset.Tags;
 import frameset_tags.*;
+import javafx.util.Duration;
 
 public abstract class FrameTagLoader {
 
@@ -12,7 +13,9 @@ public abstract class FrameTagLoader {
 			if (s.length() < 3)
 				continue;
 			String tag;
-			int x, delay = 0;
+			int x;
+			Integer delayInFrames = null;
+			Duration delay = null;
 			if (s.charAt(0) != '{')
 				throw new RuntimeException(s + " - Invalid Tag format");
 			if ((x = s.indexOf(';')) > 0)
@@ -21,13 +24,17 @@ public abstract class FrameTagLoader {
 				tag = s.substring(1).substring(0, x - 1);
 			else
 				throw new RuntimeException(s + " - Invalid Tag format");
-			if (tag.equals("Delay")) {
+			if (tag.equals("DelayInFrames") || tag.equals("DelayInMillis")) {
 				try {
+					boolean inFrames = tag.equals("DelayInFrames");
 					String delayStr = s.substring(s.indexOf(';') + 1);
 					tag = delayStr.substring(delayStr.indexOf(';') + 1);
 					tag = tag.substring(0, tag.indexOf(';'));
 					int d = Integer.parseInt(delayStr.substring(0, delayStr.indexOf(';')));
-					delay = d;
+					if (inFrames)
+						delayInFrames = d;
+					else
+						delay = Duration.millis(d);
 					for (int z = 0; z < 2; z++)
 						s = (z == 1 ? "{" : "") + s.substring(s.indexOf(';') + 1);
 				}
@@ -320,8 +327,10 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new AddTileProp(s));
 			else if (tag.equals("RemoveTileProp"))
 				tags.addTag(newTag = new RemoveTileProp(s));
-			else if (tag.equals("DelayTags"))
-				tags.addTag(newTag = new DelayTags(s));
+			else if (tag.equals("DelayInFramesTags"))
+				tags.addTag(newTag = new DelayInFramesTags(s));
+			else if (tag.equals("DelayInMillisTags"))
+				tags.addTag(newTag = new DelayInMillisTags(s));
 			else if (tag.equals("RunStageTags"))
 				tags.addTag(newTag = new RunStageTags(s));
 			else if (tag.equals("DisableEntity"))
@@ -398,8 +407,38 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new SetFallingItem(s));
 			else if (tag.equals("SetFallingWall"))
 				tags.addTag(newTag = new SetFallingWall(s));
-			if (delay > 0)
+			else if (tag.equals("ReviveAllBomberMansAndClearTheirItens"))
+				tags.addTag(newTag = new ReviveAllBomberMansAndClearTheirItens(s));
+			else if (tag.equals("ReviveAndClearItens"))
+				tags.addTag(newTag = new ReviveAndClearItens(s));
+			else if (tag.equals("SetStageAsClear"))
+				tags.addTag(newTag = new SetStageAsClear(s));
+			else if (tag.equals("SetStageObjectiveAsClear"))
+				tags.addTag(newTag = new SetStageObjectiveAsClear(s));
+			else if (tag.equals("SetDefaultFade"))
+				tags.addTag(newTag = new SetDefaultFade(s));
+			else if (tag.equals("FreezeAll"))
+				tags.addTag(newTag = new FreezeAll(s));
+			else if (tag.equals("UnFreezeAll"))
+				tags.addTag(newTag = new UnFreezeAll(s));
+			else if (tag.equals("UnsetFade"))
+				tags.addTag(newTag = new UnsetFade(s));
+			else if (tag.equals("StopAllMp3s"))
+				tags.addTag(newTag = new StopAllMp3s(s));
+			else if (tag.equals("StopAllWaves"))
+				tags.addTag(newTag = new StopAllWaves(s));
+			else if (tag.equals("ReloadMap"))
+				tags.addTag(newTag = new ReloadMap(s));
+			else if (tag.equals("SetAllAliveBomberMansFrameSet"))
+				tags.addTag(newTag = new SetAllAliveBomberMansFrameSet(s));
+			else if (tag.equals("SoftResetAfterMapChange"))
+				tags.addTag(newTag = new SoftResetAfterMapChange(s));
+			else if (tag.equals("SoftResetAllBomberMansAfterMapChange"))
+				tags.addTag(newTag = new SoftResetAllBomberMansAfterMapChange(s));
+			if (delay != null)
 				newTag.setTriggerDelay(delay);
+			if (delayInFrames != null)
+				newTag.setTriggerDelayInFrames(delayInFrames);
 		}
 	}
 

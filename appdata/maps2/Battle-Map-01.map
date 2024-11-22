@@ -224,7 +224,7 @@
 [SETUP]
 CopyImageLayer=27
 TileSet=Tile01
-PortalCriteria=BATTLE_MODE
+PortalCriteria=LAST_PLAYER_SURVIVOR
 
 [FRAMESETS]
 Default={SetSprSource;Layer26;0;0;-;-;0;0;0;0;-;-},{SetTicksPerFrame;26},{SetSprIndex;0}|{}|{Goto;1}

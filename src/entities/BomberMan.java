@@ -14,6 +14,7 @@ import enums.Direction;
 import enums.GameInput;
 import enums.ItemType;
 import enums.PassThrough;
+import enums.StageObjectives;
 import enums.TileProp;
 import frameset.Tags;
 import javafx.scene.canvas.GraphicsContext;
@@ -89,7 +90,7 @@ public class BomberMan extends Entity {
 		setBombSound = IniFiles.characters.read(section, "SetBombSound");
 		if (setBombSound == null)
 			setBombSound = "SetBomb";
-		setFrameSet("Stand");
+		changeToStandFrameSet();
 		if (IniFiles.characters.read(section, "DefaultStartTags") != null) {
 			Tags tags = Tags.loadTagsFromString(IniFiles.characters.read(section, "DefaultStartTags"));
 			tags.setRootSprite(getCurrentFrameSet().getSprite(0));
@@ -104,6 +105,7 @@ public class BomberMan extends Entity {
 			if (!bomber.isDead()) {
 				for (GameInput i : GameInput.values())
 					bomber.keyRelease(i);
+				bomber.unsetHoldingEntity();
 				bomber.setFrameSet(frameSet);
 			}
 	}
@@ -149,8 +151,8 @@ public class BomberMan extends Entity {
 	}
 
 	public static void drawBomberMans() {
-		for (BomberMan bomberMan : bomberManList)
-			bomberMan.run();
+		for (int n = 0; n < bomberManList.size(); n++)
+			bomberManList.get(n).run();
 	}
 	
 	public static void clearBomberMans() {
@@ -214,7 +216,7 @@ public class BomberMan extends Entity {
 	}
 
 	public void keyPress(GameInput input) {
-		if (holdedInputs.contains(input) || MapSet.stageIsCleared() || Draw.getFade() != null)
+		if (Main.isFreeze() || holdedInputs.contains(input) || MapSet.stageObjectiveIsCleared() || Draw.getFade() != null)
 			return;
 		if (isBlockedMovement()) {
 			queuedInputs.add(input);
@@ -284,6 +286,7 @@ public class BomberMan extends Entity {
 			}
 		}
 		holdedInputs.add(input);
+		
 	}
 
 	public void keyRelease(GameInput input) {
@@ -339,7 +342,10 @@ public class BomberMan extends Entity {
 			}
 			else {
 				Direction dir = pressedDirs.get(0);
-				setDirection(getCurse() == Curse.REVERSED ? dir.getReverseDirection() : dir);
+				if (getCurse() == Curse.CONFUSED_1 || getCurse() == Curse.CONFUSED_2 || getCurse() == Curse.CONFUSED_3)
+					for (int n = 0; n < getCurse().getValue(); n++)
+						dir = dir.getNext4WayClockwiseDirection();
+				setDirection(dir);
 				changeToMovingFrameSet();
 			}
 			if (!holdedInputs.contains(GameInput.B) && (currentFrameSetNameIsEqual("HoldingStand") || currentFrameSetNameIsEqual("HoldingMoving")))
@@ -414,6 +420,8 @@ public class BomberMan extends Entity {
 	}
 
 	private void changeToStandFrameSet() {
+		if (isCursed() && getCurse() == Curse.CANT_STOP)
+			return;
 		setBlockedMovement(false);
 		setFrameSet(getDefaultStandFrameSet());
 		if (tileWasChanged())
@@ -494,6 +502,8 @@ public class BomberMan extends Entity {
 			setInvencibleFrames(3000);
 			setBlinkingFrames(3000);
 		}
+		else if (type == ItemType.TIME_STOP)
+			MapSet.addStageTimePauseDuration(MapSet.getLeftStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) ? 10 : 30);
 		else if (type == ItemType.EXTRA_LIVE)
 			incLives();
 		else if (type == ItemType.HEART_UP)
@@ -529,11 +539,11 @@ public class BomberMan extends Entity {
 		fireRange = GameConfigs.STARTING_FIRE;
 		maxBombs = GameConfigs.STARTING_BOMBS;
 		double speed = GameConfigs.INITIAL_PLAYER_SPEED;
-		if (!Misc.alwaysTrue())
+		if (Misc.alwaysTrue())
 			if (getPlayerId() == 0 && gotItems.isEmpty()) { // TEMP
-				gotItems.add(ItemType.REMOTE_BOMB);
+				gotItems.add(ItemType.FOLLOW_BOMB);
 				gotItems.add(ItemType.PASS_BRICK);
-				gotItems.add(ItemType.PASS_BOMB);
+				//gotItems.add(ItemType.PASS_BOMB);
 				gotItems.add(ItemType.POWER_GLOVE);
 				gotItems.add(ItemType.HYPER_KICK);
 				gotItems.add(ItemType.HYPER_GLOVE);
@@ -674,14 +684,6 @@ public class BomberMan extends Entity {
 			if (!ignoreBadItens || !item.isBadItem()) {
 				gotItems.remove(item);
 				Item.addItem(getTileCoordFromCenter(), item, true);
-				if (!Misc.alwaysTrue() && item.isBomb()) {
-					for (ItemType t : gotItems)
-						if (t.isBomb()) {
-							gotItems.remove(t);
-							gotItems.add(0, t);
-							break;
-						}
-				}
 			}
 			else
 				quantityToDrop++;
@@ -719,19 +721,49 @@ public class BomberMan extends Entity {
 		return bomber;
 	}
 
-	public void clearItemsAndRevive() {
-		gotItems.clear();
-		updateStatusByItems();
-		setHitPoints(1);
+	public static void reviveAllBomberMansAndClearTheirItens() {
+		for (int n = 0; n < bomberManList.size(); n++) {
+			BomberMan bomber = bomberManList.get(n);
+			bomber.reviveAndClearItens();
+			if (n < MapSet.getInitialPlayerPositions().size())
+				bomber.setPosition(MapSet.getInitialPlayerPosition(n));
+			else {
+				MapSet.getRandomFreeTileAsync().thenAccept(tileCoord ->
+					bomber.setPosition(tileCoord.getPosition()));
+			}
+		}
+	}
+	
+	public static void softResetAllBomberMansAfterMapChange() {
+		for (BomberMan bomber : bomberManList)
+			bomber.softResetAfterMapChange();
+	}
+	
+	public void softResetAfterMapChange() {
+		softResetAfterMapChange(0);
+	}
+	
+	public void softResetAfterMapChange(int invencibleFrames) {
+		bombs.clear();
+		holdedInputs.clear();
+		queuedInputs.clear();
 		unsetHolder();
 		unsetHoldingEntity();
 		unsetAllMovings();
-		setFrameSet("Stand");
-		setDirection(Direction.DOWN);
+		changeToStandFrameSet();
+		forceDirection(Direction.DOWN);
 		setBlockedMovement(false);
-		setInvencibleFrames(0);
+		setInvencibleFrames(invencibleFrames);
 		setEnabled();
+		removeCurse();
 		incBomberAlives(1);
+	}
+	
+	public void reviveAndClearItens() {
+		softResetAfterMapChange();
+		gotItems.clear();
+		updateStatusByItems();
+		setHitPoints(1);
 	}
 
 }

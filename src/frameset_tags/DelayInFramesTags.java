@@ -2,11 +2,11 @@ package frameset_tags;
 
 import frameset.Sprite;
 
-public class DelayTags extends FrameTag {
+public class DelayInFramesTags extends FrameTag {
 
 	public int value;
 
-	public DelayTags(int value) {
+	public DelayInFramesTags(int value) {
 		this.value = value;
 	}
 
@@ -15,7 +15,7 @@ public class DelayTags extends FrameTag {
 		return "{" + getClassName(this) + ";" + value + "}";
 	}
 
-	public DelayTags(String tags) {
+	public DelayInFramesTags(String tags) {
 		String[] params = validateStringTags(this, tags, 1);
 		try {
 			value = Integer.parseInt(params[0]);
@@ -26,8 +26,8 @@ public class DelayTags extends FrameTag {
 	}
 
 	@Override
-	public DelayTags getNewInstanceOfThis() {
-		return new DelayTags(value);
+	public DelayInFramesTags getNewInstanceOfThis() {
+		return new DelayInFramesTags(value);
 	}
 
 	@Override

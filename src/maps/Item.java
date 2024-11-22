@@ -19,6 +19,7 @@ import frameset_tags.SetSprIndex;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
@@ -26,12 +27,12 @@ import tools.GameConfigs;
 import tools.Materials;
 import tools.RGBColor;
 import tools.Sound;
+import util.DurationTimerFX;
 import util.MyMath;
-import util.TimerFX;
 
 public class Item extends Entity {
 
-	private static Map<TileCoord, Item> items = new HashMap<>();
+	private static Map<TileCoord, List<Item>> items = new HashMap<>();
 	private static List<Item> itemList = new ArrayList<>();
 	private static RGBColor itemEdigeColor;
 
@@ -72,7 +73,7 @@ public class Item extends Entity {
 		addNewFrameSetFromIniFile(this, "FallingFromSky", "FrameSets", "ITEM", "FallingFromSky");
 		setUpItemPickUpFrameSet();
 		setFrameSet("StandFrameSet");
-		setPassThroughs(true, PassThrough.MONSTER, PassThrough.PLAYER);
+		setPassThroughs(true, PassThrough.MONSTER, PassThrough.PLAYER, PassThrough.ITEM);
 		if (itemType == ItemType.CURSE_SKULL)
 			curse = Curse.getRandom();
 		else
@@ -149,12 +150,11 @@ public class Item extends Entity {
 	}
 
 	public static void addItem(Item item, boolean startJumpingAround) {
-		if (startJumpingAround || !haveItemAt(item.getTileCoordFromCenter())) {
+		if (startJumpingAround) {
 			item.setInvencibleFrames(20);
 			itemList.add(item);
-			if (!item.tileIsFree(item.getTileCoordFromCenter()) &&
-					(MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM) ||
-					 MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.EXPLOSION)))
+			if (MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM) ||
+					 MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.EXPLOSION))
 						item.forceDestroy();
 			else if (startJumpingAround || !MapSet.tileIsFree(item.getTileCoordFromCenter()))
 				item.jumpToRandomTileAround(2);
@@ -190,7 +190,7 @@ public class Item extends Entity {
 		return itemList;
 	}
 
-	public static Map<TileCoord, Item> getItemMap() {
+	public static Map<TileCoord, List<Item>> getItemMap() {
 		return items;
 	}
 
@@ -262,7 +262,7 @@ public class Item extends Entity {
 		if (itemType.getSound() == null || itemType.getSoundDelay() > 0)
 			Sound.playWav("ItemPickUp");
 		if (itemType.getSound() != null)
-			TimerFX.createTimer("ItemPickUp@" + hashCode(), itemType.getSoundDelay(), () -> Sound.playWav(itemType.getSound()));
+			DurationTimerFX.createTimer("ItemPickUp@" + hashCode(), Duration.millis(itemType.getSoundDelay()), () -> Sound.playWav(itemType.getSound()));
 	}
 
 	public static boolean haveItemAt(TileCoord coord) {
@@ -270,12 +270,15 @@ public class Item extends Entity {
 	}
 
 	public static Item getItemAt(TileCoord tileCoord) {
-		return haveItemAt(tileCoord) ? items.get(tileCoord) : null;
+		return haveItemAt(tileCoord) ? items.get(tileCoord).get(0) : null;
 	}
 
 	private void removeThisFromTile(TileCoord coord) {
-		if (items.containsKey(coord) && items.get(coord) == this)
+		if (items.containsKey(coord) && items.get(coord) == this) {
+			for (Item item : items.get(coord))
+				itemList.remove(item);
 			items.remove(coord);
+		}
 	}
 	
 	@Override
@@ -307,11 +310,6 @@ public class Item extends Entity {
 	@Override
 	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {
 		centerToTile();
-		if (haveItemAt(getTileCoordFromCenter()) && getItemAt(getTileCoordFromCenter()) != this) {
-			setElevation(Elevation.FLYING);
-			onJumpFallAtOccupedTileEvent(jumpMove);
-			return;
-		}
 		Sound.playWav("ItemBounce");
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		putOnMap(coord, this);
@@ -330,8 +328,10 @@ public class Item extends Entity {
 	}
 
 	private static void putOnMap(TileCoord coord, Item item) {
-		if (item.getElevation() == Elevation.ON_GROUND)
-			items.put(coord, item);
+		if (!items.containsKey(coord))
+			items.put(coord.getNewInstance(), new ArrayList<>());
+		if (item.getElevation() == Elevation.ON_GROUND && !items.get(coord).contains(item))
+			items.get(coord).add(item);
 	}
 
 	public static Item dropItemFromSky(TileCoord coord) {
@@ -352,7 +352,7 @@ public class Item extends Entity {
 				item.removeShadow();
 				item.unsetGhosting();
 				Sound.playWav(item, "ItemBounce");
-				items.put(coord, item);
+				putOnMap(coord, item);
 				item.setFrameSet("StandFrameSet");
 			}
 			else

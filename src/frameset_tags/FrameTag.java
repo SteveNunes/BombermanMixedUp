@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import frameset.Sprite;
+import javafx.util.Duration;
 import objmoveutils.TileCoord;
 
 public abstract class FrameTag {
@@ -15,18 +16,27 @@ public abstract class FrameTag {
 	// Mudar esse valor para 'true' no construtor da classe que herda FrameTag, se
 	// for uma Tag que só precisa ser lida uma unica vez.
 	public boolean deleteMeAfterFirstRead = false;
-	int triggerDelay = 0;
+	public Integer triggerDelayInFrames = null;
+	public Duration triggerDelay = null;
 	Map<String, Double> vars = new HashMap<>();
 
 	public abstract FrameTag getNewInstanceOfThis();
 
 	public abstract void process(Sprite sprite);
 
-	public int getTriggerDelay() {
+	public Integer getTriggerDelayInFrames() {
+		return triggerDelayInFrames;
+	}
+
+	public void setTriggerDelayInFrames(Integer delayInFrames) {
+		triggerDelayInFrames = delayInFrames;
+	}
+
+	public Duration getTriggerDelay() {
 		return triggerDelay;
 	}
 
-	public void setTriggerDelay(int delay) {
+	public void setTriggerDelay(Duration delay) {
 		triggerDelay = delay;
 	}
 
@@ -34,12 +44,6 @@ public abstract class FrameTag {
 		return validateStringTags(clazz, tags, -1);
 	}
 
-	/*
-	 * PRE_CARREGAR OS FRAMESETS
-	 * ITEM NAO TA ALTERANDO IMAGEM
-	 * 
-	 */
-	
 	static <T> String[] validateStringTags(T clazz, String tags, int totalParams) {
 		String thisClass = getClassName(clazz);
 		if (tags.length() < thisClass.length() + 2 || tags.charAt(0) != '{' || tags.charAt(tags.length() - 1) != '}')

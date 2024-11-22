@@ -118,9 +118,10 @@ public class FrameSetEditor {
 	private int centerY;
 
 	public void init() {
+		Main.setZoom(3);
 		font = new Font("Lucida Console", 15);
-		canvasMain.setWidth(winW * 3);
-		canvasMain.setHeight(winH * 3);
+		canvasMain.setWidth(winW * Main.getZoom());
+		canvasMain.setHeight(winH * Main.getZoom());
 		gcMain = canvasMain.getGraphicsContext2D();
 		gcMain.setImageSmoothing(false);
 		MapSet.loadMap("SBM_1-1");
