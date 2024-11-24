@@ -26,12 +26,13 @@ public class HoldEntity extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		Entity entity = sprite.getSourceEntity();
-		for (Entity en : Entity.getEntityListFromCoord(entity.getTileCoordFromCenter())) {
-			if (en != entity && !en.isBlockedMovement()) {
-				entity.setHoldingEntity(en);
-				return;
+		if (Entity.haveAnyEntityAtCoord(entity.getTileCoordFromCenter(), sprite.getSourceEntity()))
+			for (Entity en : Entity.getEntityListFromCoord(entity.getTileCoordFromCenter())) {
+				if (en != entity && !en.isBlockedMovement()) {
+					entity.setHoldingEntity(en);
+					return;
+				}
 			}
-		}
 		if (Bomb.haveBombAt(entity.getTileCoordFromCenter())) {
 			entity.setHoldingEntity(Bomb.getBombAt(entity.getTileCoordFromCenter()));
 			return;

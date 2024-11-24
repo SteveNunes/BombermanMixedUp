@@ -265,7 +265,9 @@ public abstract class MapSet {
 					stageTimerPauseDuration--;
 				else if (stageTimeInSecs > 0)
 					stageTimeInSecs--;
-				if (getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && !hurryUpIsActive() && stageTimeInSecs != null && hurryUpTimeInSecs != null && getMapTimeLeftInSecs() <= hurryUpTimeInSecs)
+				if (stageIsCleared() || (getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && stageObjectiveIsCleared()))
+					DurationTimerFX.stopTimer("StageTimer");
+				else if (getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && !hurryUpIsActive() && stageTimeInSecs != null && hurryUpTimeInSecs != null && getMapTimeLeftInSecs() <= hurryUpTimeInSecs)
 					setHurryUpState(true);
 			});
 		else
@@ -311,6 +313,10 @@ public abstract class MapSet {
 	}
 	
 	public static void setHurryUpState(boolean state) {
+		setHurryUpState(state, Duration.millis(250));
+	}
+	
+	public static void setHurryUpState(boolean state, Duration delayBetweenEachDrop) {
 		if (stageObjectiveIsCleared())
 			return;
 		if (state != hurryUpIsActive && state) {
@@ -321,15 +327,15 @@ public abstract class MapSet {
 				hurryUpNextCoord.setCoords(hurryUpMinFreeCoord);
 				hurryUpDirection = Direction.RIGHT;
 				hurryUpDrawX = (int)Main.getMainCanvas().getWidth() / Main.getZoom() + 10;
-				dropNextHurryUpBlock();
+				dropNextHurryUpBlock(delayBetweenEachDrop);
 			});
 		}
 		hurryUpIsActive = state;
 	}
 
-	private static void dropNextHurryUpBlock() {
+	private static void dropNextHurryUpBlock(Duration delayBetweenEachDrop) {
 		if (!MapSet.stageObjectiveIsCleared && !MapSet.stageIsCleared)
-			DurationTimerFX.createTimer("NextHurryUp" + Main.uniqueTimerId++, Duration.millis(250), () -> {
+			DurationTimerFX.createTimer("NextHurryUp" + Main.uniqueTimerId++, delayBetweenEachDrop, () -> {
 				if (hurryUpMinFreeCoord.getY() != hurryUpMaxFreeCoord.getY()) {
 					do {
 						hurryUpNextCoord.incCoordsByDirection(hurryUpDirection);
@@ -363,7 +369,7 @@ public abstract class MapSet {
 						return;
 				}
 				dropWallFromSky(hurryUpNextCoord);
-				dropNextHurryUpBlock();
+				dropNextHurryUpBlock(delayBetweenEachDrop);
 			});
 	}
 

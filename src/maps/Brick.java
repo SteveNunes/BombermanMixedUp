@@ -130,6 +130,7 @@ public class Brick extends Entity {
 	public static void removeBrick(TileCoord coord, boolean updateLayer) {
 		if (bricks.containsKey(coord))
 			removeBrick(bricks.get(coord));
+		bricks.remove(coord);
 	}
 
 	public static void removeBrick(Brick brick) {
@@ -200,7 +201,7 @@ public class Brick extends Entity {
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
 			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BRICK);
 			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BRICK, true);
-			removeThisFromTile(prevCoord);
+			removeFromMap(prevCoord);
 			if (!bricks.containsKey(coord))
 				bricks.put(coord, this);
 		}
@@ -208,7 +209,7 @@ public class Brick extends Entity {
 
 	public void destroy() {
 		if (!isWall && !getCurrentFrameSetName().equals("BrickBreakFrameSet")) {
-			removeThisFromTile(getTileCoordFromCenter());
+			removeFromMap(getTileCoordFromCenter());
 			setFrameSet("BrickBreakFrameSet");
 		}
 	}
@@ -265,30 +266,30 @@ public class Brick extends Entity {
 
 	@Override
 	public void onBeingHoldEvent(Entity holder) {
-		removeThisFromTile(getTileCoordFromCenter());
+		removeFromMap(getTileCoordFromCenter());
 		unsetBrickShadow();
 	}
 
-	private void removeThisFromTile(TileCoord coord) {
+	private void removeFromMap(TileCoord coord) {
 		if (bricks.containsKey(coord) && bricks.get(coord) == this)
 			bricks.remove(coord);
 	}
 	
 	@Override
 	public void onSetPushEntityTrigger() {
-		removeThisFromTile(getTileCoordFromCenter());
+		removeFromMap(getTileCoordFromCenter());
 		unsetBrickShadow();
 	}
 
 	@Override
 	public void onSetGotoMoveTrigger() {
-		removeThisFromTile(getTileCoordFromCenter());
+		removeFromMap(getTileCoordFromCenter());
 		unsetBrickShadow();
 	}
 	
 	@Override
 	public void onSetJumpMoveTrigger() {
-		removeThisFromTile(getTileCoordFromCenter());
+		removeFromMap(getTileCoordFromCenter());
 		unsetBrickShadow();
 	}
 

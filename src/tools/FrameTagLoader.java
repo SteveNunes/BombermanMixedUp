@@ -435,6 +435,10 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new SoftResetAfterMapChange(s));
 			else if (tag.equals("SoftResetAllBomberMansAfterMapChange"))
 				tags.addTag(newTag = new SoftResetAllBomberMansAfterMapChange(s));
+			else if (tag.equals("PushPower"))
+				tags.addTag(newTag = new PushPower(s));
+			else if (tag.equals("SetEntityDirection"))
+				tags.addTag(newTag = new SetEntityDirection(s));
 			if (delay != null)
 				newTag.setTriggerDelay(delay);
 			if (delayInFrames != null)

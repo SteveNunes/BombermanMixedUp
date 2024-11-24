@@ -32,6 +32,8 @@ import util.MyMath;
 
 public class Item extends Entity {
 
+	private final static int INV_FRAMES = 20;
+
 	private static Map<TileCoord, List<Item>> items = new HashMap<>();
 	private static List<Item> itemList = new ArrayList<>();
 	private static RGBColor itemEdigeColor;
@@ -67,7 +69,7 @@ public class Item extends Entity {
 	public Item(Position position, ItemType itemType) {
 		setPosition(new Position(position));
 		this.itemType = itemType;
-		setInvencibleFrames(20);
+		setInvencibleFrames(INV_FRAMES);
 		addNewFrameSetFromIniFile(this, "StandFrameSet", "FrameSets", "ITEM", "StandFrameSet");
 		addNewFrameSetFromIniFile(this, "JumpingFrameSet", "FrameSets", "ITEM", "JumpingFrameSet");
 		addNewFrameSetFromIniFile(this, "FallingFromSky", "FrameSets", "ITEM", "FallingFromSky");
@@ -99,7 +101,7 @@ public class Item extends Entity {
 	public void jumpTo(TileCoord coord) {
 		setFrameSet("JumpingFrameSet");
 		jumpTo(this, coord, 6, 1.2, 20);
-		setInvencibleFrames(20);
+		setInvencibleFrames(INV_FRAMES);
 	}
 
 	private void setUpItemPickUpFrameSet() {
@@ -150,29 +152,30 @@ public class Item extends Entity {
 	}
 
 	public static void addItem(Item item, boolean startJumpingAround) {
-		if (startJumpingAround) {
-			item.setInvencibleFrames(20);
-			itemList.add(item);
-			if (MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM) ||
-					 MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.EXPLOSION))
-						item.forceDestroy();
-			else if (startJumpingAround || !MapSet.tileIsFree(item.getTileCoordFromCenter()))
-				item.jumpToRandomTileAround(2);
-			else {
-				putOnMap(item.getTileCoordFromCenter().getNewInstance(), item);
-				MapSet.checkTileTrigger(item, item.getTileCoordFromCenter(), TileProp.TRIGGER_BY_ITEM);
-			}
+		item.setInvencibleFrames(INV_FRAMES);
+		itemList.add(item);
+		if (startJumpingAround || !MapSet.tileIsFree(item.getTileCoordFromCenter()))
+			item.jumpToRandomTileAround(2);
+		else {
+			putOnMap(item.getTileCoordFromCenter().getNewInstance(), item);
+			MapSet.checkTileTrigger(item, item.getTileCoordFromCenter(), TileProp.TRIGGER_BY_ITEM);
 		}
 	}
 
 	public static void removeItem(Item item) {
-		itemList.remove(item);
-		items.remove(item.getTileCoordFromCenter());
+		if (item != null) {
+			itemList.remove(item);
+			if (items.containsKey(item.getTileCoordFromCenter())) {
+				items.get(item.getTileCoordFromCenter()).remove(item);
+				if (items.get(item.getTileCoordFromCenter()).isEmpty())
+					items.remove(item.getTileCoordFromCenter());
+			}
+		}
 	}
 
 	public static void removeItem(TileCoord coord) {
 		if (haveItemAt(coord)) {
-			itemList.remove(items.get(coord));
+			itemList.removeAll(items.get(coord));
 			items.remove(coord);
 		}
 	}
@@ -208,10 +211,14 @@ public class Item extends Entity {
 		}
 
 		for (Item item : tempItems) {
-			if (!item.isInvencible() && item.getCurrentFrameSetName().equals("StandFrameSet") &&
+			if (!item.isInvencible() &&
 					(MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM) ||
-					 MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.EXPLOSION)))
-						item.destroy();
+					 MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.EXPLOSION))) {
+						if (!item.getCurrentFrameSetName().equals("StandFrameSet"))
+							item.forceDestroy();
+						else
+							item.destroy();
+			}
 			else if (!item.getCurrentFrameSetName().equals("StandFrameSet") && !item.getCurrentFrameSet().isRunning())
 				removeItem(item);
 			else

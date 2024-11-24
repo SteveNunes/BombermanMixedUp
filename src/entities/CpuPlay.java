@@ -88,6 +88,8 @@ public class CpuPlay {
 				if (tileWasChanged() && getPathFinder() != null) {
 					Direction dir = getPathFinder().getNextDirectionToGoAndRemove();
 					if (dir != null && tileIsFree(getCurrentTileCoord().getNewInstance().incCoordsByDirection(dir))) {
+						if (doSearchs())
+							return;
 						holdButton(dirToInput(dir));
 						return;
 					}
@@ -104,17 +106,23 @@ public class CpuPlay {
 							pauseInFrames = 20;
 							return;
 						}
-				// Solta uma bomba se ele estiver invencivel em cima de uma explosão com algum player no alcance da explosão da bomba dele
-				if (isInvencible() && MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.EXPLOSION)) {
+				// Solta uma bomba se ele estiver invencivel ou com coração extra em cima de uma explosão com algum player no alcance da explosão da bomba dele e que não esteja invencivel nem com coração extra
+				if ((isInvencible() || bomberMan.getHitPoints() > 1) && MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.EXPLOSION)) {
+					// MELHORAR QUANDO TIVER IMPLEMENTADO MONTARIA, pra ele tb fazer isso se ele estiver numa montaria
 					List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), FindType.PLAYER);
-					if (founds != null)
-						pressButton(GameInput.B);
+					if (founds != null) {
+						for (FindProps found : founds) {
+							Entity entity = Entity.getFirstEntityFromCoord(found.getCoord());
+							if (!(entity instanceof BomberMan) || ((BomberMan)entity).isInvencible() || ((BomberMan)entity).getHitPoints() > 1) {
+								founds = null;
+								break;
+							}
+						}
+						if (founds != null)
+							pressButton(GameInput.B);
+					}
 				}
-				// Procura por outros jogadores ou tijolos ou itens ruins em linha reta para soltar uma bomba que o destrua.
-				if (checkForBricksAndBadItemsAndPlayersAround())			
-					return;
-				// Procura por item ou tijolos proximos e vai em direção a eles
-				if (checkForSomethingAround(Set.of(FindType.GOOD_ITEM, FindType.BRICK), 5, FindInRectType.RECTANGLE_AREA))
+				if (doSearchs())
 					return;
 				// Se não estiver focado em algum item ou tijolo, tenta chegar perto de algum jogador acessivel
 				for (Entity entity : Entity.getEntityList())
@@ -123,6 +131,16 @@ public class CpuPlay {
 				goToRandomFreeDir();
 			}
 		}
+	}
+
+	private boolean doSearchs() {
+		// Procura por outros jogadores ou tijolos ou itens ruins em linha reta para soltar uma bomba que o destrua.
+		if (checkForBricksAndBadItemsAndPlayersAround())			
+			return true;
+		// Procura por item ou tijolos proximos e vai em direção a eles
+		if (checkForSomethingAround(Set.of(FindType.GOOD_ITEM, FindType.BRICK), 5, FindInRectType.RECTANGLE_AREA))
+			return true;
+		return false;
 	}
 
 	private boolean isStucked() {

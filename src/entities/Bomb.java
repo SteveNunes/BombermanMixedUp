@@ -1,5 +1,6 @@
 package entities;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -84,7 +85,7 @@ public class Bomb extends Entity {
 		dangerMarked = false;
 		dangerMarked2 = false;
 		nesBomb = type == BombType.NES || (owner instanceof BomberMan && ((BomberMan) owner).getBomberIndex() == 0);
-		if (type == BombType.P)
+		if (type == BombType.P && !(owner instanceof BomberMan))
 			fireDistance = GameConfigs.MAX_EXPLOSION_DISTANCE;
 		this.type = type;
 		this.fireDistance = fireDistance;
@@ -201,6 +202,7 @@ public class Bomb extends Entity {
 
 	public static void removeBomb(TileCoord coord) {
 		removeBomb(getBombAt(coord));
+		bombs.remove(coord);
 	}
 
 	public static void clearBombs() {
@@ -319,7 +321,6 @@ public class Bomb extends Entity {
 			getPushEntity().stop();
 			centerToTile();
 			unsetGhosting();
-			putOnMap(getTileCoordFromCenter(), this);
 		}
 	}
 
@@ -335,8 +336,13 @@ public class Bomb extends Entity {
 		return isStucked() || getJumpMove() != null || getHolder() != null;
 	}
 
+	// TEMP (Pra forçar a sombra da bomba quando ela ta caindo, ate eu resolver o que ta acontecendo que a MECANICA da Bomba, Brick e Item caindo e a mesma, mas com Item e Brick a sombra aparece, mas com a bomba ela some no segundo frame
+	private boolean falling = false;
+	
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
+		if (falling)
+			setShadow(0, 0, -12, -6, 0.35f);
 		removeDangerMarks(TileProp.CPU_DANGER);
 		removeDangerMarks(TileProp.CPU_DANGER_2);
 		if (getBombType() == BombType.FOLLOW && !isBlockedMovement() && !isMoving() && getPathFinder() == null) {
@@ -353,12 +359,9 @@ public class Bomb extends Entity {
 				if (!getPathFinder().pathWasFound() || getPathFinder().getCurrentPath().size() == 1) {
 					setPathFinder(null);
 					unsetTargetingEntity();
-					if (!bombs.containsKey(getTileCoordFromCenter()))
-						putOnMap(getTileCoordFromCenter(), this);
 				}
 				else {
 					setTargetingEntity(Entity.getFirstEntityFromCoord(coord));
-					removeFromMap(getTileCoordFromCenter(), this);
 					setSpeed(0.5);
 				}
 			}
@@ -390,18 +393,18 @@ public class Bomb extends Entity {
 		}
 		if (getTargetingEntity() != null && getPathFinder() != null)
 			getPathFinder().recalculatePath(getTileCoordFromCenter(), getTargetingEntity().getTileCoordFromCenter(), getDirection());
+		removeFromMap(getTileCoordFromCenter(), this);
 		super.run(gc, isPaused);
 		if (!isBlockedMovement() && tileWasChanged() && isActive()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
-			removeFromMap(prevCoord, this);
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
 			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
 			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BOMB, true);
-			if (!isMoving() && !bombs.containsKey(coord)) {
-				putOnMap(coord, this);
+			if (!bombs.containsKey(coord))
 				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
-			}
 		}
+		if (!isBlockedMovement())
+			putOnMap(getTileCoordFromCenter(), this);
 		if (!isBlockedMovement() && (getBombType() != BombType.LAND_MINE || currentFrameSetNameIsEqual("UnlandingFrames")))
 			setDangerMarks(getTimer() <= TIMER_FOR_DANGER_2 * curseMulti ? TileProp.CPU_DANGER_2 : TileProp.CPU_DANGER);
 	}
@@ -448,7 +451,6 @@ public class Bomb extends Entity {
 						Sound.playWav(slamSound);
 					setShake(2d, -0.05, 0d);
 					unsetGhosting();
-					putOnMap(getTileCoordFromCenter(), this);
 				}
 				List<Bomb> list = new ArrayList<>(bombList);
 				for (Bomb bomb : list) {
@@ -518,7 +520,6 @@ public class Bomb extends Entity {
 		}
 		Sound.playWav(getBombType() == BombType.RUBBER ? "BombBounce" : "BombHittingGround");
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
-		putOnMap(coord, this);
 		setFrameSet("StandFrames");
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BOMB);
 		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_STOPPED_BOMB);
@@ -533,6 +534,8 @@ public class Bomb extends Entity {
 		checkEntitiesAbove();
 		jumpMove.resetJump(4, 1.2, 14);
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
+		if (bombs.get(coord) == this)
+			bombs.remove(coord);
 		setGotoMove(coord.incCoordsByDirection(getDirection()).getPosition(), jumpMove.getDurationFrames());
 	}
 	
@@ -614,9 +617,10 @@ public class Bomb extends Entity {
 	public static Bomb dropBombFromSky(TileCoord coord, BombType bombType, int fireDistance) {
 		Bomb bomb = new Bomb(null, coord, bombType, fireDistance);
 		Bomb.addBomb(bomb);
+		bomb.falling = true;
 		bomb.setJumpMove(8, 0, GameConfigs.FALLING_FROM_SKY_STARTING_HEIGHT);
 		bomb.getJumpMove().skipToFall();
-		bomb.setShadow(0, 0, -12 ,-6 ,0.35f);
+		bomb.setShadow(0, 0, -12, -6, 0.35f);
 		bomb.setGhosting(2, 0.2);
 		bomb.getJumpMove().setOnCycleCompleteEvent(e -> {
 			bomb.setElevation(Elevation.ON_GROUND);
@@ -627,6 +631,7 @@ public class Bomb extends Entity {
 				Sound.playWav(bomb, "BombSlam");
 				bombs.put(coord, bomb);
 				bomb.setFrameSet("StandFrames");
+				bomb.falling = false;
 			}
 			else {
 				bomb.setElevation(Elevation.FLYING);

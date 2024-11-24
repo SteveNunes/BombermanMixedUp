@@ -18,6 +18,7 @@ import gui.util.ImageUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
@@ -31,6 +32,12 @@ import util.Misc;
 
 public class GiftViewer {
 
+	@FXML
+	private Button buttonCopyId;
+	@FXML
+	private Button buttonCopyName;
+	@FXML
+	private Button buttonCopyCost;
   @FXML
   private Canvas canvasGift;
   @FXML
@@ -56,13 +63,16 @@ public class GiftViewer {
   private boolean listOnlyMissingImage;
   
 	public void init() {
-		listOnlyMissingImage = true;
+		listOnlyMissingImage = false;
 		Misc.putTextOnClipboard("");
 		lastWebpImage = null;
 		downloadedImages = new HashMap<>();
 		ini = IniFile.getNewIniFileInstance("appdata/gifts/gifts.ini");
 		loadGiftsFromDisk();
 		refreshComboList();
+		buttonCopyId.setOnAction(e -> Misc.putTextOnClipboard(comboGiftList.getSelectionModel().getSelectedItem()));
+		buttonCopyName.setOnAction(e -> Misc.putTextOnClipboard(labelName.getText()));
+		buttonCopyCost.setOnAction(e -> Misc.putTextOnClipboard(labelCost.getText()));
 		comboGiftList.valueProperty().addListener((o, oldV, newV) -> loadGift(newV));
 		textFieldSearch.textProperty().addListener((o, oldV, newV) -> refreshComboList());
 		DurationTimerFX.createTimer("cb", Duration.millis(100), 0, () -> checkForImagesOnClipBoard());

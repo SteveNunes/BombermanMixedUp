@@ -85,8 +85,8 @@ public class Main extends Application {
 				palleteEditor.init();
 			}
 			else if (GAME_MODE == GameMode.GAME_TIKTOK) {
-				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameTikTokView.fxml"));
-				sceneMain = new Scene(loader.load());
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameTikTokView.fxml"));
+			sceneMain = new Scene(loader.load());
 				gameTikTok = loader.getController();
 				gameTikTok.init();
 			}
@@ -162,6 +162,11 @@ public class Main extends Application {
 	}
 
 	public static void main(String[] args) {
+		if (args.length > 0 && args[0].equals("usedlls")) {
+			System.load(System.getProperty("user.dir") + "/dlls/jinput-wintab.dll");
+			System.load(System.getProperty("user.dir") + "/dlls/jinput-dx8_64.dll");
+			System.load(System.getProperty("user.dir") + "/dlls/jinput-raw_64.dll");
+		}
 		launch(args);
 	}
 

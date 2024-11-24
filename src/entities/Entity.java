@@ -27,6 +27,7 @@ import enums.StageObjectives;
 import enums.TileProp;
 import frameset.FrameSet;
 import frameset.Tags;
+import gui.GameTikTok;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.paint.Color;
@@ -339,10 +340,13 @@ public class Entity extends Position {
 
 	public void setInvencibleFrames(int frames) {
 		invencibleFrames = frames;
+		if (frames > 0)
+			blinkingFrames = frames;
 	}
 
 	public void removeInvencibleFrames() {
 		invencibleFrames = 0;
+		blinkingFrames = 0;
 	}
 
 	public boolean isBlockedMovement() {
@@ -669,6 +673,8 @@ public class Entity extends Position {
 	public void onPushEntityStop() {}
 	
 	public void unsetAllMovings() {
+		if (getHoldingEntity() != null)
+			unsetHoldingEntity(true);
 		unsetGotoMove();
 		unsetGhosting();
 		unsetJumpMove();
@@ -688,10 +694,14 @@ public class Entity extends Position {
 	public void incHolderDesloc(int x, int y) {
 		holderDesloc.incPosition(x, y);
 	}
-
+	
 	public void unsetHolder() {
+		unsetHolder(false);
+	}
+
+	public void unsetHolder(boolean minDistance) {
 		if (holder != null) {
-			int distance = (int)((System.currentTimeMillis() - holder.getHoldingCTime()) + 200) / 200;
+			int distance = minDistance ? 2 : (int)((System.currentTimeMillis() - holder.getHoldingCTime()) + 200) / 200;
 			if (distance < 2)
 				distance = 2;
 			if (distance > 5)
@@ -713,10 +723,14 @@ public class Entity extends Position {
 		entity.setHolder(this);
 		entity.onBeingHoldEvent(this);
 	}
-
+	
 	public void unsetHoldingEntity() {
+		unsetHoldingEntity(false);
+	}
+
+	public void unsetHoldingEntity(boolean minDistance) {
 		if (holding != null)
-			holding.unsetHolder();
+			holding.unsetHolder(minDistance);
 		holding = null;
 	}
 	
@@ -734,6 +748,11 @@ public class Entity extends Position {
 
 	public long getHoldingCTime() {
 		return holdingCTime;
+	}
+	
+	public void tauntMe() {
+		unsetAllMovings();
+		setFrameSet("Taunt");
 	}
 
 	public Map<String, FrameSet> getFrameSetsMap() {
@@ -886,7 +905,7 @@ public class Entity extends Position {
 	public void run(GraphicsContext gc) {
 		run(gc, false);
 	}
-
+	
 	public void run(GraphicsContext gc, boolean isPaused) {
 		setEntityHeight(0);
 		if (isDisabled)
@@ -1000,6 +1019,10 @@ public class Entity extends Position {
 		pushing = value;
 	}
 
+	public void incPushingValue() {
+		pushing++;
+	}
+
 	public int getPushingValue() {
 		return pushing;
 	}
@@ -1086,7 +1109,7 @@ public class Entity extends Position {
 					incPositionByDirection(direction, speed);
 					if (isPerfectlyBlockedDir(direction))
 						centerToTile();
-					pushing = 0;
+					setPushingValue(0);
 				}
 				else {
 					if (!freeCorners[0] && freeCorners[1] && (int) ru.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z)
@@ -1094,7 +1117,7 @@ public class Entity extends Position {
 					else if (freeCorners[0] && !freeCorners[1] && (int) lu.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z)
 						incPosition(-speed, -speed / 2);
 					else
-						pushing++;
+						incPushingValue();
 					if (prevX != (int) getX() / Main.TILE_SIZE)
 						centerXToTile();
 				}
@@ -1104,7 +1127,7 @@ public class Entity extends Position {
 					incPositionByDirection(direction, speed);
 					if (isPerfectlyBlockedDir(direction))
 						centerToTile();
-					pushing = 0;
+					setPushingValue(0);
 				}
 				else {
 					if (!freeCorners[2] && freeCorners[3] && (int) rd.getX() % Main.TILE_SIZE > Main.TILE_SIZE / z)
@@ -1112,7 +1135,7 @@ public class Entity extends Position {
 					else if (freeCorners[2] && !freeCorners[3] && (int) ld.getX() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z)
 						incPosition(-speed, speed / 2);
 					else
-						pushing++;
+						incPushingValue();
 					if (prevX != (int) getX() / Main.TILE_SIZE)
 						centerXToTile();
 				}
@@ -1122,7 +1145,7 @@ public class Entity extends Position {
 					incPositionByDirection(direction, speed);
 					if (isPerfectlyBlockedDir(direction))
 						centerToTile();
-					pushing = 0;
+					setPushingValue(0);
 				}
 				else {
 					if (!freeCorners[0] && freeCorners[2] && (int) ld.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z)
@@ -1130,7 +1153,7 @@ public class Entity extends Position {
 					else if (freeCorners[0] && !freeCorners[2] && (int) lu.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z)
 						incPosition(-speed / 2, -speed);
 					else
-						pushing++;
+						incPushingValue();
 					if (prevY != (int) getY() / Main.TILE_SIZE)
 						centerYToTile();
 				}
@@ -1140,7 +1163,7 @@ public class Entity extends Position {
 					incPositionByDirection(direction, speed);
 					if (isPerfectlyBlockedDir(direction))
 						centerToTile();
-					pushing = 0;
+					setPushingValue(0);
 				}
 				else {
 					if (!freeCorners[1] && freeCorners[3] && (int) rd.getY() % Main.TILE_SIZE > Main.TILE_SIZE / z)
@@ -1148,7 +1171,7 @@ public class Entity extends Position {
 					else if (freeCorners[1] && !freeCorners[3] && (int) ru.getY() % Main.TILE_SIZE < Main.TILE_SIZE - Main.TILE_SIZE / z)
 						incPosition(speed / 2, -speed);
 					else
-						pushing++;
+						incPushingValue();
 					if (prevY != (int) getY() / Main.TILE_SIZE)
 						centerYToTile();
 				}
@@ -1163,7 +1186,7 @@ public class Entity extends Position {
 				Item.getItemAt(getTileCoordFromCenter()).destroy();
 		}
 		else
-			pushing = 0;
+			setPushingValue(0);
 	}
 	
 	public void checkOutScreenCoords() {
@@ -1414,14 +1437,10 @@ public class Entity extends Position {
 			}
 			else if (haveFrameSet("TakingDamage"))
 				setFrameSet("TakingDamage");
-			else if (this instanceof BomberMan) {
+			else if (this instanceof BomberMan)
 				setInvencibleFrames(GameConfigs.PLAYER_INVENCIBLE_FRAMES_AFTER_TAKING_DAMAGE);
-				setBlinkingFrames(GameConfigs.PLAYER_INVENCIBLE_FRAMES_AFTER_TAKING_DAMAGE);
-			}
-			else {
+			else
 				setInvencibleFrames(GameConfigs.MONSTER_INVENCIBLE_FRAMES_AFTER_TAKING_DAMAGE);
-				setBlinkingFrames(GameConfigs.MONSTER_INVENCIBLE_FRAMES_AFTER_TAKING_DAMAGE);
-			}
 		}
 	}
 

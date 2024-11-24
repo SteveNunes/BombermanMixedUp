@@ -74,7 +74,7 @@ public class GameTikTok {
 
 	private boolean connectToLive = false;
 	private String liveOwnerUserName = "flaviosphgamer2";
-	private String liveUserToConnect = "flaviosphgamer2";
+	private String liveUserToConnect = "kamicazegames";
 	private IniFile tiktokIniFile = IniFile.getNewIniFileInstance("tiktok.ini");
 	private Map<Integer, Pair<String, Consumer<String>>> likeEvents;
 	private Map<Integer, Pair<String, Consumer<String>>> giftEvents;
@@ -96,6 +96,7 @@ public class GameTikTok {
 	private int pallete;
 	private GraphicsContext gcMain;
 	private Font font = new Font("Lucida Console", 40);
+	private Font fontSmall = new Font("Lucida Console", 12);
 	private boolean showBlockMarks;
 	private boolean reconnectionIsDisabled;
 	private String gameMap = "TikTok-Small-Battle-01";
@@ -104,6 +105,48 @@ public class GameTikTok {
 	private List<String> alreadyFollowed = new ArrayList<>();
 	private List<String> alreadyShared = new ArrayList<>();
 	
+	public void init() {
+		setBasics();
+		loadGiftList();
+		loadUserPics();
+		loadConfigs();
+		loadLiveEvents();
+		setEvents();
+		addPlayerOne();
+		loadMap();
+		setJoysticksOnDisconnectEvents();
+		if (connectToLive)
+			startTikTokEvents();
+		mainLoop();
+	}
+	
+	void mainLoop() {
+		try {
+			Tools.getFPSHandler().fpsCounter();
+			MapSet.run();
+			Draw.applyAllDraws(canvasMain, Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
+			drawScores();
+			displayStageTimer();
+			drawUserPicsOverEntities();
+			drawEchoMessages();
+			runGiftEventsQueue();
+			drawSampleGifts();
+			setupTextToSpeech();
+			if (showBlockMarks)
+				showBlockMarks();
+			if (!Main.close)
+				Platform.runLater(() -> {
+					String title = "BomberMan Mixed Up!     FPS: " + Tools.getFPSHandler().getFPS() + "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
+					Main.stageMain.setTitle(title);
+					mainLoop();
+				});
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			Main.close();
+		}
+	}
+
 	private void loadLiveEvents() {
 		giftEvents = new HashMap<>();
 		likeEvents = new HashMap<>();
@@ -112,49 +155,53 @@ public class GameTikTok {
 		likeEvents.put(100, new Pair<>(null, userName -> dropRandomTileBomb(userName)));
 		
 		// 1000 Likes - (Adiciona avatar com 3 itens basicos e que participará de 1 round)
-		likeEvents.put(1000, new Pair<>("@USER entrou na arena por 1 round", userName -> dropCpu(userName, 1,
+		likeEvents.put(1000, new Pair<>("@USER entrou na arena por 1 round.", userName -> dropCpu(userName, 1,
 			ItemType.BOMB_UP, ItemType.FIRE_UP, ItemType.SPEED_UP)));
 
 		// Rosa (Dropa 1 Bomba)
 		giftEvents.put(5655, new Pair<>(null, userName -> dropRandomTileBomb(userName)));
 		
 		// Mini Dino (Dropa 12 Bombas)
-		giftEvents.put(6560, new Pair<>("Chuva de bombas de @USER", userName -> dropRandomTileBomb(userName, 12)));
-		giftEvents.put(7553, new Pair<>("Chuva de bombas de @USER", userName -> dropRandomTileBomb(userName, 12)));
-		giftEvents.put(7591, new Pair<>("Chuva de bombas de @USER", userName -> dropRandomTileBomb(userName, 12)));
-		giftEvents.put(9615, new Pair<>("Chuva de bombas de @USER", userName -> dropRandomTileBomb(userName, 12)));
-		giftEvents.put(9962, new Pair<>("Chuva de bombas de @USER", userName -> dropRandomTileBomb(userName, 12)));
+		giftEvents.put(6560, new Pair<>("Chuva de bombas de @USER.", userName -> dropRandomTileBomb(userName, 12)));
+		giftEvents.put(7553, new Pair<>("Chuva de bombas de @USER.", userName -> dropRandomTileBomb(userName, 12)));
+		giftEvents.put(7591, new Pair<>("Chuva de bombas de @USER.", userName -> dropRandomTileBomb(userName, 12)));
 		
+		// Bastão brilhante (Dropa 1 bloco permanente)
+		giftEvents.put(6788, new Pair<>(null, userName -> dropRandomTileWall(userName)));
+
+		// Anime-se (Dropa 11 blocos permanente)
+		giftEvents.put(8243, new Pair<>("@USER dropou 11 blocos.", userName -> dropRandomTileWall(userName, 11)));
+
 		// Sorvete (Dropa 1 Item)
 		giftEvents.put(5827, new Pair<>(null, userName -> dropRandomTileItem(userName)));
 		
 		// Coração (Dropa 12 Items)
-		giftEvents.put(5327, new Pair<>("Chuva de itens de @USER", userName -> dropRandomTileItem(userName, 12)));
-		giftEvents.put(5576, new Pair<>("Chuva de itens de @USER", userName -> dropRandomTileItem(userName, 12)));
+		giftEvents.put(5327, new Pair<>("Chuva de itens de @USER.", userName -> dropRandomTileItem(userName, 12)));
+		giftEvents.put(5576, new Pair<>("Chuva de itens de @USER.", userName -> dropRandomTileItem(userName, 12)));
 		
 		// GG (Dropa 1 Caveira)
 		giftEvents.put(5827, new Pair<>(null, userName -> dropRandomTileCurse(userName)));
 		
 		// Fantasminha (Dropa 12 Caveiras)
-		giftEvents.put(5576, new Pair<>("Chuva de caveiras de @USER", userName -> dropRandomTileCurse(userName, 12)));
+		giftEvents.put(5576, new Pair<>("Chuva de caveiras de @USER.", userName -> dropRandomTileCurse(userName, 12)));
 		
 		// Bola de futebol (Ativar Hurry up)
-		giftEvents.put(5852, new Pair<>("@USER ativou o hurry up", userName -> MapSet.setHurryUpState(true)));
+		giftEvents.put(5852, new Pair<>("@USER ativou o hurry up acelerado.", userName -> MapSet.setHurryUpState(true, Duration.millis(100))));
 		
 		// Coração com os dedos (Adiciona avatar sem itens e que participará de 1 round)
-		giftEvents.put(5487, new Pair<>("@USER entrou na arena por 1 round", userName -> dropCpu(userName)));
+		giftEvents.put(5487, new Pair<>("@USER entrou na arena por 1 round.", userName -> dropCpu(userName)));
 		
 		// Bracelete da equipe (Adiciona avatar com 3 itens basicos e que participará de 1 round)
-		giftEvents.put(9139, new Pair<>("@USER entrou na arena por 1 round", userName -> dropCpu(userName, 1,
+		giftEvents.put(9139, new Pair<>("@USER entrou na arena por 1 round.", userName -> dropCpu(userName, 1,
 				ItemType.BOMB_UP, ItemType.FIRE_UP, ItemType.SPEED_UP)));
 		
 		// Rosquinha (Adiciona avatar com alguns itens e que participará de 3 rounds (Os itens são perdidos ao morrer))
-		giftEvents.put(5879, new Pair<>("Super @USER entrou na arena por 3 rounds", userName -> dropCpu(userName, 3, 
+		giftEvents.put(5879, new Pair<>("Super @USER entrou na arena por 3 rounds.", userName -> dropCpu(userName, 3, 
 				ItemType.BOMB_UP, ItemType.BOMB_UP, ItemType.BOMB_UP, ItemType.FIRE_UP,
 				ItemType.FIRE_UP, ItemType.SPEED_UP, ItemType.SPEED_UP, ItemType.PASS_BOMB)));
 		
 		// Heart Me (Adiciona avatar sem itens e que participará de 10 rounds (So pode enviar 1 vez por dia))
-		giftEvents.put(7934, new Pair<>("@USER entrou na arena por 10 rounds", userName -> dropCpu(userName, 10)));
+		giftEvents.put(7934, new Pair<>("@USER entrou na arena por 10 rounds.", userName -> dropCpu(userName, 10)));
 		
 		// Boné (Adiciona avatar com muitos itens e que participará de 6 rounds (Os itens são perdidos ao morrer))
 		giftEvents.put(6104, new Pair<>("Supremo @USER entrou na arena por 6 rounds", userName -> dropCpu(userName, 6, 
@@ -188,10 +235,14 @@ public class GameTikTok {
 	}
 	
 	private void curseToSomeone(String userName, String target) {
+		if (!bomberMans.containsKey(target)) {
+			dropRandomTileCurse(userName);
+			return;
+		}
 		BomberMan bomber = bomberMans.get(target).get(0).getBomberMan();
 		if (!bomber.isDead()) {
 			Item.addItem(bomber.getTileCoordFromCenter(), ItemType.CURSE_SKULL);
-			speech(removeNonAlphanumeric(userName) + " dropou 1 caveira para " + target);
+			speech(removeNonAlphanumeric(userName) + " dropou 1 caveira para " + target + ".");
 		}
 		else
 			dropRandomTileCurse(userName);
@@ -204,12 +255,12 @@ public class GameTikTok {
 		}
 		BomberMan bomber = bomberMans.get(target).get(0).getBomberMan();
 		if (bomber.isDead()) {
-			speech(removeNonAlphanumeric(userName) + " reviveu " + target);
+			speech(removeNonAlphanumeric(userName) + " reviveu " + target + ".");
 			bomber.softResetAfterMapChange(240);
 		}
 		else {
 			Item.addItem(bomber.getTileCoordFromCenter(), ItemType.getRandomForBattle());
-			speech(removeNonAlphanumeric(userName) + " dropou 1 item para " + liveOwnerUserName);
+			speech(removeNonAlphanumeric(userName) + " dropou 1 item para " + liveOwnerUserName + ".");
 		}				
 	}
 
@@ -217,17 +268,15 @@ public class GameTikTok {
 		reviveAll(userName, null);
 	}
 
-	private void reviveAll(String userName, String onlyFromUser) {
-		if (onlyFromUser != null)
-			speech(removeNonAlphanumeric(userName) + " reviveu todos os seus bombermans.");
-		else
-			speech(removeNonAlphanumeric(userName) + " reviveu todos os bombermans mortos.");
+	private void reviveAll(String userName, String targetUser) {
+		String target = targetUser == null ? "os" : "os seus";
+		speech(removeNonAlphanumeric(userName) + " reviveu todos " + target + " bombermans.");
 		for (String user : bomberMans.keySet()) {
-			if (onlyFromUser == null || user.equals(onlyFromUser))
+			if (targetUser == null || user.equals(targetUser))
 				bomberMans.get(user).forEach(b -> {
 					BomberMan bomber = b.getBomberMan();
 					if (bomber.isDead())
-						bomber.softResetAfterMapChange(240);
+						bomber.reviveAndClearItens(300);
 				});
 		}
 	}
@@ -244,33 +293,23 @@ public class GameTikTok {
 		giveItenToSomeone(userName, null, quant);
 	}
 	
-	private void giveItenToSomeone(String userName, String onlyFromUser, int quant) {
-		if (quant == 1) {
-			if (onlyFromUser != null)
-				speech(removeNonAlphanumeric(userName) + " deu 1 item para alguém do seu grupo");
-			else
-				speech(removeNonAlphanumeric(userName) + " deu 1 item para alguém aleatóriamente");
-		}
-		else if (onlyFromUser != null)
-			speech(removeNonAlphanumeric(userName) + " deu " + quant + " itens para alguém do seu grupo");
-		else
-			speech(removeNonAlphanumeric(userName) + " deu " + quant + " itens para alguém aleatóriamente");
-		for (String user : bomberMans.keySet()) {
-			if (onlyFromUser == null || user.equals(onlyFromUser))
-				bomberMans.get(user).forEach(b -> {
-					BomberMan bomber = b.getBomberMan();
-					if (bomber.isDead())
-						Item.addItem(bomber.getTileCoordFromCenter(), ItemType.getRandomForBattle());
-				});
-		}
+	private void giveItenToSomeone(String userName, String targetUser, int quant) {
+		String target = targetUser == null ? " aleatório" : targetUser.equals(userName) ? " do seu grupo" : " do grupo de " + targetUser;
+		String itens = quant == 1 ? "1 item" : quant + " itens";
+		speech(removeNonAlphanumeric(userName) + " deu " + itens + " para alguém " + target + ".");
+		for (int n = 0; n < quant; n++)
+			for (String user : bomberMans.keySet()) {
+				if (targetUser == null || user.equals(targetUser))
+					bomberMans.get(user).forEach(b -> {
+						BomberMan bomber = b.getBomberMan();
+						if (!bomber.isDead())
+							Item.addItem(bomber.getTileCoordFromCenter(), ItemType.getRandomForBattle());
+					});
+			}
 	}
 	
-	public void init() {
+	private void setBasics() {
 		Main.setZoom(3);
-		loadGiftList();
-		loadUserPics();
-		loadConfigs();
-		loadLiveEvents();
 		canvasMain.setWidth(WIN_W * Main.getZoom());
 		canvasMain.setHeight(WIN_H * Main.getZoom());
 		Main.setMainCanvas(canvasMain);
@@ -279,17 +318,25 @@ public class GameTikTok {
 		holdedKeys = new ArrayList<>();
 		liveClient = null;
 		reconnectionIsDisabled = false;
-		setEvents();
-		addPlayerOne();
+		showBlockMarks = false;
+		DurationTimerFX.createTimer("ChangeSampleGiftPos", Duration.seconds(2), 0, () -> {
+			if (++sampleGiftPos == sampleGifts.size())
+				sampleGiftPos = 0;
+		});
+	}
+
+	private void loadMap() {
 		MapSet.setOnStageObjectiveClearEvent(() -> {
-			for (String user : bomberMans.keySet())
-				for (FixedBomberMan fixedBomber : bomberMans.get(user))
-					if (!fixedBomber.getBomberMan().isDead()) {
-						if (!userScores.containsKey(user))
-							userScores.put(user, new Score(user));
-						userScores.get(user).incScore();
-						tiktokIniFile.write("Scores", user, "" + userScores.get(user).getScore());
-					}
+			DurationTimerFX.createTimer("IncScore", Duration.seconds(1), () -> {
+				for (String user : bomberMans.keySet())
+					for (FixedBomberMan fixedBomber : bomberMans.get(user))
+						if (!fixedBomber.getBomberMan().isDead()) {
+							if (!userScores.containsKey(user))
+								userScores.put(user, new Score(user));
+							userScores.get(user).incScore();
+							tiktokIniFile.write("Scores", user, "" + userScores.get(user).getScore());
+						}
+			});
 		});
 		MapSet.setOnMapLoadEvent(() -> {
 			List<String> removeUsers = new ArrayList<>();
@@ -308,18 +355,8 @@ public class GameTikTok {
 			userEntityOwner.clear();
 		});
 		MapSet.loadMap(gameMap);
-		pallete = Player.getTotalPlayers();
-		setJoysticksOnDisconnectEvents();
-		if (connectToLive)
-			startTikTokEvents();
-		mainLoop();
-		showBlockMarks = false;
-		DurationTimerFX.createTimer("ChangeSampleGiftPos", Duration.seconds(2), 0, () -> {
-			if (++sampleGiftPos == sampleGifts.size())
-				sampleGiftPos = 0;
-		});
 	}
-	
+
 	private void addPlayerOne() {
 		BomberMan.addBomberMan(1, 0);
 		Player.addPlayer();
@@ -327,12 +364,12 @@ public class GameTikTok {
 		Player.getPlayer(0).setBomberMan(BomberMan.getBomberMan(0));
 		bomberMans.put("abazabinha", new ArrayList<>());
 		bomberMans.get("abazabinha").add(new FixedBomberMan(BomberMan.getBomberMan(0), "abazabinha", -1));
+		pallete = Player.getTotalPlayers();
 	}
 
 	private void loadConfigs() {
-		Integer today = (int)(System.currentTimeMillis() / 86400);
+		int today = (int)(System.currentTimeMillis() / 86400000);
 		if (tiktokIniFile.readAsInteger("CONFIG", "Today", null) != today) { // Remove os scores se o programa estiver rodando num dia diferente da ultima vez
-			tiktokIniFile.write("CONFIG", "Today", "" + today);
 			tiktokIniFile.remove("Scores");
 			tiktokIniFile.remove("CONFIG", "AlreadyFollowed");
 			tiktokIniFile.remove("CONFIG", "AlreadyShared");
@@ -347,6 +384,7 @@ public class GameTikTok {
 						(item.equals("AlreadyShared") ? alreadyShared : alreadyFollowed).add(user);
 				}
 		}
+		tiktokIniFile.write("CONFIG", "Today", "" + today);
 	}
 
 	private void loadUserPics() {
@@ -426,33 +464,6 @@ public class GameTikTok {
 		gcMain.drawImage(image, 0, 0, w, w, x + Main.TILE_SIZE / 2 * Main.getZoom() - ww / 2, y, ww, ww);
 	}
 
-	void mainLoop() {
-		try {
-			Tools.getFPSHandler().fpsCounter();
-			MapSet.run();
-			Draw.applyAllDraws(canvasMain, Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
-			drawScores();
-			displayStageTimer();
-			drawUserPicsOverEntities();
-			drawEchoMessages();
-			runGiftEventsQueue();
-			drawSampleGifts();
-			setupTextToSpeech();
-			if (showBlockMarks)
-				showBlockMarks();
-			if (!Main.close)
-				Platform.runLater(() -> {
-					String title = "BomberMan Mixed Up!     FPS: " + Tools.getFPSHandler().getFPS() + "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
-					Main.stageMain.setTitle(title);
-					mainLoop();
-				});
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			Main.close();
-		}
-	}
-
 	private void setupTextToSpeech() {
 		TextToSpeechGoogle.setSpeechSpeed(1.5f);
 		TextToSpeechGoogle.setVolumeGain(0.5f);
@@ -530,10 +541,10 @@ public class GameTikTok {
 
 	private void drawEchoMessages() {
 		gcMain.setFill(Color.YELLOW);
-		gcMain.setFont(font);
+		gcMain.setFont(fontSmall);
 		int y = (int)canvasMain.getHeight();
 		for (String s : echos)
-			gcMain.fillText(s, canvasMain.getWidth() - 120, y -= 11);
+			gcMain.fillText(s, canvasMain.getWidth() - 130, y -= 11);
 	}
 
 	private void drawUserPicsOverEntities() {
@@ -575,17 +586,20 @@ public class GameTikTok {
 
 	private void showBlockMarks() {
 		Draw.drawBlockTypeMarks(gcMain, -32 * Main.getZoom(), -32 * Main.getZoom(), Main.getZoom(), true, false, false, t -> {
-			return Bomb.haveBombAt(t.getTileCoord()) ? Color.RED : null;
+			return Bomb.haveBombAt(t.getTileCoord()) ? Color.RED :
+				Brick.haveBrickAt(t.getTileCoord()) ? Color.GREEN :
+				Item.haveItemAt(t.getTileCoord()) ? Color.DARKORANGE : null;
 		});
 	}
 
 	private void startTikTokEvents() {
-		liveClient = TikTokLive.newClient(liveUserToConnect )
+		liveClient = TikTokLive.newClient(liveUserToConnect)
 				.configure((settings) -> {
 					settings.setClientLanguage("pt");
 					settings.setLogLevel(Level.OFF);
 					settings.setPrintToConsole(false);
-	        settings.setRetryOnConnectionFailure(false);
+	        settings.setRetryOnConnectionFailure(true);
+	        settings.setRetryConnectionTimeout(java.time.Duration.ofSeconds(5));
 				})
 				.onConnected((liveClient, event) -> {
 					String text  ="Conectado á live de " + liveClient.getRoomInfo().getHostName();
@@ -594,26 +608,32 @@ public class GameTikTok {
 				})
 				.onDisconnected((liveClient, event) -> {
 					if (!reconnectionIsDisabled) {
-						String text = "Desconectado da live de " + liveClient.getRoomInfo().getHostName() + ". Reconectando em 5 segundos...";
+						String text = "Desconectado da live de " + liveClient.getRoomInfo().getHostName() + ". Reconectando em 10 segundos...";
 						speech(text);
 						System.out.println(text);
 						liveClient.disconnect();
-						DurationTimerFX.createTimer("TiTokLiveReconnection", Duration.seconds(5), () -> liveClient.connectAsync());
+						DurationTimerFX.createTimer("TiTokLiveReconnection", Duration.seconds(10), () -> liveClient.connectAsync());
 					}
 				})
 				.onError((liveClient, event) -> {
 					String erro = event.getException().getMessage();
-					if (erro.contains("request timed out"))
-						erro = "Falha ao conectar á live de " + liveClient.getRoomInfo().getHostName() + ". Reconectando em 5 segundos...";
-					else if (erro.contains("User is offline:"))
-						erro = "A live de " + liveClient.getRoomInfo().getHostName() + " está offline";
-					else if (erro.contains("Sign server rate limit reached.")) {
-						erro = "Você alcançou o limite diário de conexões.";
-						reconnectionIsDisabled = true;
+					if (erro.contains("Sign server Error. Try again later.")) {
+						System.out.println("Falha ao conectar (Sign server Error. Try again later)");
+						return;
 					}
-					System.out.println(erro);
+					if (erro.contains("request timed out")) {
+						System.out.println("Falha ao conectar (Request timed out)");
+						return;
+					}
+					if (erro.contains("User is offline:"))
+						erro = "A live de " + liveClient.getRoomInfo().getHostName() + " está offline";
+					else if (erro.contains("Sign server rate limit reached."))
+						erro = "Você alcançou o limite diário de conexões.";
+					reconnectionIsDisabled = true;
+					if (erro.length() > 100)
+						erro = erro.substring(0, 100);
 					speech(erro);
-					liveClient.disconnect();
+					System.out.println(erro);
 				})
 				.onFollow((liveClient, event) -> {
 					if (!MapSet.stageObjectiveIsCleared()) {
