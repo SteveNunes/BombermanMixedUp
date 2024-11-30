@@ -3,11 +3,18 @@ package gui;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.Normalizer;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,7 +29,9 @@ import entities.Bomb;
 import entities.BomberMan;
 import entities.CpuPlay;
 import entities.Entity;
+import enums.BombType;
 import enums.CpuDificult;
+import enums.FindType;
 import enums.GameInputMode;
 import enums.GoogleLanguages;
 import enums.ItemType;
@@ -33,6 +42,10 @@ import io.github.jwdeveloper.dependance.injector.api.util.Pair;
 import io.github.jwdeveloper.tiktok.TikTokLive;
 import io.github.jwdeveloper.tiktok.data.events.gift.TikTokGiftEvent;
 import io.github.jwdeveloper.tiktok.data.models.Picture;
+import io.github.jwdeveloper.tiktok.exceptions.TikTokLiveOfflineHostException;
+import io.github.jwdeveloper.tiktok.exceptions.TikTokLiveRequestException;
+import io.github.jwdeveloper.tiktok.exceptions.TikTokLiveUnknownHostException;
+import io.github.jwdeveloper.tiktok.exceptions.TikTokSignServerException;
 import io.github.jwdeveloper.tiktok.live.LiveClient;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -53,57 +66,68 @@ import joystick.JXInputEX;
 import maps.Brick;
 import maps.Item;
 import maps.MapSet;
+import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import player.Player;
 import tools.Draw;
+import tools.FindProps;
 import tools.GameFonts;
 import tools.Tools;
 import util.DurationTimerFX;
 import util.FindFile;
 import util.FrameTimerFX;
 import util.IniFile;
+import util.Misc;
+import util.MyMath;
 
 public class GameTikTok {
 
-	private static List<String> echos = new ArrayList<>();
+	public static int pallete = 0;
+	private static List<String> echos = new LinkedList<>();
 	private static final int WIN_W = Main.TILE_SIZE * 32;
 	private static final int WIN_H = (int)(Main.TILE_SIZE * 16.5);
 
 	@FXML
 	private Canvas canvasMain;
 
-	private boolean connectToLive = false;
-	private String liveOwnerUserName = "flaviosphgamer2";
-	private String liveUserToConnect = "kamicazegames";
+	private boolean connectToLive;
+	private String liveOwnerUserName;
+	private String liveUserToConnect;
 	private IniFile tiktokIniFile = IniFile.getNewIniFileInstance("tiktok.ini");
-	private Map<Integer, Pair<String, Consumer<String>>> likeEvents;
-	private Map<Integer, Pair<String, Consumer<String>>> giftEvents;
-	private Map<String, Integer> userLikes = new HashMap<>();
-	private Map<String, Image> userPics = new HashMap<>();
-	private Map<String, Score> userScores = new HashMap<>();
-	private Map<String, List<Entity>> userEntityOwner = new HashMap<>();
-	private Map<String, List<FixedBomberMan>> bomberMans = new HashMap<>();
-	private Set<TileCoord> settedEntities = new HashSet<>();
-	private Set<TileCoord> droppedWalls = new HashSet<>();
+	private IniFile scoresIniFile = IniFile.getNewIniFileInstance("scores.ini");
+	private IniFile fixedBombersIniFile = IniFile.getNewIniFileInstance("fixedBombers.ini");
+	private Map<Integer, String> eventsDescription = new LinkedHashMap<>();
+	private Map<Integer, Pair<String, Consumer<String>>> likeEvents = new LinkedHashMap<>();
+	private Map<Integer, Pair<String, Consumer<String>>> giftEvents = new LinkedHashMap<>();
+	private Map<String, Integer> userLikes = new LinkedHashMap<>();
+	private Map<String, Image> userPics = new LinkedHashMap<>();
+	private Map<String, Score> userScores = new LinkedHashMap<>();
+	private Map<String, List<Entity>> userEntityOwner = new LinkedHashMap<>();
+	private Map<String, List<FixedBomberMan>> bomberMans = new LinkedHashMap<>();
+	private Set<TileCoord> settedEntities = new LinkedHashSet<>();
+	private Set<TileCoord> droppedWalls = new LinkedHashSet<>();
 	private LiveClient liveClient;
 	private Set<PassThrough> wallTilePassThrough = Set.of(PassThrough.BOMB, PassThrough.BRICK, PassThrough.HOLE, PassThrough.ITEM, PassThrough.MONSTER, PassThrough.PLAYER, PassThrough.WATER);
 	private Set<PassThrough> itemPassThrough = Set.of(PassThrough.MONSTER, PassThrough.PLAYER);
 	private Set<PassThrough> passThrough = Set.of(PassThrough.ITEM, PassThrough.MONSTER, PassThrough.PLAYER);
-	private List<KeyCode> holdedKeys;
-	private List<String> userNames = new ArrayList<>();
-	private List<SampleGift> sampleGifts = new ArrayList<>();
+	private List<KeyCode> holdedKeys = new LinkedList<>();
+	private List<String> userNames = new LinkedList<>();
+	private List<SampleGift> sampleGifts = new LinkedList<>();
 	private int sampleGiftPos = 0;
-	private int pallete;
+	private int testGiftId = 0;
 	private GraphicsContext gcMain;
-	private Font font = new Font("Lucida Console", 40);
-	private Font fontSmall = new Font("Lucida Console", 12);
-	private boolean showBlockMarks;
+	private Font font12 = new Font("Lucida Console", 12);
+	private Font font15 = new Font("Lucida Console", 15);
+	private Font font40 = new Font("Lucida Console", 40);
+	private int showBlockMarks;
 	private boolean reconnectionIsDisabled;
 	private String gameMap = "TikTok-Small-Battle-01";
+	private String lastGiftSel;
 	private Duration displayAvatarDelay = Duration.seconds(3);
-	private List<TikTokGiftEvent> acumulatedGifts = new ArrayList<>();
-	private List<String> alreadyFollowed = new ArrayList<>();
-	private List<String> alreadyShared = new ArrayList<>();
+	private Position mousePos = new Position();
+	private List<TikTokGiftEvent> acumulatedGifts = new LinkedList<>();
+	private List<String> alreadyFollowed = new LinkedList<>();
+	private List<String> alreadyShared = new LinkedList<>();
 	
 	public void init() {
 		setBasics();
@@ -112,8 +136,8 @@ public class GameTikTok {
 		loadConfigs();
 		loadLiveEvents();
 		setEvents();
-		addPlayerOne();
 		loadMap();
+		restoreFixedBomberMansFromIni();
 		setJoysticksOnDisconnectEvents();
 		if (connectToLive)
 			startTikTokEvents();
@@ -132,8 +156,17 @@ public class GameTikTok {
 			runGiftEventsQueue();
 			drawSampleGifts();
 			setupTextToSpeech();
-			if (showBlockMarks)
+			if (showBlockMarks > 0)
 				showBlockMarks();
+			if (!Misc.alwaysTrue()) { // Sinalizar objetos proximos do cursor, para testar o findInRect()
+				List<FindProps> founds = Tools.findInRect(mousePos.getTileCoord(), null, 2, Set.of(FindType.GOOD_ITEM, FindType.BAD_ITEM));
+				if (founds != null) {
+					if (Misc.blink(100))
+						Draw.markTile(founds.get(0).getCoord(), Color.WHITE);
+					else
+						Draw.markTile(founds.get(0).getCoord(), founds.get(0).getFoundType() == FindType.BAD_ITEM ? Color.RED : Color.LIGHTGREEN);
+				}
+			}
 			if (!Main.close)
 				Platform.runLater(() -> {
 					String title = "BomberMan Mixed Up!     FPS: " + Tools.getFPSHandler().getFPS() + "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
@@ -148,89 +181,123 @@ public class GameTikTok {
 	}
 
 	private void loadLiveEvents() {
-		giftEvents = new HashMap<>();
-		likeEvents = new HashMap<>();
+		giftEvents = new LinkedHashMap<>();
+		likeEvents = new LinkedHashMap<>();
 
-		// 100 Likes - Dropa 1 bomba
-		likeEvents.put(100, new Pair<>(null, userName -> dropRandomTileBomb(userName)));
+		eventsDescription.put(-1, "Compartilhar");
+		eventsDescription.put(-2, "Novo seguidor");
 		
-		// 1000 Likes - (Adiciona avatar com 3 itens basicos e que participará de 1 round)
-		likeEvents.put(1000, new Pair<>("@USER entrou na arena por 1 round.", userName -> dropCpu(userName, 1,
-			ItemType.BOMB_UP, ItemType.FIRE_UP, ItemType.SPEED_UP)));
+		// 50 Likes - (Dropa 1 Bomba)
+		eventsDescription.put(-3, "50 Likes");
+		likeEvents.put(50, new Pair<>(null, userName -> dropRandomTileBomb(userName)));
+		
+		// 500 Likes - (Entrar na arena por 1 round)
+		eventsDescription.put(-4, "500 Likes");
+		likeEvents.put(500, new Pair<>("@USER entrou na arena por 1 rodada.", userName -> dropCpu(userName, 1)));
 
+		// Coração circulo azul (Tira 2 itens do flavio)
+		eventsDescription.put(6247, "Coração circulo azul");
+		giftEvents.put(6247, new Pair<>(null, userName -> {
+			if (bomberMans.containsKey(liveOwnerUserName)) {
+				speech(removeNonAlphanumeric(userName) + " removeu 2 itens do Flavio.");
+				bomberMans.get(liveOwnerUserName).get(0).getBomberMan().dropItem(2, true, true);
+			}
+			else
+				dropRandomTileBomb(userName);
+		}));
+		
 		// Rosa (Dropa 1 Bomba)
+		eventsDescription.put(5655, "Rosa");
 		giftEvents.put(5655, new Pair<>(null, userName -> dropRandomTileBomb(userName)));
 		
+		// Thumbs Up (Planta uma mina em um local aleatório)
+		eventsDescription.put(6246, "Thumbs Up");
+		giftEvents.put(6246, new Pair<>(null, userName -> setRandomTileMine(userName)));
+		
 		// Mini Dino (Dropa 12 Bombas)
+		eventsDescription.put(6560, "Mini Dino");
+		eventsDescription.put(7553, "Mini Dino");
+		eventsDescription.put(7591, "Mini Dino");
 		giftEvents.put(6560, new Pair<>("Chuva de bombas de @USER.", userName -> dropRandomTileBomb(userName, 12)));
 		giftEvents.put(7553, new Pair<>("Chuva de bombas de @USER.", userName -> dropRandomTileBomb(userName, 12)));
 		giftEvents.put(7591, new Pair<>("Chuva de bombas de @USER.", userName -> dropRandomTileBomb(userName, 12)));
+
+		// Perfume (Dropa 10 bombas de coração)
+		eventsDescription.put(5658, "Perfume");
+		giftEvents.put(5658, new Pair<>("Chuva de bombas de coração de @USER.", userName -> dropRandomTileBomb(userName, BombType.HEART, 4, 10)));
+		
+		// Bouquet (Dropa 4 super-bombas)
+		eventsDescription.put(5780, "Bouquet");
+		giftEvents.put(5780, new Pair<>("Chuva de super-bombas de @USER.", userName -> dropRandomTileBomb(userName, BombType.MAGMA, 4, 4)));
 		
 		// Bastão brilhante (Dropa 1 bloco permanente)
+		eventsDescription.put(6788, "Bastão brilhante");
 		giftEvents.put(6788, new Pair<>(null, userName -> dropRandomTileWall(userName)));
 
 		// Anime-se (Dropa 11 blocos permanente)
+		eventsDescription.put(8243, "Anime-se");
 		giftEvents.put(8243, new Pair<>("@USER dropou 11 blocos.", userName -> dropRandomTileWall(userName, 11)));
 
 		// Sorvete (Dropa 1 Item)
+		eventsDescription.put(5827, "Sorvete");
 		giftEvents.put(5827, new Pair<>(null, userName -> dropRandomTileItem(userName)));
 		
 		// Coração (Dropa 12 Items)
+		eventsDescription.put(5327, "Coração");
+		eventsDescription.put(5576, "Coração");
 		giftEvents.put(5327, new Pair<>("Chuva de itens de @USER.", userName -> dropRandomTileItem(userName, 12)));
 		giftEvents.put(5576, new Pair<>("Chuva de itens de @USER.", userName -> dropRandomTileItem(userName, 12)));
 		
 		// GG (Dropa 1 Caveira)
+		eventsDescription.put(5827, "GG");
 		giftEvents.put(5827, new Pair<>(null, userName -> dropRandomTileCurse(userName)));
 		
 		// Fantasminha (Dropa 12 Caveiras)
+		eventsDescription.put(5576, "Fantasminha");
 		giftEvents.put(5576, new Pair<>("Chuva de caveiras de @USER.", userName -> dropRandomTileCurse(userName, 12)));
 		
-		// Bola de futebol (Ativar Hurry up)
-		giftEvents.put(5852, new Pair<>("@USER ativou o hurry up acelerado.", userName -> MapSet.setHurryUpState(true, Duration.millis(100))));
+		// Rosquinha (Ativa o Hurry Up acelerado)
+		eventsDescription.put(5879, "Rosquinha");
+		giftEvents.put(5879, new Pair<>("@USER ativou o hurry up acelerado.", userName -> MapSet.setHurryUpState(true, Duration.millis(100))));
 		
-		// Coração com os dedos (Adiciona avatar sem itens e que participará de 1 round)
-		giftEvents.put(5487, new Pair<>("@USER entrou na arena por 1 round.", userName -> dropCpu(userName)));
+		// Bracelete da equipe (Entra na arena por 2 rodadas)
+		eventsDescription.put(9139, "Bracelete da equipe");
+		giftEvents.put(9139, new Pair<>("@USER entrou na arena por 2 rodadas.", userName -> dropCpu(userName, 2)));
 		
-		// Bracelete da equipe (Adiciona avatar com 3 itens basicos e que participará de 1 round)
-		giftEvents.put(9139, new Pair<>("@USER entrou na arena por 1 round.", userName -> dropCpu(userName, 1,
-				ItemType.BOMB_UP, ItemType.FIRE_UP, ItemType.SPEED_UP)));
+		// Coração com os dedos (Entra na arena por 5 rodadas)
+		eventsDescription.put(5487, "Coração com os dedos");
+		giftEvents.put(5487, new Pair<>("@USER entrou na arena por 5 rodadas.", userName -> dropCpu(userName, 5)));
 		
-		// Rosquinha (Adiciona avatar com alguns itens e que participará de 3 rounds (Os itens são perdidos ao morrer))
-		giftEvents.put(5879, new Pair<>("Super @USER entrou na arena por 3 rounds.", userName -> dropCpu(userName, 3, 
-				ItemType.BOMB_UP, ItemType.BOMB_UP, ItemType.BOMB_UP, ItemType.FIRE_UP,
-				ItemType.FIRE_UP, ItemType.SPEED_UP, ItemType.SPEED_UP, ItemType.PASS_BOMB)));
-		
-		// Heart Me (Adiciona avatar sem itens e que participará de 10 rounds (So pode enviar 1 vez por dia))
+		// Heart Me (Entra na arena por 10 rodadas (So pode enviar 1 vez por dia))
+		eventsDescription.put(7934, "Heart Me");
 		giftEvents.put(7934, new Pair<>("@USER entrou na arena por 10 rounds.", userName -> dropCpu(userName, 10)));
 		
-		// Boné (Adiciona avatar com muitos itens e que participará de 6 rounds (Os itens são perdidos ao morrer))
-		giftEvents.put(6104, new Pair<>("Supremo @USER entrou na arena por 6 rounds", userName -> dropCpu(userName, 6, 
-				ItemType.BOMB_UP, ItemType.BOMB_UP, ItemType.BOMB_UP, ItemType.BOMB_UP,
-				ItemType.BOMB_UP, ItemType.BOMB_UP, ItemType.BOMB_UP, ItemType.BOMB_UP,
-				ItemType.FIRE_UP, ItemType.FIRE_UP, ItemType.FIRE_UP, ItemType.FIRE_UP, 
-				ItemType.FIRE_UP, ItemType.FIRE_UP, ItemType.FIRE_UP, ItemType.SPEED_UP, 
-				ItemType.SPEED_UP, ItemType.SPEED_UP, ItemType.SPEED_UP, ItemType.SPEED_UP,
-				ItemType.PASS_BOMB, ItemType.PASS_BRICK, ItemType.HEART_UP)));
-		
 		// Rosa branca (Reviver o flavio SE ELE ESTIVER MORTO, caso contrario, da 1 item aleatorio para o flavio)
+		eventsDescription.put(8239, "Rosa branca");
 		giftEvents.put(8239, new Pair<>(null, userName -> reviveSomeone(userName, liveOwnerUserName)));
 		
 		// Te amo (Dropa 1 caveira no flavio)
+		eventsDescription.put(6890, "Te amo");
 		giftEvents.put(6890, new Pair<>(null, userName -> curseToSomeone(userName, liveOwnerUserName)));
 		
 		// Poder da equipe (Revive todos os bombermans mortos)
+		eventsDescription.put(12356, "Poder da equipe");
 		giftEvents.put(12356, new Pair<>(null, userName -> reviveAll(userName)));
 
 		// Fatia de bolo (Revive 1 dos bombermans pertencentes ao usuario. Se não houver bombermans do usuario mortos, da 1 item aleatorio para um deles)
+		eventsDescription.put(6784, "Fatia de bolo");
 		giftEvents.put(6784, new Pair<>(null, userName -> reviveAll(userName, userName)));
 		
 		// TikTok (Da 1 item aleatoriamente para um dos bombermans da pessoa)
+		eventsDescription.put(5269, "TikTok");
 		giftEvents.put(5269, new Pair<>(null, userName -> giveItenToSomeone(userName, userName, 1)));
 
 		// Colar da amizade (Dá 12 itens aleatoriamente para bombermans aleatorios da pessoa)
+		eventsDescription.put(9947, "Colar da amizade");
 		giftEvents.put(9947, new Pair<>(null, userName -> giveItenToSomeone(userName, userName, 12)));
 		
 		// Rosa vermelha grande (Dá 12 itens aleatoriamente para bombermans aleatorios do flavio)
+		eventsDescription.put(8913, "Rosa vermelha grande");
 		giftEvents.put(8913, new Pair<>(null, userName -> giveItenToSomeone(userName, liveOwnerUserName, 12)));
 	}
 	
@@ -315,87 +382,143 @@ public class GameTikTok {
 		Main.setMainCanvas(canvasMain);
 		gcMain = canvasMain.getGraphicsContext2D();
 		gcMain.setImageSmoothing(false);
-		holdedKeys = new ArrayList<>();
 		liveClient = null;
 		reconnectionIsDisabled = false;
-		showBlockMarks = false;
-		DurationTimerFX.createTimer("ChangeSampleGiftPos", Duration.seconds(2), 0, () -> {
-			if (++sampleGiftPos == sampleGifts.size())
-				sampleGiftPos = 0;
+		showBlockMarks = 0;
+		Platform.runLater(() -> {
+			DurationTimerFX.createTimer("ChangeSampleGiftPos", Duration.seconds(2), 0, () -> {
+				if (++sampleGiftPos == sampleGifts.size())
+					sampleGiftPos = 0;
+			});
 		});
+		connectToLive = tiktokIniFile.readAsBoolean("LIVE", "ConnectToLive", false);
+		liveOwnerUserName = tiktokIniFile.read("LIVE", "UserNameForAssociateToMainBomberMan");
+		liveUserToConnect = tiktokIniFile.read("LIVE", "LiveUserNameToConnect");
+		lastGiftSel = null;
 	}
 
 	private void loadMap() {
+		MapSet.loadMap(gameMap);
 		MapSet.setOnStageObjectiveClearEvent(() -> {
-			DurationTimerFX.createTimer("IncScore", Duration.seconds(1), () -> {
-				for (String user : bomberMans.keySet())
-					for (FixedBomberMan fixedBomber : bomberMans.get(user))
-						if (!fixedBomber.getBomberMan().isDead()) {
-							if (!userScores.containsKey(user))
-								userScores.put(user, new Score(user));
-							userScores.get(user).incScore();
-							tiktokIniFile.write("Scores", user, "" + userScores.get(user).getScore());
-						}
+			Platform.runLater(() -> {
+				DurationTimerFX.createTimer("IncScore", Duration.seconds(1), () -> {
+					for (String user : bomberMans.keySet())
+						for (FixedBomberMan fixedBomber : bomberMans.get(user))
+							if (!fixedBomber.getBomberMan().isDead()) {
+								if (!userScores.containsKey(user))
+									userScores.put(user, new Score(user));
+								userScores.get(user).incScore();
+								scoresIniFile.write(liveUserToConnect, user, "" + userScores.get(user).getScore());
+							}
+				});
 			});
 		});
 		MapSet.setOnMapLoadEvent(() -> {
-			List<String> removeUsers = new ArrayList<>();
+			/* NAO ADICIONAR AQUI EVENTOS QUE DEVEM RODAR APOS CARREGAR O MAPA DE PRIMEIRA
+			 * (QUANDO ABRE O PROGRAMA) POIS ESSE EVENTO SO IRA DISPARAR APOS CARREGAR O MAPA
+			 * DEPOIS DA PRIMEIRA PARTIDA. ISSO DEVE SE MANTER ASSIM DEVIDO A FORMA COMO
+			 * O PROGRAMA CARREGA OS BOMBERMANS FIXOS AO ABRIR O PROGRAMA, E COMO ELE ATUALIZA
+			 * CADA VEZ QUE O MAPA RECARREGA
+			 */
+			List<Pair<String, FixedBomberMan>> removeUsers = new LinkedList<>();
 			for (String user : bomberMans.keySet())
 				for (FixedBomberMan fixedBomber : bomberMans.get(user)) {
-					fixedBomber.decLeftRounds();
-					if (fixedBomber.getLeftRounds() == 0) {
-						BomberMan.removeBomberMan(fixedBomber.getBomberMan());
-						removeUsers.add(user);
+					if (fixedBomber.getLeftRounds() > 0) {
+						fixedBomber.decLeftRounds();
+						if (fixedBomber.getLeftRounds() == 0) {
+							BomberMan.removeBomberMan(fixedBomber.getBomberMan());
+							removeUsers.add(new Pair<>(user, fixedBomber));
+						}
 					}
 				}
-			for (String user : removeUsers)
-				bomberMans.remove(user);
+			for (Pair<String, FixedBomberMan> pair : removeUsers) {
+				BomberMan.getBomberManList().remove(pair.getValue().getBomberMan());
+				bomberMans.get(pair.getKey()).remove(pair.getValue());
+				if (bomberMans.get(pair.getKey()).isEmpty())
+					bomberMans.remove(pair.getKey());
+			}
 			settedEntities.clear();
 			droppedWalls.clear();
 			userEntityOwner.clear();
+			updateFixedBomberMansOnIniFile();
 		});
-		MapSet.loadMap(gameMap);
 	}
 
-	private void addPlayerOne() {
-		BomberMan.addBomberMan(1, 0);
-		Player.addPlayer();
-		Player.getPlayer(0).setInputMode(GameInputMode.KEYBOARD);
-		Player.getPlayer(0).setBomberMan(BomberMan.getBomberMan(0));
-		bomberMans.put("abazabinha", new ArrayList<>());
-		bomberMans.get("abazabinha").add(new FixedBomberMan(BomberMan.getBomberMan(0), "abazabinha", -1));
-		pallete = Player.getTotalPlayers();
+	private void restoreFixedBomberMansFromIni() {
+		for (int n = 0; n < 2; n++) {
+			final int n2 = n;
+			fixedBombersIniFile.getItemList(liveUserToConnect).forEach(user -> {
+				for (String s : fixedBombersIniFile.read(liveUserToConnect, user).split(" ")) {
+					String[] split = s.split("¡");
+					if (n2 == 0 && (split.length < 4 || !split[3].equals("-"))) {
+						if (!bomberMans.containsKey(user))
+							bomberMans.put(user, new LinkedList<>());
+						bomberMans.get(user).add(new FixedBomberMan(user, s));
+					}
+				}
+			});
+		}
 	}
 
 	private void loadConfigs() {
-		int today = (int)(System.currentTimeMillis() / 86400000);
-		if (tiktokIniFile.readAsInteger("CONFIG", "Today", null) != today) { // Remove os scores se o programa estiver rodando num dia diferente da ultima vez
-			tiktokIniFile.remove("Scores");
+		ZoneOffset offset = ZoneOffset.ofHours(-3); // Horário local (GMT-3)
+		long millisOffset = offset.getTotalSeconds() * 1000L;
+		int today = (int)((System.currentTimeMillis() + millisOffset) / Duration.hours(24).toMillis());
+		// Se o dia mudou, limpar scores, bombermans fixos salvos, registro dos que ja seguiram ou ja compartilharam e imagens dos usuarios (pois elas podem mudar)
+		if (tiktokIniFile.readAsInteger("CONFIG", "Today", null) != today) {
+			scoresIniFile.clearFile();
+			fixedBombersIniFile.clearFile();
 			tiktokIniFile.remove("CONFIG", "AlreadyFollowed");
 			tiktokIniFile.remove("CONFIG", "AlreadyShared");
+			Platform.runLater(() -> {
+				FindFile.findDir("./appdata/userPics/", "*").forEach(dir -> {
+					for (File file : new ArrayList<>(FindFile.findFile(dir.getAbsolutePath(), "*.png")))
+						file.delete();
+				});
+			});
 		}
 		else {
-			tiktokIniFile.getItemList("Scores").forEach(user ->
-				userScores.put(user, new Score(user, tiktokIniFile.readAsInteger("Scores", user, 0))));
+			// Restaura scores dos jogadores
+			scoresIniFile.getItemList(liveUserToConnect).forEach(user ->
+				userScores.put(user, new Score(user, scoresIniFile.readAsInteger(liveUserToConnect, user, 0))));
+			// Restaura estado dos que ja seguiram/compartilharam
 			for (String item : Arrays.asList("AlreadyFollowed", "AlreadyShared"))
-				if (tiktokIniFile.read("CONFIG", item) != null) {
-					String[] split = tiktokIniFile.getLastReadVal().split(" ");
-					for (String user : split)
+				if (scoresIniFile.read("CONFIG", item) != null) {
+					String[] split = scoresIniFile.getLastReadVal().split(" ");
+					for (String user : split) {
 						(item.equals("AlreadyShared") ? alreadyShared : alreadyFollowed).add(user);
+						if (item.equals("AlreadyShared"))
+							Platform.runLater(() -> DurationTimerFX.createTimer("Share@" + user, Duration.minutes(5), () -> alreadyShared.remove(user)));
+					}
 				}
 		}
 		tiktokIniFile.write("CONFIG", "Today", "" + today);
 	}
 
+	private void createUserPicsDir() {
+		Path path = Paths.get("./appdata/userPics/" + liveUserToConnect + "/");
+		if (!Files.exists(path)) {
+			try {
+				Files.createDirectory(path);
+			}
+			catch (IOException e) {
+				throw new RuntimeException("falha ao criar o diretório \"" + path.getFileName() + "\"");
+			}
+		}
+	}
+	
 	private void loadUserPics() {
-		FindFile.findFile("appdata/userPics/","*.png").forEach(file -> {
-			String userName = file.getName().replace(".png", "");
-			Image image = roundedBordersImage(new Image("file:" + file.getAbsolutePath()));
-			userPics.put(userName, image);
-		});
+		createUserPicsDir();
+		for (String path : Arrays.asList("appdata/userPics/" + liveUserToConnect + "/","*.png", "appdata/userPics/","*.png"))
+			FindFile.findFile(path).forEach(file -> {
+				String userName = file.getName().replace(".png", "");
+				Image image = roundedBordersImage(new Image("file:" + file.getAbsolutePath()));
+				userPics.put(userName, image);
+			});
 	}
 
 	private void loadGiftList() {
+		createUserPicsDir();
 		FindFile.findFile("appdata/gifts/","*.png").forEach(file -> {
 			String name = file.getName().replace(".png", "");
 			Image image = new Image("file:" + file.getAbsolutePath());
@@ -403,27 +526,46 @@ public class GameTikTok {
 		});
 		sampleGifts.sort((s1, s2) -> s1.getOrder() - s2.getOrder());
 	}
-
-	private int testGiftId = 0;
+	
 	void setEvents() {
+		canvasMain.setOnMouseMoved(e -> {
+			mousePos.setPosition((e.getX() + 32 * Main.getZoom()) / Main.getZoom(), (e.getY() + 32 * Main.getZoom()) / Main.getZoom());
+		});
 		Main.sceneMain.setOnKeyPressed(e -> {
 			Player.convertOnKeyPressEvent(e);
 			holdedKeys.add(e.getCode());
+			if (e.getCode() == KeyCode.Z) {
+				int n = (int)MyMath.getRandom(0, BomberMan.getTotalBomberMans() - 1);
+				for (int x = 0; x < BomberMan.getTotalBomberMans(); x++)
+					if (x != n)
+						BomberMan.getBomberMan(x).takeDamage();
+			}
+			if (e.getCode() == KeyCode.X) {
+				Bomb.addBomb(mousePos.getTileCoord(), BombType.REMOTE, 2);
+			}
+			if (e.getCode() == KeyCode.C)
+				Bomb.addBomb(mousePos.getTileCoord(), BombType.MAGMA, 3);
 			if (e.getCode() == KeyCode.P) {
-				for (Brick brick : new ArrayList<>(Brick.getBricks()))
+				for (Brick brick : new LinkedList<>(Brick.getBricks()))
 					brick.destroy();
-				for (Item item : new ArrayList<>(Item.getItems()))
+				for (Item item : new LinkedList<>(Item.getItems()))
 					item.forceDestroy();
 			}
-			if (e.getCode() == KeyCode.G)
-				runOnGiftEvent("abazabinha", "Gift", testGiftId, 1);
+			if (e.getCode() == KeyCode.G) {
+				String[] users = userPics.keySet().toArray(new String[userPics.size()]);
+				runOnGiftEvent(users[(int)MyMath.getRandom(0, users.length - 1)], "Gift", testGiftId, 1);
+			}
 			if (e.getCode() == KeyCode.H) {
-				List<String> list = new ArrayList<>();
+				List<String> list = new LinkedList<>();
+				list.add(-1 + " - " + eventsDescription.get(-1));
+				list.add(-2 + " - " + eventsDescription.get(-2));
+				list.add(-3 + " - " + eventsDescription.get(-3));
+				list.add(-4 + " - " + eventsDescription.get(-4));
 				for (int i : giftEvents.keySet())
-					list.add("" + i);
-				String s = Alerts.choiceCombo("Gift", "Selecione o ID do Gift\npara disparar com a tecla G", list);
-				if (s != null)
-					testGiftId = Integer.parseInt(s);
+					list.add(i + " - " + eventsDescription.get(i));
+				lastGiftSel = Alerts.choiceCombo("Gift", "Selecione o ID do Gift\npara disparar com a tecla G", list, lastGiftSel);
+				if (lastGiftSel != null)
+					testGiftId = Integer.parseInt(lastGiftSel.split(" ")[0]);
 			}
 			if (e.getCode() == KeyCode.U)
 				dropRandomTileBomb("GM");
@@ -433,8 +575,8 @@ public class GameTikTok {
 				dropRandomTileItem("GM");
 			if (e.getCode() == KeyCode.K)
 				dropRandomTileBrick("GM");
-			if (e.getCode() == KeyCode.M)
-				showBlockMarks = !showBlockMarks;
+			if (e.getCode() == KeyCode.M && ++showBlockMarks == 4)
+				showBlockMarks = 0;
 			if (e.getCode() == KeyCode.SPACE)
 				CpuPlay.markTargets = !CpuPlay.markTargets;
 			if (e.getCode() == KeyCode.ESCAPE)
@@ -455,6 +597,8 @@ public class GameTikTok {
 	
 	private void drawUserImage(String userName, Entity entity) {
 		Image image = userPics.get(userName);
+		if (image == null)
+			image = userPics.get("no-photo.png");
 		int sprHeight = entity.getCurrentFrameSet().getSprite(0).getOutputWidth(), 
 				w = (int)image.getWidth(), ww = (int)(Main.TILE_SIZE * Main.getZoom() * 1.3),
 				x = (int)entity.getX() * Main.getZoom() - 32 * Main.getZoom(),
@@ -478,20 +622,22 @@ public class GameTikTok {
 		gcMain.setFill(Color.YELLOW);
 		gcMain.setStroke(Color.YELLOW);
 		gcMain.setLineWidth(1);
-		gcMain.setFont(font);
+		gcMain.setFont(font40);
 		Text text = new Text();
-		text.setFont(font);
+		text.setFont(font40);
 		gcMain.fillText(name, 100, canvasMain.getHeight() - 25);
 		gcMain.strokeText(name, 100, canvasMain.getHeight() - 25);
 		gcMain.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), 10, canvasMain.getHeight() - 68, 64, 64);
 	}
 
 	private void drawScores() {
-		List<Score> scores = new ArrayList<>(userScores.values());
+		List<Score> scores = new LinkedList<>(userScores.values());
 		scores.sort((o1, o2) -> o2.getScore() - o1.getScore());
 		for (int n = 0, hh = Main.TILE_SIZE * Main.getZoom(); n < scores.size(); n++) {
 			Score score = scores.get(n);
 			Image i = userPics.get(score.getUserName());
+			if (i == null)
+				i = userPics.get("no-photo.png");
 			gcMain.drawImage(i, 0, 0, i.getWidth(), i.getHeight(), canvasMain.getWidth() - 135, 60 + n * hh * 1.1, hh, hh);
 			gcMain.setFill(Color.WHITE);
 			gcMain.setFont(GameFonts.fontBomberMan20);
@@ -501,10 +647,12 @@ public class GameTikTok {
 
 	private void runGiftEventsQueue() {
 		if (!acumulatedGifts.isEmpty() && !MapSet.stageObjectiveIsCleared() && Draw.getFade() == null) {
-			for (TikTokGiftEvent giftEvent : acumulatedGifts)
-				DurationTimerFX.createTimer("RunningOnGiftEventQueue" + Main.uniqueTimerId++, Duration.seconds(10), () ->
-					runOnGiftEvent(giftEvent.getUser().getName(), giftEvent.getGift().getName(), giftEvent.getGift().getId(), giftEvent.getCombo()));
-			acumulatedGifts.clear();
+			Platform.runLater(() -> {
+				for (TikTokGiftEvent giftEvent : acumulatedGifts)
+					DurationTimerFX.createTimer("RunningOnGiftEventQueue" + Main.uniqueTimerId++, Duration.seconds(10), () ->
+						runOnGiftEvent(giftEvent.getUser().getName(), giftEvent.getGift().getName(), giftEvent.getGift().getId(), giftEvent.getCombo()));
+				acumulatedGifts.clear();
+			});
 		}
 	}
 
@@ -541,7 +689,7 @@ public class GameTikTok {
 
 	private void drawEchoMessages() {
 		gcMain.setFill(Color.YELLOW);
-		gcMain.setFont(fontSmall);
+		gcMain.setFont(font12);
 		int y = (int)canvasMain.getHeight();
 		for (String s : echos)
 			gcMain.fillText(s, canvasMain.getWidth() - 130, y -= 11);
@@ -585,11 +733,13 @@ public class GameTikTok {
 	void close() {}
 
 	private void showBlockMarks() {
-		Draw.drawBlockTypeMarks(gcMain, -32 * Main.getZoom(), -32 * Main.getZoom(), Main.getZoom(), true, false, false, t -> {
+		Draw.drawBlockTypeMarks(gcMain, -32 * Main.getZoom(), -32 * Main.getZoom(), Main.getZoom(), showBlockMarks == 1, showBlockMarks == 2, showBlockMarks == 3, t -> {
 			return Bomb.haveBombAt(t.getTileCoord()) ? Color.RED :
 				Brick.haveBrickAt(t.getTileCoord()) ? Color.GREEN :
 				Item.haveItemAt(t.getTileCoord()) ? Color.DARKORANGE : null;
 		});
+		Draw.drawTileTagsOverCursor(canvasMain, font15, (int)mousePos.getX() * Main.getZoom(), (int)mousePos.getY() * Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
+		Draw.drawTilePropsOverCursor(canvasMain, font15, (int)mousePos.getX() * Main.getZoom(), (int)mousePos.getY() * Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
 	}
 
 	private void startTikTokEvents() {
@@ -607,60 +757,50 @@ public class GameTikTok {
 					System.out.println(text);
 				})
 				.onDisconnected((liveClient, event) -> {
-					if (!reconnectionIsDisabled) {
+					if (!Main.close && !reconnectionIsDisabled) {
 						String text = "Desconectado da live de " + liveClient.getRoomInfo().getHostName() + ". Reconectando em 10 segundos...";
 						speech(text);
 						System.out.println(text);
-						liveClient.disconnect();
-						DurationTimerFX.createTimer("TiTokLiveReconnection", Duration.seconds(10), () -> liveClient.connectAsync());
+						Platform.runLater(() -> DurationTimerFX.createTimer("TiTokLiveReconnection", Duration.seconds(10), () -> liveClient.connectAsync()));
 					}
+					liveClient.disconnect();
 				})
 				.onError((liveClient, event) -> {
-					String erro = event.getException().getMessage();
-					if (erro.contains("Sign server Error. Try again later.")) {
-						System.out.println("Falha ao conectar (Sign server Error. Try again later)");
-						return;
+					if (!Main.close) {
+						String erro = event.getException().getMessage();
+						if (event.getException() instanceof TikTokLiveUnknownHostException)
+							erro = "Username inválido: " + liveClient.getRoomInfo().getHostName();
+						else if (event.getException() instanceof TikTokSignServerException)
+							erro = "Falha ao conectar (Sign server Error. Try again later)";
+						else if (event.getException() instanceof TikTokLiveOfflineHostException)
+							erro = "Usuário " + liveClient.getRoomInfo().getHostName() + " está offline.";
+						else if (event.getException() instanceof TikTokLiveRequestException)
+							erro = "* Erro 404 ao conectar em " + liveClient.getRoomInfo().getHostName();
+						else if (erro.contains("request timed out"))
+							erro = "Falha ao conectar (Request timed out)";
+						else if (erro.contains("Error while handling Message: WebcastLikeMessage")) {
+							speech("Webcast Erro.");
+							event.getException().printStackTrace();
+						}
+						else if (erro.contains("Sign server rate limit reached."))
+							erro = "Você alcançou o limite diário de conexões.";
+						reconnectionIsDisabled = true;
+						System.out.println(erro);
+						event.getException().printStackTrace();
+						if (erro.length() > 100)
+							erro = erro.substring(0, 100);
+						speech(erro);
 					}
-					if (erro.contains("request timed out")) {
-						System.out.println("Falha ao conectar (Request timed out)");
-						return;
-					}
-					if (erro.contains("User is offline:"))
-						erro = "A live de " + liveClient.getRoomInfo().getHostName() + " está offline";
-					else if (erro.contains("Sign server rate limit reached."))
-						erro = "Você alcançou o limite diário de conexões.";
-					reconnectionIsDisabled = true;
-					if (erro.length() > 100)
-						erro = erro.substring(0, 100);
-					speech(erro);
-					System.out.println(erro);
 				})
 				.onFollow((liveClient, event) -> {
-					if (!MapSet.stageObjectiveIsCleared()) {
-						String userName = event.getUser().getName();
-						downloadUserImage(event.getUser().getName(), event.getUser().getPicture());
-						if (!alreadyFollowed.contains(userName)) {
-							// Seguir (Adiciona avatar sem itens e que participará de 10 round (So funciona 1 vez por dia)
-							speech("Novo seguidor " + removeNonAlphanumeric(userName) + " entrou na arena por 5 rounds");
-							dropCpu(userName, 5);
-							alreadyFollowed.add(userName);
-						}
-					}
+					downloadUserImage(event.getUser().getName(), event.getUser().getPicture());
+					onFollowEvent(event.getUser().getName());
 				})
 				.onComment((liveClient, event) -> downloadUserImage(event.getUser().getName(), event.getUser().getPicture()))
 				.onEmote((liveClient, event) -> downloadUserImage(event.getUser().getName(), event.getUser().getPicture()))
 				.onShare((liveClient, event) -> {
-					if (!MapSet.stageObjectiveIsCleared()) {
-						String userName = event.getUser().getName();
-						downloadUserImage(event.getUser().getName(), event.getUser().getPicture());
-						if (!alreadyShared.contains(userName)) {
-							// Compartilhar a live (Adiciona avatar sem itens e que participará de 1 round (So funciona 1 vez a cada 5 minutos)
-							speech(removeNonAlphanumeric(userName) + " entrou na arena por 1 round por compartilhar a live");
-							dropCpu(userName);
-							alreadyShared.add(userName);
-						}
-						DurationTimerFX.createTimer("Share@" + userNames, Duration.minutes(5), () -> alreadyShared.remove(userName));
-					}
+					downloadUserImage(event.getUser().getName(), event.getUser().getPicture());
+					onShareEvent(event.getUser().getName());
 				})
 				.onGift((liveClient, event) -> {
 					String userName = event.getUser().getName();
@@ -671,51 +811,90 @@ public class GameTikTok {
 						acumulatedGifts.add(event);
 				})
 				.onLike((liveClient, event) -> {
-					if (!MapSet.stageObjectiveIsCleared()) {
-						String userName = event.getUser().getName();
-						downloadUserImage(userName, event.getUser().getPicture());
-						if (!userLikes.containsKey(userName))
-							userLikes.put(userName, 0);
-						int likes = userLikes.get(userName);
-						List<Integer> list = new ArrayList<>(likeEvents.keySet());
-						list.sort((n1, n2) -> n1 - n2);
-						for (int n = 0; n < event.getLikes(); n++) {
-							likes++;
-							for (Integer i : list) {
-								if (likes % i == 0) {
-									DurationTimerFX.createTimer("likeEvent@" + Main.uniqueTimerId++, Duration.millis(n * 100), () -> {
-										likeEvents.get(i).getValue().accept(userName);
-										if (likeEvents.get(i).getKey() != null)
-											speech(likeEvents.get(i).getKey().replace("@USER", removeNonAlphanumeric(userName)));
-									});
-								}
-							}
-						}
-						userLikes.put(userName, likes);
-					}
+					String userName = event.getUser().getName();
+					downloadUserImage(userName, event.getUser().getPicture());
+					onLikeEvent(userName, event.getLikes());
 				}).build();
 		liveClient.connectAsync();
 	}
 
+	private void onLikeEvent(String userName, int totalLikes) {
+		if (!MapSet.stageObjectiveIsCleared()) {
+			Platform.runLater(() -> {
+				if (!userLikes.containsKey(userName))
+					userLikes.put(userName, 0);
+				int likes = userLikes.get(userName);
+				List<Integer> list = new LinkedList<>(likeEvents.keySet());
+				list.sort((n1, n2) -> n1 - n2);
+					for (int n = 0; n < totalLikes; n++) {
+						likes++;
+						for (Integer i : list)
+							if (likes % i == 0) {
+								if (n == 0 && likeEvents.get(i).getKey() != null)
+									speech(likeEvents.get(i).getKey().replace("@USER", removeNonAlphanumeric(userName)));
+								DurationTimerFX.createTimer("likeEvent@" + Main.uniqueTimerId++, Duration.ZERO, () -> likeEvents.get(i).getValue().accept(userName));
+							}
+					}
+					userLikes.put(userName, likes);
+			});
+		}
+	}
+
+	private void onShareEvent(String userName) {
+		if (!MapSet.stageObjectiveIsCleared()) {
+			if (!alreadyShared.contains(userName)) {
+				// Compartilhar a live (Adiciona avatar sem itens e que participará de 1 round (So funciona 1 vez a cada 5 minutos)
+				speech(removeNonAlphanumeric(userName) + " entrou na arena por 1 round por compartilhar a live");
+				dropCpu(userName);
+				alreadyShared.add(userName);
+			}
+			Platform.runLater(() -> DurationTimerFX.createTimer("Share@" + userNames, Duration.minutes(5), () -> alreadyShared.remove(userName)));
+		}
+	}
+
+	private void onFollowEvent(String userName) {
+		if (!MapSet.stageObjectiveIsCleared()) {
+			if (!alreadyFollowed.contains(userName)) {
+				// Seguir (Adiciona avatar sem itens e que participará de 10 round (So funciona 1 vez por dia)
+				speech("Novo seguidor " + removeNonAlphanumeric(userName) + " entrou na arena por 5 rounds");
+				dropCpu(userName, 5);
+				alreadyFollowed.add(userName);
+			}
+		}
+	}
+
 	private void runOnGiftEvent(String userName, String giftName, int giftId, int combo) {
-		List<Integer> list = new ArrayList<>(giftEvents.keySet());
-		System.out.println(giftName + " " + giftId);
+		List<Integer> list = new LinkedList<>(giftEvents.keySet());
 		list.sort((n1, n2) -> n1 - n2);
-		for (int n = 0; n < combo; n++)
-			for (Integer id : list)
-				if (giftId == id)
-					FrameTimerFX.createTimer("likeEvent@" + Main.uniqueTimerId++, n * 20, () -> {
-						System.out.println("ATIVADO EVENTO: " + giftName + " " + giftEvents.get(id).getKey());
-						giftEvents.get(id).getValue().accept(userName);
-						if (giftEvents.get(id).getKey() != null)
-							speech(giftEvents.get(id).getKey().replace("@USER", removeNonAlphanumeric(userName)));
-					});
+		if (giftId < 0) {
+			for (int n = 0; n < combo; n++) {
+					if (giftId == -1)
+						onShareEvent(userName);
+					else if (giftId == -2)
+						onFollowEvent(userName);
+					else if (giftId == -3)
+						onLikeEvent(userName, 50);
+					else if (giftId == -4)
+						onLikeEvent(userName, 500);
+				}
+		}
+		else
+			Platform.runLater(() -> {
+				for (int n = 0; n < combo; n++)
+					for (Integer id : list)
+						if (giftId == id)
+							FrameTimerFX.createTimer("likeEvent@" + Main.uniqueTimerId++, n * 20, () -> {
+								giftEvents.get(id).getValue().accept(userName);
+								if (giftEvents.get(id).getKey() != null)
+									speech(giftEvents.get(id).getKey().replace("@USER", removeNonAlphanumeric(userName)));
+							});
+			});
 	}
 
 	private void downloadUserImage(String userName, Picture picture) {
 		if (userPics.containsKey(userName))
 			return;
-		userPics.put(userName, null);
+		userPics.put(userName, userPics.get("no-photo.png"));		
 		new Thread(() -> {
 			picture.downloadImageAsync().thenAccept(image ->
 				Platform.runLater(() -> {
@@ -725,7 +904,7 @@ public class GameTikTok {
 					g2d.drawImage(image, 0, 0, null);
 					g2d.dispose();
 					Image i = SwingFXUtils.toFXImage(bufferedImage, null);
-					ImageUtils.saveImageToFile(i, "appdata/userPics/" + userName + ".png");
+					ImageUtils.saveImageToFile(i, "appdata/userPics/" + liveUserToConnect + "/" + userName + ".png");
 					userPics.put(userName, roundedBordersImage(i));
 				}));
 			}).start();
@@ -784,63 +963,104 @@ public class GameTikTok {
 	}
 	
 	private void dropRandomTileBomb(String userName, int quant) {
-		dropRandomTileStuff(userName, quant, false, passThrough, t -> Bomb.dropBombFromSky(t));
+		dropRandomTileStuff(userName, quant, false, passThrough, t -> Bomb.dropBombFromSky(t, 4));
+	}
+
+	private void dropRandomTileBomb(String userName, BombType bombType, int quant) {
+		dropRandomTileStuff(userName, quant, false, passThrough, t -> Bomb.dropBombFromSky(t, bombType, 4));
+	}
+
+	private void dropRandomTileBomb(String userName, int fireRange, int quant) {
+		dropRandomTileStuff(userName, quant, false, passThrough, t -> Bomb.dropBombFromSky(t, fireRange));
+	}
+
+	private void dropRandomTileBomb(String userName, BombType bombType, int fireRange, int quant) {
+		dropRandomTileStuff(userName, quant, false, passThrough, t -> Bomb.dropBombFromSky(t, bombType, fireRange));
+	}
+	
+	private void setRandomTileMine(String userName) {
+		Platform.runLater(() -> MapSet.getRandomFreeTileAsync(passThrough, false, t -> !droppedWalls.contains(t) && !settedEntities.contains(t)).thenAccept(coord -> Bomb.addBomb(coord, BombType.LAND_MINE, 3)));
 	}
 
 	private void dropRandomTileStuff(String userName, int quant, boolean testCoord, Set<PassThrough> passThrough, Function<TileCoord, Entity> function) {
-		for (int n = 0; n < quant; n++) {
-			final int n2 = n;
-			MapSet.getRandomFreeTileAsync(passThrough, testCoord, t -> !droppedWalls.contains(t) && !settedEntities.contains(t)).thenAccept(coord -> {
-				if (coord != null) {
-					if (testCoord)
-						droppedWalls.add(coord.getNewInstance());
-					FrameTimerFX.createTimer("bombDrop@" + Main.uniqueTimerId++, n2 * 10, () -> {
-						Entity entity = function.apply(coord);
-						if (userName != null && entity != null) {
-							if (!userEntityOwner.containsKey(userName))
-								userEntityOwner.put(userName, new ArrayList<>());
-							userEntityOwner.get(userName).add(entity);
-						}
-						settedEntities.add(coord);
-						final TileCoord c = coord.getNewInstance();
-						DurationTimerFX.createTimer("removeSettedBomb@" + Main.uniqueTimerId++, displayAvatarDelay , () -> {
-							if (userName != null)
-								userEntityOwner.get(userName).remove(entity);
-							settedEntities.remove(c);
+		Platform.runLater(() -> {
+			for (int n = 0; n < quant; n++) {
+				final int n2 = n;
+				MapSet.getRandomFreeTileAsync(passThrough, testCoord, t -> !droppedWalls.contains(t) && !settedEntities.contains(t)).thenAccept(coord -> {
+					if (coord != null) {
+						if (testCoord)
+							droppedWalls.add(coord.getNewInstance());
+						FrameTimerFX.createTimer("bombDrop@" + Main.uniqueTimerId++, n2 * 10, () -> {
+							Entity entity = function.apply(coord);
+							if (userName != null && entity != null) {
+								if (!userEntityOwner.containsKey(userName))
+									userEntityOwner.put(userName, new LinkedList<>());
+								userEntityOwner.get(userName).add(entity);
+							}
+							settedEntities.add(coord);
+							final TileCoord c = coord.getNewInstance();
+							DurationTimerFX.createTimer("removeSettedBomb@" + Main.uniqueTimerId++, displayAvatarDelay , () -> {
+								if (userName != null)
+									userEntityOwner.get(userName).remove(entity);
+								settedEntities.remove(c);
+							});
 						});
-					});
-				}
-			});
-		}
+					}
+				});
+			}
+		});
 	}
 
 	private void dropCpu(String userName) {
-		dropCpu(userName, 1, null);
+		dropCpu(userName, 1, true, null);
 	}
 
 	private void dropCpu(String userName, ItemType ... initialItens) {
-		dropCpu(userName, 1, initialItens);
+		dropCpu(userName, 1, true, initialItens);
 	}
 	
 	private void dropCpu(String userName, int rounds) {
-		dropCpu(userName, rounds, null);
+		dropCpu(userName, rounds, true, null);
 	}
 
 	private void dropCpu(String userName, int rounds, ItemType ... initialItens) {
+		dropCpu(userName, rounds, true, initialItens);
+	}
+	
+	private void dropCpu(String userName, boolean updateIniFile) {
+		dropCpu(userName, 1, updateIniFile, null);
+	}
+
+	private void dropCpu(String userName, boolean updateIniFile, ItemType ... initialItens) {
+		dropCpu(userName, 1, updateIniFile, initialItens);
+	}
+	
+	private void dropCpu(String userName, int rounds, boolean updateIniFile) {
+		dropCpu(userName, rounds, updateIniFile, null);
+	}
+
+	private void dropCpu(String userName, int rounds, boolean updateIniFile, ItemType ... initialItens) {
 		MapSet.getRandomFreeTileAsync().thenAccept(coord -> {
-			List<ItemType> list = null;
-			if (initialItens != null) {
-				list = new ArrayList<>();
-				for (ItemType item : initialItens)
-					list.add(item);
-			}
-			BomberMan bomber = BomberMan.dropNewCpu(coord, 1, pallete, CpuDificult.VERY_HARD, 180, list);
 			if (!bomberMans.containsKey(userName))
-				bomberMans.put(userName, new ArrayList<>());
-			bomberMans.get(userName).add(new FixedBomberMan(bomber, userName, rounds));
-			if (++pallete == 17)
-				pallete = 0;
+				bomberMans.put(userName, new LinkedList<>());
+			FixedBomberMan fixedBomber;
+			bomberMans.get(userName).add(fixedBomber = new FixedBomberMan(userName, rounds, coord, 1, getNextPallete(1), CpuDificult.VERY_HARD));
+			if (updateIniFile)
+				updateFixedBomberMansOnIniFile();
+			if (initialItens != null) {
+				for (ItemType item : initialItens)
+					fixedBomber.getBomberMan().getItemList().add(item);
+				fixedBomber.getBomberMan().updateStatusByItems();
+			}
 		});
+	}
+
+	private void updateFixedBomberMansOnIniFile() {
+		if (fixedBombersIniFile.sectionExists(liveUserToConnect))
+			fixedBombersIniFile.clearSection(liveUserToConnect);
+		for (String user : new ArrayList<>(bomberMans.keySet()))
+			for (FixedBomberMan fixedBomber : bomberMans.get(user))
+				fixedBombersIniFile.write(liveUserToConnect, user, fixedBomber.toString());
 	}
 
 	public static void speech(String string) {
@@ -865,12 +1085,24 @@ public class GameTikTok {
 		if (liveClient != null)
 			liveClient.disconnect();
 	}
+	
+	public static Integer getCurrentPalleteIndex(int bomberManIndex) {
+		return pallete;
+	}
+
+	public static int getNextPallete(int bomberManIndex) {
+		int p = pallete;
+		if (++pallete == 17)
+			pallete = 0;
+		return p;
+	}
 
 	public boolean addNewPlayer(BomberMan bomber) {
-		List<String> users = new ArrayList<>(userPics.keySet());
+		List<String> users = new LinkedList<>(userPics.keySet());
 		for (String user : bomberMans.keySet())
 			if (userNames.contains(user))
 				users.remove(user);
+		users.sort((s1, s2) -> s1.compareTo(s2));
 		users.remove("Random CPU");
 		users.remove("GM");
 		users.add(0, "Random CPU");
@@ -879,7 +1111,7 @@ public class GameTikTok {
 		if (user == null)
 			user = "Random CPU";
 		if (!bomberMans.containsKey(user))
-			bomberMans.put(user, new ArrayList<>());
+			bomberMans.put(user, new LinkedList<>());
 		bomberMans.get(user).add(new FixedBomberMan(bomber, user, -1));
 		return ok;
 	}
@@ -896,7 +1128,7 @@ public class GameTikTok {
 					if (fixedBomber.getBomberMan() == player.getBomberMan()) {
 						String user = fixedBomber.getUserName();
 						fixedBomber.setUserName("Random CPU");
-						List<FixedBomberMan> list2 = new ArrayList<>(bomberMans.get(user));
+						List<FixedBomberMan> list2 = new LinkedList<>(bomberMans.get(user));
 						if (bomberMans.containsKey("Random CPU"))
 							list2.addAll(bomberMans.get("Random CPU"));
 						bomberMans.put("Random CPU", list2);
@@ -907,7 +1139,7 @@ public class GameTikTok {
 		JInputEX.setOnJoystickDisconnectedEvent(device -> {
 			if (!Main.close)
 				Platform.runLater(() -> {
-					for (Player player : new ArrayList<>(Player.getPlayers()))
+					for (Player player : new LinkedList<>(Player.getPlayers()))
 						if (player.getDinputDevice() == device)
 							consumer.accept(device.getName(), player);
 				});
@@ -915,7 +1147,7 @@ public class GameTikTok {
 		JXInputEX.setOnJoystickDisconnectedEvent(device -> {
 			if (!Main.close)
 				Platform.runLater(() -> {
-					for (Player player : new ArrayList<>(Player.getPlayers()))
+					for (Player player : new LinkedList<>(Player.getPlayers()))
 						if (player.getXinputDevice() == device) 
 							consumer.accept(device.getJoystickName(), player);
 				});
@@ -958,14 +1190,89 @@ class Score {
 
 class FixedBomberMan {
 	
-	private BomberMan bomberMan;
 	private String userName;
+	private BomberMan bomberMan;
+	private int bomberManIndex;
+	private int palleteIndex;
 	private int leftRounds;
+	private CpuDificult dificult;
+
+	public FixedBomberMan(String userName, int leftRounds, int bomberManIndex, int palleteIndex) {
+		set(null, userName, leftRounds, null, bomberManIndex, palleteIndex, null);
+	}
+
+	public FixedBomberMan(String userName, int leftRounds, int bomberManIndex, int palleteIndex, CpuDificult dificult) {
+		set(null, userName, leftRounds, null, bomberManIndex, palleteIndex, dificult);
+	}
+	
+	public FixedBomberMan(String userName, int leftRounds, TileCoord coord, int bomberManIndex, int palleteIndex) {
+		set(null, userName, leftRounds, coord, bomberManIndex, palleteIndex, null);
+	}
+
+	public FixedBomberMan(String userName, int leftRounds, TileCoord coord, int bomberManIndex, int palleteIndex, CpuDificult dificult) {
+		set(null, userName, leftRounds, coord, bomberManIndex, palleteIndex, dificult);
+	}
 	
 	public FixedBomberMan(BomberMan bomberMan, String userName, int leftRounds) {
+		set(bomberMan, userName, leftRounds, null, null, null, null);
+	}
+
+	public FixedBomberMan(BomberMan bomberMan, String userName, int leftRounds, TileCoord coord, Integer bomberManIndex, Integer palleteIndex, CpuDificult dificult) {
+		set(bomberMan, userName, leftRounds, coord, bomberManIndex, palleteIndex, dificult);
+	}
+	
+	private void set(BomberMan bomberMan, String userName, int leftRounds, TileCoord coord, Integer bomberManIndex, Integer palleteIndex, CpuDificult dificult) {
+		if (coord == null)
+			coord = MapSet.getInitialPlayerPosition(BomberMan.getTotalBomberMans()).getTileCoordFromCenter();
+		if (bomberMan == null) {
+			if (dificult != null)
+				bomberMan = BomberMan.dropNewCpu(coord, bomberManIndex, palleteIndex, dificult);
+			else {
+				int n = BomberMan.getTotalBomberMans();
+				bomberMan = BomberMan.addBomberMan(bomberManIndex, palleteIndex);
+				Player.addPlayer();
+				Player.getPlayer(n).setBomberMan(bomberMan);
+			}
+			this.bomberManIndex = bomberManIndex;
+			this.palleteIndex = palleteIndex;
+		}
+		else {
+			this.bomberManIndex = bomberMan.getBomberIndex();
+			this.palleteIndex = bomberMan.getPalleteIndex();
+		}
 		this.bomberMan = bomberMan;
+		this.dificult = dificult;
 		this.userName = userName;
 		this.leftRounds = leftRounds;
+		bomberMan.setInvencibleFrames(300);
+		int maxItens = 0;
+		BomberMan b = null;
+		for (BomberMan bomber : BomberMan.getBomberManList())
+			if (bomber.getItemList().size() > maxItens) {
+				b = bomber;
+				maxItens = b.getItemList().size();
+			}
+		if (b != null) {
+			for (ItemType type : new ArrayList<>(b.getItemList()))
+				bomberMan.getItemList().add(type);
+			bomberMan.updateStatusByItems();
+		}
+		if (palleteIndex >= GameTikTok.getCurrentPalleteIndex(bomberManIndex))
+			GameTikTok.getNextPallete(bomberManIndex);
+	}
+	
+	public FixedBomberMan(String userName, String fromIniData) {
+		String[] split = fromIniData.split("¡");
+		bomberManIndex = Integer.parseInt(split[0]);
+		palleteIndex = Integer.parseInt(split[1]);
+		leftRounds = split.length < 3 ? -1 : Integer.parseInt(split[2]);
+		dificult = split.length < 4 || split[3].equals("-") ? null : CpuDificult.valueOf(split[3]);
+		TileCoord coord = MapSet.getInitialPlayerPosition(BomberMan.getTotalBomberMans()).getTileCoordFromCenter();
+		set(null, userName, leftRounds, coord.getNewInstance(), bomberManIndex, palleteIndex, dificult);
+	}
+	
+	public boolean isCpu() {
+		return dificult != null;
 	}
 	
 	public BomberMan getBomberMan() {
@@ -987,9 +1294,26 @@ class FixedBomberMan {
 	public void setLeftRounds(int rounds) {
 		leftRounds = rounds;
 	}
+	
+	public int getBomberManIndex() {
+		return bomberManIndex;
+	}
 
+	public CpuDificult getDificult() {
+		return dificult;
+	}
+
+	public int getPalleteIndex() {
+		return palleteIndex;
+	}
+	
 	public void decLeftRounds() {
 		leftRounds--;
+	}
+	
+	@Override
+	public String toString() {
+		return bomberManIndex + "¡" + palleteIndex + "¡" + leftRounds + "¡" + (dificult == null ? "-" : dificult.name());
 	}
 	
 }

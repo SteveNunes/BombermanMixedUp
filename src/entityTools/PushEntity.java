@@ -74,7 +74,7 @@ public class PushEntity {
 		TileCoord coord = entity.getTileCoord().getNewInstance();
 		do {
 			coord.incCoordsByDirection(direction);
-			if (!MapSet.tileIsFree(coord) || !MapSet.haveTilesOnCoord(coord) || Entity.haveAnyEntityAtCoord(coord))
+			if (!MapSet.tileIsFree(coord, entity.getPassThrough()) || !MapSet.haveTilesOnCoord(coord) || Entity.haveAnyEntityAtCoord(coord))
 				direction = null;
 		}
 		while (direction != null && !coord.equals(targetTile));

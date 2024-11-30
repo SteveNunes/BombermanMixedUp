@@ -27,7 +27,6 @@ import enums.StageObjectives;
 import enums.TileProp;
 import frameset.FrameSet;
 import frameset.Tags;
-import gui.GameTikTok;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.paint.Color;
@@ -337,11 +336,17 @@ public class Entity extends Position {
 	public boolean isInvencible() {
 		return MapSet.stageIsCleared() || invencibleFrames != 0;
 	}
+	
+	public int getInvencibleFrames() {
+		return invencibleFrames;
+	}
 
 	public void setInvencibleFrames(int frames) {
 		invencibleFrames = frames;
-		if (frames > 0)
+		if (frames >= 0)
 			blinkingFrames = frames;
+		else
+			blinkingFrames = 0;
 	}
 
 	public void removeInvencibleFrames() {
@@ -468,6 +473,10 @@ public class Entity extends Position {
 
 	public void clearPassThrough() {
 		passThrough.clear();
+	}
+
+	public void setPassThrough(Set<PassThrough> passThrough) {
+		this.passThrough = new HashSet<>(passThrough);
 	}
 
 	private void setPassThrough(PassThrough passThrough, boolean state) {
@@ -1500,7 +1509,7 @@ public class Entity extends Position {
 	public void pushEntity(Entity entity, TileCoord targetTile, Double startStrenght, Double decStrenght, Direction direction, Consumer<Entity> onStopEvent, String triggerSound, String soundWhenHits) {
 		if (triggerSound != null)
 			Sound.playWav(this, triggerSound);
-		entityTools.PushEntity pushEntity = new entityTools.PushEntity(entity, startStrenght, decStrenght, direction);
+		PushEntity pushEntity = new PushEntity(entity, startStrenght, decStrenght, direction);
 		pushEntity.setOnStopEvent(e -> {
 			if (soundWhenHits != null)
 				Sound.playWav(this, soundWhenHits);

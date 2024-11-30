@@ -211,7 +211,9 @@ public class Item extends Entity {
 		}
 
 		for (Item item : tempItems) {
-			if (!item.isInvencible() &&
+			if (MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.INSTAKILL))
+				item.forceDestroy();
+			else if (!item.isInvencible() &&
 					(MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.DAMAGE_ITEM) ||
 					 MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.EXPLOSION))) {
 						if (!item.getCurrentFrameSetName().equals("StandFrameSet"))
@@ -359,7 +361,7 @@ public class Item extends Entity {
 				item.removeShadow();
 				item.unsetGhosting();
 				Sound.playWav(item, "ItemBounce");
-				putOnMap(coord, item);
+				putOnMap(item.getTileCoordFromCenter(), item);
 				item.setFrameSet("StandFrameSet");
 			}
 			else

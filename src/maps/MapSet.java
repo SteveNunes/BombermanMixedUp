@@ -265,9 +265,9 @@ public abstract class MapSet {
 					stageTimerPauseDuration--;
 				else if (stageTimeInSecs > 0)
 					stageTimeInSecs--;
-				if (stageIsCleared() || (getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && stageObjectiveIsCleared()))
+				if (stageIsCleared() || (getStageClearCriterias() != null && getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && stageObjectiveIsCleared()))
 					DurationTimerFX.stopTimer("StageTimer");
-				else if (getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && !hurryUpIsActive() && stageTimeInSecs != null && hurryUpTimeInSecs != null && getMapTimeLeftInSecs() <= hurryUpTimeInSecs)
+				else if (getStageClearCriterias() != null && getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && !hurryUpIsActive() && stageTimeInSecs != null && hurryUpTimeInSecs != null && getMapTimeLeftInSecs() <= hurryUpTimeInSecs)
 					setHurryUpState(true);
 			});
 		else
@@ -944,6 +944,8 @@ public abstract class MapSet {
 			return false;
 		Entity en = Entity.haveAnyEntityAtCoord(coord, entity) ? Entity.getFirstEntityFromCoord(coord) : null;
 		for (TileProp prop : new ArrayList<>(getTileProps(coord))) {
+			if (prop == TileProp.MIN_SCREEN_TILE_LIMITER || prop == TileProp.MAX_SCREEN_TILE_LIMITER)
+				return false;
 			if (entity != null && entity.getElevation() == Elevation.ON_GROUND) {
 				if ((entity instanceof Bomb && prop == TileProp.GROUND_NO_BOMB) ||
 						(entity instanceof Brick && prop == TileProp.GROUND_NO_BRICK) ||

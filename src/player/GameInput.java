@@ -35,7 +35,6 @@ public class GameInput {
 	}
 	
 	public static void close() {
-		DurationTimerFX.stopTimer("PoolJoysticksTimer");
 		for (Player player : Player.getPlayers())
 			player.saveConfigs();
 		JInputEX.closeAllJoysticks();
@@ -45,7 +44,7 @@ public class GameInput {
 		DurationTimerFX.stopTimer("PoolJoysticksTimer");
 		JInputEX.init();
 		JXInputEX.refreshJoysticks();
-		xinputList = null;//JXInputEX.getJoystickList();
+		xinputList = JXInputEX.getJoystickList();
 		dinputList = JInputEX.getJoysticks();
 		DurationTimerFX.createTimer("PoolJoysticksTimer", Duration.millis(1), 0, () -> {
 			JInputEX.pollAllJoysticks();

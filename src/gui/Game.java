@@ -86,8 +86,8 @@ public class Game {
 		Player player = Player.getPlayer(n);
 		boolean[] done = { false };
 		if ((bomber = player.getBomberMan()) == null) {
-			bomber = BomberMan.addBomberMan(1, BomberMan.getTotalBomberMans());
-			bomber.setPosition(MapSet.getInitialPlayerPosition(BomberMan.getTotalBomberMans() - 1));
+			bomber = BomberMan.addBomberMan(1, n);
+			bomber.setPosition(MapSet.getInitialPlayerPosition(n));
 			player.setBomberMan(bomber);
 		}
 		if (Main.gameTikTok != null && !Main.gameTikTok.addNewPlayer(bomber)) {

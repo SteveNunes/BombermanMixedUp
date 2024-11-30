@@ -3,6 +3,7 @@ package tools;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import drawimage_stuffs.DrawImageEffects;
@@ -33,6 +34,29 @@ public abstract class Tools {
 
 	public static FPSHandler getFPSHandler() {
 		return fpsHandler;
+	}
+
+	public static void iterateInsideCircleArea(TileCoord center, int radius, Consumer<TileCoord> consumer) {
+		iterateInsideElliticArea(center, radius, radius, consumer);
+	}
+	
+	public static void iterateInsideElliticArea(TileCoord center, int radiusX, int radiusY, Consumer<TileCoord> consumer) {
+		for (int y = center.getY() - radiusY; y <= center.getY() + radiusY; y++)
+			for (int x = center.getX() - radiusX; x <= center.getX() + radiusX; x++) {
+				int dx = x - center.getX(), dy = y - center.getY();
+				if ((dx * dx) / (double) (radiusX * radiusX) + (dy * dy) / (double) (radiusY * radiusY) <= 1)
+					consumer.accept(new TileCoord(x, y));
+			}
+	}
+
+	public static void iterateInsideSquareArea(TileCoord center, int size, Consumer<TileCoord> consumer) {
+		iterateInsideRectangleArea(center, size, size, consumer);
+	}
+
+	public static void iterateInsideRectangleArea(TileCoord center, int width, int height, Consumer<TileCoord> consumer) {
+		for (int y = center.getY() - height; y <= center.getY() + height; y++)
+			for (int x = center.getX() - width; x <= center.getX() + width; x++)
+				consumer.accept(new TileCoord(x, y));
 	}
 	
 	public static <T> void moveItemTo(List<T> list, T item, int index) {
@@ -127,11 +151,11 @@ public abstract class Tools {
 			out:
 			for (TileCoord c = coord.getNewInstance().incCoordsByDirection(dir); distance-- > 0 && MapSet.haveTilesOnCoord(c); c.incCoordsByDirection(dir)) {
 				if (!MapSet.tileIsFree(c, ignores)) {
-					if ((types.contains(findType = FindType.BOMB) && Bomb.haveBombAt(entity, c)) ||
-							(types.contains(findType = FindType.BRICK) && Brick.haveBrickAt(c)) ||
-							(types.contains(findType = FindType.GOOD_ITEM) && Item.haveItemAt(c) && !Item.getItemAt(c).getItemType().isBadItem()) ||
-							(types.contains(findType = FindType.BAD_ITEM) && Item.haveItemAt(c) && Item.getItemAt(c).getItemType().isBadItem()) ||
+					if ((types.contains(findType = FindType.GOOD_ITEM) && Item.haveItemAt(c) && !Item.getItemAt(c).getItemType().isBadItem()) ||
 							(types.contains(findType = FindType.ITEM) && Item.haveItemAt(c)) ||
+							(types.contains(findType = FindType.BAD_ITEM) && Item.haveItemAt(c) && Item.getItemAt(c).getItemType().isBadItem()) ||
+							(types.contains(findType = FindType.BOMB) && Bomb.haveBombAt(entity, c)) ||
+							(types.contains(findType = FindType.BRICK) && Brick.haveBrickAt(c)) ||
 							(types.contains(findType = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, Monster.class)) ||
 							(types.contains(findType = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, BomberMan.class)))
 								list.add(new FindProps(findType, c.getNewInstance(), dir));
@@ -209,41 +233,37 @@ public abstract class Tools {
 	}
 
 	public static List<FindProps> findInRect(Entity entity, TileCoord coord, Entity ignoreEntity, FindInRectType findType, int radiusInTiles, Set<FindType> types, Set<PassThrough> ignores) {
-		radiusInTiles--;
 		List<FindProps> list = new ArrayList<>();
-		TileCoord coord2 = new TileCoord();
-		for (int radius = 1; radius <= radiusInTiles; radius++)
-			for (int y = coord.getY() - radius; y <= coord.getY() + radius; y++)
-				for (int x = coord.getX() - radius; x <= coord.getX() + radius; x++)
-					if (x == coord.getX() - radius || x == coord.getX() + radius ||
-							y == coord.getY() - radius || y == coord.getY() + radius) {
-									int dx = x - coord.getX(), dy = y - coord.getY();
-									FindType ft = null; 
-									if (findType == null || findType == FindInRectType.RECTANGLE_AREA || (dx * dx) / (radiusInTiles * radiusInTiles) + (dy * dy) / (radiusInTiles * radiusInTiles) <= 1) {
-										coord2.setCoords(x, y);
-										boolean found = false;
-										if (!MapSet.tileIsFree(coord2, ignores)) {
-											if ((types.contains(ft = FindType.BOMB) && Bomb.haveBombAt(entity, coord2)) ||
-													(types.contains(ft = FindType.BRICK) && Brick.haveBrickAt(coord2)) ||
-													(types.contains(ft = FindType.ITEM) && Item.haveItemAt(coord2)) ||
-													(types.contains(ft = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, Monster.class)) ||
-													(types.contains(ft = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, BomberMan.class)))
-												found = true;
-										}
-										else if (types.contains(ft = FindType.EMPTY) ||
-												(types.contains(ft = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof Monster) ||
-												(types.contains(ft = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof BomberMan))
-											found = true;
-										if (found) {
-											Function<TileCoord, Boolean> tileIsFree = t -> {
-												return MapSet.tileIsFree(t, ignores) || t.equals(coord) || t.equals(coord2);
-											};
-											PathFinder pf = new PathFinder(coord, coord2, Direction.DOWN, tileIsFree);
-											if (pf.pathWasFound())
-												list.add(new FindProps(ft, coord2.getNewInstance(), pf.getNextDirectionToGo()));
-										}
-									}
+		Consumer<TileCoord> consumer = coord2 -> {
+			FindType ft = null; 
+			boolean found = false;
+			if (!MapSet.tileIsFree(coord2, ignores)) {
+				if ((types.contains(ft = FindType.BOMB) && Bomb.haveBombAt(entity, coord2)) ||
+						(types.contains(ft = FindType.BRICK) && Brick.haveBrickAt(coord2)) ||
+						(types.contains(ft = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, Monster.class)) ||
+						(types.contains(ft = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, BomberMan.class)))
+					found = true;
 			}
+			else if (types.contains(ft = FindType.EMPTY) ||
+					(types.contains(ft = FindType.GOOD_ITEM) && Item.haveItemAt(coord2) && !Item.getItemAt(coord2).getItemType().isBadItem()) ||
+					(types.contains(ft = FindType.ITEM) && Item.haveItemAt(coord2)) ||
+					(types.contains(ft = FindType.BAD_ITEM) && Item.haveItemAt(coord2) && Item.getItemAt(coord2).getItemType().isBadItem()) ||
+					(types.contains(ft = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof Monster) ||
+					(types.contains(ft = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof BomberMan))
+				found = true;
+			if (found) {
+				Function<TileCoord, Boolean> tileIsFree = t -> {
+					return MapSet.tileIsFree(t, ignores) || t.equals(coord) || t.equals(coord2);
+				};
+				PathFinder pf = new PathFinder(coord, coord2, Direction.DOWN, tileIsFree);
+				if (pf.pathWasFound())
+					list.add(new FindProps(ft, coord2.getNewInstance(), pf.getNextDirectionToGo()));
+			}
+		};
+		if (findType == null || findType == FindInRectType.RECTANGLE_AREA)
+			iterateInsideRectangleArea(coord, radiusInTiles, radiusInTiles, consumer);
+		else
+			iterateInsideElliticArea(coord, radiusInTiles, radiusInTiles, consumer);
 		return list.isEmpty() ? null : list;
 	}
 

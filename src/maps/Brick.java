@@ -10,6 +10,7 @@ import entities.Bomb;
 import entities.BomberMan;
 import entities.Entity;
 import entities.Monster;
+import entityTools.PushEntity;
 import enums.Curse;
 import enums.Direction;
 import enums.Elevation;
@@ -196,7 +197,9 @@ public class Brick extends Entity {
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
 		super.run(gc, isPaused);
-		if (!isBlockedMovement() && tileWasChanged()) {
+		if (MapSet.tileContainsProp(getTileCoordFromCenter(), TileProp.INSTAKILL))
+			destroy();
+		else if (!isBlockedMovement() && tileWasChanged()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
 			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BRICK);
@@ -242,7 +245,7 @@ public class Brick extends Entity {
 		TileCoord c = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction);
 		if (getPushEntity() == null && (Brick.haveBrickAt(c) || MapSet.tileIsFree(c))) {
 			Sound.playWav(kickSound);
-			entityTools.PushEntity pushEntity = new entityTools.PushEntity(this, speed, direction);
+			PushEntity pushEntity = new PushEntity(this, speed, direction);
 			pushEntity.setOnStopEvent(e -> {
 				Sound.playWav(slamSound);
 				setShake(2d, -0.05, 0d);
@@ -396,7 +399,7 @@ public class Brick extends Entity {
 				MapSet.getCurrentLayer().removeAllTilesFromCoord(coord2);
 				Tile tile = new Tile(MapSet.getCurrentLayer(), (int)MapSet.getWallTile().getX(), (int)MapSet.getWallTile().getY(), (int)coord2.getPosition().getX(), (int)coord2.getPosition().getY());
 				MapSet.getCurrentLayer().addTile(tile);
-				MapSet.getCurrentLayer().addTileProp(coord2, TileProp.WALL, TileProp.EXPLOSION);
+				MapSet.getCurrentLayer().addTileProp(coord2, TileProp.WALL, TileProp.INSTAKILL);
 				if (MapSet.getCurrentLayer().tileHaveTags(coord2))
 					MapSet.getCurrentLayer().clearTileTags(coord2);
 				MapSet.getCurrentLayer().buildLayer();

@@ -66,7 +66,7 @@ public enum TileProp {
 	                                     // pulado para fora da plataforma
 	MAP_EDGE(46), // Borda do mapa que dá para cair (Personagem fica se equilibrando)
 	STAGE_CLEAR(47), // Tile de Stage Clear
-	MOVING_BRICK(48), // Tile do tipo parede, que se move 1 bloco quando recebe uma explosão
+	INSTAKILL(48), // Tile que mata tudo sem excessões (basicamente onde cai o tile de parede)
 	RAIL_UL(52), // Trilho de curva de cima para a direita do BomberKart
 	RAIL_UR(53), // Trilho de curva BomberKart
 	RAIL_DL(54), // Trilho de curva BomberKart
@@ -93,13 +93,17 @@ public enum TileProp {
 	NO_TRIGGER_WHILE_HAVE_BRICK(76), // As Tags de tile só são disparadas se não houver tijolo no bloco atual
 	NO_TRIGGER_WHILE_HAVE_ITEM(77), // As Tags de tile só são disparadas se não houver item no bloco atual
 	NO_TRIGGER_WHILE_HAVE_BOMB(78), // As Tags de tile só são disparadas se não houver bomba no bloco atual
-	DAMAGE_PLAYER(79), DAMAGE_ENEMY(80), DAMAGE_BOMB(81), DAMAGE_BRICK(82), DAMAGE_ITEM(83);
+	DAMAGE_PLAYER(79),
+	DAMAGE_ENEMY(80),
+	DAMAGE_BOMB(81),
+	DAMAGE_BRICK(82),
+	DAMAGE_ITEM(83);
 	// NOTA: VAGOS: 49 50 51 61 62 63
 
 	@SuppressWarnings("serial")
 	private static Map<Elevation, List<TileProp>> cantCross = new HashMap<>() {{
-		put(Elevation.ON_GROUND, Arrays.asList(MIN_SCREEN_TILE_LIMITER, MAX_SCREEN_TILE_LIMITER, JUMP_OVER, WALL, HIGH_WALL, HOLE, DEEP_HOLE, WATER, DEEP_WATER, MAP_EDGE, MOVING_BRICK));
-		put(Elevation.FLYING, Arrays.asList(JUMP_OVER, WALL, HIGH_WALL, MOVING_BRICK));
+		put(Elevation.ON_GROUND, Arrays.asList(MIN_SCREEN_TILE_LIMITER, MAX_SCREEN_TILE_LIMITER, JUMP_OVER, WALL, HIGH_WALL, HOLE, DEEP_HOLE, WATER, DEEP_WATER, MAP_EDGE));
+		put(Elevation.FLYING, Arrays.asList(JUMP_OVER, WALL, HIGH_WALL));
 		put(Elevation.HIGH_FLYING, Arrays.asList(HIGH_WALL));
 	}};
 
@@ -155,7 +159,7 @@ public enum TileProp {
 		put(45, TELEPORT_FROM_FLOATING_PLATFORM);
 		put(46, MAP_EDGE);
 		put(47, STAGE_CLEAR);
-		put(48, MOVING_BRICK);
+		put(48, INSTAKILL);
 		put(52, RAIL_UL);
 		put(53, RAIL_UR);
 		put(54, RAIL_DL);

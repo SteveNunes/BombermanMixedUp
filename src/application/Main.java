@@ -1,5 +1,7 @@
 package application;
 
+import java.io.File;
+
 import enums.GameMode;
 import gui.ExplosionEditor;
 import gui.FrameSetEditor;
@@ -22,9 +24,7 @@ import tools.GameFonts;
 import tools.Materials;
 import tools.Sound;
 import tools.Tools;
-import util.DurationTimerFX;
-import util.FrameTimerFX;
-import util.IniFile;
+import util.Misc;
 
 public class Main extends Application {
 
@@ -53,7 +53,7 @@ public class Main extends Application {
 			stageMain = stage;
 			mainCanvas = null;
 			mainGc = null;
-			Sound.setMasterGain(0.5);
+			Sound.setMasterGain(0.2);
 			Position.setGlobalTileSize(TILE_SIZE);
 			TileCoord.setGlobalTileSize(TILE_SIZE);
 			Materials.loadFromFiles();
@@ -61,43 +61,43 @@ public class Main extends Application {
 			GameInput.init();
 			Tools.loadStuffs();
 			if (GAME_MODE == GameMode.FRAMESET_EDITOR) {
-				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/FrameSetEditorView.fxml"));
+				FXMLLoader loader = new FXMLLoader(new File("./src/gui/FrameSetEditorView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				frameSetEditor = loader.getController();
 				frameSetEditor.init();
 			}
 			else if (GAME_MODE == GameMode.MAP_EDITOR) {
-				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/MapEditorView.fxml"));
+				FXMLLoader loader = new FXMLLoader(new File("./src/gui/MapEditorView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				mapEditor = loader.getController();
 				mapEditor.init();
 			}
 			else if (GAME_MODE == GameMode.EXPLOSION_EDITOR) {
-				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/ExplosionEditorView.fxml"));
+				FXMLLoader loader = new FXMLLoader(new File("./src/gui/ExplosionEditorView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				explosionEditor = loader.getController();
 				explosionEditor.init();
 			}
 			else if (GAME_MODE == GameMode.PALLETE_EDITOR) {
-				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/PalleteEditorView.fxml"));
+				FXMLLoader loader = new FXMLLoader(new File("./src/gui/PalleteEditorView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				palleteEditor = loader.getController();
 				palleteEditor.init();
 			}
 			else if (GAME_MODE == GameMode.GAME_TIKTOK) {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameTikTokView.fxml"));
-			sceneMain = new Scene(loader.load());
+				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GameTikTokView.fxml").toURI().toURL());
+				sceneMain = new Scene(loader.load());
 				gameTikTok = loader.getController();
 				gameTikTok.init();
 			}
 			else if (GAME_MODE == GameMode.GIFT_VIEWER) {
-				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GiftViewerView.fxml"));
+				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GiftViewerView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				giftViewer = loader.getController();
 				giftViewer.init();
 			}
 			else {
-				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameView.fxml"));
+				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GameView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				game = loader.getController();
 				game.init();
@@ -153,12 +153,10 @@ public class Main extends Application {
 	public static void close() {
 		close = true;
 		GameInput.close();
-		DurationTimerFX.close();
-		FrameTimerFX.close();
 		if (gameTikTok != null)
 			gameTikTok.disconnectTikTokLive();
+		Misc.runShutdownEvents();
 		Platform.exit();
-		IniFile.closeAllOpenedIniFiles();
 	}
 
 	public static void main(String[] args) {

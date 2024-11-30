@@ -12,14 +12,15 @@ import java.util.function.Function;
 import application.Main;
 import enums.BombType;
 import enums.CpuDificult;
+import enums.Curse;
 import enums.Direction;
 import enums.FindInRectType;
 import enums.FindType;
 import enums.GameInput;
-import enums.ItemType;
 import enums.PassThrough;
 import enums.TileProp;
 import gui.GameTikTok;
+import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import maps.Brick;
 import maps.Item;
@@ -28,9 +29,11 @@ import objmoveutils.TileCoord;
 import pathfinder.PathFinder;
 import pathfinder.PathFinderDistance;
 import pathfinder.PathFinderOptmize;
+import tools.Draw;
 import tools.FindProps;
 import tools.Tools;
 import util.DurationTimerFX;
+import util.Misc;
 import util.MyMath;
 
 public class CpuPlay {
@@ -51,24 +54,47 @@ public class CpuPlay {
 		put(Direction.LEFT, GameInput.LEFT);
 	}};
 	
-	private int dificult;
+	private CpuDificult dificult;
 	private BomberMan bomberMan;
 	private int pauseInFrames;
 	private PathFinder pathFinder;
 	private static long timerId = 0;
+	private TileCoord[] lastTileCoords;
+	private int lastTileCoordPos;
+	private List<FindProps> lastFounds;
 
 	public static boolean markTargets = true;
 
 	public CpuPlay(BomberMan bomberMan, CpuDificult dificult) {
 		super();
-		this.dificult = dificult.getValue();
+		this.dificult = dificult;
 		this.bomberMan = bomberMan;
 		pathFinder = null;
+		lastFounds = null;
 		pauseInFrames = 0;
+		lastTileCoords = new TileCoord[4];
+		lastTileCoordPos = 0;
 	}
 	
 	public void run() {
-		if (!Main.isFreeze() && !MapSet.stageObjectiveIsCleared() && !bomberMan.isBlockedMovement()) {
+		if (MapSet.stageObjectiveIsCleared() || MapSet.stageIsCleared()) {
+			releaseAllInputs();
+			setPathFinder(null);
+			pauseInFrames = 0;
+			return;
+		}
+		if (!Misc.alwaysTrue() && lastFounds != null) // Debug para sinalizar no que a CPU esta focada no momento
+			for (FindProps prop : lastFounds)
+				Draw.markTile(prop.getCoord(), Misc.blink(100) ? Color.LIGHTGREEN : Color.YELLOW);
+
+		// Dropa o ultimo item se for a MINA e ele só puder soltar 1 bomba por vez
+		if (bomberMan.getBombType() == BombType.LAND_MINE && bomberMan.getMaxBombs() == 1) {
+			releaseAllInputs();
+			pressButton(GameInput.E);
+			pauseInFrames = 30;
+			return;
+		}
+		if (!Main.isFreeze() && !bomberMan.isBlockedMovement()) {
 			// Se estiver em um tile perigoso, tenta encontrar uma forma de sair dele
 			if (isOverDangerTile()) {
 				pauseInFrames = 0;
@@ -79,17 +105,17 @@ public class CpuPlay {
 			else if (isStucked()) {
 				releaseAllInputs();
 				setPathFinder(null); // Se o PathFinder local estiver ativo, mas o personagem estiver preso, desativa o PathFinder local.
-				if (isInvencible()) // Se tiver preso e invencivel, soltar uma bomba para tentar se desprender
+				if (canSetBomb() && bomberMan.getInvencibleFrames() > 90 || bomberMan.getHitPoints() > 1) // Se tiver preso e invencivel ou ter coraçao, soltar uma bomba para tentar se desprender
 					pressButton(GameInput.B);
 			}
 			else if (!isMoving() || isPerfectlyBlockedDir() || tileWasChanged()) {
 				releaseAllInputs();
+				if (cpuIsPacing())
+					return;
 				// Se o PathFinder local estiver ativo, vira e anda para a próxima direção designada pelo PathFinder
 				if (tileWasChanged() && getPathFinder() != null) {
 					Direction dir = getPathFinder().getNextDirectionToGoAndRemove();
 					if (dir != null && tileIsFree(getCurrentTileCoord().getNewInstance().incCoordsByDirection(dir))) {
-						if (doSearchs())
-							return;
 						holdButton(dirToInput(dir));
 						return;
 					}
@@ -107,7 +133,7 @@ public class CpuPlay {
 							return;
 						}
 				// Solta uma bomba se ele estiver invencivel ou com coração extra em cima de uma explosão com algum player no alcance da explosão da bomba dele e que não esteja invencivel nem com coração extra
-				if ((isInvencible() || bomberMan.getHitPoints() > 1) && MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.EXPLOSION)) {
+				if (canSetBomb() && (bomberMan.getInvencibleFrames() > 90 || bomberMan.getHitPoints() > 1) && MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.EXPLOSION)) {
 					// MELHORAR QUANDO TIVER IMPLEMENTADO MONTARIA, pra ele tb fazer isso se ele estiver numa montaria
 					List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), FindType.PLAYER);
 					if (founds != null) {
@@ -118,11 +144,13 @@ public class CpuPlay {
 								break;
 							}
 						}
-						if (founds != null)
+						if (founds != null) {
+							lastFounds = founds;
 							pressButton(GameInput.B);
+						}
 					}
 				}
-				if (doSearchs())
+				if (doSearchs()) // Procura por coisas prõximas...
 					return;
 				// Se não estiver focado em algum item ou tijolo, tenta chegar perto de algum jogador acessivel
 				for (Entity entity : Entity.getEntityList())
@@ -132,25 +160,39 @@ public class CpuPlay {
 			}
 		}
 	}
+	
+	private boolean cpuIsPacing() { // Verifica se a Cpu esta andando de um lado pro outro sem parar entre 2 tiles
+		if (tileWasChanged())
+			lastTileCoords[lastTileCoordPos] = getCurrentTileCoord().getNewInstance();
+		if (lastTileCoords[lastTileCoordPos] != null && ++lastTileCoordPos == 4) {
+			lastTileCoordPos = 0;
+			if (lastTileCoords[0].equals(lastTileCoords[2]) && lastTileCoords[1].equals(lastTileCoords[3])) {
+				pauseInFrames = (int)MyMath.getRandom(60, 150);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public CpuDificult getDificult() {
+		return dificult;
+	}
 
 	private boolean doSearchs() {
+		// Procura por itens proximos e vai em direção a eles
+		if (checkForSomethingAround(FindType.GOOD_ITEM, 5, FindInRectType.RECTANGLE_AREA))
+			return true;
+		// Procura por tijolos proximos e vai em direção a eles
+		if (canSetBomb() && checkForSomethingAround(FindType.BRICK, 5, FindInRectType.RECTANGLE_AREA))
+			return true;
 		// Procura por outros jogadores ou tijolos ou itens ruins em linha reta para soltar uma bomba que o destrua.
 		if (checkForBricksAndBadItemsAndPlayersAround())			
-			return true;
-		// Procura por item ou tijolos proximos e vai em direção a eles
-		if (checkForSomethingAround(Set.of(FindType.GOOD_ITEM, FindType.BRICK), 5, FindInRectType.RECTANGLE_AREA))
 			return true;
 		return false;
 	}
 
 	private boolean isStucked() {
-		List<TileCoord> coords = Tools.getFreeTileCoordsAround(bomberMan, getCurrentTileCoord(), passThrough());
-		if (coords == null)
-			return true;
-		for (TileCoord coord : coords)
-			if (tileIsSafe(coord))
-				return false;
-		return true;
+		return Tools.getFreeTileCoordsAround(bomberMan, getCurrentTileCoord(), passThrough()) == null;
 	}
 
 	private boolean isOverDangerTile() {
@@ -163,7 +205,7 @@ public class CpuPlay {
 		if (pathFinder != null) {
 			if (Brick.haveBrickAt(getPathFinder().getTargetCoord()) ||
 					Entity.haveAnyEntityAtCoord(getCurrentTileCoord(), bomberMan) ||
-					Item.haveItemAt(getPathFinder().getTargetCoord()))
+					(Item.haveItemAt(getPathFinder().getTargetCoord()) && Item.getItemAt(getPathFinder().getTargetCoord()).getItemType().isBadItem()))
 						getPathFinder().removeLastCoordFromPath();
 			if (!getPathFinder().pathWasFound())
 				this.pathFinder = null;
@@ -203,13 +245,18 @@ public class CpuPlay {
 	private boolean checkForBricksAndBadItemsAndPlayersAround() {
 		if (!canSetBomb())
 			return false;
-		List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), Set.of(FindType.PLAYER, FindType.BRICK, FindType.BAD_ITEM));
+		HashSet<FindType> targets = new HashSet<>(Set.of(FindType.PLAYER));
+		if (canSetBomb())
+			targets.addAll(Set.of(FindType.BRICK, FindType.BAD_ITEM));
+		List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), targets);
 		if (founds != null)
 			for (FindProps found : founds)
 				if (!MapSet.tileContainsProp(found.getCoord(), TileProp.CPU_DANGER) &&
 						!MapSet.tileContainsProp(found.getCoord(), TileProp.CPU_DANGER_2) &&
-						findSafeSpotAndGo(getCurrentTileCoord(), found.getDir(), getFireRange(), false, t -> pressButton(GameInput.B), t -> tileIsSafe(t)))
+						findSafeSpotAndGo(getCurrentTileCoord(), found.getDir(), getFireRange(), false, t -> pressButton(GameInput.B), t -> tileIsSafe(t))) {
+							lastFounds = founds;
 							return true;
+				}
 		return false;
 	}
 
@@ -222,15 +269,10 @@ public class CpuPlay {
 		Function<TileCoord, Boolean> tileIsFree = t -> {
 			return tileIsSafe(t) || t.equals(founds.get(0).getCoord()) || t.equals(getCurrentTileCoord());
 		};
-		return founds != null && getPathFinder() == null && setPathFinder(new PathFinder(getCurrentTileCoord(), founds.get(0).getCoord(), getCurrentDir(), PathFinderDistance.SHORTEST, PathFinderOptmize.OPTIMIZED, tileIsFree));
-	}
-
-	private boolean findSafeSpotAndGo(TileCoord coord, Direction direction, boolean ignoreUnsafeSpots) {
-		return findSafeSpotAndGo(coord, direction, 0, ignoreUnsafeSpots, null, null);
-	}
-
-	private boolean findSafeSpotAndGo(TileCoord coord, Direction direction, int minTileDistanceFromCoord, boolean ignoreUnsafeSpots, Consumer<TileCoord> onLeaveTileEvent) {
-		return findSafeSpotAndGo(coord, direction, 0, ignoreUnsafeSpots, onLeaveTileEvent, null);
+		boolean b = founds != null && getPathFinder() == null && setPathFinder(new PathFinder(getCurrentTileCoord(), founds.get(0).getCoord(), getCurrentDir(), PathFinderDistance.SHORTEST, PathFinderOptmize.OPTIMIZED, tileIsFree));
+		if (b)
+			lastFounds = founds;
+		return b;
 	}
 
 	private boolean findSafeSpotAndGo(TileCoord coord, Direction direction, boolean ignoreUnsafeSpots, Function<TileCoord, Boolean> tileIsFreeFuncForPathFinder) {
@@ -313,18 +355,16 @@ public class CpuPlay {
 	}
 	
 	private boolean canSetBomb() {
-		boolean haveGlove = bomberMan.haveItem(ItemType.POWER_GLOVE);
-		boolean haveHyperGlove = bomberMan.haveItem(ItemType.HYPER_GLOVE);
-		boolean haveAnyGlove = haveGlove || haveHyperGlove;
-		return bomberMan.getMaxBombs() > 0 && !Bomb.haveBombAt(getCurrentTileCoord()) && tileIsSafe(getCurrentTileCoord()) &&
-				(!haveAnyGlove || !Entity.haveAnyEntityAtCoord(getCurrentTileCoord(), bomberMan)) &&
-				(!haveHyperGlove || !Brick.haveBrickAt(getCurrentTileCoord()));
+		return bomberMan.getMaxBombs() > 0 && tileIsSafe(getCurrentTileCoord()) &&
+				(!bomberMan.isCursed() || bomberMan.getCurse() != Curse.NO_BOMB) &&
+				!Bomb.haveBombAt(getCurrentTileCoord()) && !Brick.haveBrickAt(getCurrentTileCoord());
 	}
-
+	
 	private void pressButton(GameInput button) {
 		if (pauseInFrames == 0) {
-			bomberMan.keyPress(button);
-			DurationTimerFX.createTimer("releaseButton-" + timerId++, Duration.millis(25), () -> releaseButton(button));
+			final GameInput button2 = button;
+			bomberMan.keyPress(button2);
+			DurationTimerFX.createTimer("releaseButton-" + timerId++, Duration.millis(25), () -> releaseButton(button2));
 		}
 	}
 
@@ -338,11 +378,12 @@ public class CpuPlay {
 	}
 	
 	private boolean isInvencible() {
-		return bomberMan.isInvencible();
+		return bomberMan.isInvencible() && (bomberMan.getInvencibleFrames() > 300 || bomberMan.getInvencibleFrames() < 0);
 	}
 
 	private boolean tileIsHalfSafe(TileCoord coord) {
-		return (isInvencible() || !MapSet.tileContainsProp(coord, TileProp.CPU_DANGER_2) || MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.CPU_DANGER_2)) && tileIsFree(coord);
+		return (isInvencible() || !MapSet.tileContainsProp(coord, TileProp.CPU_DANGER_2) || MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.CPU_DANGER_2)) && tileIsFree(coord) &&
+						(!Item.haveItemAt(coord) || !Item.getItemAt(coord).getItemType().isBadItem());
 	}
 	
 	private boolean tileIsSafe(TileCoord coord) {

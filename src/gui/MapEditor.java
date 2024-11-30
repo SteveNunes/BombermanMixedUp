@@ -1104,30 +1104,11 @@ public class MapEditor {
 		}
 		drawBlockTypeMark();
 		drawGridAndAim();
-		drawTileTagsOverCursor();
+		if (!checkBoxShowBlockType.isSelected())
+			Draw.drawTileTagsOverCursor(canvasMain, font, (int)canvasMouseDraw.x, (int)canvasMouseDraw.y, offsetX(), offsetY());
 		drawTileSetCanvas();
-		if (checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
-			Tile tile = MapSet.getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord);
-			if (tile != null) {
-				int x, y = tile.outY * Main.getZoom() + (Main.TILE_SIZE * Main.getZoom()) / 2 - 20 + offsetY();
-				gcMain.setFill(Color.LIGHTBLUE);
-				gcMain.setStroke(Color.BLACK);
-				gcMain.setFont(font);
-				gcMain.setLineWidth(3);
-				while (y + MapSet.getTotalTileProps(tile.getTileCoord()) * 20 >= canvasMain.getHeight() - 10)
-					y -= 10;
-				for (TileProp prop : MapSet.getTileProps(tile.getTileCoord())) {
-					String s = prop.name();
-					Text text = new Text(s);
-					ControllerUtils.setNodeFont(text, "Lucida Console", 15);
-					x = tile.outX * Main.getZoom() + offsetX();
-					while (x + (int) text.getBoundsInLocal().getWidth() + 60 >= canvasMain.getWidth())
-						x -= 20;
-					gcMain.strokeText(s, x, y += 20);
-					gcMain.fillText(s, x, y);
-				}
-			}
-		}
+		if (checkBoxShowBlockType.isSelected())
+			Draw.drawTilePropsOverCursor(canvasMain, font, (int)canvasMouseDraw.x, (int)canvasMouseDraw.y, offsetX(), offsetY());
 		if (playing)
 			return;
 		Arrays.asList(selection, tileSelection).forEach(rect -> {
@@ -1172,49 +1153,6 @@ public class MapEditor {
 		gcTileSet.fillRect(0, 0, canvasTileSet.getWidth(), canvasTileSet.getHeight());
 		Image i = MapSet.getTileSetImage();
 		gcTileSet.drawImage(i, 0, 0, i.getWidth(), i.getHeight(), 0, 0, i.getWidth() * zoomTileSet, i.getHeight() * zoomTileSet);
-	}
-
-	void drawTileTagsOverCursor() {
-		for (int y = 0; Misc.blink(50) && y < 200; y++)
-			for (int x = 0; x < 200; x++) {
-				TileCoord coord = new TileCoord(x, y);
-				if (haveTilesOnCoord(coord) && getCurrentLayer().tileHaveTags(coord)) {
-					gcMain.setStroke(Color.WHITESMOKE);
-					gcMain.setLineWidth(2);
-					gcMain.strokeRect(x * Main.getZoom() * Main.TILE_SIZE + offsetX(), y * Main.getZoom() * Main.TILE_SIZE + offsetY(), 16 * Main.getZoom(), 16 * Main.getZoom());
-				}
-			}
-		if (!checkBoxShowBlockType.isSelected() && getCurrentLayer().haveTilesOnCoord(canvasMouseDraw.tileCoord)) {
-			String tileTags;
-			if (getCurrentLayer().tileHaveTags(canvasMouseDraw.tileCoord))
-				tileTags = getCurrentLayer().getTileTags(canvasMouseDraw.tileCoord).toString();
-			else if (getCurrentLayer().getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord).getStringTags() != null)
-				tileTags = getCurrentLayer().getFirstBottomTileFromCoord(canvasMouseDraw.tileCoord).getStringTags();
-			else
-				return;
-			gcMain.setFill(Color.LIGHTBLUE);
-			gcMain.setStroke(Color.BLACK);
-			gcMain.setFont(font);
-			gcMain.setLineWidth(3);
-			String str[] = tileTags.split(tileTags.charAt(0) == '{' ? "\\," : " ");
-			int x, y = canvasMouseDraw.y + 20 - offsetY(), yy = str.length * 20;
-			while (y + yy >= canvasMain.getHeight() - 30)
-				y -= 20;
-			yy = 0;
-			for (String s : str) {
-				Text text = new Text(s);
-				ControllerUtils.setNodeFont(text, "Lucida Console", 15);
-				int w = (int) text.getBoundsInLocal().getWidth();
-				x = canvasMouseDraw.x - w / 2 - offsetX();
-				while (x + w >= canvasMain.getWidth() - 130)
-					x -= 10;
-				gcMain.strokeText(s, x, y + (yy += 20));
-				gcMain.fillText(s, x, y + yy);
-			}
-			gcMain.setStroke(Color.GREENYELLOW);
-			gcMain.setLineWidth(2);
-			gcMain.strokeRect(canvasMouseDraw.getCoordX() * Main.getZoom() * Main.TILE_SIZE + offsetX(), canvasMouseDraw.getCoordY() * Main.getZoom() * Main.TILE_SIZE + offsetY(), 16 * Main.getZoom(), 16 * Main.getZoom());
-		}
 	}
 
 	void setContextMenu() {

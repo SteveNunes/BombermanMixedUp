@@ -18,6 +18,7 @@ import enums.SpriteLayerType;
 import enums.TileProp;
 import fades.Fade;
 import gui.MapEditor;
+import gui.util.ControllerUtils;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
@@ -26,6 +27,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import light_spot_effects.ColoredLightSpot;
 import light_spot_effects.LightSpot;
 import maps.MapSet;
@@ -569,6 +571,69 @@ public abstract class Draw {
 		drawParamsList.get(layerType).add(drawParams);
 		return drawParams;
 	}
+	
+	public static void drawTilePropsOverCursor(Canvas canvas, Font font, int mouseX, int mouseY, int offsetX, int offsetY) {
+		TileCoord coord = new TileCoord(mouseX / Main.TILE_SIZE / Main.getZoom(), mouseY / Main.TILE_SIZE / Main.getZoom());
+		GraphicsContext gc = canvas.getGraphicsContext2D();
+		if (MapSet.getCurrentLayer().haveTilesOnCoord(coord)) {
+			Tile tile = MapSet.getFirstBottomTileFromCoord(coord);
+			if (tile != null) {
+				int x, y = tile.outY * Main.getZoom() + (Main.TILE_SIZE * Main.getZoom()) / 2 - 20 + offsetY;
+				gc.setFill(Color.LIGHTBLUE);
+				gc.setStroke(Color.BLACK);
+				gc.setFont(font);
+				gc.setLineWidth(3);
+				while (y + MapSet.getTotalTileProps(tile.getTileCoord()) * 20 >= canvas.getHeight() - 10)
+					y -= 10;
+				for (TileProp prop : MapSet.getTileProps(tile.getTileCoord())) {
+					String s = prop.name();
+					Text text = new Text(s);
+					ControllerUtils.setNodeFont(text, "Lucida Console", 15);
+					x = tile.outX * Main.getZoom() + offsetX;
+					while (x + (int) text.getBoundsInLocal().getWidth() + 60 >= canvas.getWidth())
+						x -= 20;
+					gc.strokeText(s, x, y += 20);
+					gc.fillText(s, x, y);
+				}
+			}
+		}
+	}
+
+	public static void drawTileTagsOverCursor(Canvas canvas, Font font, int mouseX, int mouseY, int offsetX, int offsetY) {
+		TileCoord coord = new TileCoord(mouseX / Main.TILE_SIZE / Main.getZoom(), mouseY / Main.TILE_SIZE / Main.getZoom());
+		GraphicsContext gc = canvas.getGraphicsContext2D();
+		if (MapSet.getCurrentLayer().haveTilesOnCoord(coord)) {
+			String tileTags;
+			if (MapSet.getCurrentLayer().tileHaveTags(coord))
+				tileTags = MapSet.getCurrentLayer().getTileTags(coord).toString();
+			else if (MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord).getStringTags() != null)
+				tileTags = MapSet.getCurrentLayer().getFirstBottomTileFromCoord(coord).getStringTags();
+			else
+				return;
+			gc.setFill(Color.LIGHTBLUE);
+			gc.setStroke(Color.BLACK);
+			gc.setFont(font);
+			gc.setLineWidth(3);
+			String str[] = tileTags.split(tileTags.charAt(0) == '{' ? "\\," : " ");
+			int x, y = mouseY + 20 - offsetY, yy = str.length * 20;
+			while (y + yy >= canvas.getHeight() - 30)
+				y -= 20;
+			yy = 0;
+			for (String s : str) {
+				Text text = new Text(s);
+				ControllerUtils.setNodeFont(text, "Lucida Console", 15);
+				int w = (int) text.getBoundsInLocal().getWidth();
+				x = mouseX - w / 2 - offsetX;
+				while (x + w >= canvas.getWidth() - 130)
+					x -= 10;
+				gc.strokeText(s, x, y + (yy += 20));
+				gc.fillText(s, x, y + yy);
+			}
+			gc.setStroke(Color.GREENYELLOW);
+			gc.setLineWidth(2);
+			gc.strokeRect(coord.getX() * Main.getZoom() * Main.TILE_SIZE + offsetX, coord.getY() * Main.getZoom() * Main.TILE_SIZE + offsetY, 16 * Main.getZoom(), 16 * Main.getZoom());
+		}
+	}
 
 	public static void drawBlockTypeMarks(GraphicsContext gc, int zoom, boolean showTilesWith2OrMoreSprites, boolean showTilesWith2OrMoreProps, boolean showTilesWith2OrMoreTags) {
 		drawBlockTypeMarks(gc, 0, 0, zoom, showTilesWith2OrMoreSprites, showTilesWith2OrMoreProps, showTilesWith2OrMoreTags, null);
@@ -583,6 +648,8 @@ public abstract class Draw {
 				List<TileProp> tileProps = MapSet.getTileProps(tile.getTileCoord());
 				if (consumerForExtraColors != null && consumerForExtraColors.apply(tile) != null)
 					color = consumerForExtraColors.apply(tile);
+				else if (tileProps.contains(TileProp.INSTAKILL))
+					color = Color.ROSYBROWN;
 				else if (tileProps.contains(TileProp.CPU_DANGER_2) || tileProps.contains(TileProp.EXPLOSION) || tileProps.contains(TileProp.DAMAGE_PLAYER) || tileProps.contains(TileProp.DAMAGE_ENEMY) || tileProps.contains(TileProp.DAMAGE_BOMB) || tileProps.contains(TileProp.DAMAGE_BRICK) || tileProps.contains(TileProp.DAMAGE_ITEM))
 					color = Color.INDIANRED;
 				else if (tileProps.contains(TileProp.CPU_DANGER))
@@ -614,8 +681,6 @@ public abstract class Draw {
 					color = Color.GREEN;
 				else if (tileProps.contains(TileProp.FIXED_ITEM))
 					color = Color.CORAL;
-				else if (tileProps.contains(TileProp.MOVING_BRICK))
-					color = Color.PALEVIOLETRED;
 				else if (tileProps.contains(TileProp.GROUND_HOLE))
 					color = Color.ALICEBLUE;
 				else if (tileProps.contains(TileProp.DEEP_HOLE))

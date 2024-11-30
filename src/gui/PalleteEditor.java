@@ -9,7 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import application.Main;
+import enums.Icons;
 import gui.util.Alerts;
+import gui.util.ControllerUtils;
 import gui.util.ImageUtils;
 import gui.util.ListenerHandle;
 import javafx.application.Platform;
@@ -47,6 +49,8 @@ public class PalleteEditor {
 	@FXML
 	private VBox vBoxControls;
 	@FXML
+	private Button buttonAutoGenerateOriginalPallete;
+	@FXML
 	private Button buttonLoadFromDisk;
 	@FXML
 	private Button buttonSaveToDisk;
@@ -56,6 +60,14 @@ public class PalleteEditor {
   private Button buttonAddPallete;
   @FXML
   private Button buttonRemovePallete;
+  @FXML
+  private Button buttonCopyOriginalPallete;
+  @FXML
+  private Button buttonPasteOriginalPallete;
+  @FXML
+  private Button buttonCopyCurrentPallete;
+  @FXML
+  private Button buttonPasteCurrentPallete;
   @FXML
   private Canvas canvasMain;
   @FXML
@@ -78,6 +90,7 @@ public class PalleteEditor {
 	private WritableImage originalSprite;
 	private WritableImage currentSprite;
 	private GraphicsContext gcMain;
+	private List<Color> copiedPallete;
 	private List<List<Color>> palletes;
 	private int palleteIndex;
 	private int blinkIndex;
@@ -100,78 +113,9 @@ public class PalleteEditor {
 			pickingColorImageView = null;
 			currentSprite = null;
 			colorContextMenu = null;
+			copiedPallete = null;
 			blinkIndex = -1;
-			listenerHandle = new ListenerHandle<>(comboBoxPalleteIndex.valueProperty(), (obs, olvV, newV) -> {
-				blinkIndex = -1;
-				palleteIndex = newV;
-				hBoxPalleteColors.setDisable(newV == 0);
-				if (newV > 0)
-					regeneratePalleteColors(flowPanePalleteColors);
-				else
-					flowPanePalleteColors.getChildren().clear();
-				buttonRemovePallete.setDisable(newV == 0);
-			});
-			for (FlowPane flowPane : Arrays.asList(flowPaneOriginalColors, flowPanePalleteColors)) {
-				flowPane.setHgap(5);
-				flowPane.setOrientation(Orientation.HORIZONTAL);
-			}
-			canvasMain.setOnMouseMoved(e -> mousePosition.setLocation(e.getX(), e.getY()));
-			canvasMain.setOnMouseClicked(e -> {
-				canvasMain.requestFocus();
-				if (e.getButton() == MouseButton.PRIMARY && pickingColorImageView != null) {
-					Color color = originalSprite.getPixelReader().getColor((int)e.getX() / 3, (int)e.getY() / 3);
-					if (originalPallete().contains(color)) {
-						Alerts.error("Erro", "Essa cor já está presente na paleta principal");
-						pickingColorImageView.setImage(getColoredSquare(originalPallete().get(pickingColorIndex)));
-						pickingColorImageView = null;
-						return;
-					}
-					originalPallete().set(pickingColorIndex, color);
-					updateOriginalSpritePalletes();
-					robot.mouseMove((int)previewMousePosition.getX(), (int)previewMousePosition.getY());
-					pickingColorImageView = null;
-				}
-			});
-			Main.sceneMain.setOnKeyPressed(e -> {
-				if (e.getCode() == KeyCode.SPACE)
-					showOriginal = true;
-			});
-			Main.sceneMain.setOnKeyReleased(e -> {
-				if (e.getCode() == KeyCode.SPACE)
-					showOriginal = false;
-			});
-			buttonAddPallete.setOnAction(e -> {
-				palletes.add(new ArrayList<>(originalPallete()));
-				comboBoxPalleteIndex.getItems().add(palletes.size() - 1);
-				comboBoxPalleteIndex.getSelectionModel().select(palletes.size() - 1);
-			});
-			buttonRemovePallete.setOnAction(e -> {
-				if (Alerts.confirmation("Excluir paleta", "Deseja mesmo excluir a paleta de cores atual?")) {
-					listenerHandle.detach();
-					comboBoxPalleteIndex.getItems().clear();
-					palletes.remove(palleteIndex);
-					if (palleteIndex == palletes.size())
-						palleteIndex--;
-					for (int n = 0; n < palletes.size(); n++)
-						comboBoxPalleteIndex.getItems().add(n);
-					listenerHandle.attach();
-					comboBoxPalleteIndex.getSelectionModel().select(palleteIndex);
-				}
-			});
-			buttonLoadFromDisk.setOnAction(e -> loadFromDisk());
-			buttonSaveToDisk.setOnAction(e -> {
-				ImageUtils.saveImageToFile(originalSprite, originalSpriteFileName);
-			});
-			buttonAddColor.setOnAction(e -> {
-				if (originalPallete().get(originalPallete().size() - 1).equals(greenColor)) {
-					Alerts.error("Erro", "Edite a cor adicionada previamente para adicionar novas cores");
-					return;
-				}
-				for (int n = 0; n < palletes.size(); n++)
-					palletes.get(n).add(greenColor);
-				regeneratePalleteColors(flowPaneOriginalColors);
-				regeneratePalleteColors(flowPanePalleteColors);
-			});
+			setNodeEvents();
 			drawMainCanvas();
 		}
 		catch (Exception e) {
@@ -180,6 +124,133 @@ public class PalleteEditor {
 		}
 	}
 	
+	private void setNodeEvents() {
+		buttonPasteCurrentPallete.setDisable(true);
+		buttonPasteOriginalPallete.setDisable(true);
+		buttonCopyCurrentPallete.setOnAction(e -> {
+			copiedPallete = currentPallete();
+			buttonPasteCurrentPallete.setDisable(false);
+			buttonPasteOriginalPallete.setDisable(false);
+		});
+		buttonCopyOriginalPallete.setOnAction(e -> {
+			copiedPallete = originalPallete();
+			buttonPasteCurrentPallete.setDisable(false);
+			buttonPasteOriginalPallete.setDisable(false);
+		});
+		buttonPasteCurrentPallete.setOnAction(e -> {
+			currentPallete().clear();
+			currentPallete().addAll(copiedPallete);
+			regeneratePalleteColors(flowPanePalleteColors);
+		});
+		buttonPasteOriginalPallete.setOnAction(e -> {
+			originalPallete().clear();
+			originalPallete().addAll(copiedPallete);
+			regeneratePalleteColors(flowPaneOriginalColors);
+		});
+		buttonAutoGenerateOriginalPallete.setOnAction(e -> {
+			originalPallete().clear();
+			int w = (int)originalSprite.getWidth(), h = (int)originalSprite.getHeight();
+			PixelReader pr = originalSprite.getPixelReader();
+			for (int y = 1; y < h; y++)
+				for (int x = 0; x < w; x++) {
+					Color color = ImageUtils.argbToColor(pr.getArgb(x, y));
+					if (!color.equals(greenColor) && !originalPallete().contains(color))
+						originalPallete().add(color);
+				}
+			for (int n = 1; n < palletes.size(); n++) {
+				List<Color> colors1 = palletes.get(0);
+				List<Color> colors2 = palletes.get(n);
+				while (colors2.size() > colors1.size())
+					colors2.remove(colors2.size() - 1);
+				while (colors2.size() < colors1.size())
+					colors2.add(colors1.get(colors2.size()));
+			}
+			regeneratePalleteColors(flowPaneOriginalColors);
+			regeneratePalleteColors(flowPanePalleteColors);
+		});
+		ControllerUtils.addIconToButton(buttonAutoGenerateOriginalPallete, Icons.REFRESH.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonAddColor, Icons.PLUS.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonAddPallete, Icons.PLUS.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonCopyCurrentPallete, Icons.COPY.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonCopyOriginalPallete, Icons.COPY.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonLoadFromDisk, Icons.OPEN_FILE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonPasteCurrentPallete, Icons.PASTE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonPasteOriginalPallete, Icons.PASTE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonRemovePallete, Icons.DELETE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonSaveToDisk, Icons.SAVE.getValue(), 16, 16, Color.WHITE, 150);
+		listenerHandle = new ListenerHandle<>(comboBoxPalleteIndex.valueProperty(), (obs, olvV, newV) -> {
+			blinkIndex = -1;
+			palleteIndex = newV;
+			hBoxPalleteColors.setDisable(newV == 0);
+			if (newV > 0)
+				regeneratePalleteColors(flowPanePalleteColors);
+			else
+				flowPanePalleteColors.getChildren().clear();
+			buttonRemovePallete.setDisable(newV == 0);
+		});
+		for (FlowPane flowPane : Arrays.asList(flowPaneOriginalColors, flowPanePalleteColors)) {
+			flowPane.setHgap(5);
+			flowPane.setOrientation(Orientation.HORIZONTAL);
+		}
+		canvasMain.setOnMouseMoved(e -> mousePosition.setLocation(e.getX(), e.getY()));
+		canvasMain.setOnMouseClicked(e -> {
+			canvasMain.requestFocus();
+			if (e.getButton() == MouseButton.PRIMARY && pickingColorImageView != null) {
+				Color color = originalSprite.getPixelReader().getColor((int)e.getX() / 3, (int)e.getY() / 3);
+				if (originalPallete().contains(color)) {
+					Alerts.error("Erro", "Essa cor já está presente na paleta principal");
+					pickingColorImageView.setImage(getColoredSquare(originalPallete().get(pickingColorIndex)));
+					pickingColorImageView = null;
+					return;
+				}
+				originalPallete().set(pickingColorIndex, color);
+				updateOriginalSpritePalletes();
+				robot.mouseMove((int)previewMousePosition.getX(), (int)previewMousePosition.getY());
+				pickingColorImageView = null;
+			}
+		});
+		Main.sceneMain.setOnKeyPressed(e -> {
+			if (e.getCode() == KeyCode.SPACE)
+				showOriginal = true;
+		});
+		Main.sceneMain.setOnKeyReleased(e -> {
+			if (e.getCode() == KeyCode.SPACE)
+				showOriginal = false;
+		});
+		buttonAddPallete.setOnAction(e -> {
+			palletes.add(new ArrayList<>(originalPallete()));
+			comboBoxPalleteIndex.getItems().add(palletes.size() - 1);
+			comboBoxPalleteIndex.getSelectionModel().select(palletes.size() - 1);
+		});
+		buttonRemovePallete.setOnAction(e -> {
+			if (Alerts.confirmation("Excluir paleta", "Deseja mesmo excluir a paleta de cores atual?")) {
+				listenerHandle.detach();
+				comboBoxPalleteIndex.getItems().clear();
+				palletes.remove(palleteIndex);
+				if (palleteIndex == palletes.size())
+					palleteIndex--;
+				for (int n = 0; n < palletes.size(); n++)
+					comboBoxPalleteIndex.getItems().add(n);
+				listenerHandle.attach();
+				comboBoxPalleteIndex.getSelectionModel().select(palleteIndex);
+			}
+		});
+		buttonLoadFromDisk.setOnAction(e -> loadFromDisk());
+		buttonSaveToDisk.setOnAction(e -> {
+			ImageUtils.saveImageToFile(originalSprite, originalSpriteFileName);
+		});
+		buttonAddColor.setOnAction(e -> {
+			if (originalPallete().get(originalPallete().size() - 1).equals(greenColor)) {
+				Alerts.error("Erro", "Edite a cor adicionada previamente para adicionar novas cores");
+				return;
+			}
+			for (int n = 0; n < palletes.size(); n++)
+				palletes.get(n).add(greenColor);
+			regeneratePalleteColors(flowPaneOriginalColors);
+			regeneratePalleteColors(flowPanePalleteColors);
+		});
+	}
+
 	private void loadFromDisk() {
     File file = MyFile.selectFileJavaFX(Main.stageMain, "./appdata/sprites/", new FileChooser.ExtensionFilter("Imagens PNG", "*.png"), "Selecione o arquivo de sprite");
     if (file != null) {

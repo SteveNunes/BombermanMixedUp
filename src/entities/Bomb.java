@@ -1,6 +1,5 @@
 package entities;
 
-import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,6 +17,7 @@ import enums.Direction;
 import enums.Elevation;
 import enums.FindType;
 import enums.PassThrough;
+import enums.StageObjectives;
 import enums.TileProp;
 import frameset.FrameSet;
 import frameset_tags.SetSprSource;
@@ -36,15 +36,15 @@ import tools.Sound;
 import tools.Tools;
 import util.CollectionUtils;
 import util.DurationTimerFX;
+import util.FrameTimerFX;
 import util.MyMath;
 
 public class Bomb extends Entity {
 
-	private static final int TIMER_FOR_DANGER_2 = 60;
+	private static final int TIMER_FOR_DANGER_2 = 90;
 	private static Map<TileCoord, Bomb> bombs = new HashMap<>();
 	private static List<Bomb> bombList = new ArrayList<>();
 
-	private Set<PassThrough> passThrough;
 	private boolean dangerMarked;
 	private boolean dangerMarked2;
 	private boolean nesBomb;
@@ -105,7 +105,15 @@ public class Bomb extends Entity {
 			setFrameSet("StandFrames");
 		}
 		setPosition(coord.getPosition());
-		setPassThroughItem(true);
+		setPassThroughHole(true);
+		setPassThroughWater(true);
+		setPassThroughMonster(true);
+		setPassThroughPlayer(true);
+		if (type == BombType.SPIKED || type == BombType.SPIKED_REMOTE) {
+			setPassThroughItem(true);
+			setPassThroughBomb(true);
+			setPassThroughBrick(true);
+		}		
 	}
 	
 	@Override
@@ -190,7 +198,7 @@ public class Bomb extends Entity {
 
 	public static void removeBomb(Bomb bomb) {
 		if (bomb != null) {
-			bomb.setDangerMarks(TileProp.CPU_DANGER_2);
+			bomb.isActive = false;
 			DurationTimerFX.createTimer("removeMarkTilesAsDanger-" + bomb.hashCode(), Duration.millis(800), () -> {
 				bomb.removeDangerMarks(TileProp.CPU_DANGER);
 				bomb.removeDangerMarks(TileProp.CPU_DANGER_2);
@@ -225,10 +233,18 @@ public class Bomb extends Entity {
 	public static void drawBombs() {
 		List<Bomb> bombs = new ArrayList<>(bombList);
 		for (Bomb bomb : bombs) {
+			if (MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.INSTAKILL)) {
+				bomb.detonate();
+				continue;
+			}
 			if (bomb.type == BombType.LAND_MINE) {
 				bomb.run();
-				if (bomb.currentFrameSetNameIsEqual("LandedFrames") && Entity.haveAnyEntityAtCoord(bomb.getTileCoordFromCenter(), bomb))
-					bomb.setFrameSet("UnlandingFrames");
+				if (bomb.currentFrameSetNameIsEqual("LandedFrames")) {
+					if (Entity.haveAnyEntityAtCoord(bomb.getTileCoordFromCenter(), bomb))
+						bomb.setFrameSet("UnlandingFrames");
+				}
+				else if (bomb.currentFrameSetNameIsEqual("UnlandingFrames") && !bomb.getCurrentFrameSet().isRunning())
+					bomb.detonate();
 				else if (MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB) ||
 								MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.EXPLOSION))
 									bomb.detonate();
@@ -243,8 +259,10 @@ public class Bomb extends Entity {
 						y <= yy - Main.TILE_SIZE / 2 || y >= yy + Main.TILE_SIZE / 2)
 							bomb.ownerIsOver = false;
 			}
-			if (bomb.getTimer() != -1 && !bomb.isBlockedMovement())
-				bomb.decTimer();
+			if (bomb.getTimer() != -1 && !bomb.isBlockedMovement() &&
+					((MapSet.getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && !MapSet.stageObjectiveIsCleared())) ||
+					((!MapSet.getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && !MapSet.stageIsCleared())))
+						bomb.decTimer();
 			if ((bomb.getTimer() == -1 || bomb.getTimer() > 0) && (!bomb.isBlockedMovement() || bomb.isStucked()) &&
 					(MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.DAMAGE_BOMB) ||
 					 MapSet.tileContainsProp(bomb.getTileCoordFromCenter(), TileProp.EXPLOSION)))
@@ -289,25 +307,41 @@ public class Bomb extends Entity {
 	}
 
 	public void detonate() {
+		removeBomb(this);
 		isActive = false;
 		centerToTile();
 		unsetPushEntity();
 		Sound.playWav("explosion/Explosion" + (nesBomb ? "" : fireDistance < 3 ? "1" : (int) (fireDistance / 3)));
+		if (getBombType() == BombType.LAND_MINE)
+			FrameTimerFX.createTimer("LandMineRemoveDanger@" + hashCode(), 10, () ->
+				MapSet.removeTileProp(getTileCoordFromCenter(), TileProp.CPU_DANGER));
 		if (getBombType() != BombType.MAGMA)
 			Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, getBombType().getValue(), canPassThroughBricks());
 		else {
-			int range = fireDistance / 2;
-			TileCoord coord = new TileCoord();
-			for (int y = getTileCoordFromCenter().getY() - range; y <= getTileCoordFromCenter().getY() + range; y++)
-				for (int x = getTileCoordFromCenter().getX() - range; x <= getTileCoordFromCenter().getX() + range; x++) {
-					int dx = x - getTileCoordFromCenter().getX();
-					int dy = y - getTileCoordFromCenter().getY();
-					if ((dx * dx) / (range * range) + (dy * dy) / (range * range) <= 1) {
-						coord.setCoords(x, y);
-						if (MapSet.haveTilesOnCoord(coord))
-							Explosion.addExplosion(this, coord, 1, getBombType().getValue(), true).setPassThroughAny(true);
-					}
+			Effect effect = Effect.runEffect(getPosition(), "MagmaBombExplosion");
+			effect.getCurrentFrameSet().changeTagValues(tag -> {
+				if (tag instanceof SetSprSource) {
+					SetSprSource t = (SetSprSource)tag;
+					t.outputSprSizePos.width = (int)(Main.TILE_SIZE * fireDistance * 2.2);
+					t.outputSprSizePos.height = (int)(Main.TILE_SIZE * fireDistance * 2.2);
 				}
+			});
+			final int[] ranges = {fireDistance / 4, fireDistance / 2, fireDistance, fireDistance, fireDistance / 2, fireDistance / 4, fireDistance / 6, fireDistance / 8};
+			for (int n = 0; n < 8; n++) {
+				final int n2 = n;
+				FrameTimerFX.createTimer("MagmaBombExplosionAdd@" + n + "@" + hashCode(), n2 * 6, () -> {
+					Tools.iterateInsideCircleArea(getTileCoordFromCenter(), ranges[n2], t -> {
+						if (MapSet.haveTilesOnCoord(t))
+							MapSet.addTileProp(t, TileProp.EXPLOSION);
+					});
+				});
+				FrameTimerFX.createTimer("MagmaBombExplosionRemove@" + n + "@" + hashCode(), (n2 + 1) * 6, () -> {
+					Tools.iterateInsideCircleArea(getTileCoordFromCenter(), ranges[n2], t -> {
+						if (MapSet.haveTilesOnCoord(t))
+							MapSet.removeTileProp(t, TileProp.EXPLOSION);
+					});
+				});
+			}
 		}
 		removeBomb(this);
 	}
@@ -341,10 +375,14 @@ public class Bomb extends Entity {
 	
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
-		if (falling)
+		if (falling) // TEMP (Pra forçar a sombra da bomba quando ela ta caindo, ate eu resolver o que ta acontecendo que a MECANICA da Bomba, Brick e Item caindo e a mesma, mas com Item e Brick a sombra aparece, mas com a bomba ela some no segundo frame 
 			setShadow(0, 0, -12, -6, 0.35f);
-		removeDangerMarks(TileProp.CPU_DANGER);
-		removeDangerMarks(TileProp.CPU_DANGER_2);
+		if (getBombType() == BombType.LAND_MINE)
+			MapSet.removeTileProp(getTileCoordFromCenter(), TileProp.CPU_DANGER);
+		else {
+			removeDangerMarks(TileProp.CPU_DANGER);
+			removeDangerMarks(TileProp.CPU_DANGER_2);
+		}
 		if (getBombType() == BombType.FOLLOW && !isBlockedMovement() && !isMoving() && getPathFinder() == null) {
 			List<FindProps> founds = Tools.findInRect(this, getTileCoordFromCenter(), owner, 4, FindType.PLAYER);
 			if (getTargetingEntity() != null || founds != null) {
@@ -405,8 +443,12 @@ public class Bomb extends Entity {
 		}
 		if (!isBlockedMovement())
 			putOnMap(getTileCoordFromCenter(), this);
-		if (!isBlockedMovement() && (getBombType() != BombType.LAND_MINE || currentFrameSetNameIsEqual("UnlandingFrames")))
-			setDangerMarks(getTimer() <= TIMER_FOR_DANGER_2 * curseMulti ? TileProp.CPU_DANGER_2 : TileProp.CPU_DANGER);
+		if (isActive && !isBlockedMovement()) { 
+			if (getBombType() == BombType.LAND_MINE)
+				MapSet.addTileProp(getTileCoordFromCenter(), TileProp.CPU_DANGER);
+			else
+				setDangerMarks(getTimer() <= TIMER_FOR_DANGER_2 * curseMulti ? TileProp.CPU_DANGER_2 : TileProp.CPU_DANGER);
+		}
 	}
 
 	public static boolean haveBombAt(TileCoord coord) {
@@ -433,7 +475,11 @@ public class Bomb extends Entity {
 		if (getPushEntity() == null) {
 			if (kickSound != null)
 				Sound.playWav(kickSound);
-			entityTools.PushEntity pushEntity = new entityTools.PushEntity(this, speed, direction);
+			PushEntity pushEntity = new PushEntity(this, speed, direction);
+			final HashSet<PassThrough> oldPassThrough = new HashSet<>(getPassThrough());
+			setPassThroughItem(true);
+			setPassThroughPlayer(false);
+			setPassThroughMonster(false);
 			pushEntity.setOnStopEvent(e -> {
 				if (getBombType() == BombType.RUBBER) {
 					Sound.playWav("BombBounce");
@@ -451,6 +497,7 @@ public class Bomb extends Entity {
 						Sound.playWav(slamSound);
 					setShake(2d, -0.05, 0d);
 					unsetGhosting();
+					setPassThrough(oldPassThrough);
 				}
 				List<Bomb> list = new ArrayList<>(bombList);
 				for (Bomb bomb : list) {
@@ -575,10 +622,17 @@ public class Bomb extends Entity {
 				dangerMarked = !remove;
 			else
 				dangerMarked2 = !remove;
-			passThrough = new HashSet<>(Set.of(PassThrough.BOMB, PassThrough.HOLE, PassThrough.WATER, PassThrough.PLAYER, PassThrough.MONSTER, PassThrough.ITEM));
-			if (canPassThroughBrick())
-				passThrough.add(PassThrough.BRICK);
-			markTilesAsDanger(passThrough, getTileCoordFromCenter(), fireDistance, dangerProp, remove);
+			if (getBombType() == BombType.MAGMA)
+				Tools.iterateInsideCircleArea(getTileCoordFromCenter(), fireDistance, t -> {
+					if (MapSet.haveTilesOnCoord(t)) {
+						if (remove)
+							MapSet.removeTileProp(t, dangerProp);
+						else
+							MapSet.addTileProp(t, dangerProp);
+					}
+				});
+			else
+				markTilesAsDanger(getPassThrough(), getTileCoordFromCenter(), fireDistance, dangerProp, remove);
 		}
 	}
 	
@@ -629,7 +683,7 @@ public class Bomb extends Entity {
 				bomb.removeShadow();
 				bomb.unsetGhosting();
 				Sound.playWav(bomb, "BombSlam");
-				bombs.put(coord, bomb);
+				bombs.put(bomb.getTileCoordFromCenter(), bomb);
 				bomb.setFrameSet("StandFrames");
 				bomb.falling = false;
 			}

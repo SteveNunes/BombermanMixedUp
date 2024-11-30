@@ -439,6 +439,8 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new PushPower(s));
 			else if (tag.equals("SetEntityDirection"))
 				tags.addTag(newTag = new SetEntityDirection(s));
+			else if (tag.equals("SetSprLayerType"))
+				tags.addTag(newTag = new SetSprLayerType(s));
 			if (delay != null)
 				newTag.setTriggerDelay(delay);
 			if (delayInFrames != null)
