@@ -3,7 +3,7 @@ package application;
 import java.io.File;
 
 import enums.GameMode;
-import gui.ExplosionEditor;
+import gui.ColorMixEditor;
 import gui.FrameSetEditor;
 import gui.Game;
 import gui.GameTikTok;
@@ -29,11 +29,11 @@ import util.Misc;
 public class Main extends Application {
 
 	public final static int TILE_SIZE = 16;
-	public final static GameMode GAME_MODE = GameMode.GAME_TIKTOK;
+	public final static GameMode GAME_MODE = GameMode.PALLETE_EDITOR;
 
 	public static FrameSetEditor frameSetEditor = null;
 	public static PalleteEditor palleteEditor = null;
-	public static ExplosionEditor explosionEditor = null;
+	public static ColorMixEditor explosionEditor = null;
 	public static MapEditor mapEditor = null;
 	public static Game game = null;
 	public static GameTikTok gameTikTok = null;
@@ -53,13 +53,37 @@ public class Main extends Application {
 			stageMain = stage;
 			mainCanvas = null;
 			mainGc = null;
-			Sound.setMasterGain(0.2);
-			Position.setGlobalTileSize(TILE_SIZE);
-			TileCoord.setGlobalTileSize(TILE_SIZE);
-			Materials.loadFromFiles();
-			GameFonts.loadFonts();
-			GameInput.init();
 			Tools.loadStuffs();
+			boolean loadStuffs = true;
+			if (GAME_MODE == GameMode.COLOR_MIX_EDITOR) {
+				FXMLLoader loader = new FXMLLoader(new File("./src/gui/ColorMixEditorView.fxml").toURI().toURL());
+				sceneMain = new Scene(loader.load());
+				explosionEditor = loader.getController();
+				explosionEditor.init();
+				loadStuffs = false;
+			}
+			else if (GAME_MODE == GameMode.PALLETE_EDITOR) {
+				FXMLLoader loader = new FXMLLoader(new File("./src/gui/PalleteEditorView.fxml").toURI().toURL());
+				sceneMain = new Scene(loader.load());
+				palleteEditor = loader.getController();
+				palleteEditor.init();
+				loadStuffs = false;
+			}
+			else if (GAME_MODE == GameMode.GIFT_VIEWER) {
+				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GiftViewerView.fxml").toURI().toURL());
+				sceneMain = new Scene(loader.load());
+				giftViewer = loader.getController();
+				giftViewer.init();
+				loadStuffs = false;
+			}
+			if (loadStuffs) {
+				Sound.setMasterGain(0.2);
+				Position.setGlobalTileSize(TILE_SIZE);
+				TileCoord.setGlobalTileSize(TILE_SIZE);
+				Materials.loadFromFiles();
+				GameFonts.loadFonts();
+				GameInput.init();
+			}
 			if (GAME_MODE == GameMode.FRAMESET_EDITOR) {
 				FXMLLoader loader = new FXMLLoader(new File("./src/gui/FrameSetEditorView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
@@ -72,31 +96,13 @@ public class Main extends Application {
 				mapEditor = loader.getController();
 				mapEditor.init();
 			}
-			else if (GAME_MODE == GameMode.EXPLOSION_EDITOR) {
-				FXMLLoader loader = new FXMLLoader(new File("./src/gui/ExplosionEditorView.fxml").toURI().toURL());
-				sceneMain = new Scene(loader.load());
-				explosionEditor = loader.getController();
-				explosionEditor.init();
-			}
-			else if (GAME_MODE == GameMode.PALLETE_EDITOR) {
-				FXMLLoader loader = new FXMLLoader(new File("./src/gui/PalleteEditorView.fxml").toURI().toURL());
-				sceneMain = new Scene(loader.load());
-				palleteEditor = loader.getController();
-				palleteEditor.init();
-			}
 			else if (GAME_MODE == GameMode.GAME_TIKTOK) {
 				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GameTikTokView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				gameTikTok = loader.getController();
 				gameTikTok.init();
 			}
-			else if (GAME_MODE == GameMode.GIFT_VIEWER) {
-				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GiftViewerView.fxml").toURI().toURL());
-				sceneMain = new Scene(loader.load());
-				giftViewer = loader.getController();
-				giftViewer.init();
-			}
-			else {
+			else if (GAME_MODE == GameMode.GAME) {
 				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GameView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				game = loader.getController();

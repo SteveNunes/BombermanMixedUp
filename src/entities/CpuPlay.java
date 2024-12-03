@@ -62,7 +62,8 @@ public class CpuPlay {
 	private TileCoord[] lastTileCoords;
 	private int lastTileCoordPos;
 	private List<FindProps> lastFounds;
-
+	private boolean runningFromDanger;
+	
 	public static boolean markTargets = true;
 
 	public CpuPlay(BomberMan bomberMan, CpuDificult dificult) {
@@ -74,6 +75,7 @@ public class CpuPlay {
 		pauseInFrames = 0;
 		lastTileCoords = new TileCoord[4];
 		lastTileCoordPos = 0;
+		runningFromDanger = false;
 	}
 	
 	public void run() {
@@ -96,7 +98,7 @@ public class CpuPlay {
 		}
 		if (!Main.isFreeze() && !bomberMan.isBlockedMovement()) {
 			// Se estiver em um tile perigoso, tenta encontrar uma forma de sair dele
-			if (isOverDangerTile()) {
+			if (!runningFromDanger && isOverDangerTile()) {
 				pauseInFrames = 0;
 				return;
 			}
@@ -119,6 +121,7 @@ public class CpuPlay {
 						holdButton(dirToInput(dir));
 						return;
 					}
+					runningFromDanger = false;
 					setPathFinder(null);
 				}
 				// PODE fazer uma pausa aleatoria
@@ -196,8 +199,10 @@ public class CpuPlay {
 	}
 
 	private boolean isOverDangerTile() {
-		return MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.CPU_DANGER) &&
+		boolean b = MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.CPU_DANGER) &&
 						findSafeSpotAndGo(getCurrentTileCoord(), getCurrentDir(), true, t -> tileIsHalfSafe(t));
+		runningFromDanger = b;
+		return b;
 	}
 
 	private boolean setPathFinder(PathFinder pathFinder) {

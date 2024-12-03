@@ -12,146 +12,122 @@ import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import maps.Item;
 import util.FindFile;
 import util.IniFile;
+import util.Misc;
 
 public abstract class Materials {
 
 	public static WritableImage mainSprites;
 	public static WritableImage frames;
-	public static WritableImage auras;
 	public static WritableImage thunders;
 	public static WritableImage bombs;
 	public static WritableImage hud;
 	public static WritableImage blankImage;
-	public static List<Image> characters;
-	public static List<Image> rides;
+	public static Map<Integer, List<Image>> characters;
+	public static Map<Integer, List<Image>> rides;
+	public static List<Image> explosions;
+	public static Map<Integer, List<Image>> auras;
 	public static Map<String, Image> tileSets;
-	public static Map<Integer, Integer> bomberSpriteIndex;
 	public static Map<String, WritableImage> loadedSprites;
 	public static Map<String, WritableImage> tempSprites;
 
 	public static void loadFromFiles() {
-		System.out.println("Carregando materiais...");
+		System.out.println("Carregando...");
 		long ms = System.currentTimeMillis();
 		loadedSprites = new HashMap<>();
 		tempSprites = new HashMap<>();
-		rides = new ArrayList<>();
+		characters = new HashMap<>();
+		rides = new HashMap<>();
+		auras = new HashMap<>();
 		tileSets = new HashMap<>();
-		bomberSpriteIndex = new HashMap<>();
+		explosions = new ArrayList<>();
 		blankImage = new WritableImage(320, 240);
-		for (int n = 0; n <= 34; n++)
-			rides.add(loadImage("/rides/" + n, Color.valueOf("#03E313")));
+		int ms2 = Misc.bench(() -> loadCharactersAndRidesSprites());
+		System.out.println("Concluido em " + ms2 + "ms");
+		ms2 = Misc.bench(() -> generateExplosionImage());
+		System.out.println("Concluido em " + ms2 + "ms");
+		ms2 = Misc.bench(() -> loadTilesSprites());
+		System.out.println("Concluido em " + ms2 + "ms");
+		ms2 = Misc.bench(() -> loadMiscSprites());
+		System.out.println("Concluido em " + ms2 + "ms");
+		ms2 = Misc.bench(() -> loadFrameSets());
+		System.out.println("Concluido em " + ms2 + "ms");
+		System.out.println("Carregamento concluido em " + (System.currentTimeMillis() - ms) + "ms");
+	}
 
-		characters = new ArrayList<>();
-		for (int n = 0, index = 0; n <= 13; n++) {
-			WritableImage image = loadImage("/characters/" + n, Color.valueOf("#03E313"));
-			List<Integer> rgbList = new ArrayList<>();
-			List<Integer> originalRgb = null;
-			for (int i = 0, rgba = 1, rgba2 = 2; rgba != rgba2 || rgba != 0; i++) {
-				rgba = image.getPixelReader().getArgb(i, 0);
-				rgba2 = image.getPixelReader().getArgb(i + 1, 0);
-				if (rgba != 0)
-					rgbList.add(rgba);
-				else {
-					WritableImage img = ImageUtils.cloneWritableImage(image);
-					if (originalRgb == null) {
-						originalRgb = new ArrayList<>(rgbList);
-						bomberSpriteIndex.put(n, index);
-					}
-					else
-						img = ImageUtils.replaceColor(img, originalRgb.toArray(new Integer[rgbList.size()]), rgbList.toArray(new Integer[rgbList.size()]));
-					for (int x = 0; x < img.getWidth(); x++)
-						img.getPixelWriter().setArgb(x, 0, 0);
-					characters.add(img);
-					rgbList.clear();
-					index++;
-				}
-			}
-		}
-
-		bombs = loadImage("Bombs", Color.valueOf("#03E313"));
-		mainSprites = loadImage("MainSprites", Color.valueOf("#03E313"));
-		frames = loadImage("HUD", Color.valueOf("#03E313"));
-		auras = loadImage("Auras", Color.valueOf("#03E313"));
-		thunders = loadImage("Thunders", Color.valueOf("#03E313"));
-		hud = loadImage("HUD", Color.valueOf("#03E313"));
-		generateExplosionImage();
+	private static void loadTilesSprites() {
+		System.out.println("Carregando sprites dos tiles...");
 		FindFile.findFile("./appdata/sprites/tileset", "Tile*.png").forEach(file -> {
 			tileSets.put(file.getName().replace(".png", ""), loadImage("/tileset/" + file.getName().replace(".png", ""), Color.valueOf("#FF00FF")));
 		});
-		Item.createItemEdgeImage();
-		loadFrameSets();
-		System.out.println("... Concluido em " + (System.currentTimeMillis() - ms) + "ms");
 	}
 
-	private static void generateExplosionImage() {
+	private static void loadMiscSprites() {
+		System.out.println("Carregando sprites diversos...");
+		bombs = loadImage("Bombs", Color.valueOf("#03E313"));
+		mainSprites = loadImage("MainSprites", Color.valueOf("#03E313"));
+		frames = loadImage("HUD", Color.valueOf("#03E313"));
+		thunders = loadImage("Thunders", Color.valueOf("#03E313"));
+		hud = loadImage("HUD", Color.valueOf("#03E313"));
+		Item.createItemEdgeImage();
+	}
+
+	private static void loadCharactersAndRidesSprites() {
+		System.out.println("Carregando sprites dos personagens e montarias...");
+		for (int z = 0; z < 2; z++) {
+			String folder = z == 0 ? "/characters/" : "/rides/";
+			Map<Integer, List<Image>> imageMap = (z == 0 ? characters : rides);
+			for (int n = 0; n <= (z == 0 ? 13 : 30); n++) {
+				WritableImage image = loadImage(folder + n, Color.valueOf("#03E313"));
+				List<List<Color>> palletes = Tools.getPalleteListFromImage(image);
+				imageMap.put(n, new ArrayList<>());
+				if (palletes == null)
+					imageMap.get(n).add(image);
+				else {
+					for (int i = 0; i < palletes.size(); i++) {
+						if (palletes.get(i).size() == 2)
+							imageMap.get(n).add(Tools.applyColorChangeOnImage(image, Tools.convertColorsToColorPattern(palletes.get(i))));
+						else
+							imageMap.get(n).add(Tools.applyColorPalleteOnImage(image, palletes.get(0), palletes.get(i)));
+					}
+				}
+			}
+		}
+	}
+
+	private static void generateExplosionImage() { // Criar palletas de color mix para as auras
+		System.out.println("Carregando sprites das explosões...");
+		WritableImage exp1 = (WritableImage)ImageUtils.removeBgColor(new Image("file:./appdata/sprites/ExplosionNES.png"), Color.valueOf("#03E313"));
+		WritableImage exp2 = (WritableImage)ImageUtils.removeBgColor(new Image("file:./appdata/sprites/Explosion.png"), Color.valueOf("#03E313"));
+		List<List<Color>> palletes = Tools.getPalleteListFromImage(exp2);
 		int sz = 320;
 		Canvas c = new Canvas(sz, sz);
 		GraphicsContext gc = c.getGraphicsContext2D();
-		Image exp = ImageUtils.removeBgColor(new Image("file:./appdata/sprites/Explosion.png"), Color.valueOf("#03E313"));
 		gc.setImageSmoothing(false);
-		double repColors[][] = {
-				{ 1, 1, 2, 1, 3, 1 }, 
-				{ 1, 1, 2, 1, 3, 1 }, 
-				{ 1, 1, 2, 1, 2, 1 }, 
-				{ 2, 1, 2, 1, 3, 1 }, 
-				{ 2, 1, 3, 1, 3, 1 }, 
-				{ 3, 1, 3, 1, 2, 1 }, 
-				{ 3, 1, 2, 1, 1, 1 }, 
-				{ 3, 1, 3, 1, 3, 1 }, 
-				{ 3, 1, 3, 1, 1, 1 }, 
-				{ 1, 1, 3, 1, 3, 1 }, 
-				{ 1, 1, 3, 1, 2, 1 }, 
-				{ 2, 1, 3, 1, 1, 1 }, 
-				{ 3, 1, 2, 1, 3, 1 },
-		};
-		WritableImage exp3 = new WritableImage(256, repColors.length * 20 + 80);
-		PixelWriter pw2 = exp3.getPixelWriter();
-		for (int ox = 0, oy = 0, cc = 0; cc < repColors.length; cc++) {
-			WritableImage exp2 = new WritableImage(64, 80);
-			PixelWriter pw = exp2.getPixelWriter();
-			for (int y = 0; y < 80; y++)
-				for (int x = 0; x < 64; x++) {
-					int[] rgba = ImageUtils.getRgbaArray(exp.getPixelReader().getArgb(x + (cc == 0 ? 64 : 0), y));
-					int r = (int)(rgba[(int)repColors[cc][0]] * repColors[cc][1]),
-							g = (int)(rgba[(int)repColors[cc][2]] * repColors[cc][3]),
-							b = (int)(rgba[(int)repColors[cc][4]] * repColors[cc][5]);
-					if (r + g + b != 0) {
-						pw.setColor(x, y, ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b)));
-						if (x < 64)
-							pw2.setColor(ox + x, oy + y, ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b)));
+		for (int p = -1; p < palletes.size(); p++) {
+			gc.clearRect(0, 0, sz, sz);
+			for (int d = 0; d < 2; d++) {
+				for (int x = 0; x < 5; x++) {
+					for (int y = 0; y < 15; y++) {
+						int sprX = y == 0 ? 48 : 32, sprY = 16 * x, outX = d == 0 ? x * Main.TILE_SIZE : y * Main.TILE_SIZE, outY = d == 0 ? y * Main.TILE_SIZE : 240 + x * Main.TILE_SIZE;
+						ImageUtils.drawImage(gc, p == -1 ? exp1 : exp2, sprX, sprY + 1, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
 					}
+					ImageUtils.drawImage(gc, p == -1 ? exp1 : exp2, 16 * d, x * Main.TILE_SIZE + 1, Main.TILE_SIZE, Main.TILE_SIZE, 80 + x * Main.TILE_SIZE, 208 + 16 * d, Main.TILE_SIZE, Main.TILE_SIZE);
 				}
-			if ((ox += 64) == 256) {
-				ox = 0;
-				oy += 80;
 			}
-			for (int nes = 0; nes < 2; nes++) {
-				gc.clearRect(0, 0, sz, sz);
-				for (int d = 0; d < 2; d++) {
-					for (int x = 0; x < 5; x++) {
-						for (int y = 0; y < 15; y++) {
-							int sprX = y == 0 ? 48 : 32, sprY = 16 * x, outX = d == 0 ? x * Main.TILE_SIZE : y * Main.TILE_SIZE, outY = d == 0 ? y * Main.TILE_SIZE : 240 + x * Main.TILE_SIZE;
-							if (nes == 0)
-								sprX += 64;
-							ImageUtils.drawImage(gc, exp2, sprX, sprY, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
-						}
-						ImageUtils.drawImage(gc, exp2, 16 * d + (nes == 0 ? 64 : 0), x * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, 80 + x * Main.TILE_SIZE, 208 + 16 * d, Main.TILE_SIZE, Main.TILE_SIZE);
-					}
-				}
-				loadedSprites.put((nes == 0 ? "NesExplosion" : "Explosion") + cc, Draw.getCanvasSnapshot(c));
-			}
+			if (p > -1)
+				explosions.add(Tools.applyColorChangeOnImage(Draw.getCanvasSnapshot(c), Tools.convertColorsToColorPattern(palletes.get(p))));
+			else
+				explosions.add(Draw.getCanvasSnapshot(c));
 		}
-		// ImageUtils.saveImageToFile(exp3, "D:\\Java\\Bomberman - Mixed
-		// Up!\\appdata\\sprites\\Explosions2.png");
 	}
 	
 	private static void loadFrameSets() {
+		System.out.println("Carregando FrameSets...");
 		IniFiles.characters.getSectionList().forEach(section -> new BomberMan(0, Integer.parseInt(section), 0));
 		IniFiles.frameSets.getSectionList().forEach(section -> {
 			Entity entity = new Entity();
@@ -171,7 +147,6 @@ public abstract class Materials {
 	}
 
 	public static WritableImage loadImage(String imagePartialPath, Color removeColor) throws RuntimeException { // Informe apenas o nome do arquivo (com pasta ou nao) a partir da pasta
-	                                                                                                            // sprites, sem o .png
 		if (!loadedSprites.containsKey(imagePartialPath)) {
 			if (removeColor != null)
 				loadedSprites.put(imagePartialPath, (WritableImage) ImageUtils.removeBgColor(new Image("file:./appdata/sprites/" + imagePartialPath + ".png"), removeColor));
@@ -182,25 +157,25 @@ public abstract class Materials {
 	}
 
 	public static WritableImage getImageFromSpriteName(String spriteName) {
-		if (spriteName.length() > 10 && spriteName.substring(0, 10).equals("Character.")) {
-			try {
-				int n = spriteName.indexOf(".") + 1;
-				int n2 = spriteName.lastIndexOf(".") + 1;
-				int charId, palleteId;
-				if (n == n2) {
-					charId = Integer.parseInt(spriteName.substring(n));
-					palleteId = 0;
-				}
-				else {
-					charId = Integer.parseInt(spriteName.substring(n, n2 - 1));
-					palleteId = Integer.parseInt(spriteName.substring(n2, spriteName.length()));
-				}
-				return (WritableImage) getCharacterSprite(charId, palleteId);
+		for (int z = 0; z < 2; z++)
+			if ((z == 0 && spriteName.length() > 10 && spriteName.substring(0, 10).equals("Character.")) ||
+					(z == 1 && spriteName.length() > 5 && spriteName.substring(0, 5).equals("Ride."))) {
+						try {
+							int n = spriteName.indexOf(".") + 1, n2 = spriteName.lastIndexOf(".") + 1, id, palleteId;
+							if (n == n2) {
+								id = Integer.parseInt(spriteName.substring(n));
+								palleteId = 0;
+							}
+							else {
+								id = Integer.parseInt(spriteName.substring(n, n2 - 1));
+								palleteId = Integer.parseInt(spriteName.substring(n2, spriteName.length()));
+							}
+							return (WritableImage)(z == 0 ? getCharacterSprite(id, palleteId) : getRideSprite(id, palleteId));
+						}
+						catch (Exception e) { e.printStackTrace();
+							return null;
+						}
 			}
-			catch (Exception e) {
-				return null;
-			}
-		}
 		if (loadedSprites.containsKey(spriteName))
 			return loadedSprites.get(spriteName);
 		if (tempSprites.containsKey(spriteName))
@@ -208,13 +183,26 @@ public abstract class Materials {
 		return null;
 	}
 
-	public static Image getCharacterSprite(int characterId, int palleteId) {
-		if (!bomberSpriteIndex.containsKey(characterId))
-			return null;
-		int id = bomberSpriteIndex.get(characterId) + palleteId;
-		if (id >= characters.size() || (bomberSpriteIndex.containsKey(characterId + 1) && id >= bomberSpriteIndex.get(characterId + 1)))
-			return null;
-		return characters.get(id);
+	public static Image getCharacterSprite(int id, int palleteId) {
+		if (!characters.containsKey(id))
+			throw new RuntimeException(id + " - Invalid character ID");
+		if (palleteId < 0 || palleteId >= characters.get(id).size())
+			throw new RuntimeException(palleteId + " - Invalid pallete ID for character " + id);
+		return characters.get(id).get(palleteId);
+	}
+
+	public static Image getRideSprite(int id, int palleteId) {
+		if (!rides.containsKey(id))
+			throw new RuntimeException(id + " - Invalid ride ID");
+		if (palleteId < 0 || palleteId >= rides.get(id).size())
+			throw new RuntimeException(palleteId + " - Invalid pallete ID for ride " + id);
+		return rides.get(id).get(palleteId);
+	}
+
+	public static Image getExplosionSprite(int id) {
+		if (id < 0 || id >= explosions.size())
+			throw new RuntimeException(id + " - Invalid explosion ID");
+		return explosions.get(id);
 	}
 
 }

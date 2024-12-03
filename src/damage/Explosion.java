@@ -12,7 +12,7 @@ import enums.Direction;
 import enums.PassThrough;
 import enums.SpriteLayerType;
 import enums.TileProp;
-import javafx.scene.image.WritableImage;
+import javafx.scene.image.Image;
 import maps.MapSet;
 import objmoveutils.TileCoord;
 import tools.Draw;
@@ -22,7 +22,6 @@ public class Explosion {
 
 	private List<Direction> directions;
 	private int tileRange;
-	private boolean passThroughAllBricks;
 	private boolean passThroughAny;
 	private Set<PassThrough> passThrough;
 	private TileCoord centerCoord;
@@ -36,7 +35,6 @@ public class Explosion {
 	private Explosion(Entity owner, TileCoord centerCoord, int tileRange, List<Direction> directions, int explosionIndex, boolean passThroughAllBricks) {
 		this.directions = new ArrayList<>(directions);
 		this.tileRange = tileRange;
-		this.passThroughAllBricks = passThroughAllBricks;
 		this.centerCoord = centerCoord.getNewInstance();
 		this.owner = owner;
 		this.explosionIndex = explosionIndex;
@@ -107,7 +105,7 @@ public class Explosion {
 	public static void drawExplosions() {
 		for (int p = explosions.size() - 1; p >= 0; p--) {
 			Explosion ex = explosions.get(p);
-			WritableImage sprite = Materials.loadedSprites.get("Explosion" + ex.explosionIndex);
+			Image sprite = Materials.getExplosionSprite(ex.explosionIndex);
 			if (++ex.count == 1) {
 				Direction dir = Direction.UP;
 				ex.fireDis = new int[] { 0, 0, 0, 0 };

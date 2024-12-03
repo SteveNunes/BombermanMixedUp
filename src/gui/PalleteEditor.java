@@ -26,7 +26,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
@@ -35,6 +34,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import tools.Draw;
@@ -127,6 +127,7 @@ public class PalleteEditor {
 	private void setNodeEvents() {
 		buttonPasteCurrentPallete.setDisable(true);
 		buttonPasteOriginalPallete.setDisable(true);
+		buttonCopyCurrentPallete.setDisable(true);
 		buttonCopyCurrentPallete.setOnAction(e -> {
 			copiedPallete = currentPallete();
 			buttonPasteCurrentPallete.setDisable(false);
@@ -140,6 +141,7 @@ public class PalleteEditor {
 		buttonPasteCurrentPallete.setOnAction(e -> {
 			currentPallete().clear();
 			currentPallete().addAll(copiedPallete);
+			fillOtherPalletesToMatchOriginalPalleteSize();
 			regeneratePalleteColors(flowPanePalleteColors);
 		});
 		buttonPasteOriginalPallete.setOnAction(e -> {
@@ -147,36 +149,16 @@ public class PalleteEditor {
 			originalPallete().addAll(copiedPallete);
 			regeneratePalleteColors(flowPaneOriginalColors);
 		});
-		buttonAutoGenerateOriginalPallete.setOnAction(e -> {
-			originalPallete().clear();
-			int w = (int)originalSprite.getWidth(), h = (int)originalSprite.getHeight();
-			PixelReader pr = originalSprite.getPixelReader();
-			for (int y = 1; y < h; y++)
-				for (int x = 0; x < w; x++) {
-					Color color = ImageUtils.argbToColor(pr.getArgb(x, y));
-					if (!color.equals(greenColor) && !originalPallete().contains(color))
-						originalPallete().add(color);
-				}
-			for (int n = 1; n < palletes.size(); n++) {
-				List<Color> colors1 = palletes.get(0);
-				List<Color> colors2 = palletes.get(n);
-				while (colors2.size() > colors1.size())
-					colors2.remove(colors2.size() - 1);
-				while (colors2.size() < colors1.size())
-					colors2.add(colors1.get(colors2.size()));
-			}
-			regeneratePalleteColors(flowPaneOriginalColors);
-			regeneratePalleteColors(flowPanePalleteColors);
-		});
+		buttonAutoGenerateOriginalPallete.setOnAction(e -> autoGenerateOriginalPallete());
 		ControllerUtils.addIconToButton(buttonAutoGenerateOriginalPallete, Icons.REFRESH.getValue(), 16, 16, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonAddColor, Icons.PLUS.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonAddPallete, Icons.PLUS.getValue(), 16, 16, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonCopyCurrentPallete, Icons.COPY.getValue(), 16, 16, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonCopyOriginalPallete, Icons.COPY.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonLoadFromDisk, Icons.OPEN_FILE.getValue(), 16, 16, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonPasteCurrentPallete, Icons.PASTE.getValue(), 16, 16, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonPasteOriginalPallete, Icons.PASTE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonAddPallete, Icons.PLUS.getValue(), 16, 16, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonRemovePallete, Icons.DELETE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonLoadFromDisk, Icons.OPEN_FILE.getValue(), 16, 16, Color.WHITE, 150);
 		ControllerUtils.addIconToButton(buttonSaveToDisk, Icons.SAVE.getValue(), 16, 16, Color.WHITE, 150);
 		listenerHandle = new ListenerHandle<>(comboBoxPalleteIndex.valueProperty(), (obs, olvV, newV) -> {
 			blinkIndex = -1;
@@ -187,6 +169,7 @@ public class PalleteEditor {
 			else
 				flowPanePalleteColors.getChildren().clear();
 			buttonRemovePallete.setDisable(newV == 0);
+			buttonCopyCurrentPallete.setDisable(newV == 0);
 		});
 		for (FlowPane flowPane : Arrays.asList(flowPaneOriginalColors, flowPanePalleteColors)) {
 			flowPane.setHgap(5);
@@ -236,9 +219,7 @@ public class PalleteEditor {
 			}
 		});
 		buttonLoadFromDisk.setOnAction(e -> loadFromDisk());
-		buttonSaveToDisk.setOnAction(e -> {
-			ImageUtils.saveImageToFile(originalSprite, originalSpriteFileName);
-		});
+		buttonSaveToDisk.setOnAction(e -> saveToDisk());
 		buttonAddColor.setOnAction(e -> {
 			if (originalPallete().get(originalPallete().size() - 1).equals(greenColor)) {
 				Alerts.error("Erro", "Edite a cor adicionada previamente para adicionar novas cores");
@@ -249,6 +230,28 @@ public class PalleteEditor {
 			regeneratePalleteColors(flowPaneOriginalColors);
 			regeneratePalleteColors(flowPanePalleteColors);
 		});
+	}
+
+	private void autoGenerateOriginalPallete() {
+		if (palletes.isEmpty()) {
+			palletes.add(Tools.getPalleteFromImage(originalSprite));
+			comboBoxPalleteIndex.getItems().add(0);
+			comboBoxPalleteIndex.getSelectionModel().select(0);
+		}
+		fillOtherPalletesToMatchOriginalPalleteSize();
+		regeneratePalleteColors(flowPaneOriginalColors);
+		regeneratePalleteColors(flowPanePalleteColors);
+	}
+
+	private void fillOtherPalletesToMatchOriginalPalleteSize() {
+		for (int n = 1; n < palletes.size(); n++) {
+			List<Color> colors1 = palletes.get(0);
+			List<Color> colors2 = palletes.get(n);
+			while (colors2.size() > colors1.size())
+				colors2.remove(colors2.size() - 1);
+			while (colors2.size() < colors1.size())
+				colors2.add(colors1.get(colors2.size()));
+		}
 	}
 
 	private void loadFromDisk() {
@@ -265,6 +268,20 @@ public class PalleteEditor {
 		}
 	}
 	
+	private void saveToDisk() {
+		int x = 0;
+		PixelWriter pw = originalSprite.getPixelWriter();
+		for (List<Color> colors : palletes) {
+			if (x > 0)
+				pw.setColor(x++, 0, greenColor);
+			for (Color color : colors)
+				pw.setColor(x++, 0, color);
+		}
+		while (x < originalSprite.getWidth())
+			pw.setColor(x++, 0, greenColor);
+		ImageUtils.saveImageToFile(originalSprite, originalSpriteFileName);
+	}
+	
 	private WritableImage getColoredSquare(Color color) {
 		colorSquareGc.setFill(color);
 		colorSquareGc.fillRect(0, 0, colorSquareCanvas.getWidth(), colorSquareCanvas.getHeight());
@@ -274,6 +291,8 @@ public class PalleteEditor {
 	private void drawMainCanvas() {
 		if (originalSprite != null) {
 			updateCurrentSprite();
+			gcMain.setFill(greenColor);
+			gcMain.fillRect(0, 0, canvasMain.getWidth(), canvasMain.getHeight());
 			gcMain.drawImage(showOriginal ? originalSprite : currentSprite, 0, 0, (int)currentSprite.getWidth(), (int)currentSprite.getHeight(), 0, 0, (int)currentSprite.getWidth() * 3, (int)currentSprite.getHeight() * 3);
 			if (pickingColorImageView != null) {
 				int x = (int)mousePosition.getX(), y = (int)mousePosition.getY();
@@ -295,26 +314,19 @@ public class PalleteEditor {
 	private void loadPallete() {
 		listenerHandle.detach();
 		palleteIndex = 0;
-		palletes = new ArrayList<>();
-		PixelReader pr = originalSprite.getPixelReader();
-		int index = -1, w = (int)originalSprite.getWidth();
-		Color prev = greenColor;
-		for (int x = 0; x < w; x++) {
-			int[] rgba = ImageUtils.getRgbaArray(pr.getArgb(x, 0));
-			int r = rgba[1], g = rgba[2], b = rgba[3];
-			Color color = ImageUtils.argbToColor(ImageUtils.getRgba(r, g, b));
-			if (color.equals(greenColor)) {
-				if (prev.equals(greenColor))
-					break;
-			}
-			else {
-				if (prev.equals(greenColor)) {
-					palletes.add(new ArrayList<>());
-					index++;
-				}
-				palletes.get(index).add(color);
-			}
-			prev = color;
+		palletes = Tools.getPalleteListFromImage(originalSprite, greenColor);
+		if (palletes == null) {
+			palletes = new ArrayList<>();
+			palletes.add(Tools.getPalleteFromImage(originalSprite, greenColor));
+			int w = (int)originalSprite.getWidth(), h = (int)originalSprite.getHeight();
+			Canvas c = new Canvas(w, h + 1);
+			GraphicsContext gc = c.getGraphicsContext2D();
+			gc.setImageSmoothing(false);
+			gc.setFill(greenColor);
+			gc.fillRect(0, 0, w, h + 1);
+			gc.drawImage(originalSprite, 0, 0, w, h, 0, 1, w, h);
+			originalSprite = Draw.getCanvasSnapshot(c);
+			canvasMain.setHeight((h + 1) * 3);
 		}
 		comboBoxPalleteIndex.getItems().clear();
 		for (int n = 0; n < palletes.size(); n++)
@@ -325,6 +337,8 @@ public class PalleteEditor {
 	}
 	
 	private List<Color> originalPallete() {
+		if (palletes.isEmpty())
+			autoGenerateOriginalPallete();
 		return palletes.get(0);
 	}
 	
@@ -334,6 +348,12 @@ public class PalleteEditor {
 	
 	private void regeneratePalleteColors(FlowPane flowPane) {
 		List<Color> colors = flowPane == flowPaneOriginalColors ? originalPallete() : currentPallete();
+		if (colors.size() == 2) {
+			flowPane.getChildren().add(new Text("Paleta de cores editavel somente através do \"COLOR_MIX_EDITOR\""));
+			hBoxPalleteColors.setDisable(true);
+			return;
+		}
+		hBoxPalleteColors.setDisable(false);
 		flowPane.getChildren().clear();
 		flowPane.setPrefWidth(colors.size() * 25);
 		for (int n = 0; n < colors.size(); n++) {
@@ -392,23 +412,10 @@ public class PalleteEditor {
 	}
 
 	private void updateCurrentSprite() {
-		int w = (int)originalSprite.getWidth(), h = (int)originalSprite.getHeight();
-		currentSprite = new WritableImage(w, h);
-		PixelReader pr = originalSprite.getPixelReader();
-		PixelWriter pw = currentSprite.getPixelWriter();
-		for (int y = 0; y < h; y++)
-			for (int x = 0; x < w; x++) {
-				Color color = ImageUtils.argbToColor(pr.getArgb(x, y));
-				if (y == 0)
-					pw.setColor(x, y, greenColor);
-				else if (!color.equals(greenColor) && palleteIndex > 0 && originalPallete().contains(color)) {
-					int i = originalPallete().indexOf(color);
-					Color color2 = currentPallete().get(i);
-					pw.setColor(x, y, blinkIndex != i || !Misc.blink(100) ? color2 : greenColor);
-				}
-				else
-					pw.setColor(x, y, color);
-			}
+		List<Color> pallete = new ArrayList<>(currentPallete());
+		if (Misc.blink(100) && blinkIndex >= 0 &&  blinkIndex < pallete.size())
+			pallete.set(blinkIndex, greenColor);
+		currentSprite = Tools.applyColorPalleteOnImage(originalSprite, originalPallete(), pallete);
 	}
 	
 	private void updateOriginalSpritePalletes() {
