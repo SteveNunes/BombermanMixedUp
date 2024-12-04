@@ -4,9 +4,9 @@ import frameset.Sprite;
 
 public class SetSprGlowLevel extends FrameTag {
 
-	public int value;
+	public double value;
 
-	public SetSprGlowLevel(int value) {
+	public SetSprGlowLevel(double value) {
 		this.value = value;
 	}
 
@@ -18,7 +18,7 @@ public class SetSprGlowLevel extends FrameTag {
 	public SetSprGlowLevel(String tags) {
 		String[] params = validateStringTags(this, tags, 1);
 		try {
-			value = Integer.parseInt(params[0]);
+			value = Double.parseDouble(params[0]);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(params[0] + " - Invalid parameter");

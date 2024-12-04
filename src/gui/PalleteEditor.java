@@ -38,6 +38,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import tools.Draw;
+import tools.Materials;
 import tools.Tools;
 import util.Misc;
 import util.MyFile;
@@ -95,7 +96,6 @@ public class PalleteEditor {
 	private int palleteIndex;
 	private int blinkIndex;
 	private boolean showOriginal;
-	private Color greenColor;
 	private String originalSpriteFileName;
 	private Robot robot;
 	
@@ -108,7 +108,6 @@ public class PalleteEditor {
 			gcMain.setImageSmoothing(false);
 			vBoxControls.setDisable(true);
 			buttonSaveToDisk.setDisable(true);
-			greenColor = Color.valueOf("#03E313");
 			showOriginal = false;
 			pickingColorImageView = null;
 			currentSprite = null;
@@ -221,12 +220,12 @@ public class PalleteEditor {
 		buttonLoadFromDisk.setOnAction(e -> loadFromDisk());
 		buttonSaveToDisk.setOnAction(e -> saveToDisk());
 		buttonAddColor.setOnAction(e -> {
-			if (originalPallete().get(originalPallete().size() - 1).equals(greenColor)) {
+			if (originalPallete().get(originalPallete().size() - 1).equals(Materials.getGreenColor())) {
 				Alerts.error("Erro", "Edite a cor adicionada previamente para adicionar novas cores");
 				return;
 			}
 			for (int n = 0; n < palletes.size(); n++)
-				palletes.get(n).add(greenColor);
+				palletes.get(n).add(Materials.getGreenColor());
 			regeneratePalleteColors(flowPaneOriginalColors);
 			regeneratePalleteColors(flowPanePalleteColors);
 		});
@@ -273,12 +272,12 @@ public class PalleteEditor {
 		PixelWriter pw = originalSprite.getPixelWriter();
 		for (List<Color> colors : palletes) {
 			if (x > 0)
-				pw.setColor(x++, 0, greenColor);
+				pw.setColor(x++, 0, Materials.getGreenColor());
 			for (Color color : colors)
 				pw.setColor(x++, 0, color);
 		}
 		while (x < originalSprite.getWidth())
-			pw.setColor(x++, 0, greenColor);
+			pw.setColor(x++, 0, Materials.getGreenColor());
 		ImageUtils.saveImageToFile(originalSprite, originalSpriteFileName);
 	}
 	
@@ -291,7 +290,7 @@ public class PalleteEditor {
 	private void drawMainCanvas() {
 		if (originalSprite != null) {
 			updateCurrentSprite();
-			gcMain.setFill(greenColor);
+			gcMain.setFill(Materials.getGreenColor());
 			gcMain.fillRect(0, 0, canvasMain.getWidth(), canvasMain.getHeight());
 			gcMain.drawImage(showOriginal ? originalSprite : currentSprite, 0, 0, (int)currentSprite.getWidth(), (int)currentSprite.getHeight(), 0, 0, (int)currentSprite.getWidth() * 3, (int)currentSprite.getHeight() * 3);
 			if (pickingColorImageView != null) {
@@ -300,7 +299,7 @@ public class PalleteEditor {
 				pickingColorImageView.setImage(getColoredSquare(color));
 				gcMain.setStroke(Color.BLACK);
 				gcMain.setLineWidth(4);
-				gcMain.setFill(greenColor);
+				gcMain.setFill(Materials.getGreenColor());
 				gcMain.fillRect(x - 150, y - 150, 300, 300);
 				gcMain.drawImage(originalSprite, x / 3 - 15, y / 3 - 15, 30, 30, x - 150, y - 150, 300, 300);
 				gcMain.strokeRect(x - 150, y - 150, 300, 300);
@@ -314,15 +313,15 @@ public class PalleteEditor {
 	private void loadPallete() {
 		listenerHandle.detach();
 		palleteIndex = 0;
-		palletes = Tools.getPalleteListFromImage(originalSprite, greenColor);
+		palletes = Tools.getPalleteListFromImage(originalSprite, Materials.getGreenColor());
 		if (palletes == null) {
 			palletes = new ArrayList<>();
-			palletes.add(Tools.getPalleteFromImage(originalSprite, greenColor));
+			palletes.add(Tools.getPalleteFromImage(originalSprite, Materials.getGreenColor()));
 			int w = (int)originalSprite.getWidth(), h = (int)originalSprite.getHeight();
 			Canvas c = new Canvas(w, h + 1);
 			GraphicsContext gc = c.getGraphicsContext2D();
 			gc.setImageSmoothing(false);
-			gc.setFill(greenColor);
+			gc.setFill(Materials.getGreenColor());
 			gc.fillRect(0, 0, w, h + 1);
 			gc.drawImage(originalSprite, 0, 0, w, h, 0, 1, w, h);
 			originalSprite = Draw.getCanvasSnapshot(c);
@@ -348,7 +347,7 @@ public class PalleteEditor {
 	
 	private void regeneratePalleteColors(FlowPane flowPane) {
 		List<Color> colors = flowPane == flowPaneOriginalColors ? originalPallete() : currentPallete();
-		if (colors.size() == 2) {
+		if (Tools.isColorMixPallete(colors)) {
 			flowPane.getChildren().add(new Text("Paleta de cores editavel somente através do \"COLOR_MIX_EDITOR\""));
 			hBoxPalleteColors.setDisable(true);
 			return;
@@ -414,7 +413,7 @@ public class PalleteEditor {
 	private void updateCurrentSprite() {
 		List<Color> pallete = new ArrayList<>(currentPallete());
 		if (Misc.blink(100) && blinkIndex >= 0 &&  blinkIndex < pallete.size())
-			pallete.set(blinkIndex, greenColor);
+			pallete.set(blinkIndex, Materials.getGreenColor());
 		currentSprite = Tools.applyColorPalleteOnImage(originalSprite, originalPallete(), pallete);
 	}
 	
@@ -422,11 +421,11 @@ public class PalleteEditor {
 		int x = 0;
 		PixelWriter pw = originalSprite.getPixelWriter();
 		for (int xx = 0; xx < originalSprite.getWidth(); xx++)
-			pw.setColor(xx++, 0, greenColor);
+			pw.setColor(xx++, 0, Materials.getGreenColor());
 		for (List<Color> colors : palletes) {
 			for (Color color : colors)
 				pw.setColor(x++, 0, color);
-			pw.setColor(x++, 0, greenColor);
+			pw.setColor(x++, 0, Materials.getGreenColor());
 		}
 	}
 

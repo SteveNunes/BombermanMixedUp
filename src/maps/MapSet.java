@@ -47,6 +47,7 @@ import tools.Draw;
 import tools.GameFonts;
 import tools.Materials;
 import tools.Sound;
+import tools.Tools;
 import util.DurationTimerFX;
 import util.IniFile;
 import util.Misc;
@@ -61,7 +62,8 @@ public abstract class MapSet {
 	public static Entity mapFrameSets;
 	private static IniFile iniFile;
 	private static IniFile iniFileTileSet;
-	private static Image tileSetImage;
+	private static List<Image> tileSetImages;
+	private static int tileSetPalleteIndex;
 	private static Integer copyImageLayerIndex;
 	private static Integer currentLayerIndex;
 	private static String mapName;
@@ -102,6 +104,7 @@ public abstract class MapSet {
 	private static Runnable onAfterMapLoadEvent = null;
 
 	public static void loadMap(String mapName) {
+		tileSetPalleteIndex = 1;
 		long ct = System.currentTimeMillis();
 		if (!new File("appdata/maps/" + mapName + ".map").exists())
 			throw new RuntimeException("Unable to load map file \"appdata/maps/" + mapName + ".map\" (File not found)");
@@ -243,6 +246,8 @@ public abstract class MapSet {
 			}
 		}
 		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
+		long ms = Misc.bench(() -> Materials.loadFrameSets());
+		System.out.println("Concluido em " + ms + "ms");
 	}
 	
 	public static void clearStuffs() {
@@ -566,8 +571,15 @@ public abstract class MapSet {
 			throw new RuntimeException("Unable to load map \"" + mapName + "\" (Invalid TileSet (" + tileSetName + ".tiles))");
 		if (Materials.tempSprites.containsKey(tileSetName))
 			Materials.tempSprites.remove(tileSetName);
-		tileSetImage = Materials.tileSets.get(tileSetName);
-		Materials.tempSprites.put("TileSet", (WritableImage) tileSetImage);
+		tileSetImages = new ArrayList<>();
+		WritableImage i = (WritableImage)Materials.tileSets.get(tileSetName);
+		List<List<Color>> palletes = Tools.getPalleteListFromImage(i);
+		if (palletes != null && palletes.size() > 1) {
+			for (List<Color> pallete : palletes)
+				tileSetImages.add(Tools.applyColorMixPalleteOnImage(i, pallete));
+		}
+		else
+			tileSetImages.add(i);
 	}
 
 	public static void setBricks() {
@@ -812,13 +824,41 @@ public abstract class MapSet {
 	public static Layer getCopyLayer() {
 		return getLayer(copyImageLayerIndex);
 	}
-
-	public static Image getTileSetImage() {
-		return tileSetImage;
+	
+	public static int getTileSetTotalPalletes() {
+		return tileSetImages.size();
 	}
 
-	public static void setTileSetImage(Image image) {
-		tileSetImage = image;
+	public static int getTileSetPalleteIndex() {
+		return tileSetPalleteIndex;
+	}
+
+	public static void decTileSetPalleteIndex() {
+		if (--tileSetPalleteIndex == -1)
+			tileSetPalleteIndex = getTileSetTotalPalletes() - 1;
+		setTileSetPalleteIndex(tileSetPalleteIndex);
+	}
+
+	public static void incTileSetPalleteIndex() {
+		if (++tileSetPalleteIndex == getTileSetTotalPalletes())
+			tileSetPalleteIndex = 0;
+		setTileSetPalleteIndex(tileSetPalleteIndex);
+	}
+
+	public static void setTileSetPalleteIndex(int index) {
+		if (index < 0 || index >= getTileSetTotalPalletes())
+			throw new RuntimeException(index + " - Invalid TileSet pallete index (Excepted: 0 - " + (getTileSetTotalPalletes() - 1) + ")");
+		tileSetPalleteIndex = index;
+		for (Layer layer : layers.values())
+			layer.buildLayer();
+	}
+
+	public static Image getTileSetImage() {
+		return getTileSetImage(tileSetPalleteIndex);
+	}
+	
+	public static Image getTileSetImage(int palleteIndex) {
+		return tileSetImages.get(palleteIndex);
 	}
 
 	public static String getTileSetName() {

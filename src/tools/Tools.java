@@ -1,8 +1,8 @@
 package tools;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -20,6 +20,7 @@ import gameutil.FPSHandler;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
@@ -323,75 +324,69 @@ public abstract class Tools {
 		return freeDirs.isEmpty() ? null : freeDirs;
 	}
 
-	public static int[] stringToColorPattern(String string) {
-		try {
-			String[] split = string.replace("{", "").replace("}", "").replace(" ", "").split(",");
-			int r = Integer.parseInt(split[0]), rv = Integer.parseInt(split[1]),
-					g = Integer.parseInt(split[2]), gv = Integer.parseInt(split[3]),
-					b = Integer.parseInt(split[4]), bv = Integer.parseInt(split[5]);
-			return new int[] { r, rv, g, gv, b, bv };
-		}
-		catch (Exception ex) {
-			throw new RuntimeException(string + " - Formato inválido de padrão de cor!");
-		}
+	public static boolean isColorMixPallete(List<Color> pallete) {
+		if (pallete == null || pallete.size() < 2)
+			return false;
+		return pallete.get(0).equals(Color.valueOf("#123456FF"));
 	}
 	
-	public static String colorPatternToString(int[] currentColorPattern) {
-		return String.format(Locale.US, "{ %d, %d, %d, %d, %d, %d }\n",
-				(int)currentColorPattern[0], (int)currentColorPattern[1], (int)currentColorPattern[2],
-				(int)currentColorPattern[3], (int)currentColorPattern[4], (int)currentColorPattern[5]);
+	public static List<Color> newColorMixPallete() { //EM NENHUM CASO O ULTIMO VALOR DA COR (OPACITY) DEVE SER DIFERENTE DE 1 POIS ISSO ZOA COM O VALOR FINAL DA COR
+		return new ArrayList<>(Arrays.asList(
+				Color.valueOf("#123456FF"), //IDENTIFICADOR DE COLOR_MIX_PALLETE
+				Color.valueOf("#003366FF"), //R * 5, G * 5, B * 5 (POSICAO DAS CORES)
+				Color.WHITE, // R, G, B (%)
+				Color.WHITE, // COLOR_ADJUST (HUE, SATURATION, BRIGHTNESS)
+				Color.WHITE, // COLOR_TINT (RED, GREEN, BLUE)
+				Color.valueOf("#FF0000FF"), // GLOBAL OPACITY, COLOR_ADJUST STATE, COLOR_TINT OPACITY
+				Color.valueOf("#00FF00FF"), // SEPIA_TONE STATE, SEPIA_TONE LEVEL, GLOW STATE
+				Color.valueOf("#0000FFFF"))); // BLOOM STATE, BLOOM LEVEL, GLOW LEVEL 
 	}
 
-	public static int[] convertColorsToColorPattern(Color color1, Color color2) {
-		/* Um par de cores no topo do sprite significa que se trata de uma paleta de cores
-		 * feita através de troca de cores. Passando esse par de cores para esse método,
-		 * resultará em uma array de int com o pattern para ser passado para o método
-		 * Tools.getImageWithColorChanged()
-		 * O sprite pode conter vãrios pares de cores com diferentes patterns, o que
-		 * resultará na geração de sprites com cores diferentes, porem cada
-		 * par deve estar separado por um pixel da mesma cor da transparência.
-		 */
-		int[] argb1 = ImageUtils.getRgbaArray(ImageUtils.colorToArgb(color1));
-		int[] argb2 = ImageUtils.getRgbaArray(ImageUtils.colorToArgb(color2));
-		return new int[] {argb1[1], argb2[1], argb1[2], argb2[2], argb1[3], argb2[3]};
+	public static WritableImage applyColorMixPalleteOnImage(WritableImage originalImage, List<Color> pattern) {
+		return applyColorMixPalleteOnImage(originalImage, pattern, Color.TRANSPARENT);
 	}
 
-	public static int[] convertColorsToColorPattern(List<Color> colors) {
-		if (colors == null)
-			throw new RuntimeException("colors is null");
-		if (colors.size() != 2)
-			throw new RuntimeException("Invalid color list for conversion (Must have exactly 2 colors)");
-		return convertColorsToColorPattern(colors.get(0), colors.get(1));
-	}
-	
-	public static Color[] convertColorPatternToColors(int[] colorPattern) {
-		Color color1 = ImageUtils.argbToColor(ImageUtils.getRgba(colorPattern[0], colorPattern[2], colorPattern[4]));
-		Color color2 = ImageUtils.argbToColor(ImageUtils.getRgba(colorPattern[1], colorPattern[3], colorPattern[5]));
-		return new Color[] {color1, color2};
-	}
-
-	public static WritableImage applyColorChangeOnImage(WritableImage originalImage, int[] colorPattern) {
-		return applyColorChangeOnImage(originalImage, colorPattern, Color.TRANSPARENT);
-	}
-
-	public static WritableImage applyColorChangeOnImage(WritableImage originalImage, int[] colorPattern, Color transparentColor) {
-		// {2, 50, 1, 75, 3, 20} - Trocar R por G, com 50% do valor do R, e 75% do valor do G e 20% do valor de B
-		int w = (int)originalImage.getWidth(), h = (int)originalImage.getHeight();
+	public static WritableImage applyColorMixPalleteOnImage(WritableImage originalImage, List<Color> colorMixPallete, Color transparentColor) {
+		if (!isColorMixPallete(colorMixPallete))
+			throw new RuntimeException("Invalid Color Mix Pallete");
+		ColorMix colorMix = new ColorMix(colorMixPallete);
+		int w = (int)originalImage.getWidth(), h = (int)originalImage.getHeight() - 1;
 		Canvas c = new Canvas(w, h);
 		GraphicsContext gc = c.getGraphicsContext2D();
 		gc.setImageSmoothing(false);
 		WritableImage i = new WritableImage(w, h);
+		PixelReader pr = originalImage.getPixelReader();
 		PixelWriter pw = i.getPixelWriter();
-		int r = colorPattern[0], g = colorPattern[2], b = colorPattern[4];
-		double rv = colorPattern[1] / 100f, gv = colorPattern[3] / 100f, bv = colorPattern[5] / 100f;
-		for (int y = 0; y < h; y++)
+		int r = colorMix.getRedIndex(), g = colorMix.getGreenIndex(), b = colorMix.getBlueIndex();
+		double opacity = colorMix.getGlobalOpacity(), rv = colorMix.getRedStrenght(),
+					 gv = colorMix.getGreenStrenght(), bv = colorMix.getBlueStrenght();
+		for (int y = 1; y <= h; y++)
 			for (int x = 0; x < w; x++) {
-				int[] rgba = ImageUtils.getRgbaArray(originalImage.getPixelReader().getArgb(x, y));
-				int rr = (int)(rgba[r] * rv), gg = (int)(rgba[g] * gv), bb = (int)(rgba[b] * bv);
-				pw.setColor(x, y, !originalImage.getPixelReader().getColor(x, y).equals(transparentColor) ?
-						ImageUtils.argbToColor(ImageUtils.getRgba(rr, gg, bb)) : transparentColor);
+				Color col = pr.getColor(x, y);
+				double[] rgba = {col.getRed(), col.getGreen(), col.getBlue(), col.getOpacity()};
+				Color col2 = new Color(rgba[r] * rv, rgba[g] * gv, rgba[b] * bv, opacity);
+				pw.setColor(x, y - 1, !col.equals(transparentColor) ?	col2 : transparentColor);
 			}
-		return i;
+		gc.setFill(transparentColor);
+		gc.fillRect(0, 0, w, h);
+		DrawImageEffects effects = new DrawImageEffects();
+		if (colorMix.getColorAdjustState())
+			effects.setColorAdjust(colorMix.getColorAdjustHue(),
+														 colorMix.getColorAdjustSaturation(),
+														 colorMix.getColorAdjustBrightness(), BlendMode.SRC_ATOP);
+		if (colorMix.getColorTintOpacity() > 0.0)
+			effects.setColorTint(colorMix.getColorTintRed(),
+													 colorMix.getColorTintGreen(),
+													 colorMix.getColorTintBlue(),
+													 colorMix.getColorTintOpacity(), BlendMode.SRC_ATOP);
+		if (colorMix.getSepiaToneState())
+			effects.setSepiaTone(colorMix.getSepiaToneLevel(), BlendMode.SRC_ATOP);
+		if (colorMix.getBloomState())
+			effects.setBloom(colorMix.getBloomThreshold(), BlendMode.SRC_ATOP);
+		if (colorMix.getGlowState())
+			effects.setGlow(colorMix.getGlowLevel(), BlendMode.SRC_ATOP);
+		ImageUtils.drawImage(gc, i, 0, 0, effects);
+		return Draw.getCanvasSnapshot(c);
 	}
 
 	public static WritableImage applyColorPalleteOnImage(WritableImage originalImage, List<Color> originalPallete, List<Color> currentPallete) {
@@ -405,7 +400,7 @@ public abstract class Tools {
 		PixelWriter pw = wi.getPixelWriter();
 		for (int y = 0; y < h; y++)
 			for (int x = 0; x < w; x++) {
-				Color color = ImageUtils.argbToColor(pr.getArgb(x, y));
+				Color color = pr.getColor(x, y);
 				if (y == 0)
 					pw.setColor(x, y, transparentColor);
 				else if (!color.equals(transparentColor) && originalPallete.contains(color))
@@ -426,7 +421,7 @@ public abstract class Tools {
 		PixelReader pr = image.getPixelReader();
 		Color previewColor = transparentColor;
 		for (int x = 0; x < image.getWidth(); x++) {
-			Color color = ImageUtils.argbToColor(pr.getArgb(x, 0));
+			Color color = pr.getColor(x, 0);
 			if (color.equals(transparentColor)) {
 				if (!pallete.isEmpty()) {
 					palletes.add(new ArrayList<>(pallete));
@@ -452,7 +447,7 @@ public abstract class Tools {
 		PixelReader pr = image.getPixelReader();
 		for (int y = 1; y < h; y++)
 			for (int x = 0; x < w; x++) {
-				Color color = ImageUtils.argbToColor(pr.getArgb(x, y));
+				Color color = pr.getColor(x, y);
 				if (!color.equals(transparentColor) && !pallete.contains(color))
 					pallete.add(color);
 			}

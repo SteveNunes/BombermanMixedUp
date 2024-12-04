@@ -534,6 +534,10 @@ public class GameTikTok {
 		Main.sceneMain.setOnKeyPressed(e -> {
 			Player.convertOnKeyPressEvent(e);
 			holdedKeys.add(e.getCode());
+			if (e.getCode() == KeyCode.Q)
+				MapSet.decTileSetPalleteIndex();
+			if (e.getCode() == KeyCode.E)
+				MapSet.incTileSetPalleteIndex();
 			if (e.getCode() == KeyCode.Z) {
 				int n = (int)MyMath.getRandom(0, BomberMan.getTotalBomberMans() - 1);
 				for (int x = 0; x < BomberMan.getTotalBomberMans(); x++)

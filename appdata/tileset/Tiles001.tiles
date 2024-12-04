@@ -2,9 +2,9 @@
 WallTile=5 4
 GroundTile=3 3
 GroundWithBrickShadow=3 3
-BrickStandFrameSet={SetSprSource;/tileset/Tiles001;80;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;4},{SetSprIndex;0}|{Goto;0}
-BrickBreakFrameSet={SetSprSource;/tileset/Tiles001;80;96;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}
-BrickRegenFrameSet={SetSprSource;/tileset/Tiles001;80;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}
+BrickStandFrameSet={SetSprSource;TileSet;80;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;4},{SetSprIndex;0}|{Goto;0}
+BrickBreakFrameSet={SetSprSource;TileSet;80;96;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}
+BrickRegenFrameSet={SetSprSource;TileSet;80;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}
 GroundWithWallShadow=3 3
 
 [Effect-1]

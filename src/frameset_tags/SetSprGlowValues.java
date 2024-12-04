@@ -5,15 +5,15 @@ import javafx.scene.effect.BlendMode;
 
 public class SetSprGlowValues extends FrameTag {
 
-	public int level;
+	public double level;
 	public BlendMode blendMode;
 
-	public SetSprGlowValues(int level, BlendMode blendMode) {
+	public SetSprGlowValues(double level, BlendMode blendMode) {
 		this.level = level;
 		this.blendMode = blendMode;
 	}
 
-	public SetSprGlowValues(int threshold) {
+	public SetSprGlowValues(double threshold) {
 		this(threshold, BlendMode.SRC_ATOP);
 	}
 
@@ -26,7 +26,7 @@ public class SetSprGlowValues extends FrameTag {
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {
-			level = Integer.parseInt(params[n++]);
+			level = Double.parseDouble(params[n++]);
 			blendMode = BlendMode.valueOf(params[n++]);
 		}
 		catch (Exception e) {

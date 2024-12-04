@@ -2,7 +2,7 @@
 WallTile=6 0
 GroundTile=3 0
 GroundWithBrickShadow=6 1
-BrickStandFrameSet={SetSprSource;/tileset/Tile22;96;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;100},{SetSprIndex;0}|,{SetTicksPerFrame;4},{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{Goto;0}
-BrickBreakFrameSet={SetSprSource;/tileset/Tile22;0;32;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
-BrickRegenFrameSet={SetSprSource;/tileset/Tile22;0;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
+BrickStandFrameSet={SetSprSource;TileSet;96;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;100},{SetSprIndex;0}|,{SetTicksPerFrame;4},{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{SetSprIndex;0}|{SetSprIndex;2}|{SetSprIndex;1}|{Goto;0}
+BrickBreakFrameSet={SetSprSource;TileSet;0;32;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
+BrickRegenFrameSet={SetSprSource;TileSet;0;48;16;16;0;0;0;0;16;16},{SetTicksPerFrame;6},{SetSprIndex;0}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}|{IncSprIndex;1}
 GroundWithWallShadow=6 1
