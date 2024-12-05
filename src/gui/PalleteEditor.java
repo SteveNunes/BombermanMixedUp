@@ -260,11 +260,11 @@ public class PalleteEditor {
 			originalSprite = ImageUtils.loadWritableImageFromFile(originalSpriteFileName);
 			canvasMain.setWidth(originalSprite.getWidth() * 3);
 			canvasMain.setHeight(originalSprite.getHeight() * 3);
-			Main.stageMain.sizeToScene();
 			loadPallete();
 			vBoxControls.setDisable(false);
 			buttonSaveToDisk.setDisable(false);
-		}
+			Main.stageMain.sizeToScene();
+    }
 	}
 	
 	private void saveToDisk() {
@@ -348,6 +348,7 @@ public class PalleteEditor {
 	private void regeneratePalleteColors(FlowPane flowPane) {
 		List<Color> colors = flowPane == flowPaneOriginalColors ? originalPallete() : currentPallete();
 		if (Tools.isColorMixPallete(colors)) {
+			flowPane.getChildren().clear();
 			flowPane.getChildren().add(new Text("Paleta de cores editavel somente através do \"COLOR_MIX_EDITOR\""));
 			hBoxPalleteColors.setDisable(true);
 			return;
@@ -389,6 +390,7 @@ public class PalleteEditor {
 			}
 			flowPane.getChildren().add(iv);
 		}
+		Main.stageMain.sizeToScene();
 	}
 
 	private void setColorPicker(ImageView iv, int colorIndex) {
@@ -411,6 +413,10 @@ public class PalleteEditor {
 	}
 
 	private void updateCurrentSprite() {
+		if (Tools.isColorMixPallete(currentPallete())) {
+			currentSprite = Tools.applyColorMixPalleteOnImage(originalSprite, currentPallete(), Materials.getGreenColor());
+			return;
+		}
 		List<Color> pallete = new ArrayList<>(currentPallete());
 		if (Misc.blink(100) && blinkIndex >= 0 &&  blinkIndex < pallete.size())
 			pallete.set(blinkIndex, Materials.getGreenColor());

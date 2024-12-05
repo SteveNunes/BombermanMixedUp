@@ -20,7 +20,6 @@ import javafx.stage.Stage;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import player.GameInput;
-import tools.ColorMix;
 import tools.GameFonts;
 import tools.Materials;
 import tools.Sound;
@@ -30,7 +29,7 @@ import util.Misc;
 public class Main extends Application {
 
 	public final static int TILE_SIZE = 16;
-	public final static GameMode GAME_MODE = GameMode.COLOR_MIX_EDITOR;
+	public final static GameMode GAME_MODE = GameMode.PALLETE_EDITOR;
 
 	public static FrameSetEditor frameSetEditor = null;
 	public static PalleteEditor palleteEditor = null;

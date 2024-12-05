@@ -325,9 +325,9 @@ public abstract class Tools {
 	}
 
 	public static boolean isColorMixPallete(List<Color> pallete) {
-		if (pallete == null || pallete.size() < 2)
+		if (pallete == null || pallete.size() != 9)
 			return false;
-		return pallete.get(0).equals(Color.valueOf("#123456FF"));
+		return pallete.get(0).equals(Color.valueOf("#123456FF")) && pallete.get(8).equals(Color.valueOf("#654321FF"));
 	}
 	
 	public static List<Color> newColorMixPallete() { //EM NENHUM CASO O ULTIMO VALOR DA COR (OPACITY) DEVE SER DIFERENTE DE 1 POIS ISSO ZOA COM O VALOR FINAL DA COR
@@ -339,7 +339,8 @@ public abstract class Tools {
 				Color.WHITE, // COLOR_TINT (RED, GREEN, BLUE)
 				Color.valueOf("#FF0000FF"), // GLOBAL OPACITY, COLOR_ADJUST STATE, COLOR_TINT OPACITY
 				Color.valueOf("#00FF00FF"), // SEPIA_TONE STATE, SEPIA_TONE LEVEL, GLOW STATE
-				Color.valueOf("#0000FFFF"))); // BLOOM STATE, BLOOM LEVEL, GLOW LEVEL 
+				Color.valueOf("#0000FFFF"),  // BLOOM STATE, BLOOM LEVEL, GLOW LEVEL
+				Color.valueOf("#654321FF"))); //IDENTIFICADOR DE COLOR_MIX_PALLETE
 	}
 
 	public static WritableImage applyColorMixPalleteOnImage(WritableImage originalImage, List<Color> pattern) {

@@ -204,10 +204,7 @@ public class ColorMixEditor {
 		});
 		comboBoxPalletesListenerHandle = new ListenerHandle<>(comboBoxPalleteIndex.valueProperty(), (obs, olvV, newV) -> {
 			currentPalleteIndex = newV - 1;
-			textInfos.setText(Tools.isColorMixPallete(getCurrentPallete()) ? "" : "Paleta de cores editavel somente através do \"PALLETE_EDITOR\"");
-			hBoxControls.setDisable(!Tools.isColorMixPallete(getCurrentPallete()));
-			if (Tools.isColorMixPallete(getCurrentPallete()))
-				setControlls();
+			setControlls();
 			updateCanvas();
 		});
 		setControlsAction();
@@ -272,33 +269,37 @@ public class ColorMixEditor {
 	
 	private void setControlls() {
 		disabledControlEvents = true;
-		radioRed1.setSelected(getCurrentColorMix().getRedIndex() == 0);
-		radioGreen1.setSelected(getCurrentColorMix().getRedIndex() == 1);
-		radioBlue1.setSelected(getCurrentColorMix().getRedIndex() == 2);
-		radioRed2.setSelected(getCurrentColorMix().getGreenIndex() == 0);
-		radioGreen2.setSelected(getCurrentColorMix().getGreenIndex() == 1);
-		radioBlue2.setSelected(getCurrentColorMix().getGreenIndex() == 2);
-		radioRed3.setSelected(getCurrentColorMix().getBlueIndex() == 0);
-		radioGreen3.setSelected(getCurrentColorMix().getBlueIndex() == 1);
-		radioBlue3.setSelected(getCurrentColorMix().getBlueIndex() == 2);
-		sliderColorPorcent1.setValue(getCurrentColorMix().getRedStrenght());
-		sliderColorPorcent2.setValue(getCurrentColorMix().getGreenStrenght());
-		sliderColorPorcent3.setValue(getCurrentColorMix().getBlueStrenght());
-		sliderColorOpacity.setValue(getCurrentColorMix().getGlobalOpacity());
-		sliderColorAdjustHue.setValue(getCurrentColorMix().getColorAdjustHue());
-		sliderColorAdjustSaturation.setValue(getCurrentColorMix().getColorAdjustSaturation());
-		sliderColorAdjustBrightness.setValue(getCurrentColorMix().getColorAdjustBrightness());
-		checkBoxColorAdjust.setSelected(getCurrentColorMix().getColorAdjustState());
-		sliderColorTintRed.setValue(getCurrentColorMix().getColorTintRed());
-		sliderColorTintGreen.setValue(getCurrentColorMix().getColorTintGreen());
-		sliderColorTintBlue.setValue(getCurrentColorMix().getColorTintBlue());
-		sliderColorTintOpacity.setValue(getCurrentColorMix().getColorTintOpacity());
-		checkBoxSepiaTone.setSelected(getCurrentColorMix().getSepiaToneState());
-		sliderSepiaToneLevel.setValue(getCurrentColorMix().getSepiaToneLevel());
-		checkBoxBloom.setSelected(getCurrentColorMix().getBloomState());
-		sliderBloomThreshold.setValue(1.0 - getCurrentColorMix().getBloomThreshold());
-		checkBoxGlow.setSelected(getCurrentColorMix().getGlowState());
-		sliderGlowLevel.setValue(getCurrentColorMix().getGlowLevel());
+		textInfos.setText(Tools.isColorMixPallete(getCurrentPallete()) ? "" : "Paleta de cores editavel somente através do \"PALLETE_EDITOR\"");
+		hBoxControls.setDisable(!Tools.isColorMixPallete(getCurrentPallete()));
+		if (Tools.isColorMixPallete(getCurrentPallete())) {
+			radioRed1.setSelected(getCurrentColorMix().getRedIndex() == 0);
+			radioGreen1.setSelected(getCurrentColorMix().getRedIndex() == 1);
+			radioBlue1.setSelected(getCurrentColorMix().getRedIndex() == 2);
+			radioRed2.setSelected(getCurrentColorMix().getGreenIndex() == 0);
+			radioGreen2.setSelected(getCurrentColorMix().getGreenIndex() == 1);
+			radioBlue2.setSelected(getCurrentColorMix().getGreenIndex() == 2);
+			radioRed3.setSelected(getCurrentColorMix().getBlueIndex() == 0);
+			radioGreen3.setSelected(getCurrentColorMix().getBlueIndex() == 1);
+			radioBlue3.setSelected(getCurrentColorMix().getBlueIndex() == 2);
+			sliderColorPorcent1.setValue(getCurrentColorMix().getRedStrenght());
+			sliderColorPorcent2.setValue(getCurrentColorMix().getGreenStrenght());
+			sliderColorPorcent3.setValue(getCurrentColorMix().getBlueStrenght());
+			sliderColorOpacity.setValue(getCurrentColorMix().getGlobalOpacity());
+			sliderColorAdjustHue.setValue(getCurrentColorMix().getColorAdjustHue());
+			sliderColorAdjustSaturation.setValue(getCurrentColorMix().getColorAdjustSaturation());
+			sliderColorAdjustBrightness.setValue(getCurrentColorMix().getColorAdjustBrightness());
+			checkBoxColorAdjust.setSelected(getCurrentColorMix().getColorAdjustState());
+			sliderColorTintRed.setValue(getCurrentColorMix().getColorTintRed());
+			sliderColorTintGreen.setValue(getCurrentColorMix().getColorTintGreen());
+			sliderColorTintBlue.setValue(getCurrentColorMix().getColorTintBlue());
+			sliderColorTintOpacity.setValue(getCurrentColorMix().getColorTintOpacity());
+			checkBoxSepiaTone.setSelected(getCurrentColorMix().getSepiaToneState());
+			sliderSepiaToneLevel.setValue(getCurrentColorMix().getSepiaToneLevel());
+			checkBoxBloom.setSelected(getCurrentColorMix().getBloomState());
+			sliderBloomThreshold.setValue(1.0 - getCurrentColorMix().getBloomThreshold());
+			checkBoxGlow.setSelected(getCurrentColorMix().getGlowState());
+			sliderGlowLevel.setValue(getCurrentColorMix().getGlowLevel());
+		}
 		disabledControlEvents = false;
 		updateLabels();
 	}
