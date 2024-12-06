@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import application.Main;
+import entities.Bomb;
 import entities.Entity;
 import enums.Direction;
 import enums.PassThrough;
@@ -29,6 +30,7 @@ public class Explosion {
 	private int count;
 	private int[] fireDis;
 	private int explosionIndex;
+	private Set<TileCoord> inRangeTiles;
 
 	private static List<Explosion> explosions = new ArrayList<>();
 
@@ -44,6 +46,7 @@ public class Explosion {
 		passThrough = new HashSet<>(Set.of(PassThrough.HOLE, PassThrough.WATER, PassThrough.PLAYER, PassThrough.MONSTER, PassThrough.ITEM));
 		if (passThroughAllBricks)
 			passThrough.add(PassThrough.BRICK);
+		inRangeTiles = new HashSet<>();
 	}
 	
 	public void setPassThroughAny(boolean state) {
@@ -145,6 +148,16 @@ public class Explosion {
 			}
 		}
 	}
+	
+	public static Entity checkIfEntityIsAmongAnyExplosionRange(Entity entity) {
+		for (Explosion explosion : explosions)
+			if (explosion.inRangeTiles.contains(entity.getTileCoordFromCenter())) {
+				if (explosion.owner instanceof Bomb)
+					return ((Bomb)explosion.owner).getOwner();
+				return explosion.owner;
+			}
+		return null;
+	}
 
 	private void markTiles(boolean remove) {
 		Direction dir = Direction.LEFT;
@@ -160,6 +173,10 @@ public class Explosion {
 							TileDamage.addTileDamage(coord.getNewInstance(), 40).addDamageTileProps(TileProp.EXPLOSION);
 							MapSet.checkTileTrigger(owner, coord.getNewInstance(), TileProp.TRIGGER_BY_EXPLOSION);
 						}
+						if (remove)
+							inRangeTiles.remove(coord);
+						else
+							inRangeTiles.add(coord.getNewInstance());
 						if (x > 0 && (!MapSet.haveTilesOnCoord(coord) || MapSet.getCurrentLayer().getTileProps(coord).contains(TileProp.GROUND_NO_FIRE) || !MapSet.tileIsFree(coord, passThrough)))
 							break;
 					}

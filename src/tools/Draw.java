@@ -572,8 +572,7 @@ public abstract class Draw {
 		return drawParams;
 	}
 	
-	public static void drawTilePropsOverCursor(Canvas canvas, Font font, int mouseX, int mouseY, int offsetX, int offsetY) {
-		TileCoord coord = new TileCoord(mouseX / Main.TILE_SIZE / Main.getZoom(), mouseY / Main.TILE_SIZE / Main.getZoom());
+	public static void drawTilePropsOverCursor(Canvas canvas, Font font, TileCoord coord, int offsetX, int offsetY) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		if (MapSet.getCurrentLayer().haveTilesOnCoord(coord)) {
 			Tile tile = MapSet.getFirstBottomTileFromCoord(coord);
@@ -599,10 +598,10 @@ public abstract class Draw {
 		}
 	}
 
-	public static void drawTileTagsOverCursor(Canvas canvas, Font font, int mouseX, int mouseY, int offsetX, int offsetY) {
-		TileCoord coord = new TileCoord(mouseX / Main.TILE_SIZE / Main.getZoom(), mouseY / Main.TILE_SIZE / Main.getZoom());
+	public static void drawTileTagsOverCursor(Canvas canvas, Font font, TileCoord coord, int offsetX, int offsetY) {
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		if (MapSet.getCurrentLayer().haveTilesOnCoord(coord)) {
+			Tile tile = MapSet.getFirstBottomTileFromCoord(coord);
 			String tileTags;
 			if (MapSet.getCurrentLayer().tileHaveTags(coord))
 				tileTags = MapSet.getCurrentLayer().getTileTags(coord).toString();
@@ -615,7 +614,7 @@ public abstract class Draw {
 			gc.setFont(font);
 			gc.setLineWidth(3);
 			String str[] = tileTags.split(tileTags.charAt(0) == '{' ? "\\," : " ");
-			int x, y = mouseY + 20 - offsetY, yy = str.length * 20;
+			int x, y = tile.outY * Main.getZoom() + (Main.TILE_SIZE * Main.getZoom()) / 2 - offsetY, yy = str.length * 20;
 			while (y + yy >= canvas.getHeight() - 30)
 				y -= 20;
 			yy = 0;
@@ -623,7 +622,7 @@ public abstract class Draw {
 				Text text = new Text(s);
 				ControllerUtils.setNodeFont(text, "Lucida Console", 15);
 				int w = (int) text.getBoundsInLocal().getWidth();
-				x = mouseX - w / 2 - offsetX;
+				x = tile.outY * Main.TILE_SIZE * Main.getZoom() - w / 2 - offsetX;
 				while (x + w >= canvas.getWidth() - 130)
 					x -= 10;
 				gc.strokeText(s, x, y + (yy += 20));
@@ -669,7 +668,7 @@ public abstract class Draw {
 									 color = Color.INDIANRED;
 				else if (tileProps.contains(TileProp.REDIRECT_BOMB_TO_DOWN) || tileProps.contains(TileProp.REDIRECT_BOMB_TO_RIGHT) || tileProps.contains(TileProp.REDIRECT_BOMB_TO_UP) || tileProps.contains(TileProp.REDIRECT_BOMB_TO_LEFT))
 					color = Color.MEDIUMPURPLE;
-				else if (tileProps.contains(TileProp.RAIL_DL) || tileProps.contains(TileProp.RAIL_DR) || tileProps.contains(TileProp.RAIL_UL) || tileProps.contains(TileProp.RAIL_UR) || tileProps.contains(TileProp.RAIL_H) || tileProps.contains(TileProp.RAIL_V) || tileProps.contains(TileProp.RAIL_JUMP) || tileProps.contains(TileProp.RAIL_START) || tileProps.contains(TileProp.RAIL_END) || tileProps.contains(TileProp.TREADMILL_TO_LEFT) || tileProps.contains(TileProp.TREADMILL_TO_UP) || tileProps.contains(TileProp.TREADMILL_TO_RIGHT) || tileProps.contains(TileProp.TREADMILL_TO_DOWN))
+				else if (tileProps.contains(TileProp.RAIL_DL) || tileProps.contains(TileProp.RAIL_DR) || tileProps.contains(TileProp.RAIL_UL) || tileProps.contains(TileProp.RAIL_UR) || tileProps.contains(TileProp.RAIL_H) || tileProps.contains(TileProp.RAIL_V) || tileProps.contains(TileProp.RAIL_JUMP) || tileProps.contains(TileProp.RAIL_START) || tileProps.contains(TileProp.RAIL_END) || tileProps.contains(TileProp.TREADMILL_TO_LEFT) || tileProps.contains(TileProp.TREADMILL_TO_UP) || tileProps.contains(TileProp.TREADMILL_TO_RIGHT) || tileProps.contains(TileProp.TREADMILL_TO_DOWN) || tileProps.contains(TileProp.BOMBER_SHIP_LEFT) || tileProps.contains(TileProp.BOMBER_SHIP_UP) || tileProps.contains(TileProp.BOMBER_SHIP_RIGHT) || tileProps.contains(TileProp.BOMBER_SHIP_DOWN) || tileProps.contains(TileProp.BOMBER_SHIP_CORNER))
 					color = Color.SADDLEBROWN;
 				else if (tileProps.contains(TileProp.GROUND_NO_MOB) || tileProps.contains(TileProp.GROUND_NO_PLAYER) || tileProps.contains(TileProp.GROUND_NO_BOMB) || tileProps.contains(TileProp.GROUND_NO_FIRE))
 					color = Color.LIGHTGOLDENRODYELLOW;

@@ -122,6 +122,8 @@ public class Tile {
 							MapSet.getMapMinLimit().setPosition(outX, outY);
 						else if (prop == TileProp.MAX_SCREEN_TILE_LIMITER)
 							MapSet.getMapMaxLimit().setPosition(outX, outY);
+						else if (prop == TileProp.BOMBER_SHIP_LEFT || prop == TileProp.BOMBER_SHIP_UP || prop == TileProp.BOMBER_SHIP_RIGHT || prop == TileProp.BOMBER_SHIP_DOWN)
+							MapSet.addBomberShipTile(tileCoord);
 					}
 				}
 			opacity = Double.parseDouble(split[++n]);

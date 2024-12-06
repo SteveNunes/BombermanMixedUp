@@ -118,9 +118,9 @@ public abstract class Materials {
 				for (int x = 0; x < 5; x++) {
 					for (int y = 0; y < 15; y++) {
 						int sprX = y == 0 ? 48 : 32, sprY = 16 * x, outX = d == 0 ? x * Main.TILE_SIZE : y * Main.TILE_SIZE, outY = d == 0 ? y * Main.TILE_SIZE : 240 + x * Main.TILE_SIZE;
-						ImageUtils.drawImage(gc, p == -1 ? exp1 : exp2, sprX, sprY + 1, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
+						ImageUtils.drawImage(gc, p == -1 ? exp1 : exp2, sprX, sprY + 1, Main.TILE_SIZE, Main.TILE_SIZE, outX, outY + 1, Main.TILE_SIZE, Main.TILE_SIZE, d == 1 && y == 0 ? 270 : d * 90);
 					}
-					ImageUtils.drawImage(gc, p == -1 ? exp1 : exp2, 16 * d, x * Main.TILE_SIZE + 1, Main.TILE_SIZE, Main.TILE_SIZE, 80 + x * Main.TILE_SIZE, 208 + 16 * d, Main.TILE_SIZE, Main.TILE_SIZE);
+					ImageUtils.drawImage(gc, p == -1 ? exp1 : exp2, 16 * d, x * Main.TILE_SIZE + 1, Main.TILE_SIZE, Main.TILE_SIZE, 80 + x * Main.TILE_SIZE, 208 + 16 * d + 1, Main.TILE_SIZE, Main.TILE_SIZE);
 				}
 			}
 			if (p > -1)

@@ -54,6 +54,7 @@ public class Bomb extends Entity {
 	private int fireDistance;
 	private boolean ownerIsOver;
 	private boolean isActive;
+	private boolean wasExploded;
 	private boolean isStucked;
 	private long setTime;
 	private double curseMulti;
@@ -84,6 +85,7 @@ public class Bomb extends Entity {
 		isStucked = false;
 		dangerMarked = false;
 		dangerMarked2 = false;
+		wasExploded = false;
 		nesBomb = type == BombType.NES || (owner instanceof BomberMan && ((BomberMan) owner).getBomberIndex() == 0);
 		if (type == BombType.P && !(owner instanceof BomberMan))
 			fireDistance = GameConfigs.MAX_EXPLOSION_DISTANCE;
@@ -139,7 +141,7 @@ public class Bomb extends Entity {
 		final int tpf = ticksPerFrame;
 		final int y = 16 * type.getValue();
 		for (FrameSet frameSet : getFrameSets())
-			frameSet.changeTagValues(tag -> {
+			frameSet.iterateFrameTags(tag -> {
 				if (tag instanceof SetSprSource && ((SetSprSource)tag).originSprSizePos.y == -1)
 					((SetSprSource)tag).originSprSizePos.y = y;
 				if (tag instanceof SetTicksPerFrame && ((SetTicksPerFrame)tag).value == -1)
@@ -161,6 +163,10 @@ public class Bomb extends Entity {
 
 	public boolean isActive() {
 		return isActive;
+	}
+
+	public boolean wasExploded() {
+		return !isActive && wasExploded;
 	}
 
 	public BombType getBombType() {
@@ -202,6 +208,7 @@ public class Bomb extends Entity {
 			DurationTimerFX.createTimer("removeMarkTilesAsDanger-" + bomb.hashCode(), Duration.millis(800), () -> {
 				bomb.removeDangerMarks(TileProp.CPU_DANGER);
 				bomb.removeDangerMarks(TileProp.CPU_DANGER_2);
+				bomb.wasExploded = true;
 			});
 			bombList.remove(bomb);
 			bombs.remove(bomb.getTileCoordFromCenter());
@@ -273,6 +280,10 @@ public class Bomb extends Entity {
 				bomb.run();
 		}
 	}
+	
+	public Entity getOwner() {
+		return owner;
+	}
 
 	public boolean ownerIsOver(Entity entity) {
 		return entity != null && owner == entity && ownerIsOver;
@@ -319,7 +330,7 @@ public class Bomb extends Entity {
 			Explosion.addExplosion(this, getTileCoordFromCenter(), fireDistance, getBombType().getValue(), canPassThroughBricks());
 		else {
 			Effect effect = Effect.runEffect(getPosition(), "MagmaBombExplosion");
-			effect.getCurrentFrameSet().changeTagValues(tag -> {
+			effect.getCurrentFrameSet().iterateFrameTags(tag -> {
 				if (tag instanceof SetSprSource) {
 					SetSprSource t = (SetSprSource)tag;
 					t.outputSprSizePos.width = (int)(Main.TILE_SIZE * fireDistance * 2.2);

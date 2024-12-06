@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import application.Main;
+import damage.Explosion;
 import drawimage_stuffs.DrawImageEffects;
 import entityTools.PushEntity;
 import entityTools.ShakeEntity;
@@ -1380,26 +1381,30 @@ public class Entity extends Position {
 		return shadow != null;
 	}
 
-	public void addNewFrameSetFromIniFile(Entity entity, String frameSetName, String file, String section, String item) {
-		FrameSet frameSet;
+	// Retorna 2 FrameSets: {Instancia criada no momento, Instancia original}
+	public FrameSet[] addNewFrameSetFromIniFile(Entity entity, String frameSetName, String file, String section, String item) {
+		FrameSet originalFrameSet, frameSet;
 		if (frameSets.containsKey(frameSetName))
-			frameSet = new FrameSet(frameSets.get(frameSetName), entity);
+			frameSet = new FrameSet(originalFrameSet = frameSets.get(frameSetName), entity);
 		else {
-			frameSet = new FrameSet(entity);
+			frameSet = originalFrameSet = new FrameSet(entity);
 			frameSet.loadFromIni(entity, file, section, item);
 		}
 		addFrameSet(frameSetName, frameSet);
+		return new FrameSet[] {frameSet, originalFrameSet};
 	}
 
-	public void replaceFrameSetFromIniFile(Entity entity, String existingFrameSetName, String file, String section, String item) {
-		FrameSet frameSet;
+	// Retorna 2 FrameSets: {Instancia criada no momento, Instancia original}
+	public FrameSet[] replaceFrameSetFromIniFile(Entity entity, String existingFrameSetName, String file, String section, String item) {
+		FrameSet originalFrameSet, frameSet;
 		if (frameSets.containsKey(existingFrameSetName))
-			frameSet = new FrameSet(frameSets.get(existingFrameSetName), entity);
+			frameSet = new FrameSet(originalFrameSet = frameSets.get(existingFrameSetName), entity);
 		else {
-			frameSet = new FrameSet(entity);
+			frameSet = originalFrameSet = new FrameSet(entity);
 			frameSet.loadFromIni(entity, file, section, item);
 		}
 		replaceFrameSet(existingFrameSetName, frameSet);
+		return new FrameSet[] {frameSet, originalFrameSet};
 	}
 
 	public void replaceFrameSetFromString(Entity entity, String frameSetName, String frameSetTags) {
@@ -1424,6 +1429,14 @@ public class Entity extends Position {
 
 	public void takeDamage() {
 		if (!isInvencible() && !isDead() && !(this instanceof Effect)) {
+			Entity entity = Explosion.checkIfEntityIsAmongAnyExplosionRange(this);
+			if (entity != null) {
+				if (entity instanceof BomberMan) {
+					BomberMan killer = (BomberMan)entity;
+					if (killer.bomberShipIsActive() && killer.getBomberShip().getVictim() == null)
+						killer.getBomberShip().setVictim((BomberMan)this);
+				}
+			}
 			if (getHoldingEntity() != null)
 				unsetHoldingEntity();
 			if (--hitPoints == 0) {

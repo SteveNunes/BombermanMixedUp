@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +59,7 @@ public abstract class MapSet {
 	private static Map<Integer, Layer> layers;
 	private static List<TileCoord> initialPlayerCoords;
 	private static List<TileCoord> initialMonsterCoords;
+	private static Set<TileCoord> bomberShipTiles;
 	private static ShakeEntity shake;
 	public static Entity mapFrameSets;
 	private static IniFile iniFile;
@@ -104,7 +106,8 @@ public abstract class MapSet {
 	private static Runnable onAfterMapLoadEvent = null;
 
 	public static void loadMap(String mapName) {
-		tileSetPalleteIndex = 1;
+		tileSetPalleteIndex = 0;
+		bomberShipTiles = new HashSet<>();
 		long ct = System.currentTimeMillis();
 		if (!new File("appdata/maps/" + mapName + ".map").exists())
 			throw new RuntimeException("Unable to load map file \"appdata/maps/" + mapName + ".map\" (File not found)");
@@ -245,9 +248,9 @@ public abstract class MapSet {
 				Platform.runLater(event);
 			}
 		}
-		System.out.println("... Concluído em " + (System.currentTimeMillis() - ct) + "ms");
 		long ms = Misc.bench(() -> Materials.loadFrameSets());
 		System.out.println("Concluido em " + ms + "ms");
+		System.out.println("Carregamento do mapa concluído em " + (System.currentTimeMillis() - ct) + "ms");
 	}
 	
 	public static void clearStuffs() {
@@ -262,21 +265,48 @@ public abstract class MapSet {
 		loadMap(mapName);
 	}
 	
+	public static Set<TileCoord> getBomberShipTileList() {
+		return bomberShipTiles;
+	}
+	
+	public static void addBomberShipTile(TileCoord coord) {
+		bomberShipTiles.add(new TileCoord(coord));
+	}
+	
+	public static TileCoord findNearestBomberShipTile(TileCoord coord) {
+		TileCoord closestTile = null;
+		int minDistance = Integer.MAX_VALUE;
+		for (TileCoord c : bomberShipTiles) {
+			int distance = calculateManhattanDistance(coord, c);
+			if (distance < minDistance) {
+				minDistance = distance;
+				closestTile = c;
+			}
+		}
+		return closestTile;
+	}
+
+	private static int calculateManhattanDistance(TileCoord coord1, TileCoord coord2) {
+		return Math.abs(coord1.getX() - coord2.getX()) + Math.abs(coord1.getY() - coord2.getY());
+	}
+
 	public static void setStageTimeLimitInSecs(Integer timeLimit) {
-		stageTimeInSecs = timeLimit;
-		if (timeLimit != null)
-			DurationTimerFX.createTimer("StageTimer", Duration.ZERO, Duration.seconds(1), 0, () -> {
-				if (stageTimerPauseDuration > 0)
-					stageTimerPauseDuration--;
-				else if (stageTimeInSecs > 0)
-					stageTimeInSecs--;
-				if (stageIsCleared() || (getStageClearCriterias() != null && getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && stageObjectiveIsCleared()))
-					DurationTimerFX.stopTimer("StageTimer");
-				else if (getStageClearCriterias() != null && getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && !hurryUpIsActive() && stageTimeInSecs != null && hurryUpTimeInSecs != null && getMapTimeLeftInSecs() <= hurryUpTimeInSecs)
-					setHurryUpState(true);
-			});
-		else
-			DurationTimerFX.stopTimer("StageTimer");
+		if (Main.GAME_MODE != GameMode.MAP_EDITOR) {
+			stageTimeInSecs = timeLimit;
+			if (timeLimit != null)
+				DurationTimerFX.createTimer("StageTimer", Duration.ZERO, Duration.seconds(1), 0, () -> {
+					if (stageTimerPauseDuration > 0)
+						stageTimerPauseDuration--;
+					else if (stageTimeInSecs > 0)
+						stageTimeInSecs--;
+					if (stageIsCleared() || (getStageClearCriterias() != null && getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && stageObjectiveIsCleared()))
+						DurationTimerFX.stopTimer("StageTimer");
+					else if (getStageClearCriterias() != null && getStageClearCriterias().contains(StageObjectives.LAST_PLAYER_SURVIVOR) && !hurryUpIsActive() && stageTimeInSecs != null && hurryUpTimeInSecs != null && getMapTimeLeftInSecs() <= hurryUpTimeInSecs)
+						setHurryUpState(true);
+				});
+			else
+				DurationTimerFX.stopTimer("StageTimer");
+		}
 	}
 	
 	public static void addStageTimePauseDuration(int timePauseDurationToAdd) {
@@ -321,11 +351,18 @@ public abstract class MapSet {
 		setHurryUpState(state, Duration.millis(250));
 	}
 	
+	private static void disableAllBomberShips() {
+		for (BomberMan bomber : BomberMan.getBomberManList())
+			if (bomber.getBomberShip() != null)
+				bomber.getBomberShip().disableBomberShip();
+	}
+	
 	public static void setHurryUpState(boolean state, Duration delayBetweenEachDrop) {
 		if (stageObjectiveIsCleared())
 			return;
 		if (state != hurryUpIsActive && state) {
 			DurationTimerFX.createTimer("HurryUp", Duration.millis(1), () -> {
+				disableAllBomberShips();
 				Sound.getCurrentMediaPlayer().setRate(1.2);
 				Sound.playWav("HurryUp");
 				Sound.playWav("voices/HurryUp");
@@ -365,7 +402,7 @@ public abstract class MapSet {
 							break;
 						}
 					}
-					while (!haveTilesOnCoord(hurryUpNextCoord) || tileContainsProp(hurryUpNextCoord, TileProp.WALL));
+					while (!haveTilesOnCoord(hurryUpNextCoord) || !tileIsFree(hurryUpNextCoord, Set.of(PassThrough.BOMB, PassThrough.BRICK, PassThrough.ITEM, PassThrough.MONSTER, PassThrough.PLAYER)));
 				}
 				else {
 					hurryUpNextCoord.incCoordsByDirection(hurryUpDirection);
@@ -396,6 +433,7 @@ public abstract class MapSet {
 
 	public static void setStageObjectiveAsClear() {
 		if (!stageObjectiveIsCleared) {
+			disableAllBomberShips();
 			stageObjectiveIsCleared = true;
 			if (preLoadedStageTags.containsKey("StageObjectiveCleared"))
 				runStageTag("StageObjectiveCleared");
@@ -951,13 +989,14 @@ public abstract class MapSet {
 	private static void drawHurryUpMessage() {
 		if (hurryUpDrawX != null) {
 			if (Misc.blink(25)) {
+				int y = (int)(Main.getMainCanvas().getHeight() / 2 / Main.getZoom()) + 48;
 				Draw.addDrawQueue(1, SpriteLayerType.CLOUD, DrawType.SET_GLOBAL_ALPHA, 1);
 				Draw.addDrawQueue(1, SpriteLayerType.CLOUD, DrawType.SET_FONT, GameFonts.fontBomberMan60);
 				Draw.addDrawQueue(1, SpriteLayerType.CLOUD, DrawType.SET_LINE_WIDTH, 3);
 				Draw.addDrawQueue(2, SpriteLayerType.CLOUD, DrawType.SET_STROKE, Color.valueOf("#AAAAAA"));
 				Draw.addDrawQueue(3, SpriteLayerType.CLOUD, DrawType.SET_FILL, Color.valueOf("#FFFFFF"));
-				Draw.addDrawQueue(4, SpriteLayerType.CLOUD, DrawType.FILL_TEXT, null, null, "HURRY UP!", hurryUpDrawX, Main.getMainCanvas().getHeight() / 2 / Main.getZoom() + 32 * Main.zoom - 30);
-				Draw.addDrawQueue(5, SpriteLayerType.CLOUD, DrawType.STROKE_TEXT, null, null, "HURRY UP!", hurryUpDrawX, Main.getMainCanvas().getHeight() / 2 / Main.getZoom() + 32 * Main.zoom - 30);
+				Draw.addDrawQueue(4, SpriteLayerType.CLOUD, DrawType.FILL_TEXT, null, null, "HURRY UP!", hurryUpDrawX, y);
+				Draw.addDrawQueue(5, SpriteLayerType.CLOUD, DrawType.STROKE_TEXT, null, null, "HURRY UP!", hurryUpDrawX, y);
 			}
 			Text text = new Text("HURRY UP!");
 			text.setFont(GameFonts.fontBomberMan60);
@@ -982,6 +1021,13 @@ public abstract class MapSet {
 	public static boolean tileIsFree(Entity entity, TileCoord coord, Set<PassThrough> passThrough) {
 		if (!haveTilesOnCoord(coord))
 			return false;
+		if ((entity instanceof BomberMan && ((BomberMan)entity).bomberShipIsActive()))
+			return entity.getElevation() == Elevation.ON_GROUND &&
+					 	 (MapSet.tileContainsProp(coord, TileProp.BOMBER_SHIP_CORNER) ||
+						  MapSet.tileContainsProp(coord, TileProp.BOMBER_SHIP_LEFT) ||
+							MapSet.tileContainsProp(coord, TileProp.BOMBER_SHIP_UP) ||
+							MapSet.tileContainsProp(coord, TileProp.BOMBER_SHIP_RIGHT) ||
+							MapSet.tileContainsProp(coord, TileProp.BOMBER_SHIP_DOWN));
 		Entity en = Entity.haveAnyEntityAtCoord(coord, entity) ? Entity.getFirstEntityFromCoord(coord) : null;
 		for (TileProp prop : new ArrayList<>(getTileProps(coord))) {
 			if (prop == TileProp.MIN_SCREEN_TILE_LIMITER || prop == TileProp.MAX_SCREEN_TILE_LIMITER)

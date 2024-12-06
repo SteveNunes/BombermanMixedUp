@@ -97,12 +97,17 @@ public enum TileProp {
 	DAMAGE_ENEMY(80),
 	DAMAGE_BOMB(81),
 	DAMAGE_BRICK(82),
-	DAMAGE_ITEM(83);
+	DAMAGE_ITEM(83),
+	BOMBER_SHIP_LEFT(84),
+	BOMBER_SHIP_UP(85),
+	BOMBER_SHIP_RIGHT(86),
+	BOMBER_SHIP_DOWN(87),
+	BOMBER_SHIP_CORNER(88);
 	// NOTA: VAGOS: 49 50 51 61 62 63
 
 	@SuppressWarnings("serial")
 	private static Map<Elevation, List<TileProp>> cantCross = new HashMap<>() {{
-		put(Elevation.ON_GROUND, Arrays.asList(MIN_SCREEN_TILE_LIMITER, MAX_SCREEN_TILE_LIMITER, JUMP_OVER, WALL, HIGH_WALL, HOLE, DEEP_HOLE, WATER, DEEP_WATER, MAP_EDGE));
+		put(Elevation.ON_GROUND, Arrays.asList(BOMBER_SHIP_CORNER, BOMBER_SHIP_DOWN, BOMBER_SHIP_LEFT, BOMBER_SHIP_RIGHT, BOMBER_SHIP_UP, MIN_SCREEN_TILE_LIMITER, MAX_SCREEN_TILE_LIMITER, JUMP_OVER, WALL, HIGH_WALL, HOLE, DEEP_HOLE, WATER, DEEP_WATER, MAP_EDGE));
 		put(Elevation.FLYING, Arrays.asList(JUMP_OVER, WALL, HIGH_WALL));
 		put(Elevation.HIGH_FLYING, Arrays.asList(HIGH_WALL));
 	}};
@@ -189,6 +194,11 @@ public enum TileProp {
 		put(81, DAMAGE_BOMB);
 		put(82, DAMAGE_BRICK);
 		put(83, DAMAGE_ITEM);
+		put(84, BOMBER_SHIP_LEFT);
+		put(85, BOMBER_SHIP_UP);
+		put(86, BOMBER_SHIP_RIGHT);
+		put(87, BOMBER_SHIP_DOWN);
+		put(88, BOMBER_SHIP_CORNER);
 	}};
 
 	public static List<TileProp> getCantCrossList(Elevation elevation) {

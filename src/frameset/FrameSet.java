@@ -520,7 +520,7 @@ public class FrameSet extends Position {
 		return fSet;
 	}
 	
-	public void changeTagValues(Consumer<FrameTag> consumer) {
+	public void iterateFrameTags(Consumer<FrameTag> consumer) {
 		for (Frame frame : getFrames())
 			for (Tags tags : frame.getFrameSetTagsList())
 				for (FrameTag tag : tags.getTags())

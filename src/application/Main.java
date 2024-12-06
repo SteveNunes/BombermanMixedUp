@@ -29,7 +29,7 @@ import util.Misc;
 public class Main extends Application {
 
 	public final static int TILE_SIZE = 16;
-	public final static GameMode GAME_MODE = GameMode.PALLETE_EDITOR;
+	public final static GameMode GAME_MODE = GameMode.GAME_TIKTOK;
 
 	public static FrameSetEditor frameSetEditor = null;
 	public static PalleteEditor palleteEditor = null;

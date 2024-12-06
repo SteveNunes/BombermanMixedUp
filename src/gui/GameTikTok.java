@@ -641,7 +641,7 @@ public class GameTikTok {
 			Score score = scores.get(n);
 			Image i = userPics.get(score.getUserName());
 			if (i == null)
-				i = userPics.get("no-photo.png");
+				i = userPics.get("no-photo");
 			gcMain.drawImage(i, 0, 0, i.getWidth(), i.getHeight(), canvasMain.getWidth() - 135, 60 + n * hh * 1.1, hh, hh);
 			gcMain.setFill(Color.WHITE);
 			gcMain.setFont(GameFonts.fontBomberMan20);
@@ -742,8 +742,8 @@ public class GameTikTok {
 				Brick.haveBrickAt(t.getTileCoord()) ? Color.GREEN :
 				Item.haveItemAt(t.getTileCoord()) ? Color.DARKORANGE : null;
 		});
-		Draw.drawTileTagsOverCursor(canvasMain, font15, (int)mousePos.getX() * Main.getZoom(), (int)mousePos.getY() * Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
-		Draw.drawTilePropsOverCursor(canvasMain, font15, (int)mousePos.getX() * Main.getZoom(), (int)mousePos.getY() * Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
+		Draw.drawTileTagsOverCursor(canvasMain, font15, mousePos.getTileCoord(), -32 * Main.getZoom(), -32 * Main.getZoom());
+		Draw.drawTilePropsOverCursor(canvasMain, font15, mousePos.getTileCoord(), -32 * Main.getZoom(), -32 * Main.getZoom());
 	}
 
 	private void startTikTokEvents() {

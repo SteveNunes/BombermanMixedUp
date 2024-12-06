@@ -441,6 +441,10 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new SetEntityDirection(s));
 			else if (tag.equals("SetSprLayerType"))
 				tags.addTag(newTag = new SetSprLayerType(s));
+			else if (tag.equals("ActiveBomberShip"))
+				tags.addTag(newTag = new ActiveBomberShip(s));
+			else if (tag.equals("ReviveFromBomberShip"))
+				tags.addTag(newTag = new ReviveFromBomberShip(s));
 			if (delay != null)
 				newTag.setTriggerDelay(delay);
 			if (delayInFrames != null)

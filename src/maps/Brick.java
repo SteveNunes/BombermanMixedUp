@@ -380,7 +380,7 @@ public class Brick extends Entity {
 		Brick.addBrick(brick);
 		if (isWall) {
 			MapSet.getCurrentLayer().addTileProp(coord2, TileProp.CPU_DANGER_2);
-			brick.getCurrentFrameSet().changeTagValues(tag -> {
+			brick.getCurrentFrameSet().iterateFrameTags(tag -> {
 				if (tag instanceof SetSprSource) {
 					((SetSprSource)tag).originSprSizePos.x = (int)MapSet.getWallTile().getX();
 					((SetSprSource)tag).originSprSizePos.y = (int)MapSet.getWallTile().getY();

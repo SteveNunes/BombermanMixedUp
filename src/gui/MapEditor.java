@@ -1105,10 +1105,10 @@ public class MapEditor {
 		drawBlockTypeMark();
 		drawGridAndAim();
 		if (!checkBoxShowBlockType.isSelected())
-			Draw.drawTileTagsOverCursor(canvasMain, font, (int)canvasMouseDraw.x, (int)canvasMouseDraw.y, offsetX(), offsetY());
+			Draw.drawTileTagsOverCursor(canvasMain, font, canvasMouseDraw.tileCoord, offsetX(), offsetY());
 		drawTileSetCanvas();
 		if (checkBoxShowBlockType.isSelected())
-			Draw.drawTilePropsOverCursor(canvasMain, font, (int)canvasMouseDraw.x, (int)canvasMouseDraw.y, offsetX(), offsetY());
+			Draw.drawTilePropsOverCursor(canvasMain, font, canvasMouseDraw.tileCoord, offsetX(), offsetY());
 		if (playing)
 			return;
 		Arrays.asList(selection, tileSelection).forEach(rect -> {

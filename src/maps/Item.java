@@ -87,7 +87,7 @@ public class Item extends Entity {
 		super.setFrameSet(frameSetName);
 		int itemIndex = itemType.getValue() - 1;
 		FrameSet frameSet = getFrameSet(frameSetName);
-			frameSet.changeTagValues(tag -> {
+			frameSet.iterateFrameTags(tag -> {
 				if (tag instanceof SetSprIndex && ((SetSprIndex)tag).value != null && ((SetSprIndex)tag).value == -1)
 					((SetSprIndex)tag).value = itemIndex;
 			});

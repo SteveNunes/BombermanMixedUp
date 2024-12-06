@@ -1,5 +1,6 @@
 package entities;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -12,12 +13,19 @@ import enums.BombType;
 import enums.CpuDificult;
 import enums.Curse;
 import enums.Direction;
+import enums.Elevation;
 import enums.GameInput;
+import enums.ImageFlip;
 import enums.ItemType;
 import enums.PassThrough;
 import enums.StageObjectives;
 import enums.TileProp;
+import frameset.FrameSet;
 import frameset.Tags;
+import frameset_tags.FrameTag;
+import frameset_tags.SetOriginSprPerLine;
+import frameset_tags.SetSprFlip;
+import frameset_tags.SetSprSource;
 import javafx.scene.canvas.GraphicsContext;
 import maps.Brick;
 import maps.Item;
@@ -59,6 +67,8 @@ public class BomberMan extends Entity {
 	private int transferCurseCooldown;
 	private int holdingB;
 	private int releasingFromHolderValue;
+	private int[] headIndexes;
+	private BomberShip bomberShip;
 
 	public BomberMan(int playerId, int bomberIndex, int palleteIndex) {
 		super();
@@ -76,6 +86,7 @@ public class BomberMan extends Entity {
 		holdingB = 0;
 		transferCurseCooldown = 0;
 		releasingFromHolderValue = 0;
+		bomberShip = null;
 		player = null;
 		cpuPlay = null;
 		lives = GameConfigs.STARTING_LIVES;
@@ -83,13 +94,63 @@ public class BomberMan extends Entity {
 		String section = "" + bomberIndex;
 		updateStatusByItems();
 		nameSound = IniFiles.characters.read(section, "NameSound");
+		int[] i = IniFiles.characters.readAsIntArray(section, "HeadIndexes", new int[4]);
+		headIndexes = new int[] {i[0], i[1], i[2], i[3], 0};
 		if (nameSound != null && nameSound.equals("-"))
 			nameSound = null;
-		if (IniFiles.characters.read(section, "DefaultTags") != null)
-			setDefaultTags(Tags.loadTagsFromString(IniFiles.characters.read(section, "DefaultTags")));
+		SetSprSource[] sprSourceTag = new SetSprSource[1];
+		if (IniFiles.characters.read(section, "DefaultTags") != null) {
+			Tags tags = null;
+			setDefaultTags(tags = Tags.loadTagsFromString(IniFiles.characters.read(section, "DefaultTags")));
+			for (FrameTag tag : tags.getTags()) {
+				if (tag instanceof SetSprSource)
+					sprSourceTag[0] = (SetSprSource)tag;
+				else if (tag instanceof SetOriginSprPerLine)
+					headIndexes[4] = ((SetOriginSprPerLine)tag).value;
+			}
+		}
 		for (String item : IniFiles.characters.getItemList(section)) {
-			if (item.length() > 9 && item.substring(0, 9).equals("FrameSet."))
-				addNewFrameSetFromIniFile(this, item.substring(9), "Characters", section, item);
+			if (item.length() > 9 && item.substring(0, 9).equals("FrameSet.")) {
+				FrameSet frameSet = addNewFrameSetFromIniFile(this, item.substring(9), "Characters", section, item)[1];
+				if (item.length() >= 14 && item.substring(0, 14).equals("FrameSet.Stand") && section.equals("" + bomberIndex))
+					frameSet.iterateFrameTags(tag -> {
+						if (tag instanceof SetSprSource)
+							sprSourceTag[0] = (SetSprSource)tag;
+						else if (tag instanceof SetOriginSprPerLine)
+							headIndexes[4] = ((SetOriginSprPerLine)tag).value;
+					});
+			}
+		}
+		Position[] bomerShipHeadOffset = { new Position(11, -20), new Position(0, -11), new Position(-11, -20), new Position(0, -19) };
+		for (String frameSetName : IniFiles.frameSets.getItemList("BOMBER_SHIP")) {
+			FrameSet frameSet = addNewFrameSetFromIniFile(this, frameSetName, "FrameSets", "BOMBER_SHIP", frameSetName)[1];
+			ImageFlip[] flip = { null };
+			for (int n = 0; n < 2; n++) {
+				final int n2 = n;
+				frameSet.iterateFrameTags(tag -> {
+					if (tag instanceof SetSprSource) {
+						SetSprSource tag2 = (SetSprSource)tag;
+						if (tag2.originalSpriteSourceName.equals("-")) {
+							int w = (int)sprSourceTag[0].originSprSizePos.width, h = (int)sprSourceTag[0].originSprSizePos.height;
+							int dir = tag2.spriteIndex, v = headIndexes[dir], perLine = headIndexes[4], sprIndex = Math.abs(v);
+							if (n2 == 0 && v < 0)
+								flip[0] = ImageFlip.HORIZONTAL;
+							tag2.originalSpriteSourceName = "Character." + bomberIndex;
+							tag2.spriteSourceName = sprSourceTag[0].spriteSourceName;
+							tag2.originSprSizePos.setBounds(new Rectangle(
+									w * (sprIndex >= perLine && perLine > 0 ? (sprIndex % perLine) : sprIndex),
+									h * (sprIndex >= perLine && perLine > 0 ? (int)(sprIndex / perLine) : 0),
+									w, h));
+							tag2.outputSprSizePos.setBounds((int)bomerShipHeadOffset[dir].getX(), (int)bomerShipHeadOffset[dir].getY(), w, h);
+							tag2.spriteIndex = 0;
+							tag2.spritesPerLine = 0;
+						}
+					}
+					else if (flip[0] != null && n2 == 1 && tag instanceof SetSprFlip)
+						((SetSprFlip)tag).flip = flip[0];
+				});
+			}
+			replaceFrameSet(frameSetName, frameSet);
 		}
 		setBombSound = IniFiles.characters.read(section, "SetBombSound");
 		if (setBombSound == null)
@@ -223,6 +284,10 @@ public class BomberMan extends Entity {
 		return holdedInputs.contains(input);
 	}
 	
+	public List<Direction> getPressedDirs() {
+		return pressedDirs;
+	}
+	
 	public Set<GameInput> getHoldedInputs() {
 		return holdedInputs;
 	}
@@ -233,10 +298,23 @@ public class BomberMan extends Entity {
 	}
 
 	public void keyPress(GameInput input) {
-		if (getHolder() != null)
-			tryGetFreeFromHolder();
 		if (Main.isFreeze() || holdedInputs.contains(input) || MapSet.stageObjectiveIsCleared() || Draw.getFade() != null)
 			return;
+		if (bomberShipIsActive()) {
+			if (isPerfectTileCentred()) {
+				Direction dir = input.getDirection();
+				if (dir != null && !pressedDirs.contains(dir)) {
+					bomberShip.setSpeed(!(holdedInputs.contains(GameInput.E) || holdedInputs.contains(GameInput.F)) ? 1 : holdedInputs.contains(GameInput.F) ? 4 : 2);
+					pressedDirs.add(dir);
+				}
+			}
+			if (input == GameInput.B && !holdedInputs.contains(GameInput.B))
+				bomberShip.pressB();
+			holdedInputs.add(input);
+			return;
+		}
+		if (getHolder() != null)
+			tryGetFreeFromHolder();
 		if (isBlockedMovement()) {
 			queuedInputs.add(input);
 			return;
@@ -304,6 +382,10 @@ public class BomberMan extends Entity {
 	}
 
 	public void keyRelease(GameInput input) {
+		if (bomberShipIsActive()) {
+			holdedInputs.remove(input);
+			return;
+		}
 		if (input.isDirection()) {
 			if (!holdedInputs.contains(GameInput.B))
 				holdingB = 0;
@@ -358,6 +440,8 @@ public class BomberMan extends Entity {
 		if (MapSet.tileContainsProp(getTileCoordFromCenter(), TileProp.DAMAGE_PLAYER) ||
 				(MapSet.tileContainsProp(getTileCoordFromCenter(), TileProp.EXPLOSION) && !gotItems.contains(ItemType.FIRE_IMMUNE)))
 					takeDamage();
+		if (bomberShip != null)
+			bomberShip.run();
 		super.run(gc, isPaused);
 		if (!isBlockedMovement()) {
 			if (!queuedInputs.isEmpty()) {
@@ -445,6 +529,29 @@ public class BomberMan extends Entity {
 		tryToTransferCurse();
 	}
 
+	public BomberShip getBomberShip() {
+		return bomberShip;
+	}
+
+	public void unsetBomberShip() {
+		bomberShip = null;
+	}
+	
+	@Override
+	public void setDisabled() {
+		super.setDisabled();
+		bomberShip = null;
+	}
+	
+	public void activeBomberShip() {
+		if (MapSet.hurryUpIsActive() || Main.isFreeze() || MapSet.stageObjectiveIsCleared() || Draw.getFade() != null) {
+			setDisabled();
+			return;
+		}
+		setElevation(Elevation.ON_GROUND);
+		bomberShip = new BomberShip(this, MapSet.findNearestBomberShipTile(getTileCoordFromCenter()));
+	}
+	
 	private void tryToTransferCurse() {
 		if (Entity.haveAnyEntityAtCoord(getTileCoordFromCenter(), this)) {
 			for (Entity entity : Entity.getEntityListFromCoord(getTileCoordFromCenter()))
@@ -804,6 +911,7 @@ public class BomberMan extends Entity {
 	}
 	
 	public void softResetAfterMapChange(int invencibleFrames) {
+		bomberShip = null;
 		bombs.clear();
 		holdedInputs.clear();
 		queuedInputs.clear();
@@ -828,6 +936,10 @@ public class BomberMan extends Entity {
 		gotItems.clear();
 		softResetAfterMapChange(invencibleFrames);
 		setHitPoints(1);
+	}
+
+	public boolean bomberShipIsActive() {
+		return bomberShip != null;
 	}
 
 }

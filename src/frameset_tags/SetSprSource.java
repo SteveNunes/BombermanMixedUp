@@ -49,7 +49,7 @@ public class SetSprSource extends FrameTag {
 		originalSpriteSourceName = params[0];
 		spriteSourceName = null;
 		Image image = Materials.getImageFromSpriteName(originalSpriteSourceName);
-		if (image == null)
+		if (image == null && !originalSpriteSourceName.equals("-"))
 			throw new RuntimeException(params[0] + " - Invalid sprite source name");
 		int n = 0, t = params.length;
 		try {
@@ -73,7 +73,7 @@ public class SetSprSource extends FrameTag {
 	public void process(Sprite sprite) {
 		if (spriteSourceName == null) {
 			spriteSourceName = originalSpriteSourceName;
-			if (sprite.getSourceEntity() instanceof BomberMan && spriteSourceName.substring(0, 10).equals("Character."))
+			if (sprite.getSourceEntity() instanceof BomberMan && spriteSourceName.length() > 10 && spriteSourceName.substring(0, 10).equals("Character."))
 				spriteSourceName += "." + ((BomberMan) sprite.getSourceEntity()).getPalleteIndex();
 		}
 		sprite.setSpriteSourceName(spriteSourceName);
