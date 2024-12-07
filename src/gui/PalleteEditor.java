@@ -200,11 +200,15 @@ public class PalleteEditor {
 				showOriginal = false;
 		});
 		buttonAddPallete.setOnAction(e -> {
-			palletes.add(new ArrayList<>(originalPallete()));
+			palletes.add(new ArrayList<>(currentPallete()));
 			comboBoxPalleteIndex.getItems().add(palletes.size() - 1);
 			comboBoxPalleteIndex.getSelectionModel().select(palletes.size() - 1);
 		});
 		buttonRemovePallete.setOnAction(e -> {
+			if (palletes.size() == 1) {
+				Alerts.error("Erro", "Você nâo pode apagar a única paleta");
+				return;
+			}
 			if (Alerts.confirmation("Excluir paleta", "Deseja mesmo excluir a paleta de cores atual?")) {
 				listenerHandle.detach();
 				comboBoxPalleteIndex.getItems().clear();
@@ -258,11 +262,32 @@ public class PalleteEditor {
     if (file != null) {
 			originalSpriteFileName = file.getAbsoluteFile().toString();
 			originalSprite = ImageUtils.loadWritableImageFromFile(originalSpriteFileName);
+			palleteIndex = 0;
+			palletes = Tools.getPalleteListFromImage(originalSprite, Materials.getGreenColor());
+			if (palletes == null) {
+				palletes = new ArrayList<>();
+				palletes.add(Tools.getPalleteFromImage(originalSprite, Materials.getGreenColor()));
+				int w = (int)originalSprite.getWidth(), h = (int)originalSprite.getHeight() + 1;
+				Canvas c = new Canvas(w, h);
+				GraphicsContext gc = c.getGraphicsContext2D();
+				gc.setImageSmoothing(false);
+				gc.setFill(Materials.getGreenColor());
+				gc.fillRect(0, 0, w, h);
+				gc.drawImage(originalSprite, 0, 0, w, h - 1, 0, 1, w, h - 1);
+				originalSprite = Draw.getCanvasSnapshot(c);
+			}
 			canvasMain.setWidth(originalSprite.getWidth() * 3);
-			canvasMain.setHeight(originalSprite.getHeight() * 3);
-			loadPallete();
+			canvasMain.setHeight(originalSprite.getHeight() * 3 - 3);
 			vBoxControls.setDisable(false);
 			buttonSaveToDisk.setDisable(false);
+			listenerHandle.detach();
+			comboBoxPalleteIndex.getItems().clear();
+			for (int n = 0; n < palletes.size(); n++)
+				comboBoxPalleteIndex.getItems().add(n);
+			listenerHandle.attach();
+			comboBoxPalleteIndex.getSelectionModel().select(0);
+			originalSprite = (WritableImage)ImageUtils.removeBgColor(originalSprite, Materials.getGreenColor());
+			regeneratePalleteColors(flowPaneOriginalColors);
 			Main.stageMain.sizeToScene();
     }
 	}
@@ -310,31 +335,6 @@ public class PalleteEditor {
 			Platform.runLater(() -> drawMainCanvas());
 	}
 
-	private void loadPallete() {
-		listenerHandle.detach();
-		palleteIndex = 0;
-		palletes = Tools.getPalleteListFromImage(originalSprite, Materials.getGreenColor());
-		if (palletes == null) {
-			palletes = new ArrayList<>();
-			palletes.add(Tools.getPalleteFromImage(originalSprite, Materials.getGreenColor()));
-			int w = (int)originalSprite.getWidth(), h = (int)originalSprite.getHeight();
-			Canvas c = new Canvas(w, h + 1);
-			GraphicsContext gc = c.getGraphicsContext2D();
-			gc.setImageSmoothing(false);
-			gc.setFill(Materials.getGreenColor());
-			gc.fillRect(0, 0, w, h + 1);
-			gc.drawImage(originalSprite, 0, 0, w, h, 0, 1, w, h);
-			originalSprite = Draw.getCanvasSnapshot(c);
-			canvasMain.setHeight((h + 1) * 3);
-		}
-		comboBoxPalleteIndex.getItems().clear();
-		for (int n = 0; n < palletes.size(); n++)
-			comboBoxPalleteIndex.getItems().add(n);
-		listenerHandle.attach();
-		comboBoxPalleteIndex.getSelectionModel().select(0);
-		regeneratePalleteColors(flowPaneOriginalColors);
-	}
-	
 	private List<Color> originalPallete() {
 		if (palletes.isEmpty())
 			autoGenerateOriginalPallete();
@@ -414,7 +414,7 @@ public class PalleteEditor {
 
 	private void updateCurrentSprite() {
 		if (Tools.isColorMixPallete(currentPallete())) {
-			currentSprite = Tools.applyColorMixPalleteOnImage(originalSprite, currentPallete(), Materials.getGreenColor());
+			currentSprite = Tools.applyColorMixPalleteOnImage(originalSprite, currentPallete());
 			return;
 		}
 		List<Color> pallete = new ArrayList<>(currentPallete());

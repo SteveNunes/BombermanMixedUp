@@ -72,9 +72,16 @@ public class SetSprSource extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		if (spriteSourceName == null) {
-			spriteSourceName = originalSpriteSourceName;
-			if (sprite.getSourceEntity() instanceof BomberMan && spriteSourceName.length() > 10 && spriteSourceName.substring(0, 10).equals("Character."))
-				spriteSourceName += "." + ((BomberMan) sprite.getSourceEntity()).getPalleteIndex();
+			String[] strings = {"Character.", "Ride."};
+			for (int n = 0; n < 2; n++) {
+				String s = strings[n];
+				spriteSourceName = originalSpriteSourceName;
+				if (sprite.getSourceEntity() instanceof BomberMan && spriteSourceName.length() > s.length() && spriteSourceName.substring(0, s.length()).equals(s)) {
+					spriteSourceName += "." + (n == 0 ? ((BomberMan) sprite.getSourceEntity()).getPalleteIndex()
+							: ((BomberMan) sprite.getSourceEntity()).getPlayerId());
+					break;
+				}
+			}
 		}
 		sprite.setSpriteSourceName(spriteSourceName);
 		sprite.setOriginSpritePos(originSprSizePos);

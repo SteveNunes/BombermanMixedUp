@@ -396,18 +396,18 @@ public abstract class Tools {
 
 	public static WritableImage applyColorPalleteOnImage(WritableImage originalImage, List<Color> originalPallete, List<Color> currentPallete, Color transparentColor) {
 		int w = (int)originalImage.getWidth(), h = (int)originalImage.getHeight();
-		WritableImage wi = new WritableImage(w, h);
+		WritableImage wi = new WritableImage(w, h - 1);
 		PixelReader pr = originalImage.getPixelReader();
 		PixelWriter pw = wi.getPixelWriter();
-		for (int y = 0; y < h; y++)
+		for (int y = 1; y < h; y++)
 			for (int x = 0; x < w; x++) {
 				Color color = pr.getColor(x, y);
 				if (y == 0)
-					pw.setColor(x, y, transparentColor);
+					pw.setColor(x, y - 1, transparentColor);
 				else if (!color.equals(transparentColor) && originalPallete.contains(color))
-					pw.setColor(x, y, currentPallete.get(originalPallete.indexOf(color)));
+					pw.setColor(x, y - 1, currentPallete.get(originalPallete.indexOf(color)));
 				else
-					pw.setColor(x, y, color);
+					pw.setColor(x, y - 1, color);
 			}
 		return wi;
 	}

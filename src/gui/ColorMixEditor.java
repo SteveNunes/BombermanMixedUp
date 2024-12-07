@@ -6,6 +6,7 @@ import java.util.List;
 
 import application.Main;
 import enums.Icons;
+import gui.util.Alerts;
 import gui.util.ControllerUtils;
 import gui.util.ImageUtils;
 import gui.util.ListenerHandle;
@@ -195,12 +196,32 @@ public class ColorMixEditor {
 		checkBoxBloom.selectedProperty().addListener(e -> hBoxBloomControls.setDisable(!checkBoxBloom.isSelected()));
 		checkBoxGlow.selectedProperty().addListener(e -> hBoxGlowControls.setDisable(!checkBoxGlow.isSelected()));
 		buttonAddPallete.setOnAction(e -> {
-			palletes.add(new ColorMix());
+			if (Tools.isColorMixPallete(getCurrentPallete()))
+				palletes.add(new ColorMix(getCurrentPallete()));
+			else
+				palletes.add(new ColorMix());
 			comboBoxPalleteIndex.getItems().add(palletes.size());
 			currentPalleteIndex = palletes.size() - 1;
 			comboBoxPalleteIndex.getSelectionModel().select(currentPalleteIndex);
 			setControlls();
 			updateCanvas();
+		});
+		buttonRemovePallete.setOnAction(e -> {
+			if (palletes.size() == 1) {
+				Alerts.error("Erro", "Você nâo pode apagar a única paleta");
+				return;
+			}
+			if (Alerts.confirmation("Excluir paleta", "Deseja mesmo excluir a paleta de cores atual?")) {
+				comboBoxPalletesListenerHandle.detach();
+				palletes.remove(currentPalleteIndex);
+				if (currentPalleteIndex == comboBoxPalleteIndex.getItems().size())
+					currentPalleteIndex--;
+				comboBoxPalleteIndex.getItems().clear();
+				for (int n = 0; n < palletes.size(); n++)
+					comboBoxPalleteIndex.getItems().add(n);
+				comboBoxPalletesListenerHandle.attach();
+				comboBoxPalleteIndex.getSelectionModel().select(currentPalleteIndex);
+			}
 		});
 		comboBoxPalletesListenerHandle = new ListenerHandle<>(comboBoxPalleteIndex.valueProperty(), (obs, olvV, newV) -> {
 			currentPalleteIndex = newV - 1;
@@ -337,8 +358,6 @@ public class ColorMixEditor {
     	fileName = file.getAbsolutePath();
 			originalSprite = ImageUtils.loadWritableImageFromFile(fileName);
 			int w = (int)originalSprite.getWidth(), h = (int)originalSprite.getHeight();
-			canvasMain.setWidth(w * zoom);
-			canvasMain.setHeight(h * zoom);
 			Main.stageMain.sizeToScene();
 			hBoxControls.setDisable(false);
 			hBoxButtons.setDisable(false);
@@ -349,29 +368,29 @@ public class ColorMixEditor {
 			List<List<Color>> palls = Tools.getPalleteListFromImage(originalSprite, Materials.getGreenColor());
 			palletes = new ArrayList<>();
 			if (palls == null || palls.size() == 1) {
+				h++;
 				palletes.add(new ColorMix());
-				Canvas c = new Canvas(w, h + 1);
+				Canvas c = new Canvas(w, h);
 				GraphicsContext gc = c.getGraphicsContext2D();
 				gc.setImageSmoothing(false);
 				gc.setFill(Materials.getGreenColor());
-				gc.fillRect(0, 0, w, h + 1);
-				gc.drawImage(originalSprite, 0, 0, w, h, 0, 1, w, h);
+				gc.fillRect(0, 0, w, h);
+				gc.drawImage(originalSprite, 0, 0, w, h - 1, 0, 1, w, h - 1);
 				originalSprite = Draw.getCanvasSnapshot(c);
-				canvasMain.setHeight((h + 1) * zoom);
 			}
 			else {
 				for (List<Color> pallete : palls)
 					palletes.add(new ColorMix(pallete));
 			}
+			canvasMain.setWidth(w * zoom);
+			canvasMain.setHeight((h - 1) * zoom);
 			comboBoxPalletesListenerHandle.detach();
 			for (int n = 1; n <= palletes.size(); n++)
 				comboBoxPalleteIndex.getItems().add(n);
-			originalSprite = (WritableImage)ImageUtils.removeBgColor(originalSprite, Materials.getGreenColor());
-			for (int x = 0; x < w; x++)
-				originalSprite.getPixelWriter().setColor(x, 0, Color.TRANSPARENT);
 			setControlls();
 			comboBoxPalleteIndex.getSelectionModel().select(0);
 			comboBoxPalletesListenerHandle.attach();
+			originalSprite = (WritableImage)ImageUtils.removeBgColor(originalSprite, Materials.getGreenColor());
 			Main.stageMain.sizeToScene();
 			updateCanvas();
 		}
