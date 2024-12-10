@@ -14,7 +14,6 @@ import entityTools.PushEntity;
 import enums.Curse;
 import enums.Direction;
 import enums.Elevation;
-import enums.ItemType;
 import enums.TileProp;
 import frameset_tags.SetSprIndex;
 import frameset_tags.SetSprSource;
@@ -30,7 +29,7 @@ public class Brick extends Entity {
 
 	private static Map<TileCoord, Brick> bricks = new HashMap<>();
 	private static List<Brick> brickList = new ArrayList<>();
-	private ItemType item;
+	private Item item;;
 	private int regenTimeInFrames;
 	private boolean isWall;
 
@@ -47,7 +46,7 @@ public class Brick extends Entity {
 		this(coord, null);
 	}
 	
-	public Brick(TileCoord coord, ItemType item) {
+	public Brick(TileCoord coord, Item item) {
 		super();
 		setPosition(coord.getPosition());
 		regenTimeInFrames = 0;
@@ -65,16 +64,12 @@ public class Brick extends Entity {
 		setPassThroughItem(true);
 	}
 
-	public ItemType getItem() {
+	public Item getItem() {
 		return item;
 	}
 
-	public void setItem(ItemType item) {
+	public void setItem(Item item) {
 		this.item = item;
-	}
-
-	public void setItem(int itemId) {
-		item = ItemType.getItemById(itemId);
 	}
 
 	public void removeItem() {
@@ -89,11 +84,11 @@ public class Brick extends Entity {
 		addBrick(new Brick(coord, null), updateLayer);
 	}
 
-	public static void addBrick(TileCoord coord, ItemType item) {
+	public static void addBrick(TileCoord coord, Item item) {
 		addBrick(new Brick(coord, item), true);
 	}
 
-	public static void addBrick(TileCoord coord, ItemType item, boolean updateLayer) {
+	public static void addBrick(TileCoord coord, Item item, boolean updateLayer) {
 		addBrick(new Brick(coord, item), updateLayer);
 	}
 
@@ -187,7 +182,8 @@ public class Brick extends Entity {
 				else
 					brick.regenTimeInFrames = MapSet.getBricksRegenTimeInFrames();
 				if (brick.getItem() != null) {
-					Item.addItem(brick.getTileCoordFromCenter(), brick.getItem());
+					Item.addItem(brick.getItem());
+					brick.getItem().setPosition(brick.getTileCoordFromCenter().getPosition());
 					brick.setItem(null);
 				}
 			}
@@ -368,11 +364,11 @@ public class Brick extends Entity {
 		return dropBrickFromSky(coord, null, false);
 	}
 
-	public static Brick dropBrickFromSky(TileCoord coord, ItemType itemType) {
+	public static Brick dropBrickFromSky(TileCoord coord, Item itemType) {
 		return dropBrickFromSky(coord, itemType, false);
 	}
 
-	static Brick dropBrickFromSky(TileCoord coord, ItemType itemType, boolean isWall) {
+	static Brick dropBrickFromSky(TileCoord coord, Item itemType, boolean isWall) {
 		coord = coord.getNewInstance();
 		final TileCoord coord2 = coord.getNewInstance(); 
 		Brick brick = new Brick(coord, itemType);

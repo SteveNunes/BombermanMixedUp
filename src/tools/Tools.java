@@ -427,6 +427,8 @@ public abstract class Tools {
 				if (!pallete.isEmpty()) {
 					palletes.add(new ArrayList<>(pallete));
 					pallete.clear();
+					if (palletes.size() > 1 && palletes.get(palletes.size() - 1).size() != palletes.get(0).size())
+						return null;
 				}
 				if (color.equals(previewColor))
 					break;

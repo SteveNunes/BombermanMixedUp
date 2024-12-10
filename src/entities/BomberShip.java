@@ -6,6 +6,7 @@ import enums.Direction;
 import enums.GameInput;
 import enums.SpriteLayerType;
 import enums.TileProp;
+import javafx.scene.image.Image;
 import maps.MapSet;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
@@ -145,7 +146,7 @@ public class BomberShip {
 	public void run() {
 		if (bIsPressed()) {
 			TileCoord coord = getReleaseBombTile();
-			Draw.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, Misc.blink(100) ? 761 : 776, 221, 15, 15, (int)coord.getPosition().getX(), (int)coord.getPosition().getY(), 15, 15);
+			Draw.addDrawQueue(SpriteLayerType.CEIL, Materials.effects.get(53).get(0), Misc.blink(100) ? 0 : 15, 0, 15, 15, (int)coord.getPosition().getX(), (int)coord.getPosition().getY(), 15, 15);
 			if (!bomberMan.getHoldedInputs().contains(GameInput.B))
 				releaseB();
 		}

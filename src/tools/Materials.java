@@ -1,6 +1,7 @@
 package tools;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,13 +27,15 @@ public abstract class Materials {
 	public static WritableImage frames;
 	public static WritableImage thunders;
 	public static WritableImage bombs;
+	public static WritableImage itens;
 	public static WritableImage hud;
 	public static WritableImage blankImage;
-	public static Map<Integer, List<Image>> characters;
-	public static Map<Integer, List<Image>> rides;
-	public static List<Image> explosions;
-	public static Map<Integer, List<Image>> auras;
-	public static Map<String, Image> tileSets;
+	public static Map<Integer, List<WritableImage>> characters;
+	public static Map<Integer, List<WritableImage>> rides;
+	public static Map<Integer, List<WritableImage>> effects;
+	public static List<WritableImage> explosions;
+	public static Map<Integer, List<WritableImage>> auras;
+	public static Map<String, WritableImage> tileSets;
 	public static Map<String, WritableImage> loadedSprites;
 	public static Map<String, WritableImage> tempSprites;
 	private static Color greenColor = Color.valueOf("#03E313");
@@ -48,11 +51,12 @@ public abstract class Materials {
 		tempSprites = new HashMap<>();
 		characters = new HashMap<>();
 		rides = new HashMap<>();
+		effects = new HashMap<>();
 		auras = new HashMap<>();
 		tileSets = new HashMap<>();
 		explosions = new ArrayList<>();
 		blankImage = new WritableImage(320, 240);
-		int ms2 = Misc.bench(() -> loadCharactersAndRidesSprites());
+		int ms2 = Misc.bench(() -> loadGeneralSprites());
 		System.out.println("Concluido em " + ms2 + "ms");
 		ms2 = Misc.bench(() -> generateExplosionImage());
 		System.out.println("Concluido em " + ms2 + "ms");
@@ -72,6 +76,7 @@ public abstract class Materials {
 
 	private static void loadMiscSprites() {
 		System.out.println("Carregando sprites diversos...");
+		itens = loadImage("Itens", getGreenColor());
 		bombs = loadImage("Bombs", getGreenColor());
 		mainSprites = loadImage("MainSprites", getGreenColor());
 		frames = loadImage("HUD", getGreenColor());
@@ -80,26 +85,29 @@ public abstract class Materials {
 		Item.createItemEdgeImage();
 	}
 
-	private static void loadCharactersAndRidesSprites() {
+	private static void loadGeneralSprites() {
 		System.out.println("Carregando sprites dos personagens e montarias...");
-		for (int z = 0; z < 2; z++) {
-			String folder = z == 0 ? "/characters/" : "/rides/";
-			Map<Integer, List<Image>> imageMap = (z == 0 ? characters : rides);
-			for (int n = 0; n <= (z == 0 ? 13 : 30); n++) {
-				WritableImage image = loadImage(folder + n, getGreenColor());
+		List<Map<Integer, List<WritableImage>>> spritesList = Arrays.asList(characters, rides, effects);
+		String[] folders = { "characters/", "rides/", "effects/"	};
+		for (int n = 0; n < folders.length; n++) {
+			Map<Integer, List<WritableImage>> sprites = spritesList.get(n);
+			String folder = folders[n];
+			FindFile.findFile("./appdata/sprites/" + folder).forEach(file -> {
+				int n2 = Integer.parseInt(file.getName().replace(".png", ""));
+				WritableImage image = loadImage(folder + file.getName().replace(".png", ""), getGreenColor());
 				List<List<Color>> palletes = Tools.getPalleteListFromImage(image);
-				imageMap.put(n, new ArrayList<>());
+				sprites.put(n2, new ArrayList<>());
 				if (palletes == null)
-					imageMap.get(n).add(image);
+					sprites.get(n2).add(image);
 				else {
 					for (int i = 0; i < palletes.size(); i++) {
 						if (Tools.isColorMixPallete(palletes.get(i)))
-							imageMap.get(n).add(Tools.applyColorMixPalleteOnImage(image, palletes.get(i)));
+							sprites.get(n2).add(Tools.applyColorMixPalleteOnImage(image, palletes.get(i)));
 						else
-							imageMap.get(n).add(Tools.applyColorPalleteOnImage(image, palletes.get(0), palletes.get(i)));
+							sprites.get(n2).add(Tools.applyColorPalleteOnImage(image, palletes.get(0), palletes.get(i)));
 					}
 				}
-			}
+			});
 		}
 	}
 
@@ -162,26 +170,30 @@ public abstract class Materials {
 
 	public static WritableImage getImageFromSpriteName(String spriteName) {
 		if (spriteName.equals("TileSet"))
-			return (WritableImage)MapSet.getTileSetImage();
-		for (int z = 0; z < 2; z++)
-			if ((z == 0 && spriteName.length() > 10 && spriteName.substring(0, 10).equals("Character.")) ||
-					(z == 1 && spriteName.length() > 5 && spriteName.substring(0, 5).equals("Ride."))) {
-						try {
-							int n = spriteName.indexOf(".") + 1, n2 = spriteName.lastIndexOf(".") + 1, id, palleteId;
-							if (n == n2) {
-								id = Integer.parseInt(spriteName.substring(n));
-								palleteId = 0;
-							}
-							else {
-								id = Integer.parseInt(spriteName.substring(n, n2 - 1));
-								palleteId = Integer.parseInt(spriteName.substring(n2, spriteName.length()));
-							}
-							return (WritableImage)(z == 0 ? getCharacterSprite(id, palleteId) : getRideSprite(id, palleteId));
-						}
-						catch (Exception e) { e.printStackTrace();
-							return null;
-						}
+			return MapSet.getTileSetImage();
+		List<String> strings = Arrays.asList("Character.", "Ride.", "Effect.");
+		for (int z = 0; z < strings.size(); z++) {
+			String string = strings.get(z);
+			int l = string.length();
+			if (spriteName.length() > l && spriteName.substring(0, l).equals(string)) {
+				try {
+					int n = spriteName.indexOf(".") + 1, n2 = spriteName.lastIndexOf(".") + 1, id, palleteId;
+					if (n == n2) {
+						id = Integer.parseInt(spriteName.substring(n));
+						palleteId = 0;
+					}
+					else {
+						id = Integer.parseInt(spriteName.substring(n, n2 - 1));
+						palleteId = Integer.parseInt(spriteName.substring(n2, spriteName.length()));
+					}
+					return z == 0 ? getCharacterSprite(id, palleteId) :
+						z == 1 ? getRideSprite(id, palleteId) : getEffectSprite(id, palleteId);
+				}
+				catch (Exception e) {
+					return null;
+				}
 			}
+		}
 		if (loadedSprites.containsKey(spriteName))
 			return loadedSprites.get(spriteName);
 		if (tempSprites.containsKey(spriteName))
@@ -189,7 +201,7 @@ public abstract class Materials {
 		return null;
 	}
 
-	public static Image getCharacterSprite(int id, int palleteId) {
+	public static WritableImage getCharacterSprite(int id, int palleteId) {
 		if (!characters.containsKey(id))
 			throw new RuntimeException(id + " - Invalid character ID");
 		if (palleteId < 0 || palleteId >= characters.get(id).size())
@@ -197,7 +209,7 @@ public abstract class Materials {
 		return characters.get(id).get(palleteId);
 	}
 
-	public static Image getRideSprite(int id, int palleteId) {
+	public static WritableImage getRideSprite(int id, int palleteId) {
 		if (!rides.containsKey(id))
 			throw new RuntimeException(id + " - Invalid ride ID");
 		if (palleteId < 0 || palleteId >= rides.get(id).size())
@@ -205,7 +217,15 @@ public abstract class Materials {
 		return rides.get(id).get(palleteId);
 	}
 
-	public static Image getExplosionSprite(int id) {
+	public static WritableImage getEffectSprite(int id, int palleteId) {
+		if (!effects.containsKey(id))
+			throw new RuntimeException(id + " - Invalid ride ID");
+		if (palleteId < 0 || palleteId >= effects.get(id).size())
+			throw new RuntimeException(palleteId + " - Invalid pallete ID for effect " + id);
+		return effects.get(id).get(palleteId);
+	}
+
+	public static WritableImage getExplosionSprite(int id) {
 		if (id < 0 || id >= explosions.size())
 			throw new RuntimeException(id + " - Invalid explosion ID");
 		return explosions.get(id);

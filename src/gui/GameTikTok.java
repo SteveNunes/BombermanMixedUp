@@ -28,6 +28,7 @@ import application.TextToSpeechGoogle;
 import entities.Bomb;
 import entities.BomberMan;
 import entities.CpuPlay;
+import entities.Effect;
 import entities.Entity;
 import enums.BombType;
 import enums.CpuDificult;
@@ -534,55 +535,58 @@ public class GameTikTok {
 		Main.sceneMain.setOnKeyPressed(e -> {
 			Player.convertOnKeyPressEvent(e);
 			holdedKeys.add(e.getCode());
-			if (e.getCode() == KeyCode.Q)
-				MapSet.decTileSetPalleteIndex();
-			if (e.getCode() == KeyCode.E)
-				MapSet.incTileSetPalleteIndex();
-			if (e.getCode() == KeyCode.Z) {
-				int n = (int)MyMath.getRandom(0, BomberMan.getTotalBomberMans() - 1);
-				for (int x = 0; x < BomberMan.getTotalBomberMans(); x++)
-					if (x != n)
-						BomberMan.getBomberMan(x).takeDamage();
+			if (isCtrlHold()) {
+				if (e.getCode() == KeyCode.S)
+					Effect.runEffect(mousePos, "Stun");
+				if (e.getCode() == KeyCode.Q)
+					MapSet.decTileSetPalleteIndex();
+				if (e.getCode() == KeyCode.E)
+					MapSet.incTileSetPalleteIndex();
+				if (e.getCode() == KeyCode.Z) {
+					int n = (int)MyMath.getRandom(0, BomberMan.getTotalBomberMans() - 1);
+					for (int x = 0; x < BomberMan.getTotalBomberMans(); x++)
+						if (x != n)
+							BomberMan.getBomberMan(x).takeDamage();
+				}
+				if (e.getCode() == KeyCode.P) {
+					for (Brick brick : new LinkedList<>(Brick.getBricks()))
+						brick.destroy();
+					for (Item item : new LinkedList<>(Item.getItems()))
+						item.forceDestroy();
+				}
+				if (e.getCode() == KeyCode.G) {
+					String[] users = userPics.keySet().toArray(new String[userPics.size()]);
+					runOnGiftEvent(users[(int)MyMath.getRandom(0, users.length - 1)], "Gift", testGiftId, 1);
+				}
+				if (e.getCode() == KeyCode.H) {
+					List<String> list = new LinkedList<>();
+					list.add(-1 + " - " + eventsDescription.get(-1));
+					list.add(-2 + " - " + eventsDescription.get(-2));
+					list.add(-3 + " - " + eventsDescription.get(-3));
+					list.add(-4 + " - " + eventsDescription.get(-4));
+					for (int i : giftEvents.keySet())
+						list.add(i + " - " + eventsDescription.get(i));
+					lastGiftSel = Alerts.choiceCombo("Gift", "Selecione o ID do Gift\npara disparar com a tecla G", list, lastGiftSel);
+					if (lastGiftSel != null)
+						testGiftId = Integer.parseInt(lastGiftSel.split(" ")[0]);
+				}
+				if (e.getCode() == KeyCode.X)
+					Bomb.addBomb(mousePos.getTileCoord(), BombType.REMOTE, 2);
+				if (e.getCode() == KeyCode.C)
+					Bomb.addBomb(mousePos.getTileCoord(), BombType.MAGMA, 3);
+				if (e.getCode() == KeyCode.U)
+					dropRandomTileBomb("GM");
+				if (e.getCode() == KeyCode.J)
+					dropRandomTileWall("GM");
+				if (e.getCode() == KeyCode.I)
+					dropRandomTileItem("GM");
+				if (e.getCode() == KeyCode.K)
+					dropRandomTileBrick("GM");
+				if (e.getCode() == KeyCode.M && ++showBlockMarks == 4)
+					showBlockMarks = 0;
+				if (e.getCode() == KeyCode.SPACE)
+					CpuPlay.markTargets = !CpuPlay.markTargets;
 			}
-			if (e.getCode() == KeyCode.X) {
-				Bomb.addBomb(mousePos.getTileCoord(), BombType.REMOTE, 2);
-			}
-			if (e.getCode() == KeyCode.C)
-				Bomb.addBomb(mousePos.getTileCoord(), BombType.MAGMA, 3);
-			if (e.getCode() == KeyCode.P) {
-				for (Brick brick : new LinkedList<>(Brick.getBricks()))
-					brick.destroy();
-				for (Item item : new LinkedList<>(Item.getItems()))
-					item.forceDestroy();
-			}
-			if (e.getCode() == KeyCode.G) {
-				String[] users = userPics.keySet().toArray(new String[userPics.size()]);
-				runOnGiftEvent(users[(int)MyMath.getRandom(0, users.length - 1)], "Gift", testGiftId, 1);
-			}
-			if (e.getCode() == KeyCode.H) {
-				List<String> list = new LinkedList<>();
-				list.add(-1 + " - " + eventsDescription.get(-1));
-				list.add(-2 + " - " + eventsDescription.get(-2));
-				list.add(-3 + " - " + eventsDescription.get(-3));
-				list.add(-4 + " - " + eventsDescription.get(-4));
-				for (int i : giftEvents.keySet())
-					list.add(i + " - " + eventsDescription.get(i));
-				lastGiftSel = Alerts.choiceCombo("Gift", "Selecione o ID do Gift\npara disparar com a tecla G", list, lastGiftSel);
-				if (lastGiftSel != null)
-					testGiftId = Integer.parseInt(lastGiftSel.split(" ")[0]);
-			}
-			if (e.getCode() == KeyCode.U)
-				dropRandomTileBomb("GM");
-			if (e.getCode() == KeyCode.J)
-				dropRandomTileWall("GM");
-			if (e.getCode() == KeyCode.I)
-				dropRandomTileItem("GM");
-			if (e.getCode() == KeyCode.K)
-				dropRandomTileBrick("GM");
-			if (e.getCode() == KeyCode.M && ++showBlockMarks == 4)
-				showBlockMarks = 0;
-			if (e.getCode() == KeyCode.SPACE)
-				CpuPlay.markTargets = !CpuPlay.markTargets;
 			if (e.getCode() == KeyCode.ESCAPE)
 				Main.close();
 			Game.checkFunctionKeys(e);

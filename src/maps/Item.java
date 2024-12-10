@@ -13,6 +13,7 @@ import enums.Direction;
 import enums.Elevation;
 import enums.ItemType;
 import enums.PassThrough;
+import enums.RideType;
 import enums.TileProp;
 import frameset.FrameSet;
 import frameset_tags.SetSprIndex;
@@ -21,7 +22,6 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import objmoveutils.JumpMove;
-import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import tools.GameConfigs;
 import tools.Materials;
@@ -40,57 +40,94 @@ public class Item extends Entity {
 
 	private Curse curse;
 	private ItemType itemType;
+	private RideType rideType;
+	private Integer coins;
 
 	public static void createItemEdgeImage() {
 		Materials.loadedSprites.put("ItemEdge", new WritableImage(18, 18));
 		itemEdigeColor = new RGBColor(20);
 	}
 
-	public Item() {
-		this(new Position(), null);
-	}
-
-	public Item(TileCoord coord) {
-		this(coord.getPosition(), null);
+	public Item(Item item) {
+		this(item.getTileCoordFromCenter(), item.itemType, item.rideType, item.coins);
 	}
 
 	public Item(TileCoord coord, ItemType itemType) {
-		this(coord.getPosition(), itemType);
+		this(coord, itemType, null, null);
 	}
 
-	public Item(Item item) {
-		this(item.getPosition(), item.itemType);
+	public Item(TileCoord coord, RideType rideType) {
+		this(coord, null, rideType, null);
 	}
 
-	public Item(Position position) {
-		this(position, null);
+	public Item(TileCoord coord, Integer coins) {
+		this(coord, null, null, coins);
 	}
 
-	public Item(Position position, ItemType itemType) {
-		setPosition(new Position(position));
+	private Item(TileCoord coord, ItemType itemType, RideType rideType, Integer coins) {
+		setPosition(coord.getPosition());
 		this.itemType = itemType;
-		setInvencibleFrames(INV_FRAMES);
-		addNewFrameSetFromIniFile(this, "StandFrameSet", "FrameSets", "ITEM", "StandFrameSet");
-		addNewFrameSetFromIniFile(this, "JumpingFrameSet", "FrameSets", "ITEM", "JumpingFrameSet");
-		addNewFrameSetFromIniFile(this, "FallingFromSky", "FrameSets", "ITEM", "FallingFromSky");
-		setUpItemPickUpFrameSet();
+		this.rideType = rideType;
+		this.coins = coins;
+		String s = itemType != null ? "ITEM" : rideType != null ? (rideType.isMech() ? "ITEM-MEGG" : "ITEM-EGG") : (coins < 0 ? "ITEM-GCOIN" : "ITEM-SCOIN");
+		addNewFrameSetFromIniFile(this, "StandFrameSet", "FrameSets", s, "StandFrameSet");
+		addNewFrameSetFromIniFile(this, "JumpingFrameSet", "FrameSets", s, "JumpingFrameSet");
+		addNewFrameSetFromIniFile(this, "FallingFromSky", "FrameSets", s, "FallingFromSky");
+		if (itemType != null) {
+			setUpItemPickUpFrameSet();
+			if (itemType == ItemType.CURSE_SKULL)
+				curse = Curse.getRandom();
+			else
+				curse = null;
+		}
+		else if (rideType != null) {
+			addNewFrameSetFromIniFile(this, "Following-LEFT", "FrameSets", s, "Following-LEFT");
+			addNewFrameSetFromIniFile(this, "Following-UP", "FrameSets", s, "Following-UP");
+			addNewFrameSetFromIniFile(this, "Following-RIGHT", "FrameSets", s, "Following-RIGHT");
+			addNewFrameSetFromIniFile(this, "Following-DOWN", "FrameSets", s, "Following-DOWN");
+		}
+		else if (coins == null)
+			throw new RuntimeException("You must specify at least one of these params: 'itemType', 'rideType', 'coins'");
 		setFrameSet("StandFrameSet");
+		setInvencibleFrames(INV_FRAMES);
 		setPassThroughs(true, PassThrough.MONSTER, PassThrough.PLAYER, PassThrough.ITEM);
-		if (itemType == ItemType.CURSE_SKULL)
-			curse = Curse.getRandom();
-		else
-			curse = null;
+	}
+	
+	public int coinsValue() {
+		return coins == null ? 0 : Math.abs(coins);
+	}
+	
+	public boolean isItem() {
+		return itemType != null;
+	}
+	
+	public boolean isEgg() {
+		return rideType != null;
+	}
+	
+	public boolean isCoin() {
+		return coins != null;
+	}
+	
+	public boolean isSilverCoin() {
+		return coins != null && coins > 0;
+	}
+	
+	public boolean isGoldCoin() {
+		return coins != null && coins < 0;
 	}
 	
 	@Override
 	public void setFrameSet(String frameSetName) {
 		super.setFrameSet(frameSetName);
-		int itemIndex = itemType.getValue() - 1;
-		FrameSet frameSet = getFrameSet(frameSetName);
-			frameSet.iterateFrameTags(tag -> {
-				if (tag instanceof SetSprIndex && ((SetSprIndex)tag).value != null && ((SetSprIndex)tag).value == -1)
-					((SetSprIndex)tag).value = itemIndex;
-			});
+		if (isItem()) {
+			int itemIndex = itemType.getValue() - 1;
+			FrameSet frameSet = getFrameSet(frameSetName);
+				frameSet.iterateFrameTags(tag -> {
+					if (tag instanceof SetSprIndex && ((SetSprIndex)tag).value != null && ((SetSprIndex)tag).value == -1)
+						((SetSprIndex)tag).value = itemIndex;
+				});
+		}
 	}
 	
 	public void jumpToRandomTileAround(int radius) {
@@ -131,26 +168,42 @@ public class Item extends Entity {
 		itemType = ItemType.getItemById(itemId);
 	}
 
-	public static void addItem(TileCoord coord) {
-		addItem(new Item(coord, null), false);
-	}
-
 	public static void addItem(TileCoord coord, ItemType itemType) {
 		addItem(new Item(coord, itemType), false);
 	}
 
-	public static void addItem(Item item) {
-		itemList.add(item);
+	public static void addSilverCoins(TileCoord coord, int totalSilverCoins) {
+		addItem(new Item(coord, null, null, totalSilverCoins), false);
 	}
-	
-	public static void addItem(TileCoord coord, boolean startJumpingAround) {
-		addItem(new Item(coord, null), startJumpingAround);
+
+	public static void addGoldCoins(TileCoord coord, int totalGoldCoins) {
+		addItem(new Item(coord, null, null, totalGoldCoins), false);
+	}
+
+	public static void addEgg(TileCoord coord, ItemType itemType) {
+		addItem(new Item(coord, itemType), false);
 	}
 
 	public static void addItem(TileCoord coord, ItemType itemType, boolean startJumpingAround) {
 		addItem(new Item(coord, itemType), startJumpingAround);
 	}
 
+	public static void addSilverCoins(TileCoord coord, int totalSilverCoins, boolean startJumpingAround) {
+		addItem(new Item(coord, null, null, totalSilverCoins), startJumpingAround);
+	}
+
+	public static void addGoldCoins(TileCoord coord, int totalGoldCoins, boolean startJumpingAround) {
+		addItem(new Item(coord, null, null, totalGoldCoins), startJumpingAround);
+	}
+
+	public static void addEgg(TileCoord coord, ItemType itemType, boolean startJumpingAround) {
+		addItem(new Item(coord, itemType), startJumpingAround);
+	}
+
+	public static void addItem(Item item) {
+		itemList.add(item);
+	}
+	
 	public static void addItem(Item item, boolean startJumpingAround) {
 		item.setInvencibleFrames(INV_FRAMES);
 		itemList.add(item);
@@ -196,9 +249,8 @@ public class Item extends Entity {
 	public static Map<TileCoord, List<Item>> getItemMap() {
 		return items;
 	}
-
-	public static void drawItems() {
-		List<Item> tempItems = new ArrayList<>(itemList);
+	
+	private static void updateItemEdgeFrame() {
 		WritableImage i = Materials.loadedSprites.get("ItemEdge");
 		Color c = itemEdigeColor.getColor();
 		for (int y = 0; y < 18; y++) {
@@ -209,7 +261,11 @@ public class Item extends Entity {
 			i.getPixelWriter().setColor(x, 0, c);
 			i.getPixelWriter().setColor(x, 17, c);
 		}
+	}
 
+	public static void drawItems() {
+		List<Item> tempItems = new ArrayList<>(itemList);
+		updateItemEdgeFrame();
 		for (Item item : tempItems) {
 			if (MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.INSTAKILL))
 				item.forceDestroy();
@@ -263,15 +319,23 @@ public class Item extends Entity {
 	}
 
 	public void pick() {
-		if (itemType == ItemType.RANDOM) {
-			itemType = ItemType.getRandom();
-			setUpItemPickUpFrameSet();
+		if (isItem()) {
+			if (itemType == ItemType.RANDOM) {
+				itemType = ItemType.getRandom();
+				setUpItemPickUpFrameSet();
+			}
+			setFrameSet("PickedUpFrameSet");
+			if (itemType.getSound() == null || itemType.getSoundDelay() > 0)
+				Sound.playWav("ItemPickUp");
+			if (itemType.getSound() != null)
+				DurationTimerFX.createTimer("ItemPickUp@" + hashCode(), Duration.millis(itemType.getSoundDelay()), () -> Sound.playWav(itemType.getSound()));
 		}
-		setFrameSet("PickedUpFrameSet");
-		if (itemType.getSound() == null || itemType.getSoundDelay() > 0)
-			Sound.playWav("ItemPickUp");
-		if (itemType.getSound() != null)
-			DurationTimerFX.createTimer("ItemPickUp@" + hashCode(), Duration.millis(itemType.getSoundDelay()), () -> Sound.playWav(itemType.getSound()));
+		else if (isEgg()) {
+			
+		}
+		else {
+			// COIN
+		}
 	}
 
 	public static boolean haveItemAt(TileCoord coord) {

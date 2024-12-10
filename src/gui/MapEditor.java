@@ -624,7 +624,7 @@ public class MapEditor {
 				Bomb.addBomb(canvasMouseDraw.tileCoord, bombType, 5);
 			else if (e.getCode() == KeyCode.T && MapSet.tileIsFree(canvasMouseDraw.tileCoord) && !Item.haveItemAt(canvasMouseDraw.tileCoord) && !MapSet.tileContainsProp(canvasMouseDraw.tileCoord, TileProp.GROUND_NO_BRICK)) {
 				if (itemType != null)
-					Brick.addBrick(canvasMouseDraw.tileCoord, itemType);
+					Brick.addBrick(canvasMouseDraw.tileCoord, new Item(canvasMouseDraw.tileCoord.getNewInstance(), itemType));
 				else
 					Brick.addBrick(canvasMouseDraw.tileCoord);
 			}
@@ -1047,7 +1047,7 @@ public class MapEditor {
 			if (checkBoxShowItems.isSelected() && Misc.blink(200))
 				for (Brick brick : Brick.getBricks())
 					if (brick.getItem() != null)
-						Draw.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, (brick.getItem().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileCoord().getX() * Main.TILE_SIZE, brick.getTileCoord().getY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
+						Draw.addDrawQueue(SpriteLayerType.CEIL, Materials.mainSprites, (brick.getItem().getItemType().getValue() - 1) * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE, brick.getTileCoord().getX() * Main.TILE_SIZE, brick.getTileCoord().getY() * Main.TILE_SIZE, Main.TILE_SIZE, Main.TILE_SIZE);
 		}
 		updateTileSelectionArray();
 		if (editable) {
@@ -1241,7 +1241,7 @@ public class MapEditor {
 				menu2.getItems().add(menuItem);
 				menuItem.setOnAction(e -> {
 					if ((itemType = type) != null)
-						Brick.addBrick(canvasMouseDraw.tileCoord, type);
+						Brick.addBrick(canvasMouseDraw.tileCoord, new Item(canvasMouseDraw.tileCoord.getNewInstance(), type));
 					else
 						Brick.addBrick(canvasMouseDraw.tileCoord);
 				});

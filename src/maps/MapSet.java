@@ -27,6 +27,7 @@ import enums.Elevation;
 import enums.GameMode;
 import enums.ItemType;
 import enums.PassThrough;
+import enums.RideType;
 import enums.SpriteLayerType;
 import enums.StageObjectives;
 import enums.TileProp;
@@ -35,7 +36,6 @@ import frameset.FrameSet;
 import frameset.Tags;
 import frameset_tags.FrameTag;
 import javafx.application.Platform;
-import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -64,7 +64,7 @@ public abstract class MapSet {
 	public static Entity mapFrameSets;
 	private static IniFile iniFile;
 	private static IniFile iniFileTileSet;
-	private static List<Image> tileSetImages;
+	private static List<WritableImage> tileSetImages;
 	private static int tileSetPalleteIndex;
 	private static Integer copyImageLayerIndex;
 	private static Integer currentLayerIndex;
@@ -676,13 +676,30 @@ public abstract class MapSet {
 			String[] split = iniFile.read("SETUP", "Items").split(" ");
 			try {
 				for (int n = 0; n < split.length && n < Brick.totalBricks(); n++) {
-					int itemId = Integer.parseInt(split[n]);
-					Brick brick = null;
-					do {
-						brick = Brick.getBricks().get((int) MyMath.getRandom(0, Brick.totalBricks() - 1));
+					String[] split2 = split[n].split(":");
+					int n2 = 1, itemType = split2[0].equals("ITEM") ? 0 : split2[0].equals("EGG") ? 1 : 2;
+					try {
+						for (; n2 < split2.length; n2++) {
+							Brick brick = null;
+							do {
+								brick = Brick.getBricks().get((int) MyMath.getRandom(0, Brick.totalBricks() - 1));
+							}
+							while (brick.getItem() != null);
+							if (itemType == 0) {
+								ItemType item = ItemType.getItemById(Integer.parseInt(split2[n2]));
+								brick.setItem(new Item(brick.getTileCoordFromCenter().getNewInstance(), item));
+							}
+							else if (itemType == 1) {
+								RideType rideType = RideType.valueOf(split2[n2]);
+								brick.setItem(new Item(brick.getTileCoordFromCenter().getNewInstance(), rideType));
+							}
+							else
+								brick.setItem(new Item(brick.getTileCoordFromCenter().getNewInstance(), Integer.parseInt(split2[n2])));
+						}
 					}
-					while (brick.getItem() != null);
-					brick.setItem(ItemType.getItemById(itemId));
+					catch (Exception e) {
+						throw new RuntimeException("Error loading item list from map " + mapName + " (" + split2[n2] + ")" + "\n\tReason: " + e.getMessage());
+					}
 				}
 			}
 			catch (Exception e) {
@@ -891,11 +908,11 @@ public abstract class MapSet {
 			layer.buildLayer();
 	}
 
-	public static Image getTileSetImage() {
+	public static WritableImage getTileSetImage() {
 		return getTileSetImage(tileSetPalleteIndex);
 	}
 	
-	public static Image getTileSetImage(int palleteIndex) {
+	public static WritableImage getTileSetImage(int palleteIndex) {
 		return tileSetImages.get(palleteIndex);
 	}
 

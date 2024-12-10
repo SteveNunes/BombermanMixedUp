@@ -6,6 +6,7 @@ import java.util.List;
 import enums.ItemType;
 import frameset.Sprite;
 import maps.Brick;
+import maps.Item;
 
 public class SetFallingBrick extends FrameTag {
 
@@ -46,11 +47,12 @@ public class SetFallingBrick extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
+		Item item = new Item(sprite.getSourceEntity().getTileCoordFromCenter().getNewInstance(), itemType);
 		if (targetCoords == null)
-			Brick.dropBrickFromSky(sprite.getTileCoordFromCenter(), itemType);
+			Brick.dropBrickFromSky(sprite.getTileCoordFromCenter(), item);
 		else
 			processTile(sprite.getTileCoord(), targetCoords, coord ->
-				Brick.dropBrickFromSky(coord, itemType));
+				Brick.dropBrickFromSky(coord, item));
 	}
 
 }

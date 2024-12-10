@@ -69,6 +69,7 @@ public class BomberMan extends Entity {
 	private int releasingFromHolderValue;
 	private int[] headIndexes;
 	private BomberShip bomberShip;
+	private Ride ride;
 
 	public BomberMan(int playerId, int bomberIndex, int palleteIndex) {
 		super();
@@ -89,6 +90,7 @@ public class BomberMan extends Entity {
 		bomberShip = null;
 		player = null;
 		cpuPlay = null;
+		ride = null;
 		lives = GameConfigs.STARTING_LIVES;
 		setHitPoints(1);
 		String section = "" + bomberIndex;
@@ -121,7 +123,7 @@ public class BomberMan extends Entity {
 					});
 			}
 		}
-		Position[] bomerShipHeadOffset = { new Position(11, -20), new Position(0, -11), new Position(-11, -20), new Position(0, -19) };
+		Position[] bomerShipHeadOffset = { new Position(11, -17), new Position(0, -10), new Position(-11, -17), new Position(0, -15) };
 		for (String frameSetName : IniFiles.frameSets.getItemList("BOMBER_SHIP")) {
 			FrameSet frameSet = addNewFrameSetFromIniFile(this, frameSetName, "FrameSets", "BOMBER_SHIP", frameSetName)[1];
 			ImageFlip[] flip = { null };
@@ -180,6 +182,10 @@ public class BomberMan extends Entity {
 		bomberManList.add(bomber);
 		bomberAlives++;
 		return bomber;
+	}
+	
+	public Ride getRide() {
+		return ride;
 	}
 	
 	public static BomberMan getBomberMan(int index) {
