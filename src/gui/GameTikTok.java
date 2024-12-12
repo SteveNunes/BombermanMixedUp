@@ -87,6 +87,7 @@ public class GameTikTok {
 	private static List<String> echos = new LinkedList<>();
 	private static final int WIN_W = Main.TILE_SIZE * 32;
 	private static final int WIN_H = (int)(Main.TILE_SIZE * 16.5);
+	private static boolean showAvatar = false;
 
 	@FXML
 	private Canvas canvasMain;
@@ -593,7 +594,7 @@ public class GameTikTok {
 		});
 		Main.sceneMain.setOnKeyReleased(e -> {
 			Player.convertOnKeyReleaseEvent(e);
-			holdedKeys.add(e.getCode());
+			holdedKeys.remove(e.getCode());
 		});
 	}
 	
@@ -704,6 +705,8 @@ public class GameTikTok {
 	}
 
 	private void drawUserPicsOverEntities() {
+		if (!showAvatar)
+			return;
 		for (String user : userEntityOwner.keySet())
 			if (userPics.containsKey(user) && userPics.get(user) != null)
 				for (Entity entity : userEntityOwner.get(user))
@@ -1265,8 +1268,8 @@ class FixedBomberMan {
 				bomberMan.getItemList().add(type);
 			bomberMan.updateStatusByItems();
 		}
-		if (palleteIndex >= GameTikTok.getCurrentPalleteIndex(bomberManIndex))
-			GameTikTok.getNextPallete(bomberManIndex);
+		if (this.palleteIndex >= GameTikTok.getCurrentPalleteIndex(this.bomberManIndex))
+			GameTikTok.getNextPallete(this.bomberManIndex);
 	}
 	
 	public FixedBomberMan(String userName, String fromIniData) {

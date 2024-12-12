@@ -445,6 +445,14 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new ActiveBomberShip(s));
 			else if (tag.equals("ReviveFromBomberShip"))
 				tags.addTag(newTag = new ReviveFromBomberShip(s));
+			else if (tag.equals("SetRiderFrontValue"))
+				tags.addTag(newTag = new SetRiderFrontValue(s));
+			else if (tag.equals("SetFrameSetFrontValue"))
+				tags.addTag(newTag = new SetFrameSetFrontValue(s));
+			else if (tag.equals("SetRiderDesloc"))
+				tags.addTag(newTag = new SetRiderDesloc(s));
+			else if (tag.equals("RemoveMe"))
+				tags.addTag(newTag = new RemoveMe(s));
 			if (delay != null)
 				newTag.setTriggerDelay(delay);
 			if (delayInFrames != null)

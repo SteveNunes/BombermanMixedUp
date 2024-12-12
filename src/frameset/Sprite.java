@@ -5,7 +5,9 @@ import java.awt.Rectangle;
 
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
+import entities.BomberMan;
 import entities.Entity;
+import entities.Ride;
 import entityTools.ShakeEntity;
 import enums.ImageAlignment;
 import enums.ImageFlip;
@@ -550,7 +552,7 @@ public class Sprite extends Position {
 	}
 	
 	public int getFrontValue() {
-		return frontValue + extraFrontValue;
+		return frontValue + extraFrontValue + getSourceFrameSet().getFrontValue();
 	}
 	
 	public void setFrontValue(int value) {
@@ -649,6 +651,13 @@ public class Sprite extends Position {
 				ty += getEliticMove().getIncrements().getY();
 				getEliticMove().move();
 				frontValue2++;
+			}
+			if (getSourceEntity() instanceof BomberMan && ((BomberMan)getSourceEntity()).isRiding()) {
+				BomberMan bomber = ((BomberMan)getSourceEntity());
+				Ride ride = bomber.getRide();
+				tx += ride.getRiderDesloc().getX();
+				ty += ride.getRiderDesloc().getY();
+				frontValue2 += ride.getRiderFrontValue();
 			}
 			if (getSourceEntity().getHolder() != null) {
 				tx += getSourceEntity().getHolderDesloc().getX();

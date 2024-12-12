@@ -9,6 +9,7 @@ import java.util.Map;
 import application.Main;
 import entities.BomberMan;
 import entities.Entity;
+import entities.Ride;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -17,6 +18,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import maps.Item;
 import maps.MapSet;
+import objmoveutils.TileCoord;
 import util.FindFile;
 import util.IniFile;
 import util.Misc;
@@ -141,6 +143,7 @@ public abstract class Materials {
 	public static void loadFrameSets() {
 		System.out.println("Carregando FrameSets...");
 		IniFiles.characters.getSectionList().forEach(section -> new BomberMan(0, Integer.parseInt(section), 0));
+		IniFiles.rides.getSectionList().forEach(section -> new Ride(new TileCoord(), Integer.parseInt(section), 0));
 		IniFiles.frameSets.getSectionList().forEach(section -> {
 			Entity entity = new Entity();
 			IniFiles.frameSets.getItemList(section).forEach(item ->

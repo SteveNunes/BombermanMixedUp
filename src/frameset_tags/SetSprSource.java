@@ -3,6 +3,7 @@ package frameset_tags;
 import java.awt.Rectangle;
 
 import entities.BomberMan;
+import entities.Ride;
 import frameset.Sprite;
 import javafx.scene.image.Image;
 import tools.Materials;
@@ -78,7 +79,8 @@ public class SetSprSource extends FrameTag {
 				spriteSourceName = originalSpriteSourceName;
 				if (sprite.getSourceEntity() instanceof BomberMan && spriteSourceName.length() > s.length() && spriteSourceName.substring(0, s.length()).equals(s)) {
 					spriteSourceName += "." + (n == 0 ? ((BomberMan) sprite.getSourceEntity()).getPalleteIndex()
-							: ((BomberMan) sprite.getSourceEntity()).getPlayerId());
+							: spriteSourceName.equals("Ride.0") ? ((BomberMan) sprite.getSourceEntity()).getPlayerId() :
+							((Ride) sprite.getSourceEntity()).getPalleteIndex());
 					break;
 				}
 			}

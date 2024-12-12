@@ -223,6 +223,7 @@ public class Bomb extends Entity {
 	public static void clearBombs() {
 		for (TileCoord coord : new ArrayList<>(bombs.keySet()))
 			removeBomb(coord);
+		bombList.clear();
 	}
 
 	public static int totalBombs() {

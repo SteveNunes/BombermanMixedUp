@@ -31,6 +31,7 @@ public class FrameSet extends Position {
 	private int ticks;
 	private boolean changedIndex;
 	private boolean stop;
+	private int frontValue;
 
 	public FrameSet(FrameSet frameSet) {
 		this(frameSet, new Entity());
@@ -74,6 +75,14 @@ public class FrameSet extends Position {
 		this(new Entity(), new Position());
 	}
 
+	public void setFrontValue(int value) {
+		frontValue = value;
+	}
+	
+	public int getFrontValue() {
+		return frontValue;
+	}
+	
 	public double getAbsoluteX() {
 		if (sourceEntity != null)
 			return sourceEntity.getX() + getX();

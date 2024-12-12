@@ -24,7 +24,7 @@ public class ReleaseEntity extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		Entity entity = sprite.getSourceEntity();
-		if (entity.getHoldingEntity() != null)
+		if (entity.isHoldingEntity())
 			entity.unsetHoldingEntity();
 	}
 

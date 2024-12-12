@@ -8,6 +8,7 @@ import java.util.Map;
 import entities.BomberMan;
 import entities.Effect;
 import entities.Entity;
+import entities.Ride;
 import enums.Curse;
 import enums.Direction;
 import enums.Elevation;
@@ -42,6 +43,7 @@ public class Item extends Entity {
 	private ItemType itemType;
 	private RideType rideType;
 	private Integer coins;
+	private int invFrames;
 
 	public static void createItemEdgeImage() {
 		Materials.loadedSprites.put("ItemEdge", new WritableImage(18, 18));
@@ -81,16 +83,30 @@ public class Item extends Entity {
 				curse = null;
 		}
 		else if (rideType != null) {
-			addNewFrameSetFromIniFile(this, "Following-LEFT", "FrameSets", s, "Following-LEFT");
-			addNewFrameSetFromIniFile(this, "Following-UP", "FrameSets", s, "Following-UP");
-			addNewFrameSetFromIniFile(this, "Following-RIGHT", "FrameSets", s, "Following-RIGHT");
-			addNewFrameSetFromIniFile(this, "Following-DOWN", "FrameSets", s, "Following-DOWN");
+			addNewFrameSetFromIniFile(this, "Stand.LEFT", "FrameSets", s, "Stand.LEFT");
+			addNewFrameSetFromIniFile(this, "Stand.UP", "FrameSets", s, "Stand.UP");
+			addNewFrameSetFromIniFile(this, "Stand.RIGHT", "FrameSets", s, "Stand.RIGHT");
+			addNewFrameSetFromIniFile(this, "Stand.DOWN", "FrameSets", s, "Stand.DOWN");
+			addNewFrameSetFromIniFile(this, "Moving.LEFT", "FrameSets", s, "Moving.LEFT");
+			addNewFrameSetFromIniFile(this, "Moving.UP", "FrameSets", s, "Moving.UP");
+			addNewFrameSetFromIniFile(this, "Moving.RIGHT", "FrameSets", s, "Moving.RIGHT");
+			addNewFrameSetFromIniFile(this, "Moving.DOWN", "FrameSets", s, "Moving.DOWN");
 		}
 		else if (coins == null)
 			throw new RuntimeException("You must specify at least one of these params: 'itemType', 'rideType', 'coins'");
 		setFrameSet("StandFrameSet");
 		setInvencibleFrames(INV_FRAMES);
 		setPassThroughs(true, PassThrough.MONSTER, PassThrough.PLAYER, PassThrough.ITEM);
+	}
+	
+	@Override
+	public void setInvencibleFrames(int frames) {
+		invFrames = frames;
+	}
+	
+	@Override
+	public boolean isInvencible() {
+		return invFrames > 0;
 	}
 	
 	public int coinsValue() {
@@ -217,6 +233,7 @@ public class Item extends Entity {
 
 	public static void removeItem(Item item) {
 		if (item != null) {
+			item.unlinkFromLinkedEntity();
 			itemList.remove(item);
 			if (items.containsKey(item.getTileCoordFromCenter())) {
 				items.get(item.getTileCoordFromCenter()).remove(item);
@@ -296,12 +313,17 @@ public class Item extends Entity {
 		removeItem(this);
 		if (!forceDestroy && getItemType() == ItemType.CURSE_SKULL)
 			Item.addItem(getTileCoordFromCenter(), ItemType.CURSE_SKULL, true);
-		else
-			Effect.runEffect(getPosition(), "FireSkullExplosion");
+		else {
+			if (isEgg() && getLinkedEntityFirst() != null)
+				unlinkFromLinkedEntity();
+			Effect.runEffect(getPosition(), isEgg() ? "EggExplosion" : "FireSkullExplosion");
+		}
 	}
 
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
+		if (invFrames > 0)
+			invFrames--;
 		super.run(gc, isPaused);
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		if (!isBlockedMovement() && tileWasChanged()) {
@@ -312,13 +334,48 @@ public class Item extends Entity {
 			if (!items.containsKey(coord))
 				putOnMap(coord, this);
 		}
-		if (getCurrentFrameSetName().equals("StandFrameSet") && Entity.haveAnyEntityAtCoord(coord))
+		if (isEgg() && getLinkedEntityFront() != null) {
+			String frameSet = (getLinkedEntityFirst().isMoving() ? "Moving." : "Stand.") + getDirection().name();
+			if (!getCurrentFrameSetName().equals(frameSet))
+				setFrameSet(frameSet);
+			if (getLinkedEntityFront() == getLinkedEntityFirst() &&
+					getTileCoordFromCenter().equals(getLinkedEntityFirst().getTileCoordFromCenter()) &&
+					((BomberMan)getLinkedEntityFront()).getElevation() == Elevation.ON_GROUND &&
+					!((BomberMan)getLinkedEntityFront()).isBlockedMovement() &&
+					((BomberMan)getLinkedEntityFront()).isWaitingForRide() == null &&
+					!((BomberMan)getLinkedEntityFront()).isRiding())
+						pick((BomberMan)getLinkedEntityFront());
+		}
+		if (getLinkedEntityFront() == null && getCurrentFrameSetName().equals("StandFrameSet") && Entity.haveAnyEntityAtCoord(coord))
 			for (Entity entity : Entity.getEntityListFromCoord(coord))
-				if (entity instanceof BomberMan)
+				if (entity instanceof BomberMan && entity.getElevation() == Elevation.ON_GROUND) {
+					BomberMan bomber = (BomberMan)entity;
+					if (isItem())
 						((BomberMan)entity).pickItem(this);
+					else if (bomber.isRiding()) {
+						if (bomber.getLinkedEntityBack() instanceof Item) {
+							if (((Item)bomber.getLinkedEntityBack()).rideType.isMech() != rideType.isMech())
+								return;
+							entity = bomber.getLinkedEntityBack();
+						}
+						if (entity.getLinkedEntityBack() == null)
+							linkToEntity(entity, (int)(16 / bomber.getSpeed()));
+					}
+					else if (((BomberMan)entity).isWaitingForRide() == null)
+						pick((BomberMan)entity);
+				}
+	}
+	
+	public void updateEggFollowingDistance() {
+		if (isEgg() && getLinkedEntityFront() != null && getLinkedEntityFirst() instanceof BomberMan && getLinkedEntityFront() == getLinkedEntityFirst())
+			getLinkedEntityFirst().updateLinkedEntitiesDelayFrames((int)(16 / getLinkedEntityFirst().getSpeed()));
 	}
 
 	public void pick() {
+		pick(null);
+	}
+	
+	public void pick(Entity entity) {
 		if (isItem()) {
 			if (itemType == ItemType.RANDOM) {
 				itemType = ItemType.getRandom();
@@ -331,7 +388,10 @@ public class Item extends Entity {
 				DurationTimerFX.createTimer("ItemPickUp@" + hashCode(), Duration.millis(itemType.getSoundDelay()), () -> Sound.playWav(itemType.getSound()));
 		}
 		else if (isEgg()) {
-			
+			removeItem(this);
+			Ride ride = Ride.addRide(getTileCoordFromCenter(), rideType, 0);
+			if (entity instanceof BomberMan)
+				((BomberMan)entity).setWaitingForRide(ride);
 		}
 		else {
 			// COIN

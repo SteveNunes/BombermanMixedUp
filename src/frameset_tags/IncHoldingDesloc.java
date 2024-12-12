@@ -36,7 +36,7 @@ public class IncHoldingDesloc extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		if (sprite.getSourceEntity().getHoldingEntity() != null)
+		if (sprite.getSourceEntity().isHoldingEntity())
 			sprite.getSourceEntity().getHoldingEntity().incHolderDesloc(incrementX, incrementY);
 	}
 

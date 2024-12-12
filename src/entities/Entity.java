@@ -28,6 +28,7 @@ import enums.StageObjectives;
 import enums.TileProp;
 import frameset.FrameSet;
 import frameset.Tags;
+import frameset_tags.SetTicksPerFrame;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.paint.Color;
@@ -132,6 +133,7 @@ public class Entity extends Position {
 		pushEntity = entity.pushEntity == null ? null : new PushEntity(entity.pushEntity);
 		shake = entity.shake == null ? null : new ShakeEntity(entity.shake);
 		imageEffects = entity.imageEffects;
+		holderDesloc = new Position();
 		linkedEntityInfos = new LinkedList<>();
 		linkedEntityBack = null;
 		linkedEntityFront = null;
@@ -144,7 +146,6 @@ public class Entity extends Position {
 		invencibleFrames = 0;
 		hitPoints = entity.hitPoints;
 		holder = null;
-		holderDesloc = null;
 		pathFinder = null;
 		focusedOn = null;
 		curseDuration = 0;
@@ -166,6 +167,7 @@ public class Entity extends Position {
 		passThrough = new HashSet<>();
 		frameSets = new HashMap<>();
 		freshFrameSets = new HashMap<>();
+		holderDesloc = new Position();
 		linkedEntityInfos = new ArrayList<>();
 		linkedEntityBack = null;
 		linkedEntityFront = null;
@@ -203,7 +205,6 @@ public class Entity extends Position {
 		currentHeight = 0;
 		entityHeight = 0;
 		holder = null;
-		holderDesloc = null;
 		pathFinder = null;
 	}
 	
@@ -335,7 +336,7 @@ public class Entity extends Position {
 	}
 
 	public boolean isInvencible() {
-		return MapSet.stageIsCleared() || invencibleFrames != 0;
+		return getJumpMove() != null || getElevation() != Elevation.ON_GROUND || MapSet.stageIsCleared() || invencibleFrames != 0;
 	}
 	
 	public int getInvencibleFrames() {
@@ -368,8 +369,21 @@ public class Entity extends Position {
 	public JumpMove getJumpMove() {
 		return jumpMove;
 	}
+	
+	public void setJumpingFrameSet(int durationFrames) {
+		if (haveFrameSet("Jumping")) {
+			setFrameSet("Jumping");
+			getCurrentFrameSet().iterateFrameTags(tag -> {
+				if (tag instanceof SetTicksPerFrame) {// Todo Frameset de Jumping deve conter como os 2 ultimos frames |{}|{Goto;-1} que fara o ultimo frame ficar paralizado.
+					setShadow(0, 0, 16, 8, 0.8f);
+					((SetTicksPerFrame)tag).value = durationFrames / (getCurrentFrameSet().getTotalFrames() - 2);
+				}
+			});
+		}
+	}
 
 	public JumpMove setJumpMove(double jumpStrenght, double strenghtMultipiler, int durationFrames) {
+		setJumpingFrameSet(durationFrames);
 		setElevation(Elevation.FLYING);
 		onSetJumpMoveTrigger();
 		return (jumpMove = new JumpMove(new Position(), getPosition(), jumpStrenght, strenghtMultipiler, durationFrames));
@@ -623,13 +637,29 @@ public class Entity extends Position {
 	}
 
 	public void linkToEntity(Entity entity, int delayFrames, Position linkedEntityOffset) {
-		if (linkedEntityFront == null) {
+		if (linkedEntityFront == null && entity.linkedEntityBack == null) {
 			entity.linkedEntityBack = this;
 			linkedEntityFront = entity;
 			linkedEntityInfos.clear();
 			while (delayFrames-- > 0)
 				linkedEntityInfos.add(new LinkedEntityInfos(entity));
 			this.linkedEntityOffset = linkedEntityOffset == null ? new Position() : new Position(linkedEntityOffset);
+		}
+	}
+	
+	public void updateLinkedEntitiesDelayFrames(int newDelayFrames) {
+		if (getLinkedEntityFirst() != null) {
+			List<Entity> entities = new ArrayList<>();
+			Entity entity = getLinkedEntityFirst(); 
+			do {
+				entities.add(entity);
+				Entity entity2 = entity.getLinkedEntityBack();
+				entity.unlinkFromLinkedEntity();
+				entity = entity2;
+			}
+			while (entity != null);
+			for (int n = entities.size() - 1; n > 0; n--)
+				entities.get(n).linkToEntity(entities.get(n - 1), newDelayFrames);
 		}
 	}
 
@@ -663,11 +693,11 @@ public class Entity extends Position {
 	}
 
 	public void setHolder(Entity holder) {
-		if (getHoldingEntity() != null)
+		if (isHoldingEntity())
 			unsetHoldingEntity();
 		unsetAllMovings();
 		this.holder = holder;
-		holderDesloc = new Position();
+		holderDesloc.setPosition(0, 0);
 		if (haveFrameSet("BeingHolded"))
 			setFrameSet("BeingHolded");
 	}
@@ -683,7 +713,7 @@ public class Entity extends Position {
 	public void onPushEntityStop() {}
 	
 	public void unsetAllMovings() {
-		if (getHoldingEntity() != null)
+		if (isHoldingEntity())
 			unsetHoldingEntity(true);
 		unsetGotoMove();
 		unsetGhosting();
@@ -717,10 +747,14 @@ public class Entity extends Position {
 			if (distance > 5)
 				distance = 5;
 			holder = null;
-			holderDesloc = null;
+			holderDesloc.setPosition(0, 0);
 			TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(getDirection(), distance);
 			jumpTo(this, coord, distance + 1, 1.2, 20);
 		}
+	}
+	
+	public boolean isHoldingEntity() {
+		return holding != null;
 	}
 
 	public Entity getHoldingEntity() {
@@ -812,6 +846,8 @@ public class Entity extends Position {
 			return;
 		frameSets.put(frameSetName, new FrameSet(freshFrameSets.get(frameSetName), this));
 		currentFrameSetName = frameSetName;
+		removeShadow();
+		holderDesloc.setPosition(0, 0);
 		setEntityHeight(0);
 	}
 
@@ -930,8 +966,10 @@ public class Entity extends Position {
 		}
 		if (blinkingFrames != 0)
 			blinkingFrames--;
-		if (invencibleFrames != 0)
+		if (invencibleFrames > 0)
 			invencibleFrames--;
+		else if (invencibleFrames < -1 && ++invencibleFrames == -1) // valor negativo deixa invencivel sem piscar. Se for -1, eh infinito.
+			invencibleFrames = 0;
 		if (previewTileCoord == null) {
 			previewTileCoord = getTileCoordFromCenter().getNewInstance();
 			tileChangedCoord = getTileCoordFromCenter().getNewInstance();
@@ -994,8 +1032,12 @@ public class Entity extends Position {
 		checkOutScreenCoords();
 	}
 
-	private void processLinkedEntity() {
-		if (linkedEntityFront != null) {
+	public void processLinkedEntity() {
+		processLinkedEntity(false);
+	}
+	
+	public void processLinkedEntity(boolean forceMoving) {
+		if (linkedEntityFront != null && (forceMoving || getLinkedEntityFirst().isMoving())) {
 			if (linkedEntityInfos.isEmpty()) {
 				setPosition(linkedEntityFront.getX() + linkedEntityOffset.getX(), linkedEntityFront.getY() + linkedEntityOffset.getY());
 				if (direction != linkedEntityFront.getDirection())
@@ -1016,13 +1058,13 @@ public class Entity extends Position {
 			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.SAVE);
 			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.SET_FILL, Color.BLACK);
 			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.SET_GLOBAL_ALPHA, shadowOpacity != 0 ? shadowOpacity : (double)getShadowHeight() / 5);
-			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.FILL_OVAL, getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2, getY() + Main.TILE_SIZE - getShadowHeight() * 2 + getShadowHeight() * 0.5, getShadowWidth(), getShadowHeight());
+			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.FILL_OVAL, getX() + Main.TILE_SIZE / 2 - getShadowWidth() / 2 + getShadowOffsetX(), getY() + Main.TILE_SIZE - getShadowHeight() * 2 + getShadowHeight() * 0.5 + getShadowOffsetY(), getShadowWidth(), getShadowHeight());
 			Draw.addDrawQueue((int) getY(), SpriteLayerType.SPRITE, DrawType.RESTORE);
 		}
 	}
 
 	public boolean isMoving() {
-		return getSpeed() != 0 || getPushEntity() != null || getPathFinder() != null;
+		return getSpeed() != 0 || getGotoMove() != null || getPushEntity() != null || getPathFinder() != null;
 	}
 
 	public void setPushingValue(int value) {
@@ -1437,7 +1479,7 @@ public class Entity extends Position {
 						killer.getBomberShip().setVictim((BomberMan)this);
 				}
 			}
-			if (getHoldingEntity() != null)
+			if (isHoldingEntity())
 				unsetHoldingEntity();
 			if (--hitPoints == 0) {
 				setFrameSet("Dead");

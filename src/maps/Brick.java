@@ -142,6 +142,7 @@ public class Brick extends Entity {
 	public static void clearBricks() {
 		List<Brick> list = new ArrayList<>(brickList);
 		list.forEach(brick -> removeBrick(brick.getTileCoordFromCenter()));
+		brickList.clear();
 	}
 
 	public static int totalBricks() {

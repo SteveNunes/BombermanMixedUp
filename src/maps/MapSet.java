@@ -19,6 +19,7 @@ import entities.BomberMan;
 import entities.Effect;
 import entities.Entity;
 import entities.Monster;
+import entities.Ride;
 import entityTools.ShakeEntity;
 import enums.BombType;
 import enums.Direction;
@@ -992,6 +993,7 @@ public abstract class MapSet {
 		TileDamage.runTileDamages();
 		Effect.drawEffects();
 		BomberMan.drawBomberMans();
+		Ride.drawRides();
 		removeStageTag.forEach(fs -> runningStageTags.remove(fs));
 	}
 	
