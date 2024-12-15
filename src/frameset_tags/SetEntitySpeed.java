@@ -18,7 +18,7 @@ public class SetEntitySpeed extends FrameTag {
 	public SetEntitySpeed(String tags) {
 		String[] params = validateStringTags(this, tags, 1);
 		try {
-			value = Integer.parseInt(params[0]);
+			value = Double.parseDouble(params[0]);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(params[0] + " - Invalid parameter");

@@ -10,27 +10,28 @@ import javafx.scene.canvas.GraphicsContext;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import tools.IniFiles;
+import tools.Sound;
 
 public class Ride extends Entity {
 	
 	/* 
-	 * OVO NAO ANDA DURANTE O PULO
-	 * Arrumar os framesets da montaria para posicionar o personagem corretamente
-	 * Habilitar os speciais da montaria
 	 * Adicionar as outras montarias
-	 * TESTAR morte pelo hurryup enquanto esta na montaria
-	 * FAZER o hurry up matar mesmo na montaria
-	 * Criar FrameSet da montaria morrendo sem ser por Fire
+	 * 
+	 * Quando aperta o botao de chutar e ja segura pro lado oposto, ele chuta denovo pro lado oposto, apos terminar o chute atual
+	 * Nao da para chutar a bomba quando ela ta colada de uma pareed (ela pula e cai no mesmo tile)
+	 * Ovo nao eh destruido quando bomba cai em cima
 	 * Criar FrameSet da montaria em pose de vitoria
-	 * Criar FrameSet da montaria em idle
+	 * Criar FrameSet da montaria em pose de derrota
+	 * Criar FrameSet da montaria em pose de on-edge
 	 */
 	
 	private RideType rideType;
 	private BomberMan owner;
 	private int palleteIndex;
-	private boolean disabled;
+	private boolean isDead;
 	private Position riderDesloc;
 	private int riderFrontValue;
+	private String ridingSound;
 
 	private static List<Ride> rideList = new ArrayList<>();
 
@@ -39,11 +40,7 @@ public class Ride extends Entity {
 	}
 
 	public static Ride addRide(TileCoord coord, RideType rideType, int palleteIndex) {
-		return addRide(coord, rideType, palleteIndex, null);
-	}
-
-	public static Ride addRide(TileCoord coord, RideType rideType, int palleteIndex, BomberMan owner) {
-		Ride ride = new Ride(coord, rideType, palleteIndex, owner);
+		Ride ride = new Ride(coord, rideType, palleteIndex);
 		rideList.add(ride);
 		return ride;
 	}
@@ -53,25 +50,18 @@ public class Ride extends Entity {
 	}
 
 	public Ride(TileCoord coord, RideType rideType, int palleteIndex) {
-		this(coord, rideType.getValue(), palleteIndex, null);
-	}
-
-	public Ride(TileCoord coord, RideType rideType, int palleteIndex, BomberMan owner) {
-		this(coord, rideType.getValue(), palleteIndex, owner);
+		this(coord, rideType.getValue(), palleteIndex);
 	}
 
 	public Ride(TileCoord coord, int rideId, int palleteIndex) {
-		this(coord, rideId, palleteIndex, null);
-	}
-
-	public Ride(TileCoord coord, int rideId, int palleteIndex, BomberMan owner) {
 		this.setPosition(coord.getPosition());
-		this.owner = owner;
 		this.rideType = RideType.getRideTypeById(rideId);
 		this.palleteIndex = palleteIndex;
+		owner = null;
 		riderDesloc = new Position();
-		disabled = false;
+		isDead = false;
 		String section = "" + rideType.getValue();
+		ridingSound = IniFiles.rides.read(section, "RiringSound");
 		if (IniFiles.rides.read(section, "DefaultTags") != null)
 			setDefaultTags(Tags.loadTagsFromString(IniFiles.rides.read(section, "DefaultTags")));
 		for (String item : IniFiles.rides.getItemList(section))
@@ -132,13 +122,16 @@ public class Ride extends Entity {
 		}
 		else
 			for (BomberMan bomber : BomberMan.getBomberManList())
-				if (!isDisabled() && bomber.isWaitingForRide() == this && getTileCoordFromCenter().equals(bomber.getTileCoordFromCenter())) {
+				if (!isDead() && bomber.isWaitingForRide() == this && getTileCoordFromCenter().equals(bomber.getTileCoordFromCenter())) {
 					setOwner(bomber);
 					bomber.jumpTo(bomber, getTileCoordFromCenter(), 4, 1.2, 40);
+					if (ridingSound != null)
+						Sound.playWav(ridingSound);
 					break;
 				}
 		super.run(gc, isPaused);
-		// FALTA: Adicionar triggers de tile ao pisar no tile de montaria
+		if (!getCurrentFrameSet().isRunning())
+			getOwner().changeToStandFrameSet();
 	}
 
 	public RideType getRideType() {
@@ -151,15 +144,15 @@ public class Ride extends Entity {
 
 	public void setOwner(BomberMan owner) {
 		this.owner = owner;
-		disabled = owner == null;
+		isDead = owner == null;
 	}
 
 	public int getPalleteIndex() {
 		return palleteIndex;
 	}
 	
-	public boolean isDisabled() {
-		return disabled;
+	public boolean isDead() {
+		return isDead;
 	}
 
 }

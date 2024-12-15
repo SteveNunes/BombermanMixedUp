@@ -411,13 +411,63 @@ public class Entity extends Position {
 		gotoMove = null;
 	}
 
+	public void safeJumpTo(Entity entity, TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
+		jumpTo(entity, coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, true, null);
+	}
+
+	public void safeJumpTo(Entity entity, TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
+		jumpTo(entity, coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, true, jumpSound);
+	}
+	
+	public void safeJumpTo(Entity entity, Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
+		jumpTo(entity, position, jumpStrenght, strenghtMultipiler, durationFrames, true, null);
+	}
+
+	public void safeJumpTo(Entity entity, Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
+		jumpTo(entity, position, jumpStrenght, strenghtMultipiler, durationFrames, true, jumpSound);
+	}
+
 	public void jumpTo(Entity entity, TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
-		jumpTo(entity, coord, jumpStrenght, strenghtMultipiler, durationFrames, null);
+		jumpTo(entity, coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, false, null);
 	}
 
 	public void jumpTo(Entity entity, TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
+		jumpTo(entity, coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, false, jumpSound);
+	}
+	
+	public void jumpTo(Entity entity, Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
+		jumpTo(entity, position, jumpStrenght, strenghtMultipiler, durationFrames, false, null);
+	}
+
+	public void jumpTo(Entity entity, Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
+		jumpTo(entity, position, jumpStrenght, strenghtMultipiler, durationFrames, false, jumpSound);
+	}
+	
+	private void safeJumpCheck(Position targetPosition) {
+		Direction dir = getPosition().get4wayDirectionToReach(targetPosition);
+		if (dir != null) {
+			Position[] targets = {
+					new Position(targetPosition.getX() + Main.TILE_SIZE / 2, targetPosition.getY() + 1),
+					new Position(targetPosition.getX() + Main.TILE_SIZE - 2, targetPosition.getY() + Main.TILE_SIZE / 2),
+					new Position(targetPosition.getX() + Main.TILE_SIZE / 2, targetPosition.getY() + Main.TILE_SIZE - 2),
+					new Position(targetPosition.getX() + 1, targetPosition.getY() + Main.TILE_SIZE / 2)
+			};
+			Position pos = targets[dir.get4DirValue()];
+			if (MapSet.tileContainsProps(pos.getTileCoord(), TileProp.getWallLikePropsList())) {
+				pos = new Position(getPosition());
+				int t = (int)Math.abs(dir.isHorizontal() ? getX() - targetPosition.getX() : getY() - targetPosition.getY());
+				for (int n = 0; n < t && !isPerfectlyBlockedDir(dir); n++)
+					moveEntity(dir, 1);
+				targetPosition.setPosition(getPosition());
+				setPosition(pos);
+			}
+		}
+	}
+
+	private void jumpTo(Entity entity, Position targetPosition, double jumpStrenght, double strenghtMultipiler, int durationFrames, boolean safeJump, String jumpSound) {
 		if (jumpSound != null)
 			Sound.playWav(entity, jumpSound);
+		safeJumpCheck(targetPosition);
 		setElevation(Elevation.FLYING);
 		onSetJumpMoveTrigger();
 		JumpMove jumpMove = setJumpMove(jumpStrenght, strenghtMultipiler, durationFrames);
@@ -431,7 +481,7 @@ public class Entity extends Position {
 			else
 				onJumpFallAtFreeTileEvent(jumpMove);
 		});
-		setGotoMove(coord.getPosition(), durationFrames - 1);
+		setGotoMove(targetPosition, durationFrames - 1);
 	}
 
 	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {}
@@ -1470,7 +1520,15 @@ public class Entity extends Position {
 	}
 
 	public void takeDamage() {
-		if (!isInvencible() && !isDead() && !(this instanceof Effect)) {
+		takeDamage(false);
+	}
+
+	public void takeDamage(boolean instaKill) {
+		if ((instaKill || (!isInvencible() && !isDead())) && !(this instanceof Effect)) {
+			if (instaKill) {
+				setInvencibleFrames(0);
+				setHitPoints(1);
+			}
 			Entity entity = Explosion.checkIfEntityIsAmongAnyExplosionRange(this);
 			if (entity != null) {
 				if (entity instanceof BomberMan) {

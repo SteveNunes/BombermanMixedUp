@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import application.Main;
 import frameset.FrameSet;
 import frameset.Sprite;
 
@@ -56,7 +55,7 @@ public class RepeatLastFrame extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getSourceFrameSet();
-		if (!Main.frameSetEditorIsPaused() && !frameSet.isStopped()) {
+		if (!frameSet.isStopped()) {
 			if (haveLeftCycles()) {
 				incCycles();
 				int index = frameSet.getCurrentFrameIndex() - 1;

@@ -399,6 +399,12 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new SetJumpingBomb(s));
 			else if (tag.equals("SetJumpToCoord"))
 				tags.addTag(newTag = new SetJumpToCoord(s));
+			else if (tag.equals("SetJumpToPosition"))
+				tags.addTag(newTag = new SetJumpToPosition(s));
+			else if (tag.equals("SetSafeJumpToCoord"))
+				tags.addTag(newTag = new SetSafeJumpToCoord(s));
+			else if (tag.equals("SetSafeJumpToPosition"))
+				tags.addTag(newTag = new SetSafeJumpToPosition(s));
 			else if (tag.equals("SetFallingBomb"))
 				tags.addTag(newTag = new SetFallingBomb(s));
 			else if (tag.equals("SetFallingBrick"))

@@ -247,6 +247,10 @@ public class Tile {
 
 	// ================ Metodos relacionados a TileProps ==============
 
+	public boolean tileContainsProps(List<TileProp> props) {
+		return getOriginLayer().tileContainsProps(getTileCoord(), props);
+	}
+
 	public boolean tileContainsProp(TileProp prop) {
 		return getOriginLayer().tileContainsProp(getTileCoord(), prop);
 	}

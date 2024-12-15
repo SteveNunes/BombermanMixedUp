@@ -84,13 +84,7 @@ public class Main extends Application {
 				GameFonts.loadFonts();
 				GameInput.init();
 			}
-			if (GAME_MODE == GameMode.FRAMESET_EDITOR) {
-				FXMLLoader loader = new FXMLLoader(new File("./src/gui/FrameSetEditorView.fxml").toURI().toURL());
-				sceneMain = new Scene(loader.load());
-				frameSetEditor = loader.getController();
-				frameSetEditor.init();
-			}
-			else if (GAME_MODE == GameMode.MAP_EDITOR) {
+			if (GAME_MODE == GameMode.MAP_EDITOR) {
 				FXMLLoader loader = new FXMLLoader(new File("./src/gui/MapEditorView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				mapEditor = loader.getController();
@@ -119,10 +113,6 @@ public class Main extends Application {
 		}
 	}
 	
-	public static boolean frameSetEditorIsPaused() {
-		return (frameSetEditor != null && frameSetEditor.isPaused);
-	}
-
 	public static int getZoom() {
 		return zoom;
 	}
@@ -172,6 +162,23 @@ public class Main extends Application {
 			System.load(System.getProperty("user.dir") + "/dlls/jinput-raw_64.dll");
 		}
 		launch(args);
+	}
+	
+	public static void openFrameSetEditor() {
+		try {
+			FXMLLoader loader = new FXMLLoader(new File("./src/gui/FrameSetEditorView.fxml").toURI().toURL());
+			Scene scene = new Scene(loader.load());
+			frameSetEditor = loader.getController();
+			frameSetEditor.init();
+		  Stage stage = new Stage();
+			stage.setResizable(false);
+			stage.setScene(scene);
+			stage.setResizable(true);
+			stage.show();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

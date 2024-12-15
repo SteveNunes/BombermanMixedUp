@@ -408,8 +408,10 @@ public abstract class MapSet {
 				else {
 					hurryUpNextCoord.incCoordsByDirection(hurryUpDirection);
 					hurryUpDirection = Direction.RIGHT;
-					if (hurryUpNextCoord.getX() == hurryUpMaxFreeCoord.getX())
+					if (hurryUpNextCoord.getX() == hurryUpMaxFreeCoord.getX()) {
+						dropWallFromSky(hurryUpNextCoord);
 						return;
+					}
 				}
 				dropWallFromSky(hurryUpNextCoord);
 				dropNextHurryUpBlock(delayBetweenEachDrop);
@@ -1084,6 +1086,10 @@ public abstract class MapSet {
 	}
 
 	// ================ Metodos relacionados a TileProps ==============
+
+	public static boolean tileContainsProps(TileCoord coord, List<TileProp> props) {
+		return getCurrentLayer().tileContainsProps(coord, props);
+	}
 
 	public static boolean tileContainsProp(TileCoord coord, TileProp prop) {
 		return getCurrentLayer().tileContainsProp(coord, prop);

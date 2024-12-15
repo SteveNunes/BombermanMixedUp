@@ -71,7 +71,7 @@ public class Item extends Entity {
 		this.itemType = itemType;
 		this.rideType = rideType;
 		this.coins = coins;
-		String s = itemType != null ? "ITEM" : rideType != null ? (rideType.isMech() ? "ITEM-MEGG" : "ITEM-EGG") : (coins < 0 ? "ITEM-GCOIN" : "ITEM-SCOIN");
+		String s = itemType != null ? "ITEM" : rideType != null ? (rideType.isMech() ? "ITEM-MECH_EGG" : "ITEM-EGG") : (coins < 0 ? "ITEM-GOLD_COIN" : "ITEM-SILVER_COIN");
 		addNewFrameSetFromIniFile(this, "StandFrameSet", "FrameSets", s, "StandFrameSet");
 		addNewFrameSetFromIniFile(this, "JumpingFrameSet", "FrameSets", s, "JumpingFrameSet");
 		addNewFrameSetFromIniFile(this, "FallingFromSky", "FrameSets", s, "FallingFromSky");
@@ -227,7 +227,8 @@ public class Item extends Entity {
 			item.jumpToRandomTileAround(2);
 		else {
 			putOnMap(item.getTileCoordFromCenter().getNewInstance(), item);
-			MapSet.checkTileTrigger(item, item.getTileCoordFromCenter(), TileProp.TRIGGER_BY_ITEM);
+			if (item.getElevation() == Elevation.ON_GROUND)
+				MapSet.checkTileTrigger(item, item.getTileCoordFromCenter(), TileProp.TRIGGER_BY_ITEM);
 		}
 	}
 
@@ -328,8 +329,10 @@ public class Item extends Entity {
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		if (!isBlockedMovement() && tileWasChanged()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
-			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
-			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_ITEM, true);
+			if (getElevation() == Elevation.ON_GROUND) {
+				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
+				MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_ITEM, true);
+			}
 			removeThisFromTile(prevCoord);
 			if (!items.containsKey(coord))
 				putOnMap(coord, this);
@@ -390,8 +393,10 @@ public class Item extends Entity {
 		else if (isEgg()) {
 			removeItem(this);
 			Ride ride = Ride.addRide(getTileCoordFromCenter(), rideType, 0);
-			if (entity instanceof BomberMan)
+			if (entity instanceof BomberMan) {
 				((BomberMan)entity).setWaitingForRide(ride);
+				ride.setDirection(((BomberMan)entity).getDirection());
+			}
 		}
 		else {
 			// COIN

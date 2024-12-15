@@ -216,6 +216,15 @@ public class Layer {
 
 	// ================ Metodos relacionados a TileProps ==============
 
+	public boolean tileContainsProps(TileCoord coord, List<TileProp> props) {
+		if (!tilesProps.containsKey(coord))
+			return false;
+		for (TileProp prop : props)
+			if (tilesProps.get(coord).contains(prop))
+				return true;
+		return false;
+	}
+
 	public boolean tileContainsProp(TileCoord coord, TileProp prop) {
 		return tilesProps.containsKey(coord) && tilesProps.get(coord).contains(prop);
 	}

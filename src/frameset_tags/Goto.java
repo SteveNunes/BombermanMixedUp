@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import application.Main;
 import frameset.FrameSet;
 import frameset.Sprite;
 
@@ -65,7 +64,7 @@ public class Goto extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getSourceFrameSet();
-		if (!Main.frameSetEditorIsPaused() && !frameSet.isStopped()) {
+		if (!frameSet.isStopped()) {
 			if (haveLeftCycles()) {
 				currentRepeatCycle++;
 				int index = this.index < 0 ? frameSet.getCurrentFrameIndex() + this.index : this.index;

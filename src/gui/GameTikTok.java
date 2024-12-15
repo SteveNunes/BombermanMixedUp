@@ -537,6 +537,10 @@ public class GameTikTok {
 			Player.convertOnKeyPressEvent(e);
 			holdedKeys.add(e.getCode());
 			if (isCtrlHold()) {
+				if (e.getCode() != KeyCode.CONTROL)
+					holdedKeys.remove(KeyCode.CONTROL);
+				if (e.getCode() == KeyCode.HOME)
+					Main.openFrameSetEditor();
 				if (e.getCode() == KeyCode.S)
 					Effect.runEffect(mousePos, "Stun");
 				if (e.getCode() == KeyCode.Q)

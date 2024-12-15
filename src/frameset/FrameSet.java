@@ -447,6 +447,10 @@ public class FrameSet extends Position {
 	public boolean isEmptyFrames() {
 		return frames.isEmpty();
 	}
+	
+	public static void removePreLoadedFrameSet(String frameSetName) {
+		preLoadedFrameSets.remove(frameSetName);
+	}
 
 	public void loadFromIni(Entity entity, String file, String section, String item) {
 		if (file == null)

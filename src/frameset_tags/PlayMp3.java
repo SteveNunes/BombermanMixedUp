@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import application.Main;
 import frameset.Sprite;
 import javafx.util.Duration;
 import javafx.util.Pair;
@@ -63,13 +62,11 @@ public class PlayMp3 extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		if (!Main.frameSetEditorIsPaused()) {
-			Pair<Duration, Duration> doLoop = seekEnd == null || seekStart == null ? null : new Pair<>(Duration.millis(seekEnd), Duration.millis(seekStart));
-			Sound.playMp3(partialSoundPath, rate, balance, volume, stopCurrent, doLoop).thenAccept(mp3 -> {
-				if (!partialSoundPath.equals("-"))
-					MapSet.runStageTag(stageTagEventAfterEndOfMedia);
-			});
-		}
+		Pair<Duration, Duration> doLoop = seekEnd == null || seekStart == null ? null : new Pair<>(Duration.millis(seekEnd), Duration.millis(seekStart));
+		Sound.playMp3(partialSoundPath, rate, balance, volume, stopCurrent, doLoop).thenAccept(mp3 -> {
+			if (!partialSoundPath.equals("-"))
+				MapSet.runStageTag(stageTagEventAfterEndOfMedia);
+		});
 	}
 
 }

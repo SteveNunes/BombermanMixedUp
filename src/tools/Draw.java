@@ -32,6 +32,7 @@ import light_spot_effects.ColoredLightSpot;
 import light_spot_effects.LightSpot;
 import maps.MapSet;
 import maps.Tile;
+import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import screen_pos_effects.TintScreen;
 import screen_pos_effects.WavingImage;
@@ -47,23 +48,35 @@ public abstract class Draw {
 	private static Canvas canvasTemp;
 	private static GraphicsContext gcTemp;
 	private static int pixelSize = 1;
-	private static Map<TileCoord, Color> fixedMarks = new HashMap<>();
-	private static Map<TileCoord, Color> marks = new HashMap<>();
+	private static Map<Position, Color> fixedMarks = new HashMap<>();
+	private static Map<Position, Color> marks = new HashMap<>();
 
 	public static void clearFixedMarks() {
 		fixedMarks.clear();
 	}
 	
 	public static void addFixedMarkTile(TileCoord coord, Color color) {
-		fixedMarks.put(coord, color);
+		fixedMarks.put(coord.getPosition(), color);
 	}
 	
 	public static void removeFixedMarkTile(TileCoord coord, Color color) {
-		fixedMarks.remove(coord, color);
+		fixedMarks.remove(coord.getPosition(), color);
 	}
 	
 	public static void markTile(TileCoord coord, Color color) {
-		marks.put(coord, color);
+		marks.put(coord.getPosition(), color);
+	}
+
+	public static void addFixedMarkTile(Position position, Color color) {
+		fixedMarks.put(position.getNewInstance(), color);
+	}
+	
+	public static void removeFixedMarkTile(Position position, Color color) {
+		fixedMarks.remove(position, color);
+	}
+	
+	public static void markTile(Position position, Color color) {
+		marks.put(position.getNewInstance(), color);
 	}
 
 	public static Canvas getTempCanvas() {
@@ -147,13 +160,13 @@ public abstract class Draw {
 		gc.drawImage(i, 0, 0, c.getWidth(), c.getHeight(), 0, 0, c.getWidth() * zoom, c.getHeight() * zoom);
 		gc.save();
 		gc.setLineWidth(3);
-		for (TileCoord coord : fixedMarks.keySet()) {
-			gc.setStroke(fixedMarks.get(coord));
-			gc.strokeRect(coord.getPosition().getX() * zoom + offsetX, coord.getPosition().getY() * zoom + offsetY, Main.TILE_SIZE * zoom - 3, Main.TILE_SIZE * zoom - 3);
+		for (Position pos : fixedMarks.keySet()) {
+			gc.setStroke(fixedMarks.get(pos));
+			gc.strokeRect(pos.getX() * zoom + offsetX, pos.getY() * zoom + offsetY, Main.TILE_SIZE * zoom - 3, Main.TILE_SIZE * zoom - 3);
 		}
-		for (TileCoord coord : marks.keySet()) {
-			gc.setStroke(marks.get(coord));
-			gc.strokeRect(coord.getPosition().getX() * zoom + offsetX, coord.getPosition().getY() * zoom + offsetY, Main.TILE_SIZE * zoom - 3, Main.TILE_SIZE * zoom - 3);
+		for (Position pos : marks.keySet()) {
+			gc.setStroke(marks.get(pos));
+			gc.strokeRect(pos.getX() * zoom + offsetX, pos.getY() * zoom + offsetY, Main.TILE_SIZE * zoom - 3, Main.TILE_SIZE * zoom - 3);
 		}
 		marks.clear();
 		gc.restore();

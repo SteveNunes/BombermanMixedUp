@@ -455,7 +455,7 @@ public class Bomb extends Entity {
 		}
 		if (!isBlockedMovement())
 			putOnMap(getTileCoordFromCenter(), this);
-		if (isActive && !isBlockedMovement()) { 
+		if (isActive && getElevation() == Elevation.ON_GROUND) {
 			if (getBombType() == BombType.LAND_MINE)
 				MapSet.addTileProp(getTileCoordFromCenter(), TileProp.CPU_DANGER);
 			else

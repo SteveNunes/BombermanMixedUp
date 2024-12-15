@@ -103,7 +103,8 @@ public class Brick extends Entity {
 			putOnMap(coord, brick);
 			brickList.add(brick);
 			brick.setBrickShadow();
-			MapSet.checkTileTrigger(brick, coord, TileProp.TRIGGER_BY_BRICK);
+			if (brick.getElevation() == Elevation.ON_GROUND)
+				MapSet.checkTileTrigger(brick, coord, TileProp.TRIGGER_BY_BRICK);
 		}
 	}
 
@@ -199,8 +200,10 @@ public class Brick extends Entity {
 		else if (!isBlockedMovement() && tileWasChanged()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
-			MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BRICK);
-			MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BRICK, true);
+			if (getElevation() == Elevation.ON_GROUND) {
+				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BRICK);
+				MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BRICK, true);
+			}
 			removeFromMap(prevCoord);
 			if (!bricks.containsKey(coord))
 				bricks.put(coord, this);
@@ -347,7 +350,7 @@ public class Brick extends Entity {
 				if (entity instanceof BomberMan || entity instanceof Monster) {
 					if (!entity.isBlockedMovement()) {
 						entity.setHitPoints(1);
-						entity.takeDamage();
+						entity.takeDamage(isWall);
 					}
 				}
 		if (Item.haveItemAt(getTileCoordFromCenter()))

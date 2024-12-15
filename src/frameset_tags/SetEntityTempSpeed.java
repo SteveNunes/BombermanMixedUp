@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Entity;
+import entities.Ride;
 import frameset.Sprite;
 
 public class SetEntityTempSpeed extends FrameTag {
@@ -18,7 +20,7 @@ public class SetEntityTempSpeed extends FrameTag {
 	public SetEntityTempSpeed(String tags) {
 		String[] params = validateStringTags(this, tags, 1);
 		try {
-			value = Integer.parseInt(params[0]);
+			value = Double.parseDouble(params[0]);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(params[0] + " - Invalid parameter");
@@ -32,7 +34,8 @@ public class SetEntityTempSpeed extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		sprite.getSourceEntity().setTempSpeed(value);
+		Entity entity = sprite.getSourceEntity();
+		(entity instanceof Ride ? ((Ride)entity).getOwner() : entity).setTempSpeed(value);
 	}
 
 }

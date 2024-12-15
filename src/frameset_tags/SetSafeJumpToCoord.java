@@ -4,14 +4,14 @@ import entities.Entity;
 import entities.Ride;
 import frameset.Sprite;
 
-public class SetJumpToCoord extends FrameTag {
+public class SetSafeJumpToCoord extends FrameTag {
 
 	public TileCoord2 target;
 	public double jumpStrenght;
 	public double strenghtMultipiler;
 	public int durationFrames; 
 	
-	public SetJumpToCoord(double jumpStrenght, double strenghtMultipiler, int durationFrames, TileCoord2 target) {
+	public SetSafeJumpToCoord(double jumpStrenght, double strenghtMultipiler, int durationFrames, TileCoord2 target) {
 		this.jumpStrenght = jumpStrenght;
 		this.strenghtMultipiler = strenghtMultipiler;
 		this.durationFrames = durationFrames;
@@ -23,7 +23,7 @@ public class SetJumpToCoord extends FrameTag {
 		return "{" + getClassName(this) + ";" + jumpStrenght + ";" + strenghtMultipiler + ";" + durationFrames + ";" + target.getOriginalTag() + "}";
 	}
 
-	public SetJumpToCoord(String tags) {
+	public SetSafeJumpToCoord(String tags) {
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 4)
 			throw new RuntimeException(tags + " - Too much parameters");
@@ -43,8 +43,8 @@ public class SetJumpToCoord extends FrameTag {
 	}
 
 	@Override
-	public SetJumpToCoord getNewInstanceOfThis() {
-		return new SetJumpToCoord(jumpStrenght, strenghtMultipiler, durationFrames, target);
+	public SetSafeJumpToCoord getNewInstanceOfThis() {
+		return new SetSafeJumpToCoord(jumpStrenght, strenghtMultipiler, durationFrames, target);
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class SetJumpToCoord extends FrameTag {
 				Entity entity = sprite.getSourceEntity();
 				if (entity instanceof Ride)
 					entity = (Entity)((Ride)entity).getOwner();
-				entity.jumpTo(entity, coord, jumpStrenght, strenghtMultipiler, durationFrames);
+				entity.safeJumpTo(entity, coord, jumpStrenght, strenghtMultipiler, durationFrames);
 			});
 	}
 

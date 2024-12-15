@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import application.Main;
 import frameset.Sprite;
 import tools.Sound;
 
@@ -59,8 +58,7 @@ public class PlayWav extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		if (!Main.frameSetEditorIsPaused())
-			Sound.playWav(sprite.getSourceEntity(), partialSoundPath, rate, pan, balance, volume, stopCurrent);
+		Sound.playWav(sprite.getSourceEntity(), partialSoundPath, rate, pan, balance, volume, stopCurrent);
 	}
 
 }

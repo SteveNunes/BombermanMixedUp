@@ -68,6 +68,30 @@ public abstract class Tools {
 				consumer.accept(new TileCoord(x, y));
 	}
 	
+	/* Retorna de 0.0 a 1.0 baseado na distancia entre o playerTile e o targetTile (0.0 se a distancia for igual ou maior que maxDistance tiles de distancia, 1.0 se for igual ou menor que 1 tile.
+	 * Distancia baseada em raio retangular ou circular em tiles.
+	 */
+	public double calculateProximity(TileCoord playerTile, TileCoord targetTile, int maxDistance, FindInRectType findInRectType) {
+		int distance;
+		if (findInRectType == FindInRectType.CIRCLE_AREA) 
+			distance = calculateEuclideanDistance(playerTile, targetTile);
+		else
+			distance = calculateManhattanDistance(playerTile, targetTile);
+		if (distance >= maxDistance)
+			return 0.0;
+		return Math.min(1.0, 1.0 - (distance - 1) / (double) (maxDistance - 1));
+	}
+
+	private int calculateManhattanDistance(TileCoord a, TileCoord b) {
+		return Math.abs(a.getX() - b.getX()) + Math.abs(a.getY() - b.getY());
+	}
+
+	private int calculateEuclideanDistance(TileCoord a, TileCoord b) {
+		double dx = a.getX() - b.getX();
+		double dy = a.getY() - b.getY();
+		return (int) Math.round(Math.sqrt(dx * dx + dy * dy));
+	}
+	
 	public static <T> void moveItemTo(List<T> list, T item, int index) {
 		if (list.contains(item)) {
 			int max = list.size();

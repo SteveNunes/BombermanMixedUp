@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.Entity;
+import entities.Ride;
 import frameset.Sprite;
 
 public class SetBlockedMovement extends FrameTag {
@@ -39,7 +41,8 @@ public class SetBlockedMovement extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		sprite.getSourceEntity().setBlockedMovement(value);
+		Entity entity = sprite.getSourceEntity();
+		(entity instanceof Ride ? ((Ride)entity).getOwner() : entity).setBlockedMovement(value);
 	}
 
 }

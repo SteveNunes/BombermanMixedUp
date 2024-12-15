@@ -108,8 +108,8 @@ public enum TileProp {
 	@SuppressWarnings("serial")
 	private static Map<Elevation, List<TileProp>> cantCross = new HashMap<>() {{
 		put(Elevation.ON_GROUND, Arrays.asList(BOMBER_SHIP_CORNER, BOMBER_SHIP_DOWN, BOMBER_SHIP_LEFT, BOMBER_SHIP_RIGHT, BOMBER_SHIP_UP, MIN_SCREEN_TILE_LIMITER, MAX_SCREEN_TILE_LIMITER, JUMP_OVER, WALL, HIGH_WALL, HOLE, DEEP_HOLE, WATER, DEEP_WATER, MAP_EDGE));
-		put(Elevation.FLYING, Arrays.asList(JUMP_OVER, WALL, HIGH_WALL));
-		put(Elevation.HIGH_FLYING, Arrays.asList(HIGH_WALL));
+		put(Elevation.FLYING, Arrays.asList(BOMBER_SHIP_CORNER, BOMBER_SHIP_DOWN, BOMBER_SHIP_LEFT, BOMBER_SHIP_RIGHT, BOMBER_SHIP_UP, MIN_SCREEN_TILE_LIMITER, MAX_SCREEN_TILE_LIMITER, JUMP_OVER, WALL, HIGH_WALL)); // Flying eh para voos razantes, tipo um inseto voando
+		put(Elevation.HIGH_FLYING, Arrays.asList(HIGH_WALL)); // High-Flying eh para qualquer coisa que esteja realmente no alto, ou pulando
 	}};
 
 	private int value;
@@ -219,6 +219,10 @@ public enum TileProp {
 
 	public static Collection<TileProp> getList() {
 		return propFromValueList.values();
+	}
+
+	public static List<TileProp> getWallLikePropsList() {
+		return getCantCrossList(Elevation.ON_GROUND);
 	}
 
 }
