@@ -59,10 +59,8 @@ public class RepeatLastFrame extends FrameTag {
 			if (haveLeftCycles()) {
 				incCycles();
 				int index = frameSet.getCurrentFrameIndex() - 1;
-				if (index < 0)
+				if (index < 0 || index >= frameSet.getTotalFrames())
 					index = 0;
-				else if (index >= frameSet.getTotalFrames())
-					index = frameSet.getTotalFrames() == 0 ? 0 : frameSet.getTotalFrames() - 1;
 				sprite.getSourceFrameSet().setCurrentFrameIndex(index);
 			}
 			else {

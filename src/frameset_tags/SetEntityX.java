@@ -1,5 +1,6 @@
 package frameset_tags;
 
+import entities.Ride;
 import frameset.Sprite;
 
 public class SetEntityX extends FrameTag {
@@ -32,7 +33,10 @@ public class SetEntityX extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		sprite.getSourceEntity().incX(value);
+		if (sprite.getSourceEntity() instanceof Ride)
+			((Ride)sprite.getSourceEntity()).getOwner().setX(value);
+		else
+			sprite.getSourceEntity().setX(value);
 	}
 
 }

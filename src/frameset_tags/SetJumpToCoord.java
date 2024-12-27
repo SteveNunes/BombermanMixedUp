@@ -1,7 +1,5 @@
 package frameset_tags;
 
-import entities.Entity;
-import entities.Ride;
 import frameset.Sprite;
 
 public class SetJumpToCoord extends FrameTag {
@@ -50,13 +48,10 @@ public class SetJumpToCoord extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		if (target == null)
-			sprite.getSourceEntity().jumpTo(sprite.getSourceEntity(), sprite.getTileCoordFromCenter(), jumpStrenght, strenghtMultipiler, durationFrames);
+			sprite.getSourceEntity().jumpTo(sprite.getSourceEntity().getTileCoordFromCenter(), jumpStrenght, strenghtMultipiler, durationFrames);
 		else
-			processTile(sprite.getTileCoord(), target, coord -> {
-				Entity entity = sprite.getSourceEntity();
-				if (entity instanceof Ride)
-					entity = (Entity)((Ride)entity).getOwner();
-				entity.jumpTo(entity, coord, jumpStrenght, strenghtMultipiler, durationFrames);
+			processTile(sprite.getSourceEntity().getTileCoord(), target, coord -> {
+				sprite.getSourceEntity().jumpTo(coord, jumpStrenght, strenghtMultipiler, durationFrames);
 			});
 	}
 

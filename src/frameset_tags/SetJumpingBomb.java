@@ -71,7 +71,7 @@ public class SetJumpingBomb extends FrameTag {
 			TileCoord c1 = initialCoords == null ? sprite.getTileCoordFromCenter().getNewInstance() : coords1.get(n).getNewInstance();
 			TileCoord c2 = coords2.get(n).getNewInstance();
 			Bomb bomb = new Bomb(sprite.getSourceEntity(), c1, bombType, fireDistance);
-			bomb.jumpTo(bomb, c2, jumpStrenght, strenghtMultipiler, durationFrames);
+			bomb.jumpTo(c2, jumpStrenght, strenghtMultipiler, durationFrames);
 			Bomb.addBomb(bomb);
 		}
 	}

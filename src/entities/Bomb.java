@@ -562,7 +562,7 @@ public class Bomb extends Entity {
 	public void punch(Direction direction, String punchSound) {
 		setDirection(direction);
 		TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction, 4);
-		jumpTo(this, coord.getNewInstance(), 4, 1.2, 20, punchSound);
+		jumpTo(coord.getNewInstance(), 4, 1.2, 20, punchSound);
 	}
 	
 	@Override

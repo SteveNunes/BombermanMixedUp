@@ -411,36 +411,36 @@ public class Entity extends Position {
 		gotoMove = null;
 	}
 
-	public void safeJumpTo(Entity entity, TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
-		jumpTo(entity, coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, true, null);
+	public void safeJumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
+		jumpTo(coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, true, null);
 	}
 
-	public void safeJumpTo(Entity entity, TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
-		jumpTo(entity, coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, true, jumpSound);
+	public void safeJumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
+		jumpTo(coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, true, jumpSound);
 	}
 	
-	public void safeJumpTo(Entity entity, Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
-		jumpTo(entity, position, jumpStrenght, strenghtMultipiler, durationFrames, true, null);
+	public void safeJumpTo(Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
+		jumpTo(position, jumpStrenght, strenghtMultipiler, durationFrames, true, null);
 	}
 
-	public void safeJumpTo(Entity entity, Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
-		jumpTo(entity, position, jumpStrenght, strenghtMultipiler, durationFrames, true, jumpSound);
+	public void safeJumpTo(Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
+		jumpTo(position, jumpStrenght, strenghtMultipiler, durationFrames, true, jumpSound);
 	}
 
-	public void jumpTo(Entity entity, TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
-		jumpTo(entity, coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, false, null);
+	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
+		jumpTo(coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, false, null);
 	}
 
-	public void jumpTo(Entity entity, TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
-		jumpTo(entity, coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, false, jumpSound);
+	public void jumpTo(TileCoord coord, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
+		jumpTo(coord.getPosition(), jumpStrenght, strenghtMultipiler, durationFrames, false, jumpSound);
 	}
 	
-	public void jumpTo(Entity entity, Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
-		jumpTo(entity, position, jumpStrenght, strenghtMultipiler, durationFrames, false, null);
+	public void jumpTo(Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames) {
+		jumpTo(position, jumpStrenght, strenghtMultipiler, durationFrames, false, null);
 	}
 
-	public void jumpTo(Entity entity, Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
-		jumpTo(entity, position, jumpStrenght, strenghtMultipiler, durationFrames, false, jumpSound);
+	public void jumpTo(Position position, double jumpStrenght, double strenghtMultipiler, int durationFrames, String jumpSound) {
+		jumpTo(position, jumpStrenght, strenghtMultipiler, durationFrames, false, jumpSound);
 	}
 	
 	private void safeJumpCheck(Position targetPosition) {
@@ -464,10 +464,11 @@ public class Entity extends Position {
 		}
 	}
 
-	private void jumpTo(Entity entity, Position targetPosition, double jumpStrenght, double strenghtMultipiler, int durationFrames, boolean safeJump, String jumpSound) {
+	void jumpTo(Position targetPosition, double jumpStrenght, double strenghtMultipiler, int durationFrames, boolean safeJump, String jumpSound) {
 		if (jumpSound != null)
-			Sound.playWav(entity, jumpSound);
-		safeJumpCheck(targetPosition);
+			Sound.playWav(this, jumpSound);
+		if (safeJump)
+			safeJumpCheck(targetPosition);
 		setElevation(Elevation.FLYING);
 		onSetJumpMoveTrigger();
 		JumpMove jumpMove = setJumpMove(jumpStrenght, strenghtMultipiler, durationFrames);
@@ -748,6 +749,7 @@ public class Entity extends Position {
 		unsetAllMovings();
 		this.holder = holder;
 		holderDesloc.setPosition(0, 0);
+		setElevation(Elevation.FLYING);
 		if (haveFrameSet("BeingHolded"))
 			setFrameSet("BeingHolded");
 	}
@@ -799,7 +801,7 @@ public class Entity extends Position {
 			holder = null;
 			holderDesloc.setPosition(0, 0);
 			TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(getDirection(), distance);
-			jumpTo(this, coord, distance + 1, 1.2, 20);
+			jumpTo(coord, distance + 1, 1.2, 20);
 		}
 	}
 	
@@ -1007,7 +1009,7 @@ public class Entity extends Position {
 		if (isDisabled)
 			return;
 		if (!(this instanceof Effect))
-			removeEntityFromList(getTileCoordFromCenter(), this);
+			removeEntityFromList(this);
 		if (getCurse() != null) {
 			if (--curseDuration == 0)
 				removeCurse();
@@ -1077,7 +1079,7 @@ public class Entity extends Position {
 		if (!getCurrentFrameSet().isRunning() && consumerWhenFrameSetEnds != null)
 			consumerWhenFrameSetEnds.accept(this);
 		if (!(this instanceof Effect) && !isDead())
-			addEntityToList(getTileCoordFromCenter(), this);
+			addEntityToList(this);
 		setHeight((jumpMove == null ? 0 : -((int)jumpMove.getIncrements().getY()) + (int)getCurrentFrameSet().getY()));
 		checkOutScreenCoords();
 	}
@@ -1343,14 +1345,14 @@ public class Entity extends Position {
 		return direction;
 	}
 
+	public void forceDirection(Direction direction) {
+		setDirection(direction, true);
+	}
+
 	public void setDirection(Direction direction) {
 		if ((direction.isVertical() && getX() >= MapSet.getMapMinLimit().getX() && getX() <= MapSet.getMapMaxLimit().getX()) ||
 				(direction.isHorizontal() && getY() >= MapSet.getMapMinLimit().getY() && getY() <= MapSet.getMapMaxLimit().getY()))
 					setDirection(direction, false);
-	}
-
-	public void forceDirection(Direction direction) {
-		setDirection(direction, true);
 	}
 
 	private void setDirection(Direction direction, boolean force) {
@@ -1591,32 +1593,30 @@ public class Entity extends Position {
 		return false;
 	}
 
-	public static void addEntityToList(TileCoord coord, Entity entity) {
+	public static void addEntityToList(Entity entity) {
 		if (entity instanceof Bomb || entity instanceof Item || entity instanceof Brick)
 			return;
+		TileCoord coord = entity.getTileCoordFromCenter().getNewInstance();
 		if (!entityMap.containsKey(coord))
 			entityMap.put(coord, new LinkedHashSet<>());
 		entityMap.get(coord).add(entity);
 		entityMap2.put(entity, coord);
 	}
 
-	public static void removeEntityFromList(TileCoord coord, Entity entity) {
+	public static void removeEntityFromList(Entity entity) {
+		TileCoord coord = (entityMap2.containsKey(entity) ? entityMap2.get(entity) : entity.getTileCoordFromCenter()).getNewInstance();
 		if (entityMap.containsKey(coord)) {
 			entityMap.get(coord).remove(entity);
 			entityMap2.remove(entity);
 		}
 	}
 
-	public static boolean entityIsAtCoord(Entity entity, TileCoord coord) {
-		return entityMap.containsKey(coord) && entityMap.get(coord).contains(entity);
-	}
-
 	public static boolean haveAnyEntityAtCoord(TileCoord coord) {
 		return haveAnyEntityAtCoord(coord, null);
 	}
-
+	
 	public static boolean haveAnyEntityAtCoord(TileCoord coord, Entity ignoreEntity) {
-		return entityMap.containsKey(coord) && (entityMap.get(coord).size() > 1 || (!entityMap.get(coord).isEmpty() && !entityMap.get(coord).contains(ignoreEntity)));
+		return entityMap.containsKey(coord) && !entityMap.get(coord).isEmpty() && (entityMap.get(coord).size() > 1 || !entityMap.get(coord).contains(ignoreEntity));
 	}
 
 	public void pushEntity(Entity entity, TileCoord targetTile, Double startStrenght, Double decStrenght, Direction direction, Consumer<Entity> onStopEvent, String triggerSound, String soundWhenHits) {

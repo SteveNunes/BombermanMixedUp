@@ -27,9 +27,9 @@ import util.DurationTimerFX;
 
 public class Brick extends Entity {
 
-	private static Map<TileCoord, Brick> bricks = new HashMap<>();
+	private static Map<TileCoord, Brick> bricksMap = new HashMap<>();
 	private static List<Brick> brickList = new ArrayList<>();
-	private Item item;;
+	private Item item;
 	private int regenTimeInFrames;
 	private boolean isWall;
 
@@ -100,7 +100,6 @@ public class Brick extends Entity {
 		TileCoord coord = brick.getTileCoordFromCenter().getNewInstance();
 		if (!haveBrickAt(coord, false)) {
 			brick.setPosition(coord.getPosition());
-			putOnMap(coord, brick);
 			brickList.add(brick);
 			brick.setBrickShadow();
 			if (brick.getElevation() == Elevation.ON_GROUND)
@@ -115,6 +114,10 @@ public class Brick extends Entity {
 	}
 
 	private void unsetBrickShadow() {
+		unsetBrickShadow(getTileCoordFromCenter());
+	}
+	
+	private void unsetBrickShadow(TileCoord previewTileCoord) {
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		coord.setY(coord.getY() + 1);
 		Tile.removeTileShadow(coord);
@@ -125,9 +128,9 @@ public class Brick extends Entity {
 	}
 	
 	public static void removeBrick(TileCoord coord, boolean updateLayer) {
-		if (bricks.containsKey(coord))
-			removeBrick(bricks.get(coord));
-		bricks.remove(coord);
+		if (bricksMap.containsKey(coord))
+			removeBrick(bricksMap.get(coord));
+		bricksMap.remove(coord);
 	}
 
 	public static void removeBrick(Brick brick) {
@@ -137,7 +140,7 @@ public class Brick extends Entity {
 	public static void removeBrick(Brick brick, boolean updateLayer) {
 		brickList.remove(brick);
 		brick.unsetBrickShadow();
-		bricks.remove(brick.getTileCoordFromCenter());
+		bricksMap.remove(brick.getTileCoordFromCenter());
 	}
 
 	public static void clearBricks() {
@@ -147,7 +150,7 @@ public class Brick extends Entity {
 	}
 
 	public static int totalBricks() {
-		return bricks.size();
+		return brickList.size();
 	}
 
 	public static List<Brick> getBricks() {
@@ -155,16 +158,24 @@ public class Brick extends Entity {
 	}
 
 	public static Map<TileCoord, Brick> getBrickMap() {
-		return bricks;
+		return bricksMap;
 	}
 
 	public static void drawBricks() {
-		List<Brick> tempBricks = new ArrayList<>(brickList);
-		for (Brick brick : tempBricks) {
+		bricksMap.clear();
+		List<Brick> list = new ArrayList<>(brickList);
+		for (Brick brick : list)
+			bricksMap.put(brick.getTileCoordFromCenter(), brick);
+		for (Brick brick : list) {
+			if (brick.getPreviewTileCoord() != null && brick.getElevation() == Elevation.ON_GROUND && !brick.isMoving() && !brick.getPreviewTileCoord().equals(brick.getTileCoordFromCenter())) {
+				brick.unsetBrickShadow(brick.getPreviewTileCoord());
+				brick.setBrickShadow();
+			}
 			String cFSet = brick.getCurrentFrameSetName();
 			if (!cFSet.equals("BrickBreakFrameSet")) {
 				if (MapSet.tileContainsProp(brick.getTileCoordFromCenter(), TileProp.DAMAGE_BRICK) ||
-						MapSet.tileContainsProp(brick.getTileCoordFromCenter(), TileProp.EXPLOSION))
+						MapSet.tileContainsProp(brick.getTileCoordFromCenter(), TileProp.EXPLOSION) ||
+						MapSet.tileContainsProp(brick.getTileCoordFromCenter(), TileProp.INSTAKILL))
 							brick.destroy();
 				else if (cFSet.equals("BrickRegenFrameSet") && !brick.getCurrentFrameSet().isRunning()) {
 					brick.setFrameSet("BrickStandFrameSet");
@@ -189,30 +200,27 @@ public class Brick extends Entity {
 					brick.setItem(null);
 				}
 			}
+			if (brick.getElevation() == Elevation.ON_GROUND && !brick.isMoving() && brick.getPreviewTileCoord() != brick.getTileCoordFromCenter())
+				bricksMap.put(brick.getTileCoordFromCenter().getNewInstance(), brick);
 		}
 	}
 
 	@Override
 	public void run(GraphicsContext gc, boolean isPaused) {
 		super.run(gc, isPaused);
-		if (MapSet.tileContainsProp(getTileCoordFromCenter(), TileProp.INSTAKILL))
-			destroy();
-		else if (!isBlockedMovement() && tileWasChanged()) {
+		if (!isBlockedMovement() && tileWasChanged()) {
 			TileCoord prevCoord = getPreviewTileCoord().getNewInstance();
 			TileCoord coord = getTileCoordFromCenter().getNewInstance();
 			if (getElevation() == Elevation.ON_GROUND) {
 				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_BRICK);
 				MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_BRICK, true);
 			}
-			removeFromMap(prevCoord);
-			if (!bricks.containsKey(coord))
-				bricks.put(coord, this);
 		}
 	}
 
 	public void destroy() {
 		if (!isWall && !getCurrentFrameSetName().equals("BrickBreakFrameSet")) {
-			removeFromMap(getTileCoordFromCenter());
+			bricksMap.remove(getTileCoordFromCenter());
 			setFrameSet("BrickBreakFrameSet");
 		}
 	}
@@ -222,7 +230,7 @@ public class Brick extends Entity {
 	}
 
 	public static boolean haveBrickAt(TileCoord coord, boolean ignoreDestroyedRegenBricks) {
-		return bricks.containsKey(coord) && (!ignoreDestroyedRegenBricks || !bricks.get(coord).getCurrentFrameSetName().equals("BrickBreakFrameSet") || bricks.get(coord).getCurrentFrameSet().isRunning());
+		return bricksMap.containsKey(coord) && (!ignoreDestroyedRegenBricks || !bricksMap.get(coord).getCurrentFrameSetName().equals("BrickBreakFrameSet") || bricksMap.get(coord).getCurrentFrameSet().isRunning());
 	}
 
 	public static boolean haveBrickAt(TileCoord coord) {
@@ -230,7 +238,7 @@ public class Brick extends Entity {
 	}
 
 	public static Brick getBrickAt(TileCoord tileCoord) {
-		return haveBrickAt(tileCoord, true) ? bricks.get(tileCoord) : null;
+		return haveBrickAt(tileCoord, true) ? bricksMap.get(tileCoord) : null;
 	}
 
 	public void setRegenTime(int bricksRegenTimeInSecs) {
@@ -244,14 +252,14 @@ public class Brick extends Entity {
 	public void kick(Direction direction, double speed, String kickSound, String slamSound) {
 		TileCoord c = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction);
 		if (getPushEntity() == null && (Brick.haveBrickAt(c) || MapSet.tileIsFree(c))) {
-			Sound.playWav(kickSound);
+			if (kickSound != null)
+				Sound.playWav(kickSound);
 			PushEntity pushEntity = new PushEntity(this, speed, direction);
 			pushEntity.setOnStopEvent(e -> {
-				Sound.playWav(slamSound);
+				if (slamSound != null)
+					Sound.playWav(slamSound);
 				setShake(2d, -0.05, 0d);
 				unsetGhosting();
-				putOnMap(getTileCoordFromCenter(), this);
-				setBrickShadow();
 				TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction);
 				if (haveBrickAt(coord))
 					DurationTimerFX.createTimer("chainKickBrick" + hashCode(), Duration.millis(50), () -> Brick.getBrickAt(coord).kick(direction, speed, kickSound, slamSound));
@@ -264,41 +272,31 @@ public class Brick extends Entity {
 	public void punch(Direction direction, String punchSound) {
 		setDirection(direction);
 		TileCoord coord = getTileCoordFromCenter().getNewInstance().incCoordsByDirection(direction, 4);
-		jumpTo(this, coord.getNewInstance(), 4, 1.2, 20, punchSound);
+		jumpTo(coord.getNewInstance(), 4, 1.2, 20, punchSound);
 	}
 
 	@Override
 	public void onBeingHoldEvent(Entity holder) {
-		removeFromMap(getTileCoordFromCenter());
 		unsetBrickShadow();
 	}
 
-	private void removeFromMap(TileCoord coord) {
-		if (bricks.containsKey(coord) && bricks.get(coord) == this)
-			bricks.remove(coord);
-	}
-	
 	@Override
 	public void onSetPushEntityTrigger() {
-		removeFromMap(getTileCoordFromCenter());
 		unsetBrickShadow();
 	}
 
 	@Override
 	public void onSetGotoMoveTrigger() {
-		removeFromMap(getTileCoordFromCenter());
 		unsetBrickShadow();
 	}
 	
 	@Override
 	public void onSetJumpMoveTrigger() {
-		removeFromMap(getTileCoordFromCenter());
 		unsetBrickShadow();
 	}
 
 	@Override
 	public void onPushEntityStop() {
-		putOnMap(getTileCoordFromCenter(), this);
 		setBrickShadow();
 	}
 
@@ -317,8 +315,8 @@ public class Brick extends Entity {
 			Bomb.getBombAt(getTileCoordFromCenter()).detonate();
 		else if (Item.haveItemAt(getTileCoordFromCenter()))
 			Item.getItemAt(getTileCoordFromCenter()).destroy();
-		if (bricks.containsKey(getTileCoordFromCenter()) && getBrickAt(getTileCoordFromCenter()) != this)
-			bricks.get(getTileCoordFromCenter()).destroy();
+		if (bricksMap.containsKey(getTileCoordFromCenter()) && getBrickAt(getTileCoordFromCenter()) != this)
+			bricksMap.get(getTileCoordFromCenter()).destroy();
 		Sound.playWav("BrickDrop");
 		destroy();
 	}
@@ -357,11 +355,6 @@ public class Brick extends Entity {
 			Item.getItemAt(getTileCoordFromCenter()).destroy();
 		if (haveBrickAt(getTileCoordFromCenter()))
 			getBrickAt(getTileCoordFromCenter()).destroy();
-	}
-
-	private static void putOnMap(TileCoord coord, Brick brick) {
-		if (brick.getElevation() == Elevation.ON_GROUND)
-			bricks.put(coord, brick);
 	}
 
 	public static Brick dropBrickFromSky(TileCoord coord) {
@@ -419,7 +412,7 @@ public class Brick extends Entity {
 				brick.removeShadow();
 				brick.unsetGhosting();
 				Sound.playWav(brick, "BrickDrop");
-				bricks.put(coord2, brick);
+				bricksMap.put(coord2, brick);
 			}
 			else
 				brick.onJumpFallAtOccupedTileEvent(brick.getJumpMove());

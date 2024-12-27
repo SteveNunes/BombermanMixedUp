@@ -369,6 +369,8 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new ShakeFrameSet(s));
 			else if (tag.equals("PunchBombInFront"))
 				tags.addTag(newTag = new PunchBombInFront(s));
+			else if (tag.equals("KickBrickInFront"))
+				tags.addTag(newTag = new KickBrickInFront(s));
 			else if (tag.equals("PunchBrickInFront"))
 				tags.addTag(newTag = new PunchBrickInFront(s));
 			else if (tag.equals("SetMultiSprIndexByDirection"))
@@ -459,6 +461,14 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new SetRiderDesloc(s));
 			else if (tag.equals("RemoveMe"))
 				tags.addTag(newTag = new RemoveMe(s));
+			else if (tag.equals("SetLinedBombsInFront"))
+				tags.addTag(newTag = new SetLinedBombsInFront(s));
+			else if (tag.equals("SetGhosting"))
+				tags.addTag(newTag = new SetGhosting(s));
+			else if (tag.equals("UnsetGhosting"))
+				tags.addTag(newTag = new UnsetGhosting(s));
+			else if (tag.equals("SetDamageBox"))
+				tags.addTag(newTag = new SetDamageBox(s));
 			if (delay != null)
 				newTag.setTriggerDelay(delay);
 			if (delayInFrames != null)

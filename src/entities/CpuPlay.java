@@ -39,11 +39,39 @@ import util.MyMath;
 public class CpuPlay {
 	
 	/* PROXIMAS ETAPAS:
-	 * - Procurar jogadores proximos e soltar bomba perto deles (PRIORIZAR APENAS ABAIXO DE SAIR DO TILE DANGER)
-	 * - Procurar por item proximos e tentar pega-los (priorizar mais do que chegar no tijolo mais proximo)
-	 * - Se tiver andando de cara pra parede e não tiver como sair do tile atual, largar os inputs pra ele parar de ficar andando contra a parede
-	 * - Verificação de vitoria
-	 * - Adicionar mais itens aos tijolos 
+	 * Inteligencia em cima do Bomber Ship
+	 * - Tentar alinhar com o jogador mais proximo (usar o metodo de localizar a
+	 *   coord mais proxima, através de uma lista contendo as coordenadas de todos
+	 *   os players vivos)
+	 * - Estando alinhado com um jogador, arremessar a bomba para que ela caia a frente
+	 *   do jogador se possivel, se não for possivel, tentar jogar 1 tile antes, e se nem
+	 *   assim for possivel, tentar jogar na cabeça dele
+	 * - Tentar arremessar bomba em tiles onde tem uma bomba proxima de explodir, para
+	 *   aproveitar a explosão dessa bomba e explodir a bomba dele logo em seguida
+	 *   
+	 * Se estiver em um danger tile e não tiver para onde ir, e tiver o soca bomba, tentar
+	 * localizar a bomba mais proxima, fazer um trajeto inmodificavel que leve ate encostar
+	 * nessa bomba, e tente soca-la.
+	 * 
+	 * Se estiver em um danger tile e não tiver para onde ir, e tiver o chuta bomba, tentar
+	 * localizar a bomba mais proxima, ver se tem espaço nas costas dela para chuta-la,
+	 * e então fazer um trajeto inmodificavel que leve ate encostar nessa bomba,
+	 * e tentar chuta-la.
+	 * 
+	 * Quando tiver com a luva, as vezes tentar fazer o truque da liva, agarrando a bomba perto
+	 * de explodir, marcando uma variavel para saber que ele esta segurando uma bomba, e ficar
+	 * segurando ela e andando aleatoriamente tentando chegar perto de alguem. Se detectar
+	 * que ao arremessar a bomba, ela vai cair perto de alguem, soltar o botão para arremessa-la.
+	 * Testar essas possibilidade até mesmo tentando arremessar contra a parede para que a bomba
+	 * atravesse a tela e caia do outro lado.
+	 * 
+	 * Se tiver bomba com tijolos e player do outro lado, e tiver soco, socar a bomba para
+	 * o outro lado, para cair do lado do outro player.
+	 * 
+	 * Tentar usar os poderes das montarias
+	 * - Se tiver preso, e estiver com um canguro que pula, tentar pular.
+	 * - Quando uma bomba que vai acetar a CPU estiver para explodir, e estiver com um
+	 *   canguru que pula, tentar pular a explosão.
 	 */
 	
 	@SuppressWarnings("serial")

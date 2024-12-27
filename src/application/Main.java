@@ -31,7 +31,6 @@ public class Main extends Application {
 	public final static int TILE_SIZE = 16;
 	public final static GameMode GAME_MODE = GameMode.GAME_TIKTOK;
 
-	public static FrameSetEditor frameSetEditor = null;
 	public static PalleteEditor palleteEditor = null;
 	public static ColorMixEditor explosionEditor = null;
 	public static MapEditor mapEditor = null;
@@ -168,12 +167,13 @@ public class Main extends Application {
 		try {
 			FXMLLoader loader = new FXMLLoader(new File("./src/gui/FrameSetEditorView.fxml").toURI().toURL());
 			Scene scene = new Scene(loader.load());
-			frameSetEditor = loader.getController();
+			FrameSetEditor frameSetEditor = loader.getController();
 			frameSetEditor.init();
 		  Stage stage = new Stage();
 			stage.setResizable(false);
 			stage.setScene(scene);
 			stage.setResizable(true);
+			stage.sizeToScene();
 			stage.show();
 		}
 		catch (Exception e) {

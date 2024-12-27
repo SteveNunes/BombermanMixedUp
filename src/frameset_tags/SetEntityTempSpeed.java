@@ -34,8 +34,7 @@ public class SetEntityTempSpeed extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		Entity entity = sprite.getSourceEntity();
-		(entity instanceof Ride ? ((Ride)entity).getOwner() : entity).setTempSpeed(value);
+		sprite.getSourceEntity().setTempSpeed(value);
 	}
 
 }

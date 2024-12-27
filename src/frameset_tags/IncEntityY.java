@@ -1,5 +1,7 @@
 package frameset_tags;
 
+import entities.BomberMan;
+import entities.Ride;
 import frameset.Sprite;
 
 public class IncEntityY extends FrameTag {
@@ -32,7 +34,10 @@ public class IncEntityY extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		sprite.getSourceEntity().incY(increment);
+		if (sprite.getSourceEntity() instanceof Ride)
+			((Ride)sprite.getSourceEntity()).getOwner().incY(increment);
+		else
+			sprite.getSourceEntity().incY(increment);
 	}
 
 }

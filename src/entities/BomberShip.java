@@ -6,7 +6,6 @@ import enums.Direction;
 import enums.GameInput;
 import enums.SpriteLayerType;
 import enums.TileProp;
-import javafx.scene.image.Image;
 import maps.MapSet;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
@@ -73,7 +72,7 @@ public class BomberShip {
 			Direction dir = getDirectionFromCurrentTileProp();
 			bomb = new Bomb(bomberMan, bomberMan.getTileCoordFromCenter(), BombType.NORMAL, 3);
 			bomb.setDirection(dir);
-			bomb.jumpTo(bomberMan, getReleaseBombTile(), 4, 1.2, 20);
+			bomb.jumpTo(getReleaseBombTile(), 4, 1.2, 20);
 			Bomb.addBomb(bomb);
 			bomberMan.setFrameSet("BomberShip.Fire_" + dir.name());
 		}

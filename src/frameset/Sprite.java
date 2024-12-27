@@ -9,6 +9,7 @@ import entities.BomberMan;
 import entities.Entity;
 import entities.Ride;
 import entityTools.ShakeEntity;
+import enums.DamageType;
 import enums.ImageAlignment;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
@@ -38,6 +39,9 @@ public class Sprite extends Position {
 	private DrawImageEffects spriteEffects;
 	private Position absoluteOutputSpritePos;
 	private Position spriteScroll;
+	private Rectangle damageBox;
+	private DamageType damageType;
+	private int damageVariant;
 	private EliticMove eliticMove;
 	private RectangleMove rectangleMove;
 	private JumpMove jumpMove;
@@ -85,6 +89,9 @@ public class Sprite extends Position {
 		layerType = sprite.layerType;
 		wavingImage = sprite.wavingImage == null ? null : new WavingImage(sprite.wavingImage);
 		spriteScroll = sprite.spriteScroll == null ? null : new Position(sprite.spriteScroll);
+		damageBox = sprite.damageBox == null ? null : new Rectangle(sprite.damageBox);
+		damageType = sprite.damageType == null ? null : sprite.damageType;
+		damageVariant = sprite.damageVariant;
 		frontValue = sprite.frontValue;
 		isVisible = sprite.isVisible;
 		extraFrontValue = sprite.extraFrontValue;
@@ -118,6 +125,9 @@ public class Sprite extends Position {
 		ghostingDistance = 0;
 		ghostingOpacityDec = null;
 		multiFrameIndexByDirection = null;
+		damageBox = null;
+		damageType = null;
+		damageVariant = 0;
 		updateOutputDrawCoords();
 	}
 
@@ -753,6 +763,13 @@ public class Sprite extends Position {
 	@Override
 	public TileCoord getTileCoordFromCenter() {
 		return new TileCoord((int) (absoluteOutputSpritePos.getX() + getOutputWidth() / 2) / Main.TILE_SIZE, (int) (absoluteOutputSpritePos.getY() + getOutputHeight() / 2) / Main.TILE_SIZE);
+	}
+
+	public void setDamageBox(DamageType damageType, Rectangle damageBoxBounds, int variant) {
+		this.damageType = damageType;
+		damageBox = new Rectangle(damageBoxBounds);
+		damageVariant = variant;
+		// FALTA: Finalizar
 	}
 
 }

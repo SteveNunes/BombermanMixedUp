@@ -64,14 +64,14 @@ public class Goto extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		FrameSet frameSet = sprite.getSourceFrameSet();
+		if (this.index == frameSet.getCurrentFrameIndex())
+			return;
 		if (!frameSet.isStopped()) {
 			if (haveLeftCycles()) {
 				currentRepeatCycle++;
 				int index = this.index < 0 ? frameSet.getCurrentFrameIndex() + this.index : this.index;
-				if (index < 0)
+				if (index < 0 || index >= frameSet.getTotalFrames())
 					index = 0;
-				else if (index >= frameSet.getTotalFrames())
-					index = frameSet.getTotalFrames() == 0 ? 0 : frameSet.getTotalFrames() - 1;
 				sprite.getSourceFrameSet().setCurrentFrameIndex(index);
 			}
 			else {

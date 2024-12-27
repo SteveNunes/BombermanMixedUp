@@ -35,7 +35,8 @@ public class Item extends Entity {
 
 	private final static int INV_FRAMES = 20;
 
-	private static Map<TileCoord, List<Item>> items = new HashMap<>();
+	private static Map<TileCoord, List<Item>> itemsMap = new HashMap<>();
+	private static Map<Item, TileCoord> itemsMap2 = new HashMap<>();
 	private static List<Item> itemList = new ArrayList<>();
 	private static RGBColor itemEdigeColor;
 
@@ -153,7 +154,7 @@ public class Item extends Entity {
 
 	public void jumpTo(TileCoord coord) {
 		setFrameSet("JumpingFrameSet");
-		jumpTo(this, coord, 6, 1.2, 20);
+		jumpTo(coord, 6, 1.2, 20);
 		setInvencibleFrames(INV_FRAMES);
 	}
 
@@ -226,7 +227,7 @@ public class Item extends Entity {
 		if (startJumpingAround || !MapSet.tileIsFree(item.getTileCoordFromCenter()))
 			item.jumpToRandomTileAround(2);
 		else {
-			putOnMap(item.getTileCoordFromCenter().getNewInstance(), item);
+			putOnMap(item);
 			if (item.getElevation() == Elevation.ON_GROUND)
 				MapSet.checkTileTrigger(item, item.getTileCoordFromCenter(), TileProp.TRIGGER_BY_ITEM);
 		}
@@ -236,23 +237,25 @@ public class Item extends Entity {
 		if (item != null) {
 			item.unlinkFromLinkedEntity();
 			itemList.remove(item);
-			if (items.containsKey(item.getTileCoordFromCenter())) {
-				items.get(item.getTileCoordFromCenter()).remove(item);
-				if (items.get(item.getTileCoordFromCenter()).isEmpty())
-					items.remove(item.getTileCoordFromCenter());
+			if (itemsMap2.containsKey(item)) {
+				TileCoord coord = itemsMap2.get(item);
+				itemsMap.get(coord).remove(item);
+				if (itemsMap.get(coord).isEmpty())
+					itemsMap.remove(coord);
 			}
+			itemsMap2.remove(item);
 		}
 	}
 
 	public static void removeItem(TileCoord coord) {
 		if (haveItemAt(coord)) {
-			itemList.removeAll(items.get(coord));
-			items.remove(coord);
+			itemList.removeAll(itemsMap.get(coord));
+			itemsMap.remove(coord);
 		}
 	}
 
 	public static void clearItems() {
-		items.clear();
+		itemsMap.clear();
 		itemList.clear();
 	}
 
@@ -265,7 +268,7 @@ public class Item extends Entity {
 	}
 
 	public static Map<TileCoord, List<Item>> getItemMap() {
-		return items;
+		return itemsMap;
 	}
 	
 	private static void updateItemEdgeFrame() {
@@ -282,9 +285,8 @@ public class Item extends Entity {
 	}
 
 	public static void drawItems() {
-		List<Item> tempItems = new ArrayList<>(itemList);
 		updateItemEdgeFrame();
-		for (Item item : tempItems) {
+		for (Item item : new ArrayList<>(itemList)) {
 			if (MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.INSTAKILL))
 				item.forceDestroy();
 			else if (!item.isInvencible() &&
@@ -333,9 +335,9 @@ public class Item extends Entity {
 				MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
 				MapSet.checkTileTrigger(this, prevCoord, TileProp.TRIGGER_BY_ITEM, true);
 			}
-			removeThisFromTile(prevCoord);
-			if (!items.containsKey(coord))
-				putOnMap(coord, this);
+			removeFromMap(prevCoord);
+			if (!itemsMap.containsKey(coord))
+				putOnMap(this);
 		}
 		if (isEgg() && getLinkedEntityFront() != null) {
 			String frameSet = (getLinkedEntityFirst().isMoving() ? "Moving." : "Stand.") + getDirection().name();
@@ -404,55 +406,66 @@ public class Item extends Entity {
 	}
 
 	public static boolean haveItemAt(TileCoord coord) {
-		return items.containsKey(coord);
+		return itemsMap.containsKey(coord);
 	}
 
 	public static Item getItemAt(TileCoord tileCoord) {
-		return haveItemAt(tileCoord) ? items.get(tileCoord).get(0) : null;
+		return haveItemAt(tileCoord) ? itemsMap.get(tileCoord).get(0) : null;
 	}
 
-	private void removeThisFromTile(TileCoord coord) {
-		if (items.containsKey(coord) && items.get(coord) == this) {
-			for (Item item : items.get(coord))
+	private static void putOnMap(Item item) {
+		TileCoord coord = item.getTileCoordFromCenter().getNewInstance();
+		if (item.getElevation() == Elevation.ON_GROUND && (!itemsMap.containsKey(coord) || !itemsMap.get(coord).contains(item))) {
+			if (!itemsMap.containsKey(coord))
+				itemsMap.put(coord, new ArrayList<>());
+			itemsMap.get(coord).add(item);
+			itemsMap2.put(item, coord);
+		}
+	}
+
+	private void removeFromMap(TileCoord coord) {
+		if (itemsMap.containsKey(coord) && itemsMap.get(coord) == this) {
+			for (Item item : itemsMap.get(coord)) {
 				itemList.remove(item);
-			items.remove(coord);
+				itemsMap2.remove(item);
+			}
+			itemsMap.remove(coord);
 		}
 	}
 	
 	@Override
 	public void onBeingHoldEvent(Entity holder) {
-		removeThisFromTile(getTileCoordFromCenter());
+		removeFromMap(getTileCoordFromCenter());
 	}
 
 	@Override
 	public void onSetPushEntityTrigger() {
-		removeThisFromTile(getTileCoordFromCenter());
+		removeFromMap(getTileCoordFromCenter());
 	}
 
 	@Override
 	public void onSetGotoMoveTrigger() {
-		removeThisFromTile(getTileCoordFromCenter());
+		removeFromMap(getTileCoordFromCenter());
 	}
 	
 	@Override
 	public void onSetJumpMoveTrigger() {
 		if (!currentFrameSetNameIsEqual("StandFrameSet"))
-			removeThisFromTile(getTileCoordFromCenter());
+			removeFromMap(getTileCoordFromCenter());
 	}
 
 	@Override
 	public void onPushEntityStop() {
-		putOnMap(getTileCoordFromCenter(), this);
+		putOnMap(this);
 	}
 
 	@Override
 	public void onJumpFallAtFreeTileEvent(JumpMove jumpMove) {
 		centerToTile();
 		Sound.playWav("ItemBounce");
-		TileCoord coord = getTileCoordFromCenter().getNewInstance();
-		putOnMap(coord, this);
+		putOnMap(this);
 		setFrameSet("StandFrameSet");
-		MapSet.checkTileTrigger(this, coord, TileProp.TRIGGER_BY_ITEM);
+		MapSet.checkTileTrigger(this, getTileCoordFromCenter(), TileProp.TRIGGER_BY_ITEM);
 	}
 
 	@Override
@@ -463,13 +476,6 @@ public class Item extends Entity {
 		jumpMove.resetJump(4, 1.2, 14);
 		TileCoord coord = getTileCoordFromCenter().getNewInstance();
 		setGotoMove(coord.incCoordsByDirection(getDirection()).getPosition(), jumpMove.getDurationFrames());
-	}
-
-	private static void putOnMap(TileCoord coord, Item item) {
-		if (!items.containsKey(coord))
-			items.put(coord.getNewInstance(), new ArrayList<>());
-		if (item.getElevation() == Elevation.ON_GROUND && !items.get(coord).contains(item))
-			items.get(coord).add(item);
 	}
 
 	public static Item dropItemFromSky(TileCoord coord) {
@@ -490,7 +496,7 @@ public class Item extends Entity {
 				item.removeShadow();
 				item.unsetGhosting();
 				Sound.playWav(item, "ItemBounce");
-				putOnMap(item.getTileCoordFromCenter(), item);
+				putOnMap(item);
 				item.setFrameSet("StandFrameSet");
 			}
 			else

@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import entities.Ride;
 import enums.Direction;
 import frameset.Sprite;
 
@@ -34,9 +33,7 @@ public class SetEntityDirection extends FrameTag {
 
 	@Override
 	public void process(Sprite sprite) {
-		sprite.getSourceEntity().forceDirection(direction);
-		if (sprite.getSourceEntity() instanceof Ride)
-			((Ride)sprite.getSourceEntity()).getOwner().setDirection(direction);
+		sprite.getSourceEntity().setDirection(direction);
 	}
 
 }

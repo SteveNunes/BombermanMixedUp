@@ -13,9 +13,11 @@ import entities.BomberMan;
 import entities.Entity;
 import entities.Monster;
 import enums.Direction;
+import enums.Elevation;
 import enums.FindInRectType;
 import enums.FindType;
 import enums.PassThrough;
+import enums.TileProp;
 import gameutil.FPSHandler;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
@@ -175,32 +177,51 @@ public abstract class Tools {
 	public static List<FindProps> findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, int distanceInTiles, Set<Direction> directions, FindType type, Set<PassThrough> ignores) {
 		return findInLine(entity, ignoreEntity, coord, distanceInTiles, directions, Set.of(type), ignores);
 	}
+	
+	public static FindType getWichObjectIsOnTile(TileCoord coord) {
+		return getWichObjectIsOnTile(null, null, coord, null);
+	}
 
+	public static FindType getWichObjectIsOnTile(Entity entity, Entity ignoreEntity, TileCoord coord, Set<FindType> types) {
+		return getWichObjectIsOnTile(entity, ignoreEntity, coord, types, null);
+	}
+	
+	public static FindType getWichObjectIsOnTile(TileCoord coord, Set<PassThrough> ignores) {
+		return getWichObjectIsOnTile(null, null, coord, null, ignores);
+	}
+
+	public static FindType getWichObjectIsOnTile(TileCoord coord, Set<FindType> types, Set<PassThrough> ignores) {
+		return getWichObjectIsOnTile(null, null, coord, types, ignores);
+	}
+
+	public static FindType getWichObjectIsOnTile(Entity entity, Entity ignoreEntity, TileCoord coord, Set<FindType> types, Set<PassThrough> ignores) {
+		FindType findType = null;
+		if (types == null)
+			types = Set.of(FindType.BAD_ITEM, FindType.BOMB, FindType.BRICK, FindType.EMPTY, FindType.GOOD_ITEM, FindType.ITEM, FindType.MONSTER, FindType.PLAYER, FindType.WALL);
+		if ((entity == null || entity.getElevation() == Elevation.ON_GROUND) &&
+				((types.contains(findType = FindType.EMPTY) && MapSet.tileIsFree(coord, ignores)) ||
+				(types.contains(findType = FindType.GOOD_ITEM) && Item.haveItemAt(coord) && !Item.getItemAt(coord).getItemType().isBadItem()) ||
+				(types.contains(findType = FindType.ITEM) && Item.haveItemAt(coord)) ||
+				(types.contains(findType = FindType.BAD_ITEM) && Item.haveItemAt(coord) && Item.getItemAt(coord).getItemType().isBadItem()) ||
+				(types.contains(findType = FindType.BOMB) && Bomb.haveBombAt(entity, coord)) ||
+				(types.contains(findType = FindType.BRICK) && Brick.haveBrickAt(coord)) ||
+				(types.contains(findType = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord, Monster.class)) ||
+				(types.contains(findType = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord, BomberMan.class)) ||
+				(types.contains(findType = FindType.WALL) && !MapSet.tileIsFree(coord))))
+					return findType;
+		return null;
+	}
+	
 	public static List<FindProps> findInLine(Entity entity, Entity ignoreEntity, TileCoord coord, int distanceInTiles, Set<Direction> directions, Set<FindType> types, Set<PassThrough> ignores) {
 		List<FindProps> list = new ArrayList<>();
 		for (Direction dir : directions) {
 			int distance = distanceInTiles;
 			FindType findType = null;
-			out:
-			for (TileCoord c = coord.getNewInstance().incCoordsByDirection(dir); distance-- > 0 && MapSet.haveTilesOnCoord(c); c.incCoordsByDirection(dir)) {
-				if (!MapSet.tileIsFree(c, ignores)) {
-					if ((types.contains(findType = FindType.GOOD_ITEM) && Item.haveItemAt(c) && !Item.getItemAt(c).getItemType().isBadItem()) ||
-							(types.contains(findType = FindType.ITEM) && Item.haveItemAt(c)) ||
-							(types.contains(findType = FindType.BAD_ITEM) && Item.haveItemAt(c) && Item.getItemAt(c).getItemType().isBadItem()) ||
-							(types.contains(findType = FindType.BOMB) && Bomb.haveBombAt(entity, c)) ||
-							(types.contains(findType = FindType.BRICK) && Brick.haveBrickAt(c)) ||
-							(types.contains(findType = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, Monster.class)) ||
-							(types.contains(findType = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(c, BomberMan.class)))
-								list.add(new FindProps(findType, c.getNewInstance(), dir));
-					break out;
+			for (TileCoord c = coord.getNewInstance().incCoordsByDirection(dir); distance-- > 0 && MapSet.haveTilesOnCoord(c); c.incCoordsByDirection(dir))
+				if ((findType = getWichObjectIsOnTile(entity, ignoreEntity, c, types, ignores)) != null) {
+						list.add(new FindProps(findType, c.getNewInstance(), dir));
+					break;
 				}
-				else if (types.contains(findType = FindType.EMPTY) ||
-						(types.contains(findType = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof Monster) ||
-						(types.contains(findType = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(c, ignoreEntity) && Entity.getFirstEntityFromCoord(c) instanceof BomberMan)) {
-							list.add(new FindProps(findType, c.getNewInstance(), dir));
-							break out;
-				}
-			}
 		}
 		return list.isEmpty() ? null : list;
 	}
@@ -268,23 +289,9 @@ public abstract class Tools {
 	public static List<FindProps> findInRect(Entity entity, TileCoord coord, Entity ignoreEntity, FindInRectType findType, int radiusInTiles, Set<FindType> types, Set<PassThrough> ignores) {
 		List<FindProps> list = new ArrayList<>();
 		Consumer<TileCoord> consumer = coord2 -> {
-			FindType ft = null; 
-			boolean found = false;
-			if (!MapSet.tileIsFree(coord2, ignores)) {
-				if ((types.contains(ft = FindType.BOMB) && Bomb.haveBombAt(entity, coord2)) ||
-						(types.contains(ft = FindType.BRICK) && Brick.haveBrickAt(coord2)) ||
-						(types.contains(ft = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, Monster.class)) ||
-						(types.contains(ft = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.entitiesInCoordContaisAnInstanceOf(coord2, BomberMan.class)))
-					found = true;
-			}
-			else if (types.contains(ft = FindType.EMPTY) ||
-					(types.contains(ft = FindType.GOOD_ITEM) && Item.haveItemAt(coord2) && !Item.getItemAt(coord2).getItemType().isBadItem()) ||
-					(types.contains(ft = FindType.ITEM) && Item.haveItemAt(coord2)) ||
-					(types.contains(ft = FindType.BAD_ITEM) && Item.haveItemAt(coord2) && Item.getItemAt(coord2).getItemType().isBadItem()) ||
-					(types.contains(ft = FindType.MONSTER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof Monster) ||
-					(types.contains(ft = FindType.PLAYER) && Entity.haveAnyEntityAtCoord(coord2, ignoreEntity) && Entity.getFirstEntityFromCoord(coord2) instanceof BomberMan))
-				found = true;
-			if (found) {
+			FindType ft; 
+			if ((ft = getWichObjectIsOnTile(entity, ignoreEntity, coord2, types, ignores)) != null) {
+				list.add(new FindProps(ft, coord2, coord.get4wayDirectionToReach(coord2)));
 				Function<TileCoord, Boolean> tileIsFree = t -> {
 					return MapSet.tileIsFree(t, ignores) || t.equals(coord) || t.equals(coord2);
 				};

@@ -123,6 +123,7 @@ public class GameTikTok {
 	private Font font40 = new Font("Lucida Console", 40);
 	private int showBlockMarks;
 	private boolean reconnectionIsDisabled;
+	private boolean maxZoom = false;
 	private String gameMap = "TikTok-Small-Battle-01";
 	private String lastGiftSel;
 	private Duration displayAvatarDelay = Duration.seconds(3);
@@ -160,8 +161,8 @@ public class GameTikTok {
 			setupTextToSpeech();
 			if (showBlockMarks > 0)
 				showBlockMarks();
-			if (!Misc.alwaysTrue()) { // Sinalizar objetos proximos do cursor, para testar o findInRect()
-				List<FindProps> founds = Tools.findInRect(mousePos.getTileCoord(), null, 2, Set.of(FindType.GOOD_ITEM, FindType.BAD_ITEM));
+			if (Misc.alwaysTrue()) { // Sinalizar objetos proximos do cursor, para testar o findInRect()
+				List<FindProps> founds = Tools.findInRect(mousePos.getTileCoord(), null, 2, Set.of(FindType.PLAYER, FindType.BRICK));
 				if (founds != null) {
 					if (Misc.blink(100))
 						Draw.markTile(founds.get(0).getCoord(), Color.WHITE);
@@ -377,10 +378,23 @@ public class GameTikTok {
 			}
 	}
 	
+	private void setZoom() {
+		if (maxZoom) {
+			Main.setZoom(8);
+			canvasMain.setWidth(16 * 8 * 4);
+			canvasMain.setHeight(16 * 8 * 6);
+		}
+		else {
+			Main.setZoom(3);
+			canvasMain.setWidth(WIN_W * Main.getZoom());
+			canvasMain.setHeight(WIN_H * Main.getZoom());
+		}
+		Main.stageMain.setWidth(canvasMain.getWidth() + 10);
+		Main.stageMain.setHeight(canvasMain.getHeight() + 30);
+	}
+	
 	private void setBasics() {
-		Main.setZoom(3);
-		canvasMain.setWidth(WIN_W * Main.getZoom());
-		canvasMain.setHeight(WIN_H * Main.getZoom());
+		setZoom();
 		Main.setMainCanvas(canvasMain);
 		gcMain = canvasMain.getGraphicsContext2D();
 		gcMain.setImageSmoothing(false);
@@ -548,10 +562,16 @@ public class GameTikTok {
 				if (e.getCode() == KeyCode.E)
 					MapSet.incTileSetPalleteIndex();
 				if (e.getCode() == KeyCode.Z) {
-					int n = (int)MyMath.getRandom(0, BomberMan.getTotalBomberMans() - 1);
-					for (int x = 0; x < BomberMan.getTotalBomberMans(); x++)
-						if (x != n)
-							BomberMan.getBomberMan(x).takeDamage();
+					if (isShiftHold()) {
+						int n = (int)MyMath.getRandom(0, BomberMan.getTotalBomberMans() - 1);
+						for (int x = 0; x < BomberMan.getTotalBomberMans(); x++)
+							if (x != n)
+								BomberMan.getBomberMan(x).takeDamage();
+					}
+					else {
+						maxZoom = !maxZoom;
+						setZoom();
+					}
 				}
 				if (e.getCode() == KeyCode.P) {
 					for (Brick brick : new LinkedList<>(Brick.getBricks()))

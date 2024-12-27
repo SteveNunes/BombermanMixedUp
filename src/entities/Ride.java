@@ -29,6 +29,7 @@ public class Ride extends Entity {
 	private BomberMan owner;
 	private int palleteIndex;
 	private boolean isDead;
+	private boolean onlyRiderHead;
 	private Position riderDesloc;
 	private int riderFrontValue;
 	private String ridingSound;
@@ -62,6 +63,7 @@ public class Ride extends Entity {
 		isDead = false;
 		String section = "" + rideType.getValue();
 		ridingSound = IniFiles.rides.read(section, "RiringSound");
+		onlyRiderHead = IniFiles.rides.readAsBoolean(section, "ShowOnlyRiderHead", false);
 		if (IniFiles.rides.read(section, "DefaultTags") != null)
 			setDefaultTags(Tags.loadTagsFromString(IniFiles.rides.read(section, "DefaultTags")));
 		for (String item : IniFiles.rides.getItemList(section))
@@ -93,7 +95,7 @@ public class Ride extends Entity {
 
 	public static void drawRides() {
 		for (Ride ride : new ArrayList<>(rideList))
-		ride.run();
+			ride.run();
 	}
 	
 	@Override
@@ -116,15 +118,14 @@ public class Ride extends Entity {
 		if (getOwner() != null) {
 			if (getOwner().getRide() == this) { // Isso impede de atualizar a posicao da montaria enquanto o personagem ainda esta pulando para pegar ela
 				setPosition(getOwner().getPosition());
-				if (!getOwner().isBlockedMovement())
-					forceDirection(getOwner().getDirection());
+				forceDirection(getOwner().getDirection());
 			}
 		}
 		else
 			for (BomberMan bomber : BomberMan.getBomberManList())
 				if (!isDead() && bomber.isWaitingForRide() == this && getTileCoordFromCenter().equals(bomber.getTileCoordFromCenter())) {
 					setOwner(bomber);
-					bomber.jumpTo(bomber, getTileCoordFromCenter(), 4, 1.2, 40);
+					bomber.jumpTo(getTileCoordFromCenter(), 4, 1.2, 40);
 					if (ridingSound != null)
 						Sound.playWav(ridingSound);
 					break;
@@ -155,4 +156,71 @@ public class Ride extends Entity {
 		return isDead;
 	}
 
+	public boolean onlyHead() {
+		return onlyRiderHead;
+	}
+	
+	@Override
+	public void moveEntity(Direction direction, double speed) {
+		if (owner == null)
+			return;
+		owner.moveEntity(direction, speed);
+	}
+	
+	@Override
+	public void setBlockedMovement(boolean state) {
+		if (owner == null)
+			return;
+		owner.setBlockedMovement(state);
+	}
+
+	@Override
+	public void forceDirection(Direction direction) {
+		if (owner == null)
+			return;
+		owner.forceDirection(direction);
+		super.forceDirection(direction);
+	}
+
+	@Override
+	public void setDirection(Direction direction) {
+		if (owner == null)
+			return;
+		owner.setDirection(direction);
+		super.setDirection(direction);
+	}
+	
+	@Override
+	public void setSpeed(double speed) {
+		if (owner == null)
+			return;
+		owner.setSpeed(speed);
+	}
+
+	@Override
+	public void setTempSpeed(double tempSpeed) {
+		if (owner == null)
+			return;
+		owner.setTempSpeed(tempSpeed);
+	}
+	
+	@Override
+	void jumpTo(Position targetPosition, double jumpStrenght, double strenghtMultipiler, int durationFrames, boolean safeJump, String jumpSound) {
+		if (owner == null)
+			return;
+		owner.jumpTo(targetPosition, jumpStrenght, strenghtMultipiler, durationFrames, safeJump, jumpSound);
+	}
+	
+	@Override
+	public void setGhosting(int ghostingDistance, double ghostingOpacityDec) {
+		owner.setGhosting(ghostingDistance, ghostingOpacityDec);
+		super.setGhosting(ghostingDistance, ghostingOpacityDec);
+	}
+
+	@Override
+	public void unsetGhosting() {
+		owner.unsetGhosting();
+		super.unsetGhosting();
+	}
+	
 }

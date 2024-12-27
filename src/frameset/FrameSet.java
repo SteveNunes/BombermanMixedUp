@@ -540,7 +540,7 @@ public class FrameSet extends Position {
 					consumer.accept(tag);
 	}
 
-	public void TEMPresetTags() { // TEMP: AParentemente nao esta em uso entao apagar se confirmado
+	public void resetTags() {
 		frames.forEach(frame -> {
 			for (Tags tags : frame.getFrameSetTagsList())
 				for (FrameTag tag : tags.getTags()) {
