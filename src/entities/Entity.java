@@ -965,7 +965,11 @@ public class Entity extends Position {
 		curseDuration = duration;
 	}
 
-	public void setCurse(Curse curse) { // FALTA: Implementar BLINDNESS e SWAP_PLAYERS
+	public void setCurse(Curse curse) {
+		setCurse(curse, Curse.getDuration(curse));
+	}
+
+	public void setCurse(Curse curse, int duration) { // FALTA: Implementar BLINDNESS e SWAP_PLAYERS
 		if (curse != null) {
 			removeCurse();
 			previewDisableEffect = disableEffect;
@@ -973,7 +977,7 @@ public class Entity extends Position {
 			setImageEffect(new DrawImageEffects());
 			getImageEffect().setColorTint(0, 0, 0, 1, BlendMode.SRC_ATOP);
 			this.curse = curse;
-			curseDuration = Curse.getDuration(curse);
+			curseDuration = duration;
 			if (curse == Curse.INVISIBLE)
 				setVisible(false);
 			else if (curse == Curse.MIN_SPEED)
@@ -1201,6 +1205,10 @@ public class Entity extends Position {
 	}
 
 	public void moveEntity(Direction direction, double speed) {
+		if (speed < 0) {
+			direction = direction.getReverseDirection();
+			speed = -speed;
+		}
 		tileWasChanged = false;
 		getFreeCorners(direction);
 		if (speed != 0) {

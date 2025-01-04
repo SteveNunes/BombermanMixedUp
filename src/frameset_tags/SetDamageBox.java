@@ -3,53 +3,50 @@ package frameset_tags;
 import java.awt.Rectangle;
 
 import enums.DamageType;
+import enums.ForceDirection;
 import frameset.Sprite;
 
 public class SetDamageBox extends FrameTag {
 
 	public DamageType damageType;
+	public String triggerTargetFrameSet;
+	public ForceDirection forceTargetDirection;
 	public Rectangle damageRectangle; // offsetX, offsetY, width, height
-	public int variant; // total de itens a tirar
+	public Integer variant; // total de itens a tirar ou qualquer outro parametro complementar ao tipo de dano
+	public String soundWhenHits;
 
-	public SetDamageBox(DamageType damageType, Rectangle damageRectangle, int variant) {
+	public SetDamageBox(DamageType damageType, Integer variant, String triggerTargetFrameSet, ForceDirection forceTargetDirection, Rectangle damageRectangle, String soundWhenHits) {
 		this.damageType = damageType;
-		this.damageRectangle = new Rectangle(damageRectangle);
 		this.variant = variant;
-		this.deleteMeAfterFirstRead = true;
+		this.triggerTargetFrameSet = triggerTargetFrameSet;
+		this.forceTargetDirection = forceTargetDirection;
+		this.damageRectangle = new Rectangle(damageRectangle);
+		this.soundWhenHits = soundWhenHits;
 	}
 
 	@Override
 	public String toString() {
-		return "{" + getClassName(this) + ";" + damageType.name() + ";" + damageRectangle.getX() + ";" + damageRectangle.getY() + ";" + damageRectangle.getWidth() + ";" + damageRectangle.getHeight() + ";" + variant + "}";
+		return "{" + getClassName(this) + ";" + (damageType == null ? "-" : damageType.name()) + ";" + (variant == null ? "-" : variant) + ";" + (triggerTargetFrameSet == null ? "-" : triggerTargetFrameSet) + ";" + forceTargetDirection.name() + ";" + damageRectangle.getX() + ";" + damageRectangle.getY() + ";" + damageRectangle.getWidth() + ";" + damageRectangle.getHeight() + ";" + (soundWhenHits == null ? "-" : soundWhenHits) + "}";
 	}
 
 	public SetDamageBox(String tags) {
 		String[] params = validateStringTags(this, tags);
-		if (params.length > 6)
+		if (params.length > 9)
 			throw new RuntimeException(tags + " - Too much parameters");
-		if (params.length < 1)
+		if (params.length < 2)
 			throw new RuntimeException(tags + " - Too few parameters");
 		int n = 0;
 		try {
-			damageType = DamageType.valueOf(params[n = 0]);
-			if (params.length >= 5) {
-				damageRectangle = new Rectangle(
-						params[n = 1].equals("-") ? 0 : Integer.parseInt(params[n]),
-						params[n = 2].equals("-") ? 0 :Integer.parseInt(params[n]),
-						params[n = 3].equals("-") ? -1 :Integer.parseInt(params[n]),
-						params[n = 4].equals("-") ? -1 :Integer.parseInt(params[n]));
-				variant = params.length < 6 ? 0 : Integer.parseInt(params[n = 5]);
-			}
-			else if (params.length >= 3) {
-				damageRectangle = new Rectangle(0, 0,
-						params[n = 1].equals("-") ? -1 : Integer.parseInt(params[n]),
-						params[n = 2].equals("-") ? -1 :Integer.parseInt(params[n]));
-				variant = params.length < 4 ? 0 : Integer.parseInt(params[n = 3]);
-			}
-			else {
-				damageRectangle = new Rectangle(0, 0, -1, -1);
-				variant = params.length < 2 ? 0 : Integer.parseInt(params[n = 1]);
-			}
+			damageType = params[n].equals("-") ? null : DamageType.valueOf(params[n = 0]);
+			variant = params[n = 1].equals("-") ? null : Integer.parseInt(params[n]);
+			triggerTargetFrameSet = params.length <= (n = 2) || params[n].equals("-") ? null : params[n];
+			forceTargetDirection = params.length <= (n = 3) || params[n].equals("-") ? null : ForceDirection.valueOf(params[n]);
+			damageRectangle = new Rectangle(
+					params.length <= (n = 4) || params[n].equals("-") ? 0 : Integer.parseInt(params[n]),
+					params.length <= (n = 5) || params[n].equals("-") ? 0 :Integer.parseInt(params[n]),
+					params.length <= (n = 6) || params[n].equals("-") ? -1 :Integer.parseInt(params[n]),
+					params.length <= (n = 7) || params[n].equals("-") ? -1 :Integer.parseInt(params[n]));
+			soundWhenHits = params.length <= (n = 8) || params[n].equals("-") ? null : params[n];
 		}
 		catch (Exception e) {
 			throw new RuntimeException(params[n] + " - Invalid parameter");
@@ -58,7 +55,7 @@ public class SetDamageBox extends FrameTag {
 
 	@Override
 	public SetDamageBox getNewInstanceOfThis() {
-		return new SetDamageBox(damageType, damageRectangle, variant);
+		return new SetDamageBox(damageType, variant, triggerTargetFrameSet, forceTargetDirection, damageRectangle, soundWhenHits);
 	}
 
 	@Override
@@ -67,7 +64,7 @@ public class SetDamageBox extends FrameTag {
 			damageRectangle.setSize(sprite.getOutputWidth(), (int)damageRectangle.getHeight());
 		if (damageRectangle.getHeight() == -1)
 			damageRectangle.setSize((int)damageRectangle.getHeight(), sprite.getOutputHeight());
-		sprite.setDamageBox(damageType, damageRectangle, variant);
+		sprite.setDamageBox(damageType, variant, triggerTargetFrameSet, forceTargetDirection, damageRectangle, soundWhenHits);
 	}
 
 }

@@ -469,6 +469,8 @@ public abstract class FrameTagLoader {
 				tags.addTag(newTag = new UnsetGhosting(s));
 			else if (tag.equals("SetDamageBox"))
 				tags.addTag(newTag = new SetDamageBox(s));
+			else if (tag.equals("UnsetDamageBox"))
+				tags.addTag(newTag = new UnsetDamageBox(s));
 			if (delay != null)
 				newTag.setTriggerDelay(delay);
 			if (delayInFrames != null)

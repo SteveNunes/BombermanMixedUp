@@ -1,6 +1,5 @@
 package frameset_tags;
 
-import entities.BomberMan;
 import entities.Ride;
 import frameset.Sprite;
 

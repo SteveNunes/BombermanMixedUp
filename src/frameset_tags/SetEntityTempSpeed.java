@@ -1,7 +1,5 @@
 package frameset_tags;
 
-import entities.Entity;
-import entities.Ride;
 import frameset.Sprite;
 
 public class SetEntityTempSpeed extends FrameTag {

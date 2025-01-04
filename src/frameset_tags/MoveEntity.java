@@ -81,10 +81,7 @@ public class MoveEntity extends FrameTag {
 	@Override
 	public void process(Sprite sprite) {
 		Entity entity = sprite.getSourceEntity();
-		if (speed >= 0)
-			entity.moveEntity(speed);
-		else
-			entity.moveEntity();
+		entity.moveEntity(speed);
 		if (colideTypes != null) {
 			int[][] inc = {
 					{Main.TILE_SIZE / 2, -1},

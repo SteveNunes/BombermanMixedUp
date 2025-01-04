@@ -2,6 +2,7 @@ package frameset;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.util.HashSet;
 
 import application.Main;
 import drawimage_stuffs.DrawImageEffects;
@@ -9,7 +10,10 @@ import entities.BomberMan;
 import entities.Entity;
 import entities.Ride;
 import entityTools.ShakeEntity;
+import enums.Curse;
 import enums.DamageType;
+import enums.Direction;
+import enums.ForceDirection;
 import enums.ImageAlignment;
 import enums.ImageFlip;
 import enums.SpriteLayerType;
@@ -28,7 +32,9 @@ import screen_pos_effects.WavingImage;
 import tools.Draw;
 import tools.DrawParams;
 import tools.Materials;
+import tools.Sound;
 import util.Misc;
+import util.MyMath;
 
 public class Sprite extends Position {
 
@@ -39,9 +45,7 @@ public class Sprite extends Position {
 	private DrawImageEffects spriteEffects;
 	private Position absoluteOutputSpritePos;
 	private Position spriteScroll;
-	private Rectangle damageBox;
-	private DamageType damageType;
-	private int damageVariant;
+	private DamageBox damageBox;
 	private EliticMove eliticMove;
 	private RectangleMove rectangleMove;
 	private JumpMove jumpMove;
@@ -89,9 +93,7 @@ public class Sprite extends Position {
 		layerType = sprite.layerType;
 		wavingImage = sprite.wavingImage == null ? null : new WavingImage(sprite.wavingImage);
 		spriteScroll = sprite.spriteScroll == null ? null : new Position(sprite.spriteScroll);
-		damageBox = sprite.damageBox == null ? null : new Rectangle(sprite.damageBox);
-		damageType = sprite.damageType == null ? null : sprite.damageType;
-		damageVariant = sprite.damageVariant;
+		damageBox = sprite.damageBox == null ? null : new DamageBox(sprite.damageBox.damageType, sprite.damageBox.variant, sprite.damageBox.triggerTargetFrameSet, sprite.damageBox.forceTargetDirection, new Rectangle(sprite.damageBox.damageBoxRect), sprite.damageBox.soundWhenHits);
 		frontValue = sprite.frontValue;
 		isVisible = sprite.isVisible;
 		extraFrontValue = sprite.extraFrontValue;
@@ -126,8 +128,6 @@ public class Sprite extends Position {
 		ghostingOpacityDec = null;
 		multiFrameIndexByDirection = null;
 		damageBox = null;
-		damageType = null;
-		damageVariant = 0;
 		updateOutputDrawCoords();
 	}
 
@@ -643,6 +643,48 @@ public class Sprite extends Position {
 	}
 
 	public void draw(GraphicsContext gc) {
+		if (damageBox != null) {
+			boolean hitted = false;
+			for (Entity entity : new HashSet<>(Entity.getEntityList())) {
+				if (entity.hashCode() != getSourceEntity().hashCode() && (!(getSourceEntity() instanceof Ride) || ((Ride)getSourceEntity()).getOwner().hashCode() != entity.hashCode()) && 
+						(!(getSourceEntity() instanceof BomberMan) || ((BomberMan)getSourceEntity()).getRide() == null || ((BomberMan)getSourceEntity()).getRide().hashCode() != entity.hashCode())) {
+							int ex = (int)entity.getX(), ey = (int)entity.getY(),
+									x = (int)(getAbsoluteOutputPosition().getX() + damageBox.damageBoxRect.getX()),
+									y = (int)(getAbsoluteOutputPosition().getY() + damageBox.damageBoxRect.getY()),
+									w = (int)damageBox.damageBoxRect.getWidth(),
+									h = (int)damageBox.damageBoxRect.getHeight();
+							DamageType type = damageBox.damageType;
+							String sound = damageBox.soundWhenHits;
+							String frameSet = damageBox.triggerTargetFrameSet;
+							ForceDirection forceDir = damageBox.forceTargetDirection; 
+							if (x + w > ex && y + h > ey && x < ex + Main.TILE_SIZE && y < ey + Main.TILE_SIZE) {
+								if (type == DamageType.STUN)
+									entity.setCurse(Curse.STUNNED, damageBox.variant);
+								else if (type == DamageType.REMOVE_ITEM && entity instanceof BomberMan)
+									((BomberMan)entity).dropItem(damageBox.variant, true, false);
+								if (sound != null)
+									Sound.playWav(sound);
+								if (forceDir != null) {
+									if (forceDir == ForceDirection.SAME)
+										entity.forceDirection(getSourceEntity().getDirection());
+									else if (forceDir == ForceDirection.REVERSE)
+										entity.forceDirection(getSourceEntity().getDirection().getReverseDirection());
+									else if (forceDir == ForceDirection.NEXT_CLOCKWISE)
+										entity.forceDirection(getSourceEntity().getDirection().getNext4WayClockwiseDirection());
+									else if (forceDir == ForceDirection.PREVIEW_CLOCKWISE)
+										entity.forceDirection(getSourceEntity().getDirection().getNext4WayClockwiseDirection(-1));
+									else
+										entity.forceDirection(Direction.get4DirectionFromValue((int)MyMath.getRandom(0, 3)));
+								}
+								if (frameSet != null && entity.haveFrameSet(frameSet))
+									entity.setFrameSet(frameSet);
+								hitted = true;
+							}
+						}
+			}
+			if (hitted)
+				damageBox = null;
+		}
 		if (shake != null) {
 			shake.proccess();
 			if (!shake.isActive())
@@ -764,12 +806,98 @@ public class Sprite extends Position {
 	public TileCoord getTileCoordFromCenter() {
 		return new TileCoord((int) (absoluteOutputSpritePos.getX() + getOutputWidth() / 2) / Main.TILE_SIZE, (int) (absoluteOutputSpritePos.getY() + getOutputHeight() / 2) / Main.TILE_SIZE);
 	}
-
-	public void setDamageBox(DamageType damageType, Rectangle damageBoxBounds, int variant) {
-		this.damageType = damageType;
-		damageBox = new Rectangle(damageBoxBounds);
-		damageVariant = variant;
-		// FALTA: Finalizar
+	
+	public void unsetDamageBox() {
+		damageBox = null;
 	}
 
+	public void setDamageBox(DamageType damageType, Rectangle damageBoxRect) {
+		setDamageBox(damageType, null, null, null, damageBoxRect, null);
+	}	
+
+	public void setDamageBox(DamageType damageType, ForceDirection forceTargetDirection, Rectangle damageBoxRect) {
+		setDamageBox(damageType, null, null, forceTargetDirection, damageBoxRect, null);
+	}	
+
+	public void setDamageBox(DamageType damageType, String triggerTargetFrameSet, Rectangle damageBoxRect) {
+		setDamageBox(damageType, null, triggerTargetFrameSet, null, damageBoxRect, null);
+	}	
+
+	public void setDamageBox(DamageType damageType, String triggerTargetFrameSet, ForceDirection forceTargetDirection, Rectangle damageBoxRect) {
+		setDamageBox(damageType, null, triggerTargetFrameSet, forceTargetDirection, damageBoxRect, null);
+	}	
+
+	public void setDamageBox(DamageType damageType, Rectangle damageBoxRect, String soundWhenHits) {
+		setDamageBox(damageType, null, null, null, damageBoxRect, soundWhenHits);
+	}	
+
+	public void setDamageBox(DamageType damageType, ForceDirection forceTargetDirection, Rectangle damageBoxRect, String soundWhenHits) {
+		setDamageBox(damageType, null, null, forceTargetDirection, damageBoxRect, soundWhenHits);
+	}	
+
+	public void setDamageBox(DamageType damageType, String triggerTargetFrameSet, Rectangle damageBoxRect, String soundWhenHits) {
+		setDamageBox(damageType, null, triggerTargetFrameSet, null, damageBoxRect, soundWhenHits);
+	}	
+	public void setDamageBox(DamageType damageType, String triggerTargetFrameSet, ForceDirection forceTargetDirection, Rectangle damageBoxRect, String soundWhenHits) {
+		setDamageBox(damageType, null, triggerTargetFrameSet, forceTargetDirection, damageBoxRect, soundWhenHits);
+	}	
+
+	public void setDamageBox(DamageType damageType, Integer variant, Rectangle damageBoxRect) {
+		setDamageBox(damageType, variant, null, null, damageBoxRect, null);
+	}	
+
+	public void setDamageBox(DamageType damageType, Integer variant, ForceDirection forceTargetDirection, Rectangle damageBoxRect) {
+		setDamageBox(damageType, variant, null, forceTargetDirection, damageBoxRect, null);
+	}	
+
+	public void setDamageBox(DamageType damageType, Integer variant, String triggerTargetFrameSet, Rectangle damageBoxRect) {
+		setDamageBox(damageType, variant, triggerTargetFrameSet, null, damageBoxRect, null);
+	}	
+
+	public void setDamageBox(DamageType damageType, Integer variant, String triggerTargetFrameSet, ForceDirection forceTargetDirection, Rectangle damageBoxRect) {
+		setDamageBox(damageType, variant, triggerTargetFrameSet, forceTargetDirection, damageBoxRect, null);
+	}	
+
+	public void setDamageBox(DamageType damageType, Integer variant, Rectangle damageBoxRect, String soundWhenHits) {
+		setDamageBox(damageType, variant, null, null, damageBoxRect, soundWhenHits);
+	}	
+
+	public void setDamageBox(DamageType damageType, Integer variant, ForceDirection forceTargetDirection, Rectangle damageBoxRect, String soundWhenHits) {
+		setDamageBox(damageType, variant, null, forceTargetDirection, damageBoxRect, soundWhenHits);
+	}	
+
+	public void setDamageBox(DamageType damageType, Integer variant, String triggerTargetFrameSet, Rectangle damageBoxRect, String soundWhenHits) {
+		setDamageBox(damageType, variant, triggerTargetFrameSet, null, damageBoxRect, soundWhenHits);
+	}	
+
+	public void setDamageBox(DamageType damageType, Integer variant, String triggerTargetFrameSet, ForceDirection forceTargetDirection, Rectangle damageBoxRect, String soundWhenHits) {
+		if (damageBoxRect == null)
+			damageBoxRect = new Rectangle(0, 0, getOutputWidth(), getOutputHeight());
+		if (damageBoxRect.getWidth() == -1)
+			damageBoxRect.setSize(getOutputWidth(), (int)damageBoxRect.getHeight());
+		if (damageBoxRect.getHeight() == -1)
+			damageBoxRect.setSize((int)damageBoxRect.getWidth(), getOutputHeight());
+		this.damageBox = new DamageBox(damageType, variant, triggerTargetFrameSet, forceTargetDirection, damageBoxRect, soundWhenHits);
+	}
+
+}
+
+class DamageBox {
+	
+	DamageType damageType;
+	Integer variant;
+	String triggerTargetFrameSet;
+	ForceDirection forceTargetDirection;
+	Rectangle damageBoxRect;
+	String soundWhenHits;
+	
+	public DamageBox(DamageType damageType, Integer variant, String triggerTargetFrameSet, ForceDirection forceTargetDirection, Rectangle damageBoxRect, String soundWhenHits) {
+		this.damageType = damageType;  
+		this.variant = variant;
+		this.triggerTargetFrameSet = triggerTargetFrameSet;
+		this.forceTargetDirection = forceTargetDirection;
+		this.damageBoxRect = damageBoxRect == null ? null : new Rectangle(damageBoxRect); 
+		this.soundWhenHits = soundWhenHits;
+	}
+	
 }
