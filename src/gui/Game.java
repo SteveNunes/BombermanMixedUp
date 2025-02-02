@@ -9,9 +9,8 @@ import entities.CpuPlay;
 import enums.CpuDificult;
 import enums.GameInput;
 import enums.GameInputMode;
+import gameutil.GameUtils;
 import gui.util.Alerts;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -50,22 +49,23 @@ public class Game {
 		Main.setMainCanvas(canvasMain);
 		Main.playHudsonLoading(
 				() -> {
-					
+					gcMain = canvasMain.getGraphicsContext2D();
+					gcMain.setImageSmoothing(false);
+					holdedKeys = new ArrayList<>();
+					setEvents();
+					BomberMan.addBomberMan(1, 0);
+					Player.addPlayer();
+					Player.getPlayer(0).setInputMode(GameInputMode.KEYBOARD);
+					Player.getPlayer(0).setBomberMan(BomberMan.getBomberMan(0));
+					MapSet.loadMap("SBM2_1-1");
 				},
 				() -> {
-					
+					GameUtils.createTimeLine(60, b -> Main.close, () -> {
+						MapSet.run();
+						Draw.applyAllDraws(canvasMain, Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
+					});
 				}
 		);
-		gcMain = canvasMain.getGraphicsContext2D();
-		gcMain.setImageSmoothing(false);
-		holdedKeys = new ArrayList<>();
-		setEvents();
-		BomberMan.addBomberMan(1, 0);
-		Player.addPlayer();
-		Player.getPlayer(0).setInputMode(GameInputMode.KEYBOARD);
-		Player.getPlayer(0).setBomberMan(BomberMan.getBomberMan(0));
-		MapSet.loadMap("SBM2_1-1");
-		mainLoop();
 	}
 
 	private static KeyCode[] setInputKeys = new KeyCode[] {
@@ -188,18 +188,6 @@ public class Game {
 	private static void confirmToDeletePlayer(int bomberIndex) {
 		if (Alerts.confirmation("Confirmação", "Deseja mesmo excluir o bomberman " + (bomberIndex + 1) + "?"))
 			BomberMan.removeBomberMan(bomberIndex);
-	}
-
-	void mainLoop() {
-		Timeline timeline = new Timeline();
-		timeline.getKeyFrames().add(new KeyFrame(Duration.millis(16), e -> {
-			MapSet.run();
-			Draw.applyAllDraws(canvasMain, Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
-			if (Main.close)
-				timeline.stop();
-		}));
-		timeline.setCycleCount(Timeline.INDEFINITE);
-		timeline.play();
 	}
 
 	boolean isHold(int shift, int ctrl, int alt) {

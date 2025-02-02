@@ -37,6 +37,7 @@ import enums.GameInputMode;
 import enums.GoogleLanguages;
 import enums.ItemType;
 import enums.PassThrough;
+import gameutil.GameUtils;
 import gui.util.Alerts;
 import gui.util.ImageUtils;
 import io.github.jwdeveloper.dependance.injector.api.util.Pair;
@@ -48,8 +49,6 @@ import io.github.jwdeveloper.tiktok.exceptions.TikTokLiveRequestException;
 import io.github.jwdeveloper.tiktok.exceptions.TikTokLiveUnknownHostException;
 import io.github.jwdeveloper.tiktok.exceptions.TikTokSignServerException;
 import io.github.jwdeveloper.tiktok.live.LiveClient;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
@@ -157,9 +156,8 @@ public class GameTikTok {
 		);
 	}
 	
-	void mainLoop() {
-		Timeline timeline = new Timeline();
-		timeline.getKeyFrames().add(new KeyFrame(Duration.millis(16), e -> {
+	private void mainLoop() {
+		GameUtils.createTimeLine(60, b -> Main.close, () -> {
 			MapSet.run();
 			Draw.applyAllDraws(canvasMain, Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
 			drawScores();
@@ -180,13 +178,9 @@ public class GameTikTok {
 						Draw.markTile(founds.get(0).getCoord(), founds.get(0).getFoundType() == FindType.BAD_ITEM ? Color.RED : Color.LIGHTGREEN);
 				}
 			}
-			if (Main.close)
-				timeline.stop();
-		}));
-		timeline.setCycleCount(Timeline.INDEFINITE);
-		timeline.play();
+		});
 	}
-
+	
 	private void loadLiveEvents() {
 		giftEvents = new LinkedHashMap<>();
 		likeEvents = new LinkedHashMap<>();

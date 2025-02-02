@@ -29,11 +29,10 @@ import enums.SpriteLayerType;
 import enums.StageObjectives;
 import enums.TileProp;
 import frameset.Tags;
+import gameutil.GameUtils;
 import gui.util.Alerts;
 import gui.util.ControllerUtils;
 import gui.util.ListenerHandle;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
@@ -60,7 +59,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.util.Duration;
 import javafx.util.Pair;
 import maps.Brick;
 import maps.Item;
@@ -463,15 +461,10 @@ public class MapEditor {
 	}
 
 	void mainLoop() {
-		Timeline timeline = new Timeline();
-		timeline.getKeyFrames().add(new KeyFrame(Duration.millis(16), e -> {
+		GameUtils.createTimeLine(60, b -> Main.close, () -> {
 			drawDrawCanvas();
 			drawMainCanvas();
-			if (Main.close)
-				timeline.stop();
-		}));
-		timeline.setCycleCount(Timeline.INDEFINITE);
-		timeline.play();
+		});
 	}
 
 	void saveCtrlZ() {

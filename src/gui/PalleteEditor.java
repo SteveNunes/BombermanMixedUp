@@ -10,12 +10,11 @@ import java.util.List;
 
 import application.Main;
 import enums.Icons;
+import gameutil.GameUtils;
 import gui.util.Alerts;
 import gui.util.ControllerUtils;
 import gui.util.ImageUtils;
 import gui.util.ListenerHandle;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
@@ -38,7 +37,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import tools.Draw;
 import tools.Materials;
 import tools.Tools;
@@ -315,8 +313,7 @@ public class PalleteEditor {
 	}
 	
 	private void drawMainCanvas() {
-		Timeline timeline = new Timeline();
-		timeline.getKeyFrames().add(new KeyFrame(Duration.millis(16), e -> {
+		GameUtils.createTimeLine(60, b -> Main.close, () -> {
 			if (originalSprite != null) {
 				updateCurrentSprite();
 				gcMain.setFill(Materials.getGreenColor());
@@ -334,11 +331,7 @@ public class PalleteEditor {
 					gcMain.strokeRect(x - 150, y - 150, 300, 300);
 				}
 			}
-			if (Main.close)
-				timeline.stop();
-		}));
-		timeline.setCycleCount(Timeline.INDEFINITE);
-		timeline.play();
+		});
 	}
 
 	private List<Color> originalPallete() {
