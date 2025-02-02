@@ -28,18 +28,8 @@ public class RemoveTileTags extends FrameTag {
 		this.originalTag = originalTag;
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		for (String str : tagsToBeRemoved) {
-			if (!sb.isEmpty())
-				sb.append(":");
-			sb.append(str);
-		}
-		return "{" + getClassName(this) + ";" + targetLayer + ";" + sb.toString() + ";" + tileCoord2ListToString(targetCoords) + "}";
-	}
-
 	public RemoveTileTags(String stringTags) {
+		sourceStringTags = stringTags;
 		String[] params = validateStringTags(this, stringTags);
 		if (params.length < 2)
 			throw new RuntimeException(stringTags + " - Too few parameters");

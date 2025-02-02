@@ -4,20 +4,14 @@ import frameset.Sprite;
 
 public class IncSprFlip extends FrameTag {
 
-	public IncSprFlip() {}
-
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public IncSprFlip(String tags) {
+		sourceStringTags = tags;
 		validateStringTags(this, tags, 0);
 	}
 
 	@Override
 	public IncSprFlip getNewInstanceOfThis() {
-		return new IncSprFlip();
+		return new IncSprFlip(sourceStringTags);
 	}
 
 	@Override

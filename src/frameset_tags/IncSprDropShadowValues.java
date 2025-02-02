@@ -12,12 +12,8 @@ public class IncSprDropShadowValues extends FrameTag {
 		this.incrementOffsetY = incrementOffsetY;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + incrementOffsetX + ";" + incrementOffsetY + "}";
-	}
-
 	public IncSprDropShadowValues(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

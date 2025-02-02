@@ -12,12 +12,8 @@ public class IncSprMotionBlurValues extends FrameTag {
 		this.incrementRadius = incrementRadius;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + incrementAngle + ";" + incrementRadius + "}";
-	}
-
 	public IncSprMotionBlurValues(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

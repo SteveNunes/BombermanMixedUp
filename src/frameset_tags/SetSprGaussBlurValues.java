@@ -17,12 +17,8 @@ public class SetSprGaussBlurValues extends FrameTag {
 		this(radius, BlendMode.SRC_ATOP);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + radius + ";" + blendMode.name() + "}";
-	}
-
 	public SetSprGaussBlurValues(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

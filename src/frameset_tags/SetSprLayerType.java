@@ -11,12 +11,8 @@ public class SetSprLayerType extends FrameTag {
 		this.value = value;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + (value == null ? "-" : value) + "}";
-	}
-
 	public SetSprLayerType(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		try {
 			value = params[0].equals("-") ? SpriteLayerType.GROUND : SpriteLayerType.valueOf(params[0]);

@@ -19,12 +19,8 @@ public class SetSprMotionBlurValues extends FrameTag {
 		this(angle, radius, BlendMode.SRC_ATOP);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + angle + ";" + radius + ";" + blendMode.name() + "}";
-	}
-
 	public SetSprMotionBlurValues(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 3);
 		int n = 0;
 		try {

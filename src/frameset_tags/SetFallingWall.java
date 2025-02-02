@@ -14,12 +14,8 @@ public class SetFallingWall extends FrameTag {
 		this.targetCoords = targetCoords == null ? null : new ArrayList<>(targetCoords);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + tileCoord2ListToString(targetCoords) + "}";
-	}
-
 	public SetFallingWall(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 1)
 			throw new RuntimeException(tags + " - Too much parameters");

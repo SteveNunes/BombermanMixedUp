@@ -14,12 +14,8 @@ public class IncSprColorAdjustValues extends FrameTag {
 		this.incrementBrightness = incrementBrightness;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + incrementHue + ";" + incrementSaturation + ";" + incrementBrightness + "}";
-	}
-
 	public IncSprColorAdjustValues(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 3);
 		int n = 0;
 		try {

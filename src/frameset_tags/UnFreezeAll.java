@@ -5,23 +5,14 @@ import frameset.Sprite;
 
 public class UnFreezeAll extends FrameTag {
 
-	public String tags;
-	
-	public UnFreezeAll() {}
-	
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public UnFreezeAll(String tags) {
-		validateStringTags(this, tags);
-		this.tags = tags;
+		sourceStringTags = tags;
+		validateStringTags(this, tags, 0);
 	}
-
+	
 	@Override
 	public UnFreezeAll getNewInstanceOfThis() {
-		return new UnFreezeAll(tags);
+		return new UnFreezeAll(sourceStringTags);
 	}
 
 	@Override

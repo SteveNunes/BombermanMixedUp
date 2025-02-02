@@ -6,22 +6,16 @@ import maps.MapSet;
 public class SetMapFrameSet extends FrameTag {
 
 	public String frameSetName;
-	private String tags;
-
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + frameSetName + "}";
-	}
 
 	public SetMapFrameSet(String tags) {
-		this.tags = tags;
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		frameSetName = params[0];
 	}
 
 	@Override
 	public SetMapFrameSet getNewInstanceOfThis() {
-		return new SetMapFrameSet(tags);
+		return new SetMapFrameSet(sourceStringTags);
 	}
 
 	@Override

@@ -17,12 +17,8 @@ public class SetSprSepiaToneValues extends FrameTag {
 		this(threshold, BlendMode.SRC_ATOP);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + level + ";" + blendMode.name() + "}";
-	}
-
 	public SetSprSepiaToneValues(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

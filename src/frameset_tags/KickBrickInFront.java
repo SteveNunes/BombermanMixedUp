@@ -15,12 +15,8 @@ public class KickBrickInFront extends FrameTag {
 		this.slamSound = slamSound;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public KickBrickInFront(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 2)
 			throw new RuntimeException(tags + " - Too much parameters");

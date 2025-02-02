@@ -19,12 +19,8 @@ public class SetSprInnerShadowValues extends FrameTag {
 		this(offsetX, offsetY, BlendMode.SRC_ATOP);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + offsetX + ";" + offsetY + ";" + blendMode.name() + "}";
-	}
-
 	public SetSprInnerShadowValues(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 3);
 		int n = 0;
 		try {

@@ -29,12 +29,8 @@ public class SetTileTags extends FrameTag {
 		this.originalTag = originalTag;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + targetLayer + ";" + tags + ";" + tileCoord2ListToString(targetCoords) + "}";
-	}
-
 	public SetTileTags(String stringTags) {
+		sourceStringTags = stringTags;
 		String[] params = validateStringTags(this, stringTags);
 		if (params.length < 2)
 			throw new RuntimeException(stringTags + " - Too few parameters");

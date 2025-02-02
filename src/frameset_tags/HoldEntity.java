@@ -7,20 +7,14 @@ import maps.Brick;
 
 public class HoldEntity extends FrameTag {
 
-	public HoldEntity() {}
-
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public HoldEntity(String tags) {
+		sourceStringTags = tags;
 		validateStringTags(this, tags, 0);
 	}
 
 	@Override
 	public HoldEntity getNewInstanceOfThis() {
-		return new HoldEntity();
+		return new HoldEntity(sourceStringTags);
 	}
 
 	@Override

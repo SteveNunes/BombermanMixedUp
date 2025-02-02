@@ -24,12 +24,8 @@ public class CopySprFromCopyLayer extends FrameTag {
 		this.targetCoords = new ArrayList<>(targetCoords);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + targetLayer + ";" + (int) copyArea.getX() + ";" + (int) copyArea.getY() + ";" + (int) copyArea.getWidth() + ";" + (int) copyArea.getHeight() + ";" + tileCoord2ListToString(targetCoords) + "}";
-	}
-
 	public CopySprFromCopyLayer(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 6)
 			throw new RuntimeException(tags + " - Too much parameters");

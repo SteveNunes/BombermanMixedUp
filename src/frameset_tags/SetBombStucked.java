@@ -13,12 +13,8 @@ public class SetBombStucked extends FrameTag {
 		this.state = state;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + state + ";" + targetTile.getOriginalTag() + "}";
-	}
-
 	public SetBombStucked(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

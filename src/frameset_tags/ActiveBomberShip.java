@@ -5,23 +5,14 @@ import frameset.Sprite;
 
 public class ActiveBomberShip extends FrameTag {
 
-	public String tags;
-	
-	public ActiveBomberShip() {}
-	
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public ActiveBomberShip(String tags) {
+		sourceStringTags = tags;
 		validateStringTags(this, tags);
-		this.tags = tags;
 	}
 
 	@Override
 	public ActiveBomberShip getNewInstanceOfThis() {
-		return new ActiveBomberShip(tags);
+		return new ActiveBomberShip(sourceStringTags);
 	}
 
 	@Override

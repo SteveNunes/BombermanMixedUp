@@ -14,18 +14,8 @@ public class SetSprWaving extends FrameTag {
 		disable = false;
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder pattern = new StringBuilder();
-		for (int i : wavingPattern) {
-			if (!pattern.isEmpty())
-				pattern.append(":");
-			pattern.append(i);
-		}
-		return "{" + getClassName(this) + ";" + speed + ";" + pattern.toString() + "}";
-	}
-
 	public SetSprWaving(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 2)
 			throw new RuntimeException(tags + " - Too much parameters");

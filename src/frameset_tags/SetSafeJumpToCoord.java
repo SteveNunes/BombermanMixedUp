@@ -16,12 +16,8 @@ public class SetSafeJumpToCoord extends FrameTag {
 		this.target = target == null ? null : new TileCoord2(target);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + jumpStrenght + ";" + strenghtMultipiler + ";" + durationFrames + ";" + target.getOriginalTag() + "}";
-	}
-
 	public SetSafeJumpToCoord(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 4)
 			throw new RuntimeException(tags + " - Too much parameters");

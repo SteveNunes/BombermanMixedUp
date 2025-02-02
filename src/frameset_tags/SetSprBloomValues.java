@@ -17,12 +17,8 @@ public class SetSprBloomValues extends FrameTag {
 		this(threshold, BlendMode.SRC_ATOP);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + threshold + ";" + blendMode.name() + "}";
-	}
-
 	public SetSprBloomValues(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

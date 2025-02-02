@@ -20,12 +20,8 @@ public class ShakeSprite extends FrameTag {
 		this.finalStrengthY = finalStrengthY;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + startStrengthX + ";" + startStrengthY + ";" + incStrengthX + ";" + incStrengthY + ";" + finalStrengthX + ";" + finalStrengthY + "}";
-	}
-
 	public ShakeSprite(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 6)
 			throw new RuntimeException(tags + " - Too much parameters");

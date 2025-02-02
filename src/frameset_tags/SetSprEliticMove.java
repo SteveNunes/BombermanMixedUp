@@ -18,12 +18,8 @@ public class SetSprEliticMove extends FrameTag {
 		this.speed = speed;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + orientation.name() + ";" + radiusWidth + ";" + radiusHeight + ";" + speed + "}";
-	}
-
 	public SetSprEliticMove(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 4);
 		int n = 0;
 		try {

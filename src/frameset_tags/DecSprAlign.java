@@ -4,20 +4,14 @@ import frameset.Sprite;
 
 public class DecSprAlign extends FrameTag {
 
-	public DecSprAlign() {}
-
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public DecSprAlign(String tags) {
+		sourceStringTags = tags;
 		validateStringTags(this, tags, 0);
 	}
 
 	@Override
 	public DecSprAlign getNewInstanceOfThis() {
-		return new DecSprAlign();
+		return new DecSprAlign(sourceStringTags);
 	}
 
 	@Override

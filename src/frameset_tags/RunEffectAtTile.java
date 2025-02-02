@@ -20,12 +20,8 @@ public class RunEffectAtTile extends FrameTag {
 		this.frameSetName = frameSetName;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + tileX + ";" + tileY + ";" + ";" + offsetX + ";" + offsetY + ";" + frameSetName + "}";
-	}
-
 	public RunEffectAtTile(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 5)
 			throw new RuntimeException(tags + " - Too much parameters");

@@ -15,6 +15,7 @@ public enum RideType {
 	DARK_PURPLE_LOUIE(4),
 	GREEN_LOUIE(5),
 	RED_LOUIE(6),
+	DARK_LOUIE(7),
 	IRON_BALL(10);
 	
 	private int value;
@@ -28,6 +29,7 @@ public enum RideType {
 		put(4, DARK_PURPLE_LOUIE);
 		put(5, GREEN_LOUIE);
 		put(6, RED_LOUIE);
+		put(7, DARK_LOUIE);
 		put(10, IRON_BALL);
 	}};	
 	

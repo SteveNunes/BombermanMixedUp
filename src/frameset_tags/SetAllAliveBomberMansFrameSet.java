@@ -8,12 +8,8 @@ public class SetAllAliveBomberMansFrameSet extends FrameTag {
 	public String frameSet;
 	public String originalTags;
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + frameSet + "}";
-	}
-
 	public SetAllAliveBomberMansFrameSet(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		originalTags = tags;
 		frameSet = params[0];

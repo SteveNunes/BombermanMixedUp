@@ -21,12 +21,8 @@ public class SetDefaultFade extends FrameTag {
 		this.stageTagEventAfterFade = stageTagEventAfterFade;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + color.toString() + ";" + speed + ";" + fadeState.name() + ";" + stageTagEventAfterFade + "}";
-	}
-
 	public SetDefaultFade(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 4);
 		if (params.length > 4)
 			throw new RuntimeException(tags + " - Too much parameters");

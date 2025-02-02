@@ -10,12 +10,8 @@ public class SetEntityNoMove extends FrameTag {
 		this.value = value;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + value + "}";
-	}
-
 	public SetEntityNoMove(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		try {
 			value = Boolean.parseBoolean(params[0]);

@@ -12,12 +12,8 @@ public class SetOutputSprSize extends FrameTag {
 		this.height = height;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + width + ";" + height + "}";
-	}
-
 	public SetOutputSprSize(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

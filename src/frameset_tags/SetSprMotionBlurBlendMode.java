@@ -11,12 +11,8 @@ public class SetSprMotionBlurBlendMode extends FrameTag {
 		this.blendMode = blendMode;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + blendMode.name() + "}";
-	}
-
 	public SetSprMotionBlurBlendMode(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		try {
 			blendMode = BlendMode.valueOf(params[0]);

@@ -80,8 +80,10 @@ public abstract class Sound {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				MediaPlayer mp3;
-				if (mp3s.containsKey(mp3Path2))
+				if (mp3s.containsKey(mp3Path2)) {
 					mp3 = mp3s.get(mp3Path2);
+					mp3.seek(Duration.ZERO);
+				}
 				else
 					mp3 = new MediaPlayer(new Media(file.toURI().toString()));
 				currentMediaPlayer = mp3;
@@ -93,8 +95,6 @@ public abstract class Sound {
 						mp3Timers.remove(mp3);
 					});
 				}
-				else
-					mp3.setOnEndOfMedia(() -> mp3.dispose());
 				mp3.setRate(rate);
 				mp3.setBalance(balance);
 				mp3.setVolume(volume);

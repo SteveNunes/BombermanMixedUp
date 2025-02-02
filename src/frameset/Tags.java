@@ -30,6 +30,7 @@ public class Tags {
 			tag2.deleteMeAfterFirstRead = tag.deleteMeAfterFirstRead;
 			tag2.triggerDelay = tag.triggerDelay;
 			tag2.triggerDelayInFrames = tag.triggerDelayInFrames;
+			tag2.sourceStringTags = tag.sourceStringTags;
 		}
 		rootSprite = tags.rootSprite;
 	}

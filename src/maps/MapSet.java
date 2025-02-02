@@ -681,27 +681,28 @@ public abstract class MapSet {
 				for (int n = 0; n < split.length && n < Brick.totalBricks(); n++) {
 					String[] split2 = split[n].split(":");
 					int n2 = 1, itemType = split2[0].equals("ITEM") ? 0 : split2[0].equals("EGG") ? 1 : 2;
+					int total = split2.length < 3 ? 1 : Integer.parseInt(split2[2]);
 					try {
-						for (; n2 < split2.length; n2++) {
+						for (int i = 0; i < total; i++) {
 							Brick brick = null;
 							do {
 								brick = Brick.getBricks().get((int) MyMath.getRandom(0, Brick.totalBricks() - 1));
 							}
 							while (brick.getItem() != null);
 							if (itemType == 0) {
-								ItemType item = ItemType.getItemById(Integer.parseInt(split2[n2]));
+								ItemType item = ItemType.valueOf(split2[1]);
 								brick.setItem(new Item(brick.getTileCoordFromCenter().getNewInstance(), item));
 							}
 							else if (itemType == 1) {
-								RideType rideType = RideType.valueOf(split2[n2]);
+								RideType rideType = RideType.valueOf(split2[1]);
 								brick.setItem(new Item(brick.getTileCoordFromCenter().getNewInstance(), rideType));
 							}
 							else
-								brick.setItem(new Item(brick.getTileCoordFromCenter().getNewInstance(), Integer.parseInt(split2[n2])));
+								brick.setItem(new Item(brick.getTileCoordFromCenter().getNewInstance(), Integer.parseInt(split2[1])));
 						}
 					}
 					catch (Exception e) {
-						throw new RuntimeException("Error loading item list from map " + mapName + " (" + split2[n2] + ")" + "\n\tReason: " + e.getMessage());
+						throw new RuntimeException("Error loading item list from map " + mapName + " (" + split2[1] + ")" + "\n\tReason: " + e.getMessage());
 					}
 				}
 			}

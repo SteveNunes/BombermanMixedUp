@@ -19,12 +19,8 @@ public class SetFallingBomb extends FrameTag {
 		this.targetCoords = targetCoords == null ? null : new ArrayList<>(targetCoords);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + bombType.name() + ";" + fireDistance + ";" + tileCoord2ListToString(targetCoords) + "}";
-	}
-
 	public SetFallingBomb(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 3)
 			throw new RuntimeException(tags + " - Too much parameters");

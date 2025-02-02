@@ -6,25 +6,15 @@ public class SetFrameSet extends FrameTag {
 
 	public String value;
 
-	public SetFrameSet() {
-		value = "";
-	}
-
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + value + "}";
-	}
-
 	public SetFrameSet(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		value = params[0];
 	}
 
 	@Override
 	public SetFrameSet getNewInstanceOfThis() {
-		SetFrameSet s = new SetFrameSet();
-		s.value = value;
-		return s;
+		return new SetFrameSet(sourceStringTags);
 	}
 
 	@Override

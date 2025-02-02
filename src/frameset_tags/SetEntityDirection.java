@@ -11,12 +11,8 @@ public class SetEntityDirection extends FrameTag {
 		this.direction = direction;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + direction + "}";
-	}
-
 	public SetEntityDirection(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		try {
 			direction = Direction.valueOf(params[0]);

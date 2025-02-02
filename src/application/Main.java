@@ -10,16 +10,24 @@ import gui.GameTikTok;
 import gui.GiftViewer;
 import gui.MapEditor;
 import gui.PalleteEditor;
+import gui.util.ImageUtils;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import player.GameInput;
+import tools.Draw;
 import tools.GameFonts;
 import tools.Materials;
 import tools.Sound;
@@ -52,64 +60,119 @@ public class Main extends Application {
 			stageMain = stage;
 			mainCanvas = null;
 			mainGc = null;
-			Tools.loadStuffs();
-			boolean loadStuffs = true;
+			stageMain.setResizable(false);
+			stageMain.setOnCloseRequest(e -> close());
+			stageMain.setX(0);
+			stageMain.setY(0);
 			if (GAME_MODE == GameMode.COLOR_MIX_EDITOR) {
 				FXMLLoader loader = new FXMLLoader(new File("./src/gui/ColorMixEditorView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				explosionEditor = loader.getController();
 				explosionEditor.init();
-				loadStuffs = false;
 			}
 			else if (GAME_MODE == GameMode.PALLETE_EDITOR) {
 				FXMLLoader loader = new FXMLLoader(new File("./src/gui/PalleteEditorView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				palleteEditor = loader.getController();
 				palleteEditor.init();
-				loadStuffs = false;
 			}
 			else if (GAME_MODE == GameMode.GIFT_VIEWER) {
 				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GiftViewerView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				giftViewer = loader.getController();
 				giftViewer.init();
-				loadStuffs = false;
 			}
-			if (loadStuffs) {
-				Sound.setMasterGain(0.2);
-				Position.setGlobalTileSize(TILE_SIZE);
-				TileCoord.setGlobalTileSize(TILE_SIZE);
-				Materials.loadFromFiles();
-				GameFonts.loadFonts();
-				GameInput.init();
-			}
-			if (GAME_MODE == GameMode.MAP_EDITOR) {
+			else if (GAME_MODE == GameMode.MAP_EDITOR) {
 				FXMLLoader loader = new FXMLLoader(new File("./src/gui/MapEditorView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				mapEditor = loader.getController();
+				stageMain.setScene(sceneMain);
+				stageMain.show();
 				mapEditor.init();
 			}
 			else if (GAME_MODE == GameMode.GAME_TIKTOK) {
 				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GameTikTokView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				gameTikTok = loader.getController();
+				stageMain.setScene(sceneMain);
+				stageMain.show();
 				gameTikTok.init();
 			}
 			else if (GAME_MODE == GameMode.GAME) {
 				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GameView.fxml").toURI().toURL());
 				sceneMain = new Scene(loader.load());
 				game = loader.getController();
+				stageMain.setScene(sceneMain);
+				stageMain.show();
 				game.init();
 			}
-			stageMain.setResizable(false);
-			stageMain.setScene(sceneMain);
-			stageMain.show();
-			stageMain.setOnCloseRequest(e -> close());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 			close();
 		}
+	}
+	
+	public static void playHudsonLoading(Runnable afterFadeIn, Runnable afterFadeOut) {
+		WritableImage image = (WritableImage) ImageUtils.removeBgColor(new Image("file:./appdata/sprites/HUD.png"), Materials.getGreenColor());
+		float[] fade = { 0.0f };
+		final int w = (int) getMainCanvas().getWidth(), h = (int) getMainCanvas().getHeight();
+		Canvas c = new Canvas(w, h);
+		GraphicsContext gc = c.getGraphicsContext2D();
+		gc.setImageSmoothing(false);
+		gc.setFill(Color.WHITE);
+		gc.setGlobalAlpha(1);
+		gc.fillRect(0, 0, w, h);
+		gc.drawImage(image, 544, 828, 154, 28, w / 2 - 77 * getZoom(), h / 2 - 14 * getZoom(), 152 * getZoom(), 28 * getZoom());
+		Image image2 = Draw.getCanvasSnapshot(c);
+		Timeline timeline = new Timeline();
+		timeline.getKeyFrames().add(new KeyFrame(Duration.millis(16), e -> {
+			fade[0] += 0.015;
+			if (fade[0] > 1) {
+				fade[0] = 1;
+				Sound.setMasterGain(0.2);
+				Sound.playWav("/voices/Hudson");
+				Tools.loadStuffs();
+				Materials.loadFromFiles();
+				Position.setGlobalTileSize(TILE_SIZE);
+				TileCoord.setGlobalTileSize(TILE_SIZE);
+				GameFonts.loadFonts();
+				GameInput.init();
+				Platform.runLater(() -> {
+					if (afterFadeIn != null)
+							afterFadeIn.run();
+					else
+						Misc.sleep(2000);
+					Timeline timeline2 = new Timeline();
+					timeline2.getKeyFrames().add(new KeyFrame(Duration.millis(16), ex -> {
+						fade[0] -= 0.015;
+						if (fade[0] < 0) {
+					    timeline2.stop();
+							afterFadeOut.run();
+						}
+						else {
+							mainGc.setFill(Color.BLACK);
+							mainGc.setGlobalAlpha(1);
+							mainGc.fillRect(0, 0, w, h);
+							mainGc.setGlobalAlpha(fade[0]);
+							mainGc.drawImage(image2, 0, 0);
+						}
+					}));
+			    timeline.stop();
+					timeline2.setCycleCount(Timeline.INDEFINITE);
+					timeline2.play();
+				});
+			}
+			else {
+				mainGc.setFill(Color.BLACK);
+				mainGc.setGlobalAlpha(1);
+				mainGc.fillRect(0, 0, w, h);
+				mainGc.setGlobalAlpha(fade[0]);
+				mainGc.drawImage(image2, 0, 0);
+			}
+		}));
+		timeline.setCycleCount(Timeline.INDEFINITE);
+		timeline.play();
 	}
 	
 	public static int getZoom() {
@@ -156,9 +219,9 @@ public class Main extends Application {
 
 	public static void main(String[] args) {
 		if (args.length > 0 && args[0].equals("usedlls")) {
-			System.load(System.getProperty("user.dir") + "/dlls/jinput-wintab.dll");
-			System.load(System.getProperty("user.dir") + "/dlls/jinput-dx8_64.dll");
-			System.load(System.getProperty("user.dir") + "/dlls/jinput-raw_64.dll");
+			System.load(System.getProperty("user.dir") + "\\dlls\\jinput-wintab.dll");
+			System.load(System.getProperty("user.dir") + "\\dlls\\jinput-dx8_64.dll");
+			System.load(System.getProperty("user.dir") + "\\dlls\\jinput-raw_64.dll");
 		}
 		launch(args);
 	}

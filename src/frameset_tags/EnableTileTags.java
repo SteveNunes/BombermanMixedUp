@@ -16,12 +16,8 @@ public class EnableTileTags extends FrameTag {
 		targetLayer = layer;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + targetLayer + ";" + tileCoord2ListToString(targetCoords) + "}";
-	}
-
 	public EnableTileTags(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length < 2)
 			throw new RuntimeException(tags + " - Too few parameters");

@@ -10,12 +10,8 @@ public class SetSprMotionBlurRadius extends FrameTag {
 		this.value = value;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + value + "}";
-	}
-
 	public SetSprMotionBlurRadius(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		try {
 			value = Double.parseDouble(params[0]);

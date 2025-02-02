@@ -34,12 +34,8 @@ public class Goto extends FrameTag {
 		return repeatCycles == 0 || currentRepeatCycle < repeatCycles;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + index + (repeatCycles == 0 ? ("}") : (";" + repeatCycles + "}"));
-	}
-
 	public Goto(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 2)
 			throw new RuntimeException(tags + " - Too much parameters");

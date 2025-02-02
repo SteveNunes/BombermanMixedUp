@@ -19,19 +19,21 @@ public class GameInput {
 	private static Map<JInputEX, BiConsumer <JInputEX, JInputEXComponent>> restoreJInputBiConsumer = new HashMap<>();
 	
 	public static void init() {
-		JXInputEX.setOnJoystickConnectedEvent(x -> {
-			System.out.println(x.getJoystickName() + " foi conectado");
-		});
-		JXInputEX.setOnJoystickDisconnectedEvent(x -> {
-			System.out.println(x.getJoystickName() + " foi desconectado");
-		});
+		loadJoysticks();
+		if (xinputList != null) {
+			JXInputEX.setOnJoystickConnectedEvent(x -> {
+				System.out.println(x.getJoystickName() + " foi conectado");
+			});
+			JXInputEX.setOnJoystickDisconnectedEvent(x -> {
+				System.out.println(x.getJoystickName() + " foi desconectado");
+			});
+		}
 		JInputEX.setOnJoystickConnectedEvent(d -> {
 			System.out.println(d.getName() + " foi conectado");
 		});
 		JInputEX.setOnJoystickDisconnectedEvent(d -> {
 			System.out.println(d.getName() + " foi desconectado");
 		});
-		loadJoysticks();
 	}
 	
 	public static void close() {
@@ -43,12 +45,18 @@ public class GameInput {
 	public static void loadJoysticks() {
 		DurationTimerFX.stopTimer("PoolJoysticksTimer");
 		JInputEX.init();
-		JXInputEX.refreshJoysticks();
-		xinputList = JXInputEX.getJoystickList();
 		dinputList = JInputEX.getJoysticks();
+		try {
+			JXInputEX.refreshJoysticks();
+			xinputList = JXInputEX.getJoystickList();
+		}
+		catch (UnsatisfiedLinkError e) {
+			xinputList = null;
+		}
 		DurationTimerFX.createTimer("PoolJoysticksTimer", Duration.millis(1), 0, () -> {
 			JInputEX.pollAllJoysticks();
-			JXInputEX.pollJoysticks();
+			if (xinputList != null)
+				JXInputEX.pollJoysticks();
 		});
 		refreshJoysticks();
 	}

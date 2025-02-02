@@ -13,12 +13,8 @@ public class SetSprScrolling extends FrameTag {
 		super.deleteMeAfterFirstRead = true;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + incrementX + ";" + incrementY + "}";
-	}
-
 	public SetSprScrolling(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

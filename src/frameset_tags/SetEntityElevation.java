@@ -11,12 +11,8 @@ public class SetEntityElevation extends FrameTag {
 		this.value = value;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + value.name() + "}";
-	}
-
 	public SetEntityElevation(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		try {
 			value = Elevation.valueOf(params[0]);

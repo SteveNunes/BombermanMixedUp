@@ -18,12 +18,8 @@ public class SetEntityShadow extends FrameTag {
 		this.opacity = opacity;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + offsetX + ";" + offsetY + ";" + width + ";" + height + ";" + opacity + "}";
-	}
-
 	public SetEntityShadow(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 5)
 			throw new RuntimeException(tags + " - Too much parameters");

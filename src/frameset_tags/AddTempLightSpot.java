@@ -23,12 +23,8 @@ public class AddTempLightSpot extends FrameTag {
 		this.radiusInc = radiusInc;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + x + ";" + y + ";" + xVariance + ";" + yVariance + ";" + minRadius + ";" + maxRadius + ";" + radiusInc + "}";
-	}
-
 	public AddTempLightSpot(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 7);
 		int n = 0;
 		try {

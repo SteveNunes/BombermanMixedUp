@@ -24,19 +24,8 @@ public class MoveEntity extends FrameTag {
 		this.colideTypes = colideType == null ? null : new HashSet<>(colideType);
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder sb = colideTypes == null ? null : new StringBuilder();
-		if (sb != null)
-			for (FindType ft : colideTypes) {
-				if (!sb.isEmpty())
-					sb.append(":");
-				sb.append(ft.name());
-			}
-		return "{" + getClassName(this) + ";" + speed + ";" + onColideTrigger + ";" + sb.toString() + "}";
-	}
-
 	public MoveEntity(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 3)
 			throw new RuntimeException(tags + " - Too much parameters");
@@ -56,7 +45,7 @@ public class MoveEntity extends FrameTag {
 						onColideTrigger = params[n];
 					}
 				}
-				if (params.length <= 2)
+				if (params.length <= 2 || params[n = 2].equals("-"))
 					colideTypes = null;
 				else {
 					String[] split = params[n = 2].split(":");

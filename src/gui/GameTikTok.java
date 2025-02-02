@@ -48,6 +48,8 @@ import io.github.jwdeveloper.tiktok.exceptions.TikTokLiveRequestException;
 import io.github.jwdeveloper.tiktok.exceptions.TikTokLiveUnknownHostException;
 import io.github.jwdeveloper.tiktok.exceptions.TikTokSignServerException;
 import io.github.jwdeveloper.tiktok.live.LiveClient;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
@@ -133,23 +135,31 @@ public class GameTikTok {
 	private List<String> alreadyShared = new LinkedList<>();
 	
 	public void init() {
-		setBasics();
-		loadGiftList();
-		loadUserPics();
-		loadConfigs();
-		loadLiveEvents();
-		setEvents();
-		loadMap();
-		restoreFixedBomberMansFromIni();
-		setJoysticksOnDisconnectEvents();
-		if (connectToLive)
-			startTikTokEvents();
-		mainLoop();
+		setCanvas();
+		Main.playHudsonLoading(
+				() -> {
+					setBasics();
+					loadGiftList();
+					loadUserPics();
+					loadConfigs();
+					loadLiveEvents();
+					setEvents();
+					if (connectToLive)
+						startTikTokEvents();
+					loadMap();
+					restoreFixedBomberMansFromIni();
+					setJoysticksOnDisconnectEvents();
+				},
+				() -> {
+					gcMain.setGlobalAlpha(1);
+					mainLoop();
+				}
+		);
 	}
 	
 	void mainLoop() {
-		try {
-			Tools.getFPSHandler().fpsCounter();
+		Timeline timeline = new Timeline();
+		timeline.getKeyFrames().add(new KeyFrame(Duration.millis(16), e -> {
 			MapSet.run();
 			Draw.applyAllDraws(canvasMain, Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
 			drawScores();
@@ -170,17 +180,11 @@ public class GameTikTok {
 						Draw.markTile(founds.get(0).getCoord(), founds.get(0).getFoundType() == FindType.BAD_ITEM ? Color.RED : Color.LIGHTGREEN);
 				}
 			}
-			if (!Main.close)
-				Platform.runLater(() -> {
-					String title = "BomberMan Mixed Up!     FPS: " + Tools.getFPSHandler().getFPS() + "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
-					Main.stageMain.setTitle(title);
-					mainLoop();
-				});
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			Main.close();
-		}
+			if (Main.close)
+				timeline.stop();
+		}));
+		timeline.setCycleCount(Timeline.INDEFINITE);
+		timeline.play();
 	}
 
 	private void loadLiveEvents() {
@@ -378,7 +382,7 @@ public class GameTikTok {
 			}
 	}
 	
-	private void setZoom() {
+	private void setCanvas() {
 		if (maxZoom) {
 			Main.setZoom(8);
 			canvasMain.setWidth(16 * 8 * 4);
@@ -391,13 +395,12 @@ public class GameTikTok {
 		}
 		Main.stageMain.setWidth(canvasMain.getWidth() + 10);
 		Main.stageMain.setHeight(canvasMain.getHeight() + 30);
-	}
-	
-	private void setBasics() {
-		setZoom();
 		Main.setMainCanvas(canvasMain);
 		gcMain = canvasMain.getGraphicsContext2D();
 		gcMain.setImageSmoothing(false);
+	}
+	
+	private void setBasics() {
 		liveClient = null;
 		reconnectionIsDisabled = false;
 		showBlockMarks = 0;
@@ -570,7 +573,7 @@ public class GameTikTok {
 					}
 					else {
 						maxZoom = !maxZoom;
-						setZoom();
+						setCanvas();
 					}
 				}
 				if (e.getCode() == KeyCode.P) {

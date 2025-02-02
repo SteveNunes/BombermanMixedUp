@@ -14,12 +14,8 @@ public class SetJumpMove extends FrameTag {
 		this.durationFrames = durationFrames;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + jumpStrenght + ";" + strenghtMultipiler + ";" + durationFrames + "}";
-	}
-
 	public SetJumpMove(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 3);
 		int n = 0;
 		try {

@@ -4,20 +4,14 @@ import frameset.Sprite;
 
 public class DisableEntity extends FrameTag {
 
-	public DisableEntity() {}
-
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public DisableEntity(String tags) {
+		sourceStringTags = tags;
 		validateStringTags(this, tags, 0);
 	}
 
 	@Override
 	public DisableEntity getNewInstanceOfThis() {
-		return new DisableEntity();
+		return new DisableEntity(sourceStringTags);
 	}
 
 	@Override

@@ -10,6 +10,8 @@ import enums.CpuDificult;
 import enums.GameInput;
 import enums.GameInputMode;
 import gui.util.Alerts;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -28,7 +30,6 @@ import javafx.util.Duration;
 import maps.MapSet;
 import player.Player;
 import tools.Draw;
-import tools.Tools;
 import util.DurationTimerFX;
 
 public class Game {
@@ -47,6 +48,14 @@ public class Game {
 		canvasMain.setWidth(WIN_W * Main.getZoom());
 		canvasMain.setHeight(WIN_H * Main.getZoom());
 		Main.setMainCanvas(canvasMain);
+		Main.playHudsonLoading(
+				() -> {
+					
+				},
+				() -> {
+					
+				}
+		);
 		gcMain = canvasMain.getGraphicsContext2D();
 		gcMain.setImageSmoothing(false);
 		holdedKeys = new ArrayList<>();
@@ -182,21 +191,15 @@ public class Game {
 	}
 
 	void mainLoop() {
-		try {
-			Tools.getFPSHandler().fpsCounter();
+		Timeline timeline = new Timeline();
+		timeline.getKeyFrames().add(new KeyFrame(Duration.millis(16), e -> {
 			MapSet.run();
 			Draw.applyAllDraws(canvasMain, Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
-			if (!Main.close)
-				Platform.runLater(() -> {
-					String title = "BomberMan Mixed Up!     FPS: " + Tools.getFPSHandler().getFPS() + "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
-					Main.stageMain.setTitle(title);
-					mainLoop();
-				});
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			Main.close();
-		}
+			if (Main.close)
+				timeline.stop();
+		}));
+		timeline.setCycleCount(Timeline.INDEFINITE);
+		timeline.play();
 	}
 
 	boolean isHold(int shift, int ctrl, int alt) {

@@ -11,12 +11,8 @@ public class SetMapLayerIndex extends FrameTag {
 		this.increment = increment;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + increment + "}";
-	}
-
 	public SetMapLayerIndex(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		try {
 			increment = Integer.parseInt(params[0]);

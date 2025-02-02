@@ -12,12 +12,8 @@ public class SetGhosting extends FrameTag {
 		this.ghostingOpacityDec = ghostingOpacityDec;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + ghostingDistance + ";" + ghostingOpacityDec + "}";
-	}
-
 	public SetGhosting(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

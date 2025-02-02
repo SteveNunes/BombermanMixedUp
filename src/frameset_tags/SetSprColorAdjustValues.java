@@ -21,12 +21,8 @@ public class SetSprColorAdjustValues extends FrameTag {
 		this(hue, saturation, brightness, BlendMode.SRC_ATOP);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + hue + ";" + saturation + ";" + brightness + ";" + blendMode.name() + "}";
-	}
-
 	public SetSprColorAdjustValues(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 4);
 		int n = 0;
 		try {

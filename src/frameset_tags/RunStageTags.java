@@ -6,22 +6,16 @@ import maps.MapSet;
 public class RunStageTags extends FrameTag {
 
 	public String stageTagsName;
-	public String tags;
-
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + stageTagsName + "}";
-	}
 
 	public RunStageTags(String tags) {
-		this.tags = tags;
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		stageTagsName = params[0];
 	}
 
 	@Override
 	public RunStageTags getNewInstanceOfThis() {
-		return new RunStageTags(tags);
+		return new RunStageTags(sourceStringTags);
 	}
 
 	@Override

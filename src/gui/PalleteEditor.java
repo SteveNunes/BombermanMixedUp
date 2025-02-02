@@ -14,7 +14,8 @@ import gui.util.Alerts;
 import gui.util.ControllerUtils;
 import gui.util.ImageUtils;
 import gui.util.ListenerHandle;
-import javafx.application.Platform;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
@@ -37,6 +38,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import tools.Draw;
 import tools.Materials;
 import tools.Tools;
@@ -313,26 +315,30 @@ public class PalleteEditor {
 	}
 	
 	private void drawMainCanvas() {
-		if (originalSprite != null) {
-			updateCurrentSprite();
-			gcMain.setFill(Materials.getGreenColor());
-			gcMain.fillRect(0, 0, canvasMain.getWidth(), canvasMain.getHeight());
-			gcMain.drawImage(showOriginal ? originalSprite : currentSprite, 0, 0, (int)currentSprite.getWidth(), (int)currentSprite.getHeight(), 0, 0, (int)currentSprite.getWidth() * 3, (int)currentSprite.getHeight() * 3);
-			if (pickingColorImageView != null) {
-				int x = (int)mousePosition.getX(), y = (int)mousePosition.getY();
-				Color color = originalSprite.getPixelReader().getColor(x / 3, y / 3);
-				pickingColorImageView.setImage(getColoredSquare(color));
-				gcMain.setStroke(Color.BLACK);
-				gcMain.setLineWidth(4);
+		Timeline timeline = new Timeline();
+		timeline.getKeyFrames().add(new KeyFrame(Duration.millis(16), e -> {
+			if (originalSprite != null) {
+				updateCurrentSprite();
 				gcMain.setFill(Materials.getGreenColor());
-				gcMain.fillRect(x - 150, y - 150, 300, 300);
-				gcMain.drawImage(originalSprite, x / 3 - 15, y / 3 - 15, 30, 30, x - 150, y - 150, 300, 300);
-				gcMain.strokeRect(x - 150, y - 150, 300, 300);
+				gcMain.fillRect(0, 0, canvasMain.getWidth(), canvasMain.getHeight());
+				gcMain.drawImage(showOriginal ? originalSprite : currentSprite, 0, 0, (int)currentSprite.getWidth(), (int)currentSprite.getHeight(), 0, 0, (int)currentSprite.getWidth() * 3, (int)currentSprite.getHeight() * 3);
+				if (pickingColorImageView != null) {
+					int x = (int)mousePosition.getX(), y = (int)mousePosition.getY();
+					Color color = originalSprite.getPixelReader().getColor(x / 3, y / 3);
+					pickingColorImageView.setImage(getColoredSquare(color));
+					gcMain.setStroke(Color.BLACK);
+					gcMain.setLineWidth(4);
+					gcMain.setFill(Materials.getGreenColor());
+					gcMain.fillRect(x - 150, y - 150, 300, 300);
+					gcMain.drawImage(originalSprite, x / 3 - 15, y / 3 - 15, 30, 30, x - 150, y - 150, 300, 300);
+					gcMain.strokeRect(x - 150, y - 150, 300, 300);
+				}
 			}
-		}
-		Tools.getFPSHandler().fpsCounter();
-		if (!Main.close)
-			Platform.runLater(() -> drawMainCanvas());
+			if (Main.close)
+				timeline.stop();
+		}));
+		timeline.setCycleCount(Timeline.INDEFINITE);
+		timeline.play();
 	}
 
 	private List<Color> originalPallete() {

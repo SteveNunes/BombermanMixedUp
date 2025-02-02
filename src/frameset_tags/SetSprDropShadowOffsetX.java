@@ -10,12 +10,8 @@ public class SetSprDropShadowOffsetX extends FrameTag {
 		this.value = value;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + value + "}";
-	}
-
 	public SetSprDropShadowOffsetX(String tags) {
+		sourceStringTags = tags;
 
 		String[] params = validateStringTags(this, tags, 1);
 		try {

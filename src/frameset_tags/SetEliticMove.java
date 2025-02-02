@@ -21,12 +21,8 @@ public class SetEliticMove extends FrameTag {
 		this.speed = speed;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + orientation.name() + ";" + radiusW + ";" + radiusH + ";" + initialAngle + ";" + speed + "}";
-	}
-
 	public SetEliticMove(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 5)
 			throw new RuntimeException(tags + " - Too much parameters");

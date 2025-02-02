@@ -4,23 +4,14 @@ import frameset.Sprite;
 
 public class UnsetGhosting extends FrameTag {
 
-	public String tags;
-	
-	public UnsetGhosting() {}
-	
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public UnsetGhosting(String tags) {
-		validateStringTags(this, tags);
-		this.tags = tags;
+		sourceStringTags = tags;
+		validateStringTags(this, tags, 0);
 	}
-
+	
 	@Override
 	public UnsetGhosting getNewInstanceOfThis() {
-		return new UnsetGhosting(tags);
+		return new UnsetGhosting(sourceStringTags);
 	}
 
 	@Override

@@ -12,12 +12,8 @@ public class IncOriginSprPos extends FrameTag {
 		this.incrementY = incrementY;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + incrementX + ";" + incrementY + "}";
-	}
-
 	public IncOriginSprPos(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

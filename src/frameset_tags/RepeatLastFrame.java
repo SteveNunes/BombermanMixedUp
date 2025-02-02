@@ -27,12 +27,8 @@ public class RepeatLastFrame extends FrameTag {
 		return repeatCycles == 0 || currentRepeatCycle < repeatCycles;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + (repeatCycles == 0 ? ("}") : (";" + repeatCycles + "}"));
-	}
-
 	public RepeatLastFrame(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 1)
 			throw new RuntimeException(tags + " - Too much parameters");

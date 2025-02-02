@@ -5,23 +5,14 @@ import frameset.Sprite;
 
 public class ReviveAllBomberMansAndClearTheirItens extends FrameTag {
 
-	public String tags;
-	
-	public ReviveAllBomberMansAndClearTheirItens() {}
-	
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public ReviveAllBomberMansAndClearTheirItens(String tags) {
-		validateStringTags(this, tags);
-		this.tags = tags;
+		sourceStringTags = tags;
+		validateStringTags(this, tags, 0);
 	}
-
+	
 	@Override
 	public ReviveAllBomberMansAndClearTheirItens getNewInstanceOfThis() {
-		return new ReviveAllBomberMansAndClearTheirItens(tags);
+		return new ReviveAllBomberMansAndClearTheirItens(sourceStringTags);
 	}
 
 	@Override

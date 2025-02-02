@@ -28,12 +28,8 @@ public class SetJumpingBomb extends FrameTag {
 		this.targetCoords = new ArrayList<>(targetCoords);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + bombType.name() + ";" + fireDistance + ";" + jumpStrenght + ";" + strenghtMultipiler + ";" + durationFrames + ";" + tileCoord2ListToString(initialCoords) + ";" + tileCoord2ListToString(targetCoords) + "}";
-	}
-
 	public SetJumpingBomb(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 7)
 			throw new RuntimeException(tags + " - Too much parameters");

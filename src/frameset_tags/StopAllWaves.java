@@ -5,23 +5,14 @@ import tools.Sound;
 
 public class StopAllWaves extends FrameTag {
 
-	public String tags;
-	
-	public StopAllWaves() {}
-	
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public StopAllWaves(String tags) {
-		validateStringTags(this, tags);
-		this.tags = tags;
+		sourceStringTags = tags;
+		validateStringTags(this, tags, 0);
 	}
-
+	
 	@Override
 	public StopAllWaves getNewInstanceOfThis() {
-		return new StopAllWaves(tags);
+		return new StopAllWaves(sourceStringTags);
 	}
 
 	@Override

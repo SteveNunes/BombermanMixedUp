@@ -5,23 +5,14 @@ import maps.MapSet;
 
 public class SetStageObjectiveAsClear extends FrameTag {
 
-	public String tags;
-	
-	public SetStageObjectiveAsClear() {}
-	
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public SetStageObjectiveAsClear(String tags) {
-		validateStringTags(this, tags);
-		this.tags = tags;
+		sourceStringTags = tags;
+		validateStringTags(this, tags, 0);
 	}
-
+	
 	@Override
 	public SetStageObjectiveAsClear getNewInstanceOfThis() {
-		return new SetStageObjectiveAsClear(tags);
+		return new SetStageObjectiveAsClear(sourceStringTags);
 	}
 
 	@Override

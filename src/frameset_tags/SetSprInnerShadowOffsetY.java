@@ -10,12 +10,8 @@ public class SetSprInnerShadowOffsetY extends FrameTag {
 		this.value = value;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + value + "}";
-	}
-
 	public SetSprInnerShadowOffsetY(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		try {
 			value = Integer.parseInt(params[0]);

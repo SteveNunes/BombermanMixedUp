@@ -19,18 +19,8 @@ public class AddTileProp extends FrameTag {
 		targetLayer = layer;
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		for (TileProp prop : tileProps) {
-			if (sb.isEmpty())
-				sb.append("!");
-			sb.append(prop.name());
-		}
-		return "{" + getClassName(this) + ";" + targetLayer + ";" + sb.toString() + ";" + tileCoord2ListToString(targetCoords) + "}";
-	}
-
 	public AddTileProp(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length < 3)
 			throw new RuntimeException(tags + " - Too few parameters");

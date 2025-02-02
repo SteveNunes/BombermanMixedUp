@@ -24,12 +24,8 @@ public class SetDamageBox extends FrameTag {
 		this.soundWhenHits = soundWhenHits;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + (damageType == null ? "-" : damageType.name()) + ";" + (variant == null ? "-" : variant) + ";" + (triggerTargetFrameSet == null ? "-" : triggerTargetFrameSet) + ";" + forceTargetDirection.name() + ";" + damageRectangle.getX() + ";" + damageRectangle.getY() + ";" + damageRectangle.getWidth() + ";" + damageRectangle.getHeight() + ";" + (soundWhenHits == null ? "-" : soundWhenHits) + "}";
-	}
-
 	public SetDamageBox(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 9)
 			throw new RuntimeException(tags + " - Too much parameters");

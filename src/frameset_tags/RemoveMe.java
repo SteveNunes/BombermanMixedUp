@@ -11,23 +11,14 @@ import maps.Item;
 
 public class RemoveMe extends FrameTag {
 
-	public String tags;
-	
-	public RemoveMe() {}
-	
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public RemoveMe(String tags) {
-		validateStringTags(this, tags);
-		this.tags = tags;
+		sourceStringTags = tags;
+		validateStringTags(this, tags, 0);
 	}
-
+	
 	@Override
 	public RemoveMe getNewInstanceOfThis() {
-		return new RemoveMe(tags);
+		return new RemoveMe(sourceStringTags);
 	}
 
 	@Override

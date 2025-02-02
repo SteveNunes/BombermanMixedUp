@@ -23,12 +23,8 @@ public class PushEntity extends FrameTag {
 		this.soundWhenHits = soundWhenHits;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + startStrenght + ";" + (decStrenght == null ? "-" : decStrenght) + ";" + direction + ";" + targetTile.getOriginalTag() + ";" + triggerSound + ";" + soundWhenHits + "}";
-	}
-
 	public PushEntity(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 7)
 			throw new RuntimeException(tags + " - Too much parameters");

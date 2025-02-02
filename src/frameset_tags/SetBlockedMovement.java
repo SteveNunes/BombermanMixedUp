@@ -10,12 +10,8 @@ public class SetBlockedMovement extends FrameTag {
 		this.value = value;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + value + "}";
-	}
-
 	public SetBlockedMovement(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 1)
 			throw new RuntimeException(tags + " - Too much parameters");

@@ -39,13 +39,8 @@ public class SetSprSource extends FrameTag {
 		this(spriteSourceName, originSprSizePos, new Rectangle(0, 0, (int) originSprSizePos.getWidth(), (int) originSprSizePos.getHeight()), 0, 0);
 	}
 
-	@Override
-	public String toString() {
-		int sx = (int) originSprSizePos.getX(), sy = (int) originSprSizePos.getY(), sw = (int) originSprSizePos.getWidth(), sh = (int) originSprSizePos.getHeight(), tx = (int) outputSprSizePos.getX(), ty = (int) outputSprSizePos.getY(), tw = (int) outputSprSizePos.getWidth(), th = (int) outputSprSizePos.getHeight();
-		return "{" + getClassName(this) + ";" + spriteSourceName + ";" + +sx + ";" + sy + ";" + sw + ";" + sh + ";" + spriteIndex + ";" + spritesPerLine + ";" + tx + ";" + ty + ";" + tw + ";" + th + "}";
-	}
-
 	public SetSprSource(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		originalSpriteSourceName = params[0];
 		spriteSourceName = null;

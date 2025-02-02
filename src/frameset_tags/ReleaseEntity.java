@@ -5,20 +5,14 @@ import frameset.Sprite;
 
 public class ReleaseEntity extends FrameTag {
 
-	public ReleaseEntity() {}
-
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public ReleaseEntity(String tags) {
+		sourceStringTags = tags;
 		validateStringTags(this, tags, 0);
 	}
 
 	@Override
 	public ReleaseEntity getNewInstanceOfThis() {
-		return new ReleaseEntity();
+		return new ReleaseEntity(sourceStringTags);
 	}
 
 	@Override

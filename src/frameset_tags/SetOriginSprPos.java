@@ -12,12 +12,8 @@ public class SetOriginSprPos extends FrameTag {
 		this.y = y;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + x + ";" + y + "}";
-	}
-
 	public SetOriginSprPos(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

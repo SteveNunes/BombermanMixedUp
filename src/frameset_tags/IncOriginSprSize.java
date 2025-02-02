@@ -12,12 +12,8 @@ public class IncOriginSprSize extends FrameTag {
 		this.incrementHeight = incrementHeight;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + incrementWidth + ";" + incrementHeight + "}";
-	}
-
 	public IncOriginSprSize(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

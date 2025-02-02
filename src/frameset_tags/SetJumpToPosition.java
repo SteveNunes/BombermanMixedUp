@@ -16,12 +16,8 @@ public class SetJumpToPosition extends FrameTag {
 		this.target = target == null ? null : new Position2(target);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + jumpStrenght + ";" + strenghtMultipiler + ";" + durationFrames + ";" + target.getOriginalTag() + "}";
-	}
-
 	public SetJumpToPosition(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 4)
 			throw new RuntimeException(tags + " - Too much parameters");

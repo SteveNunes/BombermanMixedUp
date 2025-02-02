@@ -13,12 +13,8 @@ public class PunchBrickInFront extends FrameTag {
 		this.punchSound = punchSound;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public PunchBrickInFront(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 1)
 			throw new RuntimeException(tags + " - Too much parameters");

@@ -4,20 +4,14 @@ import frameset.Sprite;
 
 public class DecSprFlip extends FrameTag {
 
-	public DecSprFlip() {}
-
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public DecSprFlip(String tags) {
+		sourceStringTags = tags;
 		validateStringTags(this, tags, 0);
 	}
 
 	@Override
 	public DecSprFlip getNewInstanceOfThis() {
-		return new DecSprFlip();
+		return new DecSprFlip(sourceStringTags);
 	}
 
 	@Override

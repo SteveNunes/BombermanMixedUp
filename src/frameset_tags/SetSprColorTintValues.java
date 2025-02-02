@@ -31,12 +31,8 @@ public class SetSprColorTintValues extends FrameTag {
 		this(red, green, blue, 1, BlendMode.SRC_ATOP);
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + red + ";" + green + ";" + blue + ";" + alpha + ";" + blendMode.name() + "}";
-	}
-
 	public SetSprColorTintValues(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 5);
 		int n = 0;
 		try {

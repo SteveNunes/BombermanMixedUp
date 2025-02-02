@@ -32,7 +32,8 @@ import frameset.Tags;
 import gui.util.Alerts;
 import gui.util.ControllerUtils;
 import gui.util.ListenerHandle;
-import javafx.application.Platform;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
@@ -59,6 +60,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 import javafx.util.Pair;
 import maps.Brick;
 import maps.Item;
@@ -234,6 +236,17 @@ public class MapEditor {
 	private int clickToSetNewInitialCoord;
 
 	public void init() {
+		canvasMain.setWidth(320 * Main.getZoom() - 16 * Main.getZoom() * 3);
+		canvasMain.setHeight(240 * Main.getZoom() - 16 * Main.getZoom());
+		Main.setMainCanvas(canvasMain);
+		Main.playHudsonLoading(
+				() -> {
+					
+				},
+				() -> {
+					
+				}
+		);
 		canvasMouseDraw = new CanvasMouse(true);
 		canvasMouseTileSet = new CanvasMouse();
 		tileSelection = new Rectangle(0, 0, 1, 1);
@@ -260,9 +273,6 @@ public class MapEditor {
 		copyTags = null;
 		itemType = ItemType.BOMB_UP;
 		bombType = BombType.NORMAL;
-		canvasMain.setWidth(320 * Main.getZoom() - 16 * Main.getZoom() * 3);
-		canvasMain.setHeight(240 * Main.getZoom() - 16 * Main.getZoom());
-		Main.setMainCanvas(canvasMain);
 		listenerHandleComboBoxMapFrameSets = new ListenerHandle<>(comboBoxMapFrameSets.valueProperty(), (o, oldValue, newValue) -> MapSet.mapFrameSets.setFrameSet(comboBoxMapFrameSets.getSelectionModel().getSelectedItem()));
 		BomberMan.addBomberMan(1, 0);
 		Player.addPlayer();
@@ -453,21 +463,15 @@ public class MapEditor {
 	}
 
 	void mainLoop() {
-		try {
+		Timeline timeline = new Timeline();
+		timeline.getKeyFrames().add(new KeyFrame(Duration.millis(16), e -> {
 			drawDrawCanvas();
 			drawMainCanvas();
-			Tools.getFPSHandler().fpsCounter();
-			if (!Main.close)
-				Platform.runLater(() -> {
-					String title = "Map Editor" + "     FPS: " + Tools.getFPSHandler().getFPS() + "     " + canvasMouseDraw.tileCoord + "     " + canvasMouseDraw.tileCoord.getPosition() + "     (Sprites: " + (getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord) == null ? "0" : getCurrentLayer().getTilesFromCoord(canvasMouseDraw.tileCoord).size()) + "," + "     " + (MapSet.tileIsFree(canvasMouseDraw.tileCoord) ? "FREE" : "BRICKED") + ")" + "     Zoom: x" + Main.getZoom() + "     Tileset Zoom: x" + zoomTileSet + "     Sobrecarga: " + Tools.getFPSHandler().getFreeTaskTicks();
-					Main.stageMain.setTitle(title);
-					mainLoop();
-				});
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			Main.close();
-		}
+			if (Main.close)
+				timeline.stop();
+		}));
+		timeline.setCycleCount(Timeline.INDEFINITE);
+		timeline.play();
 	}
 
 	void saveCtrlZ() {

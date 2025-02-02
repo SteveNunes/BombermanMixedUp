@@ -19,11 +19,17 @@ public abstract class FrameTag {
 	public boolean deleteMeAfterFirstRead = false;
 	public Integer triggerDelayInFrames = null;
 	public Duration triggerDelay = null;
+	public String sourceStringTags;
 	Map<String, Double> vars = new HashMap<>();
 
 	public abstract FrameTag getNewInstanceOfThis();
 
 	public abstract void process(Sprite sprite);
+	
+	@Override
+	public String toString() {
+		return sourceStringTags;
+	}
 
 	public Integer getTriggerDelayInFrames() {
 		return triggerDelayInFrames;

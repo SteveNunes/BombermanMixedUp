@@ -14,12 +14,8 @@ public class IncSwitchValue extends FrameTag {
 		super.deleteMeAfterFirstRead = true;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + switchName + ";" + incValue + "}";
-	}
-
 	public IncSwitchValue(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

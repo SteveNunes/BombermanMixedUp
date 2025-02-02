@@ -11,12 +11,8 @@ public class SetMultiSprIndexByDirection extends FrameTag {
 		super.deleteMeAfterFirstRead = true;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + values[0] + ";" + values[1] + ";" + values[2] + ";" + values[3] + "}";
-	}
-
 	public SetMultiSprIndexByDirection(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 4);
 		values = new int[4];
 		int n = 0;

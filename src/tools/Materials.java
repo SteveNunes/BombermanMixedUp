@@ -41,7 +41,7 @@ public abstract class Materials {
 	public static Map<String, WritableImage> loadedSprites;
 	public static Map<String, WritableImage> tempSprites;
 	private static Color greenColor = Color.valueOf("#03E313");
-
+	
 	public static Color getGreenColor() {
 		return greenColor;
 	}

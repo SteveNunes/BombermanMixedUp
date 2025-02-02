@@ -10,12 +10,8 @@ public class SetSprIndex extends FrameTag {
 		this.value = value;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + (value == null ? "-" : value) + "}";
-	}
-
 	public SetSprIndex(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		try {
 			value = params[0].equals("-") ? null : Integer.parseInt(params[0]);

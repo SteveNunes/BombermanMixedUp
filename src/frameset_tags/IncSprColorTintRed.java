@@ -10,12 +10,8 @@ public class IncSprColorTintRed extends FrameTag {
 		this.increment = increment;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + increment + "}";
-	}
-
 	public IncSprColorTintRed(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 1);
 		try {
 			increment = Double.parseDouble(params[0]);

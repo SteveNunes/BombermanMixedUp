@@ -14,12 +14,8 @@ public class SetSwitchValue extends FrameTag {
 		super.deleteMeAfterFirstRead = true;
 	}
 
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + ";" + switchName + ";" + value + "}";
-	}
-
 	public SetSwitchValue(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags, 2);
 		int n = 0;
 		try {

@@ -17,8 +17,6 @@ import enums.Elevation;
 import enums.FindInRectType;
 import enums.FindType;
 import enums.PassThrough;
-import enums.TileProp;
-import gameutil.FPSHandler;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -36,15 +34,8 @@ import util.CollectionUtils;
 
 public abstract class Tools {
 
-	private static FPSHandler fpsHandler;
-
 	public static void loadStuffs() {
-		fpsHandler = new FPSHandler(60);
 		Draw.loadStuffs();
-	}
-
-	public static FPSHandler getFPSHandler() {
-		return fpsHandler;
 	}
 
 	public static void iterateInsideCircleArea(TileCoord center, int radius, Consumer<TileCoord> consumer) {

@@ -14,14 +14,8 @@ public class ExplodeBomb extends FrameTag {
 		this.targetCoords = targetCoords == null ? null : new ArrayList<>(targetCoords);
 	}
 
-	@Override
-	public String toString() {
-		if (targetCoords == null)
-			return "{" + getClassName(this) + ";" + tileCoord2ListToString(targetCoords) + "}";
-		return "{" + getClassName(this) + "}";
-	}
-
 	public ExplodeBomb(String tags) {
+		sourceStringTags = tags;
 		String[] params = validateStringTags(this, tags);
 		if (params.length > 1)
 			throw new RuntimeException(tags + " - Too few parameters");

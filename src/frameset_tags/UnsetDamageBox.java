@@ -4,23 +4,14 @@ import frameset.Sprite;
 
 public class UnsetDamageBox extends FrameTag {
 
-	public String tags;
-	
-	public UnsetDamageBox() {}
-	
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public UnsetDamageBox(String tags) {
-		validateStringTags(this, tags);
-		this.tags = tags;
+		sourceStringTags = tags;
+		validateStringTags(this, tags, 0);
 	}
-
+	
 	@Override
 	public UnsetDamageBox getNewInstanceOfThis() {
-		return new UnsetDamageBox(tags);
+		return new UnsetDamageBox(sourceStringTags);
 	}
 
 	@Override

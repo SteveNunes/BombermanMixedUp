@@ -5,23 +5,14 @@ import frameset.Sprite;
 
 public class SoftResetAllBomberMansAfterMapChange extends FrameTag {
 
-	public String tags;
-	
-	public SoftResetAllBomberMansAfterMapChange() {}
-	
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public SoftResetAllBomberMansAfterMapChange(String tags) {
-		validateStringTags(this, tags);
-		this.tags = tags;
+		sourceStringTags = tags;
+		validateStringTags(this, tags, 0);
 	}
-
+	
 	@Override
 	public SoftResetAllBomberMansAfterMapChange getNewInstanceOfThis() {
-		return new SoftResetAllBomberMansAfterMapChange(tags);
+		return new SoftResetAllBomberMansAfterMapChange(sourceStringTags);
 	}
 
 	@Override

@@ -6,23 +6,14 @@ import frameset.Sprite;
 
 public class SetLinedBombsInFront extends FrameTag {
 
-	public String tags;
-	
-	public SetLinedBombsInFront() {}
-	
-	@Override
-	public String toString() {
-		return "{" + getClassName(this) + "}";
-	}
-
 	public SetLinedBombsInFront(String tags) {
-		validateStringTags(this, tags);
-		this.tags = tags;
+		sourceStringTags = tags;
+		validateStringTags(this, tags, 0);
 	}
-
+		
 	@Override
 	public SetLinedBombsInFront getNewInstanceOfThis() {
-		return new SetLinedBombsInFront(tags);
+		return new SetLinedBombsInFront(sourceStringTags);
 	}
 
 	@Override
