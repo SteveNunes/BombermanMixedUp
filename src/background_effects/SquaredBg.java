@@ -1,6 +1,6 @@
 package background_effects;
 
-import java.security.SecureRandom;
+import java.util.concurrent.ThreadLocalRandom;
 
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
@@ -69,9 +69,9 @@ public class SquaredBg implements BackgroundEffect {
 		this.colorIncVal = colorIncVal;
 		int r, g, b;
 		do {
-			r = new SecureRandom().nextInt(2);
-			g = new SecureRandom().nextInt(2);
-			b = new SecureRandom().nextInt(2);
+			r = ThreadLocalRandom.current().nextInt(2);
+			g = ThreadLocalRandom.current().nextInt(2);
+			b = ThreadLocalRandom.current().nextInt(2);
 			this.rgb = rgb == null ? new int[] { r, g, b } : rgb;
 		}
 		while (r == 0 && g == 0 && b == 0);

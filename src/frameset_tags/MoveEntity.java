@@ -9,6 +9,7 @@ import enums.FindType;
 import frameset.Sprite;
 import objmoveutils.TileCoord;
 import tools.Tools;
+import util.Misc;
 
 public class MoveEntity extends FrameTag {
 
@@ -55,6 +56,7 @@ public class MoveEntity extends FrameTag {
 				}
 			}
 			catch (Exception e) {
+	    	Misc.addErrorOnLog(e, ".\\errors.log");
 				throw new RuntimeException(params[n] + " - Invalid parameter");
 			}
 		}

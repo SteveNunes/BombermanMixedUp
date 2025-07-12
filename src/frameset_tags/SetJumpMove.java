@@ -1,6 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
+import util.Misc;
 
 public class SetJumpMove extends FrameTag {
 
@@ -24,6 +25,7 @@ public class SetJumpMove extends FrameTag {
 			durationFrames = Integer.parseInt(params[n++]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

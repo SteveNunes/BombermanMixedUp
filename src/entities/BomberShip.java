@@ -198,7 +198,8 @@ public class BomberShip {
 	public void disableBomberShip() {
 		if (!bomberMan.getCurrentFrameSetName().substring(11, 18).equals("Leaving")) {
 			Direction dir = getDirectionFromCurrentTileProp();
-			bomberMan.setFrameSet("BomberShip.Leaving_" + dir.name());
+			if (dir != null)
+				bomberMan.setFrameSet("BomberShip.Leaving_" + dir.name());
 		}
 	}
 	

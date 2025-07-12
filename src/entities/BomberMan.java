@@ -14,10 +14,13 @@ import enums.CpuDificult;
 import enums.Curse;
 import enums.Direction;
 import enums.Elevation;
+import enums.FindType;
+import enums.FindTypeRestriction;
 import enums.GameInput;
 import enums.ImageFlip;
 import enums.ItemType;
 import enums.PassThrough;
+import enums.SpriteLayerType;
 import enums.StageObjectives;
 import enums.TileProp;
 import frameset.FrameSet;
@@ -27,17 +30,24 @@ import frameset_tags.SetOriginSprPerLine;
 import frameset_tags.SetSprFlip;
 import frameset_tags.SetSprSource;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 import maps.Brick;
 import maps.Item;
 import maps.MapSet;
 import objmoveutils.JumpMove;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
+import pathfinder.PathFinder;
+import pathfinder.PathFinderDistance;
+import pathfinder.PathFinderOptmize;
 import player.Player;
 import tools.Draw;
+import tools.FindProps;
 import tools.GameConfigs;
 import tools.IniFiles;
+import tools.Materials;
 import tools.Sound;
+import tools.Tools;
 import util.CollectionUtils;
 import util.MyMath;
 
@@ -456,8 +466,46 @@ public class BomberMan extends Entity {
 		run(gc, false);
 	}
 
+	private PathFinder testPathFind = null;
+	private TileCoord testPathFindStartCoord = null;
+	private TileCoord testPathFindLastCoord = null;
+	private void testPathFind() {
+		/**
+		 * A geracao de blocos fixos e tijolos, em quantidade pequena, tende sempre
+		 * a gerar na metade da esquerda, e a metade da direita fica intacta
+		 */
+		List<FindProps> founds = Tools.findInRect(this,
+				getTileCoordFromCenter(),
+				this,
+				10,
+				Set.of(FindType.PLAYER),
+				getPassThrough(),
+				FindTypeRestriction.EVERYTHING);
+		if (founds != null) {
+			FindProps found = founds.get(0);
+			if (testPathFind != null && (!testPathFindStartCoord.equals(getTileCoordFromCenter()) || !testPathFindLastCoord.equals(found.getCoord()))) {
+				testPathFind.recalculatePath(getTileCoordFromCenter(), found.getCoord(), getDirection());
+				if (!testPathFind.pathWasFound())
+					testPathFind = null;
+			}
+			if (testPathFind == null)
+				testPathFind = new PathFinder(getTileCoordFromCenter(), found.getCoord(), getDirection(), PathFinderDistance.SHORTEST, PathFinderOptmize.OPTIMIZED, c -> tileIsFree(c));
+			testPathFindStartCoord = getTileCoordFromCenter().getNewInstance();
+			testPathFindStartCoord = found.getCoord().getNewInstance();
+			Draw.markTile(found.getCoord().getPosition(), Color.YELLOW);
+			for (var tc : testPathFind.getCurrentPath()) {
+				int x = (int)tc.getKey().getPosition().getX(),
+						y = (int)tc.getKey().getPosition().getY();
+				Direction dir = tc.getValue();
+				Draw.addDrawQueue(SpriteLayerType.CEIL, Materials.hud, 1024 + 16 * dir.get4DirValue(), 880, 16, 16, x, y, 16, 16);
+			}
+		}
+	}
+	
 	@Override
-	public void run(GraphicsContext gc, boolean isPaused) {
+	public void run(GraphicsContext gc, boolean isPaused) { // 1024 880 16 16
+		if (getBomberIndex() == 0)
+		testPathFind(); // Para testar o PathFind (aponta para o objeto mais proximo configurado no metodo testPathFind()
 		if (++idleFrames == 240) {
 			if (!isRiding() && haveFrameSet("Idle"))
 				setFrameSet("Idle");
@@ -817,7 +865,7 @@ public class BomberMan extends Entity {
 		fireRange = GameConfigs.STARTING_FIRE;
 		maxBombs = GameConfigs.STARTING_BOMBS;
 		double speed = GameConfigs.INITIAL_PLAYER_SPEED;
-		if (getPlayerId() == 0 && gotItems.isEmpty()) { // TEMP
+		if (getPlayerId() == 1111111110 && gotItems.isEmpty()) { // TEMP
 			gotItems.add(ItemType.REMOTE_BOMB);
 			gotItems.add(ItemType.PASS_BRICK);
 			//gotItems.add(ItemType.PASS_BOMB);

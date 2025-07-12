@@ -15,6 +15,7 @@ import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
 import javafx.util.Pair;
 import util.DurationTimerFX;
+import util.Misc;
 
 public abstract class Sound {
 
@@ -98,27 +99,34 @@ public abstract class Sound {
 				mp3.setRate(rate);
 				mp3.setBalance(balance);
 				mp3.setVolume(volume);
-				if (doLoop != null)
-					mp3.setOnPlaying(() -> {
-						String timerName = "playMp3DoLoop@" + Main.uniqueTimerId++;
-						long seekEnd = (long)doLoop.getKey().toMillis();
-						long seekStart = (long)doLoop.getValue().toMillis();
-						mp3Timers.put(mp3, timerName);
-						if (seekEnd < 0)
-							seekEnd += (long)mp3.getTotalDuration().toMillis();
-						if (seekStart < 0)
-							seekStart += (long)mp3.getTotalDuration().toMillis();
-						final long seekEnd2 = seekEnd, seekStart2 = seekStart;
-						//mp3.seek(Duration.millis(seekEnd2 - 5000)); // Para testar o seek, isso faz pular direto 5 segundos antes do momentoi q vai dar seek pro ponto inicial
-						DurationTimerFX.createTimer(timerName, Duration.millis(20), 0, () -> {
-							if (mp3.getCurrentTime().toMillis() >= seekEnd2)
-								mp3.seek(Duration.millis(seekStart2));
-						}); 
-					});
-				mp3.play();
+				mp3.setOnReady(() -> {
+					mp3.play();
+					if (doLoop != null)
+						mp3.setOnPlaying(() -> {
+							String timerName = "playMp3DoLoop@" + Main.uniqueTimerId++;
+							long seekEnd = (long)doLoop.getKey().toMillis();
+							long seekStart = (long)doLoop.getValue().toMillis();
+							mp3Timers.put(mp3, timerName);
+							if (seekEnd < 0)
+								seekEnd += (long)mp3.getTotalDuration().toMillis();
+							if (seekStart < 0)
+								seekStart += (long)mp3.getTotalDuration().toMillis();
+							final long seekEnd2 = seekEnd, seekStart2 = seekStart;
+							//mp3.seek(Duration.millis(seekEnd2 - 5000)); // Para testar o seek, isso faz pular direto 5 segundos antes do momentoi q vai dar seek pro ponto inicial
+							DurationTimerFX.createTimer(timerName, Duration.millis(20), 0, () -> {
+								if (mp3.getCurrentTime().toMillis() >= seekEnd2)
+									mp3.seek(Duration.millis(seekStart2));
+							}); 
+						});
+				});
+				mp3.setOnError(() -> {
+					DurationTimerFX.createTimer("mp3TryAgain@" + mp3.hashCode(), Duration.millis(100), () -> playMp3(mp3Path2, rate, balance, volume, stopCurrent, doLoop));
+				});
+				
 				return mp3;
 			}
 			catch (Exception e) {
+				Misc.addErrorOnLog(e, ".\\errors.log");
 				e.printStackTrace();
 				currentMediaPlayer = null;
 				return null;
@@ -198,6 +206,7 @@ public abstract class Sound {
 				return clip;
 			}
 			catch (Exception e) {
+				Misc.addErrorOnLog(e, ".\\errors.log");
 				e.printStackTrace();
 				return null;
 			}

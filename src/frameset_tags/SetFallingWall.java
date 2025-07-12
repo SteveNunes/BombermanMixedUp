@@ -5,6 +5,7 @@ import java.util.List;
 
 import frameset.Sprite;
 import maps.MapSet;
+import util.Misc;
 
 public class SetFallingWall extends FrameTag {
 
@@ -25,6 +26,7 @@ public class SetFallingWall extends FrameTag {
 			targetCoords = params.length == 0 ? null : stringToTileCoord2List(params[0]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[0] + " - Invalid parameter");
 		}

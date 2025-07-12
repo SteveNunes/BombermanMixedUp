@@ -1,6 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
+import util.Misc;
 
 public class SetOriginSprHeight extends FrameTag {
 
@@ -17,6 +18,7 @@ public class SetOriginSprHeight extends FrameTag {
 			value = Integer.parseInt(params[0]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[0] + " - Invalid parameter");
 		}
 	}

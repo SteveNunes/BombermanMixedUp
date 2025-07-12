@@ -1,9 +1,9 @@
 package screen_pos_effects;
 
+import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
-import tools.Draw;
 
 public class WavingImage {
 
@@ -106,7 +106,7 @@ public class WavingImage {
 				if (++posStart == wavingPattern.length)
 					posStart = 0;
 			}
-			return Draw.getCanvasSnapshot(canvas);
+			return ImageUtils.getCanvasSnapshot(canvas);
 		}
 		return image;
 	}

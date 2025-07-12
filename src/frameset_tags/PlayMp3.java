@@ -5,6 +5,7 @@ import javafx.util.Duration;
 import javafx.util.Pair;
 import maps.MapSet;
 import tools.Sound;
+import util.Misc;
 
 public class PlayMp3 extends FrameTag {
 
@@ -47,6 +48,7 @@ public class PlayMp3 extends FrameTag {
 			stageTagEventAfterEndOfMedia = params.length <= ++n ? "-" : params[n];
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}
 	}

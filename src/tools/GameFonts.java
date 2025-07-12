@@ -7,6 +7,7 @@ import java.io.InputStream;
 
 import application.Main;
 import javafx.scene.text.Font;
+import util.Misc;
 
 public abstract class GameFonts {
 	
@@ -25,6 +26,7 @@ public abstract class GameFonts {
 			fontBomberMan60 = Font.loadFont(fontStream, 60);
 		}
 		catch (FileNotFoundException e) {
+			Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			Main.close();
 		}

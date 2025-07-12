@@ -780,7 +780,7 @@ public class Sprite extends Position {
 					gc.drawImage(i, -incX, 0, w - -incX, h, 0, 0, w - -incX, h);
 					gc.drawImage(i, 0, 0, -incX, h, w - -incX, 0, -incX, h);
 				}
-				i = Draw.getCanvasSnapshot(canvas, getSpriteSource());
+				i = ImageUtils.getCanvasSnapshot(canvas, getSpriteSource());
 			}
 			if (incY != 0) {
 				gc.clearRect(0, 0, w, h);
@@ -792,7 +792,7 @@ public class Sprite extends Position {
 					gc.drawImage(i, 0, -incY, w, h - -incY, 0, 0, w, h - -incY);
 					gc.drawImage(i, 0, 0, w, -incY, 0, h - -incY, w, -incY);
 				}
-				Draw.getCanvasSnapshot(canvas, getSpriteSource());
+				ImageUtils.getCanvasSnapshot(canvas, getSpriteSource());
 			}
 		}
 	}

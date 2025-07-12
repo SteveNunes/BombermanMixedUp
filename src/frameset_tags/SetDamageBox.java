@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 import enums.DamageType;
 import enums.ForceDirection;
 import frameset.Sprite;
+import util.Misc;
 
 public class SetDamageBox extends FrameTag {
 
@@ -45,6 +46,7 @@ public class SetDamageBox extends FrameTag {
 			soundWhenHits = params.length <= (n = 8) || params[n].equals("-") ? null : params[n];
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}
 	}

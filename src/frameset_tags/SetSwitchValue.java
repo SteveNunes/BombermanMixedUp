@@ -2,6 +2,7 @@ package frameset_tags;
 
 import frameset.Sprite;
 import maps.MapSet;
+import util.Misc;
 
 public class SetSwitchValue extends FrameTag {
 
@@ -23,6 +24,7 @@ public class SetSwitchValue extends FrameTag {
 			value = Integer.parseInt(params[n++]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

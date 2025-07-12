@@ -1,6 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
+import util.Misc;
 
 public class SetDisabled extends FrameTag {
 
@@ -19,6 +20,7 @@ public class SetDisabled extends FrameTag {
 			state = params.length == 0 ? true : Boolean.parseBoolean(params[0]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[0] + " - Invalid parameter");
 		}
 	}

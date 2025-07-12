@@ -19,7 +19,6 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
-import javafx.scene.paint.Color;
 import tools.IniFiles;
 import util.FindFile;
 import util.Misc;
@@ -79,15 +78,15 @@ public class FrameSetEditor {
   	fs.loadFromString(entity, "{}");
   	entity.addFrameSet("teste", fs);
 		Entity.addEntityToList(entity);
-		ControllerUtils.addIconToButton(buttonCopyToClipboard, Icons.COPY.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonRefreshFrameSets, Icons.REFRESH.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonFormat, Icons.FORMAT_TEXT.getValue(), 24, 24, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonSetPosition, Icons.MOVE.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonPlay, Icons.PLAY.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonCopyFrameTag, Icons.COPY.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonShortcutsCopy, Icons.COPY.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonShortcutsAdd, Icons.NEW_ITEM.getValue(), 20, 20, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonShortcutsDel, Icons.DELETE.getValue(), 20, 20, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonCopyToClipboard, Icons.COPY.getValue(), 20, 20);
+		ControllerUtils.addIconToButton(buttonRefreshFrameSets, Icons.REFRESH.getValue(), 20, 20);
+		ControllerUtils.addIconToButton(buttonFormat, Icons.FORMAT_TEXT.getValue(), 24, 24);
+		ControllerUtils.addIconToButton(buttonSetPosition, Icons.MOVE.getValue(), 20, 20);
+		ControllerUtils.addIconToButton(buttonPlay, Icons.PLAY.getValue(), 20, 20);
+		ControllerUtils.addIconToButton(buttonCopyFrameTag, Icons.COPY.getValue(), 20, 20);
+		ControllerUtils.addIconToButton(buttonShortcutsCopy, Icons.COPY.getValue(), 20, 20);
+		ControllerUtils.addIconToButton(buttonShortcutsAdd, Icons.NEW_ITEM.getValue(), 20, 20);
+		ControllerUtils.addIconToButton(buttonShortcutsDel, Icons.DELETE.getValue(), 20, 20);
 		FindFile.findFile("src/frameset_tags", "*.java").forEach(file -> {
 			if (!file.getName().equals("FrameTag.java"))
 				listViewFrameTags.getItems().add(file.getName().replace(".java", ""));

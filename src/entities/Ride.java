@@ -94,7 +94,8 @@ public class Ride extends Entity {
 	}
 
 	public static void drawRides() {
-		for (Ride ride : new ArrayList<>(rideList))
+		List<Ride> list = new ArrayList<>(rideList);
+		for (Ride ride : list)
 			ride.run();
 	}
 	

@@ -36,6 +36,7 @@ import fades.DefaultFade;
 import frameset.FrameSet;
 import frameset.Tags;
 import frameset_tags.FrameTag;
+import gameutil.PalleteTools;
 import javafx.application.Platform;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
@@ -49,7 +50,6 @@ import tools.Draw;
 import tools.GameFonts;
 import tools.Materials;
 import tools.Sound;
-import tools.Tools;
 import util.DurationTimerFX;
 import util.IniFile;
 import util.Misc;
@@ -189,6 +189,7 @@ public abstract class MapSet {
 					}
 				}
 				catch (Exception e) {
+		    	Misc.addErrorOnLog(e, ".\\errors.log");
 					throw new RuntimeException("Invalid format at [SETUP], '" + (n == 0 ? "MonsterInitialCoordsOrder" : "PlayerInitialCoordsOrder") + "' -> " + iniFile.getLastReadVal());
 				}
 			}
@@ -234,6 +235,7 @@ public abstract class MapSet {
 							Sound.playMp3(split[0], new Pair<>(Duration.millis(end), Duration.millis(start)));
 						}
 						catch (Exception e) {
+				    	Misc.addErrorOnLog(e, ".\\errors.log");
 							throw new RuntimeException("Invalid format for string: " + stageBGM + "\n\t(Expected: [MP3_NAME] or [MP3_NAME END_POS] or [MP3_NAME END_POS START_POS])");
 						}
 					}
@@ -614,10 +616,10 @@ public abstract class MapSet {
 			Materials.tempSprites.remove(tileSetName);
 		tileSetImages = new ArrayList<>();
 		WritableImage i = (WritableImage)Materials.tileSets.get(tileSetName);
-		List<List<Color>> palletes = Tools.getPalleteListFromImage(i);
+		List<List<Color>> palletes = PalleteTools.getPalleteListFromImage(i);
 		if (palletes != null && palletes.size() > 1) {
 			for (List<Color> pallete : palletes)
-				tileSetImages.add(Tools.applyColorMixPalleteOnImage(i, pallete));
+				tileSetImages.add(PalleteTools.applyColorMixPalleteOnImage(i, pallete));
 		}
 		else
 			tileSetImages.add(i);
@@ -645,6 +647,7 @@ public abstract class MapSet {
 				}
 			}
 			catch (Exception e) {
+	    	Misc.addErrorOnLog(e, ".\\errors.log");
 				throw new RuntimeException(iniFile.read("SETUP", "Blocks") + " - Wrong data for this item");
 			}
 			List<TileCoord> coords = new ArrayList<>();
@@ -652,17 +655,19 @@ public abstract class MapSet {
 				if (!Brick.haveBrickAt(coord) && tileContainsProp(coord, TileProp.BRICK_RANDOM_SPAWNER) && tileIsFree(coord, Set.of(PassThrough.PLAYER)))
 					coords.add(coord.getNewInstance());
 			done:
-			while (!coords.isEmpty() && totalBricks > 0)
-				for (TileCoord coord : new ArrayList<>(coords))
+			while (!coords.isEmpty() && totalBricks > 0) {
+				List<TileCoord> tileCoords = new ArrayList<>(coords);
+				for (TileCoord coord : tileCoords)
 					if ((int)MyMath.getRandom(0, 3) == 0) {
 						coords.remove(coord);
 						Brick.addBrick(coord.getNewInstance());
 						if (coords.isEmpty() || --totalBricks == 0 || ++bricksQuant >= totalBrickSpawners[0])
 							break done;
 					}
+			}
 		}
-		addItemsToBricks();
 		System.out.println("concluido em " + (System.currentTimeMillis() - cTime)  +"ms");
+		addItemsToBricks();
 	}
 
 	public static int getBricksRegenTimeInFrames() {
@@ -676,11 +681,13 @@ public abstract class MapSet {
 
 	private static void addItemsToBricks() {
 		if (iniFile.read("SETUP", "Items") != null && !iniFile.read("SETUP", "Items").equals("0")) {
+			System.out.print("Adicionando itens aos tijolos... ");
+			long cTime = System.currentTimeMillis();
 			String[] split = iniFile.read("SETUP", "Items").split(" ");
 			try {
-				for (int n = 0; n < split.length && n < Brick.totalBricks(); n++) {
+				for (int n = 0, added = 0; n < split.length && added < Brick.totalBricks() && n < Brick.totalBricks(); n++) {
 					String[] split2 = split[n].split(":");
-					int n2 = 1, itemType = split2[0].equals("ITEM") ? 0 : split2[0].equals("EGG") ? 1 : 2;
+					int itemType = split2[0].equals("ITEM") ? 0 : split2[0].equals("EGG") ? 1 : 2;
 					int total = split2.length < 3 ? 1 : Integer.parseInt(split2[2]);
 					try {
 						for (int i = 0; i < total; i++) {
@@ -689,6 +696,7 @@ public abstract class MapSet {
 								brick = Brick.getBricks().get((int) MyMath.getRandom(0, Brick.totalBricks() - 1));
 							}
 							while (brick.getItem() != null);
+							added++;
 							if (itemType == 0) {
 								ItemType item = ItemType.valueOf(split2[1]);
 								brick.setItem(new Item(brick.getTileCoordFromCenter().getNewInstance(), item));
@@ -702,6 +710,7 @@ public abstract class MapSet {
 						}
 					}
 					catch (Exception e) {
+			    	Misc.addErrorOnLog(e, ".\\errors.log");
 						throw new RuntimeException("Error loading item list from map " + mapName + " (" + split2[1] + ")" + "\n\tReason: " + e.getMessage());
 					}
 				}
@@ -710,6 +719,7 @@ public abstract class MapSet {
 				e.printStackTrace();
 				throw new RuntimeException(iniFile.read("SETUP", "Items") + " - Wrong data for this item");
 			}
+			System.out.println("concluido em " + (System.currentTimeMillis() - cTime)  +"ms");
 		}
 	}
 
@@ -724,6 +734,7 @@ public abstract class MapSet {
 				totalWalls = (int) MyMath.getRandom(minWalls, maxWalls);
 			}
 			catch (Exception e) {
+	    	Misc.addErrorOnLog(e, ".\\errors.log");
 				throw new RuntimeException(iniFile.read("SETUP", "FixedBlocks") + " - Wrong data for this item");
 			}
 			List<TileCoord> coords = new ArrayList<>();
@@ -732,7 +743,8 @@ public abstract class MapSet {
 					coords.add(coord.getNewInstance());
 			done:
 			while (!coords.isEmpty() && totalWalls > 0) {
-				for (TileCoord coord : new ArrayList<>(coords))
+				List<TileCoord> tileCoords = new ArrayList<>(coords);
+				for (TileCoord coord : tileCoords)
 					if ((int) MyMath.getRandom(0, 9) == 0) {
 						coords.remove(coord);
 						if (testCoordForInsertFixedBlock(coord)) {
@@ -816,6 +828,7 @@ public abstract class MapSet {
 				position.setPosition(Integer.parseInt(split2[0]) * Main.TILE_SIZE, Integer.parseInt(split2[1]) * Main.TILE_SIZE);
 			}
 			catch (Exception e) {
+	    	Misc.addErrorOnLog(e, ".\\errors.log");
 				throw new RuntimeException(iniFileTileSet.read("CONFIG", tileStr) + " - Invalid data on file \"" + iniFileTileSet.getFilePath().getFileName() + "\"");
 			}
 		}
@@ -1051,7 +1064,8 @@ public abstract class MapSet {
 							MapSet.tileContainsProp(coord, TileProp.BOMBER_SHIP_RIGHT) ||
 							MapSet.tileContainsProp(coord, TileProp.BOMBER_SHIP_DOWN));
 		Entity en = Entity.haveAnyEntityAtCoord(coord, entity) ? Entity.getFirstEntityFromCoord(coord) : null;
-		for (TileProp prop : new ArrayList<>(getTileProps(coord))) {
+		List<TileProp> props = new ArrayList<>(getTileProps(coord));
+		for (TileProp prop : props) {
 			if (prop == TileProp.MIN_SCREEN_TILE_LIMITER || prop == TileProp.MAX_SCREEN_TILE_LIMITER)
 				return false;
 			if (entity != null && entity.getElevation() == Elevation.ON_GROUND) {

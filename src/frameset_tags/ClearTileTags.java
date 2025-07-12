@@ -5,6 +5,7 @@ import java.util.List;
 
 import frameset.Sprite;
 import maps.MapSet;
+import util.Misc;
 
 public class ClearTileTags extends FrameTag {
 
@@ -25,6 +26,7 @@ public class ClearTileTags extends FrameTag {
 			targetCoords = stringToTileCoord2List((n = 1) >= params.length ? null : params[n]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}

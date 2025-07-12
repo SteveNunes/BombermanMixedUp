@@ -2,6 +2,7 @@ package frameset_tags;
 
 import frameset.FrameSet;
 import frameset.Sprite;
+import util.Misc;
 
 public class Goto extends FrameTag {
 
@@ -48,6 +49,7 @@ public class Goto extends FrameTag {
 			currentRepeatCycle = 0;
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}
 	}

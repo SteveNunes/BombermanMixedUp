@@ -33,6 +33,7 @@ import entities.Entity;
 import enums.BombType;
 import enums.CpuDificult;
 import enums.FindType;
+import enums.FindTypeRestriction;
 import enums.GameInputMode;
 import enums.GoogleLanguages;
 import enums.ItemType;
@@ -44,6 +45,7 @@ import io.github.jwdeveloper.dependance.injector.api.util.Pair;
 import io.github.jwdeveloper.tiktok.TikTokLive;
 import io.github.jwdeveloper.tiktok.data.events.gift.TikTokGiftEvent;
 import io.github.jwdeveloper.tiktok.data.models.Picture;
+import io.github.jwdeveloper.tiktok.data.models.users.User;
 import io.github.jwdeveloper.tiktok.exceptions.TikTokLiveOfflineHostException;
 import io.github.jwdeveloper.tiktok.exceptions.TikTokLiveRequestException;
 import io.github.jwdeveloper.tiktok.exceptions.TikTokLiveUnknownHostException;
@@ -52,11 +54,9 @@ import io.github.jwdeveloper.tiktok.live.LiveClient;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -113,11 +113,12 @@ public class GameTikTok {
 	private Set<PassThrough> wallTilePassThrough = Set.of(PassThrough.BOMB, PassThrough.BRICK, PassThrough.HOLE, PassThrough.ITEM, PassThrough.MONSTER, PassThrough.PLAYER, PassThrough.WATER);
 	private Set<PassThrough> itemPassThrough = Set.of(PassThrough.MONSTER, PassThrough.PLAYER);
 	private Set<PassThrough> passThrough = Set.of(PassThrough.ITEM, PassThrough.MONSTER, PassThrough.PLAYER);
-	private List<KeyCode> holdedKeys = new LinkedList<>();
 	private List<String> userNames = new LinkedList<>();
 	private List<SampleGift> sampleGifts = new LinkedList<>();
 	private int sampleGiftPos = 0;
 	private int testGiftId = 0;
+	private int fps = 0;
+	private int load = 0;
 	private GraphicsContext gcMain;
 	private Font font12 = new Font("Lucida Console", 12);
 	private Font font15 = new Font("Lucida Console", 15);
@@ -132,6 +133,7 @@ public class GameTikTok {
 	private List<TikTokGiftEvent> acumulatedGifts = new LinkedList<>();
 	private List<String> alreadyFollowed = new LinkedList<>();
 	private List<String> alreadyShared = new LinkedList<>();
+	private static Image noUserPhoto;
 	
 	public void init() {
 		setCanvas();
@@ -157,28 +159,38 @@ public class GameTikTok {
 	}
 	
 	private void mainLoop() {
-		GameUtils.createTimeLine(60, b -> Main.close, () -> {
-			MapSet.run();
-			Draw.applyAllDraws(canvasMain, Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
-			drawScores();
-			displayStageTimer();
-			drawUserPicsOverEntities();
-			drawEchoMessages();
-			runGiftEventsQueue();
-			drawSampleGifts();
-			setupTextToSpeech();
-			if (showBlockMarks > 0)
-				showBlockMarks();
-			if (Misc.alwaysTrue()) { // Sinalizar objetos proximos do cursor, para testar o findInRect()
-				List<FindProps> founds = Tools.findInRect(mousePos.getTileCoord(), null, 2, Set.of(FindType.PLAYER, FindType.BRICK));
-				if (founds != null) {
-					if (Misc.blink(100))
-						Draw.markTile(founds.get(0).getCoord(), Color.WHITE);
-					else
-						Draw.markTile(founds.get(0).getCoord(), founds.get(0).getFoundType() == FindType.BAD_ITEM ? Color.RED : Color.LIGHTGREEN);
-				}
-			}
-		});
+		GameUtils.createAnimationTimer(60,
+				(load, fps) -> {
+					this.load = load;
+					this.fps = fps;
+					return Main.close;
+					},
+				() -> {
+					MapSet.run();
+					Draw.applyAllDraws(canvasMain, Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
+					drawScores();
+					displayStageTimer();
+					drawUserPicsOverEntities();
+					drawEchoMessages();
+					runGiftEventsQueue();
+					drawSampleGifts();
+					setupTextToSpeech();
+					if (showBlockMarks > 0)
+						showBlockMarks();
+					if (!Misc.alwaysTrue()) { // Sinalizar objetos proximos do cursor, para testar o findInRect()
+						List<FindProps> founds = Tools.findInRect(mousePos.getTileCoord(), null, 2, Set.of(FindType.PLAYER, FindType.BRICK), FindTypeRestriction.ONLY_IF_IS_ACESSIBLE);
+						if (founds != null) {
+							if (Misc.blink(100))
+								Draw.markTile(founds.get(0).getCoord(), Color.WHITE);
+							else
+								Draw.markTile(founds.get(0).getCoord(), founds.get(0).getFoundType() == FindType.BAD_ITEM ? Color.RED : Color.LIGHTGREEN);
+						}
+					}
+					if (!DurationTimerFX.timerExists("TITLE"))
+						DurationTimerFX.createTimer("TITLE", Duration.seconds(1), () -> {
+							Main.stageMain.setTitle("BomberMan - Mixed up! (TikTok interativo) \t Sobrecarga: " + String.format("%.2f%%", (float)load / 10f) + " \t FPS: " + fps + " \t Bombers: " + BomberMan.getTotalBomberMans());
+						});
+		}).start();
 	}
 	
 	private void loadLiveEvents() {
@@ -421,7 +433,7 @@ public class GameTikTok {
 								if (!userScores.containsKey(user))
 									userScores.put(user, new Score(user));
 								userScores.get(user).incScore();
-								scoresIniFile.write(liveUserToConnect, user, "" + userScores.get(user).getScore());
+								scoresIniFile.write(liveUserToConnect, user, userScores.get(user).getScore());
 							}
 				});
 			});
@@ -485,7 +497,8 @@ public class GameTikTok {
 			tiktokIniFile.remove("CONFIG", "AlreadyShared");
 			Platform.runLater(() -> {
 				FindFile.findDir("./appdata/userPics/", "*").forEach(dir -> {
-					for (File file : new ArrayList<>(FindFile.findFile(dir.getAbsolutePath(), "*.png")))
+					List<File> list = new ArrayList<>(FindFile.findFile(dir.getAbsolutePath(), "*.png"));
+					for (File file : list)
 						file.delete();
 				});
 			});
@@ -505,7 +518,7 @@ public class GameTikTok {
 					}
 				}
 		}
-		tiktokIniFile.write("CONFIG", "Today", "" + today);
+		tiktokIniFile.write("CONFIG", "Today", today);
 	}
 
 	private void createUserPicsDir() {
@@ -515,6 +528,7 @@ public class GameTikTok {
 				Files.createDirectory(path);
 			}
 			catch (IOException e) {
+	    	Misc.addErrorOnLog(e, ".\\errors.log");
 				throw new RuntimeException("falha ao criar o diretório \"" + path.getFileName() + "\"");
 			}
 		}
@@ -525,9 +539,10 @@ public class GameTikTok {
 		for (String path : Arrays.asList("appdata/userPics/" + liveUserToConnect + "/","*.png", "appdata/userPics/","*.png"))
 			FindFile.findFile(path).forEach(file -> {
 				String userName = file.getName().replace(".png", "");
-				Image image = roundedBordersImage(new Image("file:" + file.getAbsolutePath()));
+				Image image = ImageUtils.getRoundedBorderImage(new Image("file:" + file.getAbsolutePath()), 200);
 				userPics.put(userName, image);
 			});
+		noUserPhoto = userPics.get("no-photo");
 	}
 
 	private void loadGiftList() {
@@ -546,10 +561,7 @@ public class GameTikTok {
 		});
 		Main.sceneMain.setOnKeyPressed(e -> {
 			Player.convertOnKeyPressEvent(e);
-			holdedKeys.add(e.getCode());
-			if (isCtrlHold()) {
-				if (e.getCode() != KeyCode.CONTROL)
-					holdedKeys.remove(KeyCode.CONTROL);
+			if (e.isControlDown()) {
 				if (e.getCode() == KeyCode.HOME)
 					Main.openFrameSetEditor();
 				if (e.getCode() == KeyCode.S)
@@ -559,7 +571,7 @@ public class GameTikTok {
 				if (e.getCode() == KeyCode.E)
 					MapSet.incTileSetPalleteIndex();
 				if (e.getCode() == KeyCode.Z) {
-					if (isShiftHold()) {
+					if (e.isShiftDown()) {
 						int n = (int)MyMath.getRandom(0, BomberMan.getTotalBomberMans() - 1);
 						for (int x = 0; x < BomberMan.getTotalBomberMans(); x++)
 							if (x != n)
@@ -592,10 +604,11 @@ public class GameTikTok {
 					if (lastGiftSel != null)
 						testGiftId = Integer.parseInt(lastGiftSel.split(" ")[0]);
 				}
-				if (e.getCode() == KeyCode.X)
-					Bomb.addBomb(mousePos.getTileCoord(), BombType.REMOTE, 2);
+				if (e.getCode() == KeyCode.X) {
+					dropCpu("Bomberman " + (BomberMan.getTotalBomberMans() + 1));
+				}
 				if (e.getCode() == KeyCode.C)
-					Bomb.addBomb(mousePos.getTileCoord(), BombType.MAGMA, 3);
+					Bomb.addBomb(mousePos.getTileCoord(), BombType.REMOTE, 3);
 				if (e.getCode() == KeyCode.U)
 					dropRandomTileBomb("GM");
 				if (e.getCode() == KeyCode.J)
@@ -615,7 +628,6 @@ public class GameTikTok {
 		});
 		Main.sceneMain.setOnKeyReleased(e -> {
 			Player.convertOnKeyReleaseEvent(e);
-			holdedKeys.remove(e.getCode());
 		});
 	}
 	
@@ -628,7 +640,7 @@ public class GameTikTok {
 	private void drawUserImage(String userName, Entity entity) {
 		Image image = userPics.get(userName);
 		if (image == null)
-			image = userPics.get("no-photo.png");
+			image = noUserPhoto;
 		int sprHeight = entity.getCurrentFrameSet().getSprite(0).getOutputWidth(), 
 				w = (int)image.getWidth(), ww = (int)(Main.TILE_SIZE * Main.getZoom() * 1.3),
 				x = (int)entity.getX() * Main.getZoom() - 32 * Main.getZoom(),
@@ -667,7 +679,7 @@ public class GameTikTok {
 			Score score = scores.get(n);
 			Image i = userPics.get(score.getUserName());
 			if (i == null)
-				i = userPics.get("no-photo");
+				i = noUserPhoto;
 			gcMain.drawImage(i, 0, 0, i.getWidth(), i.getHeight(), canvasMain.getWidth() - 135, 60 + n * hh * 1.1, hh, hh);
 			gcMain.setFill(Color.WHITE);
 			gcMain.setFont(GameFonts.fontBomberMan20);
@@ -742,26 +754,6 @@ public class GameTikTok {
 				}
 	}
 
-	boolean isHold(int shift, int ctrl, int alt) {
-		return ((shift == 0 && !isShiftHold()) || (shift == 1 && isShiftHold())) && ((ctrl == 0 && !isCtrlHold()) || (ctrl == 1 && isCtrlHold())) && ((alt == 0 && !isAltHold()) || (alt == 1 && isAltHold()));
-	}
-
-	boolean isCtrlHold() {
-		return holdedKeys.contains(KeyCode.CONTROL);
-	}
-
-	boolean isShiftHold() {
-		return holdedKeys.contains(KeyCode.SHIFT);
-	}
-
-	boolean isAltHold() {
-		return holdedKeys.contains(KeyCode.ALT);
-	}
-
-	boolean isNoHolds() {
-		return !isAltHold() && !isCtrlHold() && !isShiftHold();
-	}
-
 	void close() {}
 
 	private void showBlockMarks() {
@@ -825,18 +817,18 @@ public class GameTikTok {
 					}
 				})
 				.onFollow((liveClient, event) -> {
-					downloadUserImage(event.getUser().getName(), event.getUser().getPicture());
+					downloadUserImage(event.getUser());
 					onFollowEvent(event.getUser().getName());
 				})
-				.onComment((liveClient, event) -> downloadUserImage(event.getUser().getName(), event.getUser().getPicture()))
-				.onEmote((liveClient, event) -> downloadUserImage(event.getUser().getName(), event.getUser().getPicture()))
+				.onComment((liveClient, event) -> downloadUserImage(event.getUser()))
+				.onEmote((liveClient, event) -> downloadUserImage(event.getUser()))
 				.onShare((liveClient, event) -> {
-					downloadUserImage(event.getUser().getName(), event.getUser().getPicture());
+					downloadUserImage(event.getUser());
 					onShareEvent(event.getUser().getName());
 				})
 				.onGift((liveClient, event) -> {
 					String userName = event.getUser().getName();
-					downloadUserImage(userName, event.getUser().getPicture());
+					downloadUserImage(event.getUser());
 					if (!MapSet.stageObjectiveIsCleared())
 						runOnGiftEvent(userName, event.getGift().getName(), event.getGift().getId(), event.getCombo());
 					else
@@ -844,7 +836,7 @@ public class GameTikTok {
 				})
 				.onLike((liveClient, event) -> {
 					String userName = event.getUser().getName();
-					downloadUserImage(userName, event.getUser().getPicture());
+					downloadUserImage(event.getUser());
 					onLikeEvent(userName, event.getLikes());
 				}).build();
 		liveClient.connectAsync();
@@ -923,10 +915,15 @@ public class GameTikTok {
 			});
 	}
 
-	private void downloadUserImage(String userName, Picture picture) {
+	private void downloadUserImage(User user) {
+		String userName = user.getName();
+		if (userName == null || userName.isBlank())
+			return;
+		Picture picture = user.getPicture();
+		DurationTimerFX.createTimer("deleteUserPic@" + userName, Duration.minutes(10), () -> userPics.remove(userName));
 		if (userPics.containsKey(userName))
 			return;
-		userPics.put(userName, userPics.get("no-photo.png"));		
+		userPics.put(userName, noUserPhoto);		
 		new Thread(() -> {
 			picture.downloadImageAsync().thenAccept(image ->
 				Platform.runLater(() -> {
@@ -937,26 +934,11 @@ public class GameTikTok {
 					g2d.dispose();
 					Image i = SwingFXUtils.toFXImage(bufferedImage, null);
 					ImageUtils.saveImageToFile(i, "appdata/userPics/" + liveUserToConnect + "/" + userName + ".png");
-					userPics.put(userName, roundedBordersImage(i));
+					i = ImageUtils.getRoundedBorderImage(i, 200);
+					userPics.put(userName, i);
 				}));
 			}).start();
   }
-
-	private Image roundedBordersImage(Image image) {
-		final double targetSize = 200;
-		Canvas canvas = new Canvas(targetSize, targetSize);
-		GraphicsContext gc = canvas.getGraphicsContext2D();
-		gc.setFill(Color.TRANSPARENT);
-		gc.clearRect(0, 0, targetSize, targetSize);
-		gc.beginPath();
-		gc.arc(targetSize / 2, targetSize / 2, targetSize / 2, targetSize / 2, 0, 360);
-		gc.clip();
-		gc.drawImage(image, 0, 0, targetSize, targetSize);
-		WritableImage roundImage = new WritableImage((int) targetSize, (int) targetSize);
-		SnapshotParameters params = new SnapshotParameters();
-		params.setFill(Color.TRANSPARENT);
-		return canvas.snapshot(params, roundImage);
-	}
 
 	private void dropRandomTileWall(String userName) {
 		dropRandomTileWall(userName, 1);
@@ -1090,9 +1072,12 @@ public class GameTikTok {
 	private void updateFixedBomberMansOnIniFile() {
 		if (fixedBombersIniFile.sectionExists(liveUserToConnect))
 			fixedBombersIniFile.clearSection(liveUserToConnect);
-		for (String user : new ArrayList<>(bomberMans.keySet()))
-			for (FixedBomberMan fixedBomber : bomberMans.get(user))
+		List<String> users = new ArrayList<>(bomberMans.keySet());
+		for (String user : users) {
+			List<FixedBomberMan> bombers = bomberMans.get(user);
+			for (FixedBomberMan fixedBomber : bombers)
 				fixedBombersIniFile.write(liveUserToConnect, user, fixedBomber.toString());
+		}
 	}
 
 	public static void speech(String string) {
@@ -1285,7 +1270,8 @@ class FixedBomberMan {
 				maxItens = b.getItemList().size();
 			}
 		if (b != null) {
-			for (ItemType type : new ArrayList<>(b.getItemList()))
+			List<ItemType> list = new ArrayList<>(b.getItemList());
+			for (ItemType type : list)
 				bomberMan.getItemList().add(type);
 			bomberMan.updateStatusByItems();
 		}
@@ -1295,9 +1281,9 @@ class FixedBomberMan {
 	
 	public FixedBomberMan(String userName, String fromIniData) {
 		String[] split = fromIniData.split("¡");
-		bomberManIndex = Integer.parseInt(split[0]);
-		palleteIndex = Integer.parseInt(split[1]);
-		leftRounds = split.length < 3 ? -1 : Integer.parseInt(split[2]);
+		bomberManIndex = split.length < 1 || split[0].equals("-") ? 1 : Integer.parseInt(split[0]);
+		palleteIndex = split.length < 2 || split[1].equals("-") ? 0 : Integer.parseInt(split[1]);
+		leftRounds = split.length < 3 || split[2].equals("-") ? -1 : Integer.parseInt(split[2]);
 		dificult = split.length < 4 || split[3].equals("-") ? null : CpuDificult.valueOf(split[3]);
 		TileCoord coord = MapSet.getInitialPlayerPosition(BomberMan.getTotalBomberMans()).getTileCoordFromCenter();
 		set(null, userName, leftRounds, coord.getNewInstance(), bomberManIndex, palleteIndex, dificult);

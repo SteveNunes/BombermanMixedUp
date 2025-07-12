@@ -6,6 +6,7 @@ import frameset.Sprite;
 import javafx.scene.paint.Color;
 import maps.MapSet;
 import tools.Draw;
+import util.Misc;
 
 public class SetDefaultFade extends FrameTag {
 
@@ -36,6 +37,7 @@ public class SetDefaultFade extends FrameTag {
 			stageTagEventAfterFade = n >= params.length ? "-" : params[n]; 
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

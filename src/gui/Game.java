@@ -60,7 +60,7 @@ public class Game {
 					MapSet.loadMap("SBM2_1-1");
 				},
 				() -> {
-					GameUtils.createTimeLine(60, b -> Main.close, () -> {
+					GameUtils.createAnimationTimer(60, (totalFrames, fps) -> Main.close, () -> {
 						MapSet.run();
 						Draw.applyAllDraws(canvasMain, Main.getZoom(), -32 * Main.getZoom(), -32 * Main.getZoom());
 					});

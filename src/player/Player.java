@@ -13,6 +13,7 @@ import javafx.scene.input.KeyCode;
 import joystick.JInputEX;
 import joystick.JXInputEX;
 import util.IniFile;
+import util.Misc;
 
 /* COMO Definir os controles de um jogador:
  * 
@@ -355,6 +356,7 @@ public class Player {
 				xInputDeviceId = Integer.parseInt(split[1]);
 			}
 			catch (Exception e) { e.printStackTrace();
+				Misc.addErrorOnLog(e, ".\\errors.log");
 				throw new RuntimeException(ini.getLastReadVal() + " - Invalid value in DEVICE_ID section, item " + playerId);
 			}
 		}
@@ -378,6 +380,7 @@ public class Player {
 					name = split2[2]; 
 				}
 				catch (Exception e) { e.printStackTrace();
+					Misc.addErrorOnLog(e, ".\\errors.log");
 					if (buttonId == -1)
 						throw new RuntimeException(s + " - Invalid integer value at left (" + split2[0] + ") ([" + inputType + "] section, " + playerId + "= item)");
 					throw new RuntimeException(s + " - Invalid integer value at middle (" + split2[1] + ") ([" + inputType + "] section, " + playerId + "= item)");
@@ -391,6 +394,7 @@ public class Player {
 				setInputMode(mode);
 			}
 			catch (Exception e) {
+				Misc.addErrorOnLog(e, ".\\errors.log");
 				throw new RuntimeException(ini.getLastReadVal() + " - Invalid GameInputMode name");
 			}
 		}

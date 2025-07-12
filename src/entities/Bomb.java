@@ -16,6 +16,7 @@ import enums.Curse;
 import enums.Direction;
 import enums.Elevation;
 import enums.FindType;
+import enums.FindTypeRestriction;
 import enums.PassThrough;
 import enums.StageObjectives;
 import enums.TileProp;
@@ -221,7 +222,8 @@ public class Bomb extends Entity {
 	}
 
 	public static void clearBombs() {
-		for (TileCoord coord : new ArrayList<>(bombs.keySet()))
+		List<TileCoord> list = new ArrayList<>(bombs.keySet());
+		for (TileCoord coord : list)
 			removeBomb(coord);
 		bombList.clear();
 	}
@@ -396,7 +398,7 @@ public class Bomb extends Entity {
 			removeDangerMarks(TileProp.CPU_DANGER_2);
 		}
 		if (getBombType() == BombType.FOLLOW && !isBlockedMovement() && !isMoving() && getPathFinder() == null) {
-			List<FindProps> founds = Tools.findInRect(this, getTileCoordFromCenter(), owner, 4, FindType.PLAYER);
+			List<FindProps> founds = Tools.findInRect(this, getTileCoordFromCenter(), owner, 4, FindType.PLAYER, FindTypeRestriction.ONLY_IF_IS_ACESSIBLE);
 			if (getTargetingEntity() != null || founds != null) {
 				TileCoord coord = (getTargetingEntity() != null ? getTargetingEntity().getTileCoordFromCenter() : founds.get(0).getCoord()).getNewInstance();
 				final TileCoord c = coord.getNewInstance();
@@ -417,7 +419,7 @@ public class Bomb extends Entity {
 			}
 		}
 		else if (getBombType() == BombType.MAGNET && !isBlockedMovement() && getFocusedOn() == null) {
-			List<FindProps> founds = Tools.findInLine(this, owner, getTileCoordFromCenter(), 5, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
+			List<FindProps> founds = Tools.findInLine(this, owner, getTileCoordFromCenter(), 5, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER, FindTypeRestriction.ONLY_IF_IS_ACESSIBLE);
 			if (founds != null) {
 				Direction dir = getTileCoordFromCenter().get4wayDirectionToReach(founds.get(0).getCoord());
 				if (!getTileCoordFromCenter().getNewInstance().incCoordsByDirection(dir).equals(founds.get(0).getCoord())) {
@@ -437,7 +439,7 @@ public class Bomb extends Entity {
 			}
 		}
 		else if (getBombType() == BombType.SENSOR && !isBlockedMovement()) {
-			List<FindProps> founds = Tools.findInLine(this, owner, getTileCoordFromCenter(), 1, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER);
+			List<FindProps> founds = Tools.findInLine(this, owner, getTileCoordFromCenter(), 1, Set.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT), FindType.PLAYER, FindTypeRestriction.ONLY_IF_IS_ACESSIBLE);
 			if (founds != null)
 				detonate();
 		}

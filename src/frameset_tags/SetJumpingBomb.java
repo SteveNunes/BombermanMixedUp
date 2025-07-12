@@ -7,6 +7,7 @@ import entities.Bomb;
 import enums.BombType;
 import frameset.Sprite;
 import objmoveutils.TileCoord;
+import util.Misc;
 
 public class SetJumpingBomb extends FrameTag {
 
@@ -46,6 +47,7 @@ public class SetJumpingBomb extends FrameTag {
 			targetCoords = stringToTileCoord2List(params[n = (params.length == 6 ? 5 : 6)]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}

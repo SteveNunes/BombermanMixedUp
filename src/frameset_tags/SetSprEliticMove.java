@@ -3,6 +3,7 @@ package frameset_tags;
 import enums.DirectionOrientation;
 import frameset.Sprite;
 import objmoveutils.EliticMove;
+import util.Misc;
 
 public class SetSprEliticMove extends FrameTag {
 
@@ -29,6 +30,7 @@ public class SetSprEliticMove extends FrameTag {
 			speed = Double.parseDouble(params[n++]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

@@ -2,6 +2,7 @@ package frameset_tags;
 
 import application.Main;
 import frameset.Sprite;
+import util.Misc;
 
 //PS: Só utilizar esse FrameTag com Tags de Stage ou de Tiles, pois isso na pratica muda o local de saida do sprite que chamou essa FrameTag
 public class SetOutputTileCoord extends FrameTag {
@@ -23,6 +24,7 @@ public class SetOutputTileCoord extends FrameTag {
 			y = Integer.parseInt(params[n++]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

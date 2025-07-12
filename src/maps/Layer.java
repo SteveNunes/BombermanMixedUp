@@ -21,8 +21,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
-import tools.Draw;
 import tools.Materials;
+import util.Misc;
 
 public class Layer {
 
@@ -61,6 +61,7 @@ public class Layer {
 						layerType = SpriteLayerType.valueOf(split[1]);
 					}
 					catch (Exception e) {
+			    	Misc.addErrorOnLog(e, ".\\errors.log");
 						throw new RuntimeException(split[1] + " - Invalid SpriteLayerType param");
 					}
 				}
@@ -68,6 +69,7 @@ public class Layer {
 					layer = Integer.parseInt(split[0]);
 				}
 				catch (Exception e) {
+		    	Misc.addErrorOnLog(e, ".\\errors.log");
 					throw new RuntimeException(split[0] + " - Invalid Layer param");
 				}
 				Tile tile = new Tile(this, s);
@@ -100,9 +102,9 @@ public class Layer {
 			ImageUtils.drawImage(gc, MapSet.getTileSetImage(), tile.spriteX, tile.spriteY, 16, 16, tile.outX, tile.outY, 16, 16, tile.flip, tile.rotate, tile.opacity, tile.effects);
 		}));
 		if (getLayerImage() == null || (int) getLayerImage().getWidth() != width || (int) getLayerImage().getHeight() != height)
-			setLayerImage(Draw.getCanvasSnapshot(canvas));
+			setLayerImage(ImageUtils.getCanvasSnapshot(canvas));
 		else
-			Draw.getCanvasSnapshot(canvas, getLayerImage());
+			ImageUtils.getCanvasSnapshot(canvas, getLayerImage());
 	}
 
 	public WritableImage getLayerImage() {

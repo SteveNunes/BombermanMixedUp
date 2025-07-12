@@ -3,6 +3,7 @@ package frameset_tags;
 import frameset.Sprite;
 import javafx.scene.paint.Color;
 import light_spot_effects.ColoredLightSpot;
+import util.Misc;
 
 public class AddTempColoredLightSpot extends FrameTag {
 
@@ -44,6 +45,7 @@ public class AddTempColoredLightSpot extends FrameTag {
 			opacity = Double.parseDouble(params[n++]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

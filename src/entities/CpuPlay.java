@@ -16,6 +16,7 @@ import enums.Curse;
 import enums.Direction;
 import enums.FindInRectType;
 import enums.FindType;
+import enums.FindTypeRestriction;
 import enums.GameInput;
 import enums.PassThrough;
 import enums.TileProp;
@@ -91,6 +92,7 @@ public class CpuPlay {
 	private int lastTileCoordPos;
 	private List<FindProps> lastFounds;
 	private boolean runningFromDanger;
+	private int framesForAction;
 	
 	public static boolean markTargets = true;
 
@@ -103,10 +105,12 @@ public class CpuPlay {
 		pauseInFrames = 0;
 		lastTileCoords = new TileCoord[4];
 		lastTileCoordPos = 0;
+		framesForAction = 0;
 		runningFromDanger = false;
 	}
 	
 	public void run() {
+		pauseInFrames = 0; // temp
 		if (MapSet.stageObjectiveIsCleared() || MapSet.stageIsCleared()) {
 			releaseAllInputs();
 			setPathFinder(null);
@@ -124,70 +128,75 @@ public class CpuPlay {
 			pauseInFrames = 30;
 			return;
 		}
+		if (pauseInFrames > 0)
+			pauseInFrames--;
 		if (!Main.isFreeze() && !bomberMan.isBlockedMovement()) {
-			// Se estiver em um tile perigoso, tenta encontrar uma forma de sair dele
 			if (!runningFromDanger && isOverDangerTile()) {
 				pauseInFrames = 0;
 				return;
 			}
-			if (pauseInFrames > 0)
-				pauseInFrames--;
-			else if (isStucked()) {
-				releaseAllInputs();
-				setPathFinder(null); // Se o PathFinder local estiver ativo, mas o personagem estiver preso, desativa o PathFinder local.
-				if (canSetBomb() && bomberMan.getInvencibleFrames() > 90 || bomberMan.getHitPoints() > 1) // Se tiver preso e invencivel ou ter coraçao, soltar uma bomba para tentar se desprender
-					pressButton(GameInput.B);
-			}
-			else if (!isMoving() || isPerfectlyBlockedDir() || tileWasChanged()) {
-				releaseAllInputs();
-				if (cpuIsPacing())
-					return;
-				// Se o PathFinder local estiver ativo, vira e anda para a próxima direção designada pelo PathFinder
-				if (tileWasChanged() && getPathFinder() != null) {
-					Direction dir = getPathFinder().getNextDirectionToGoAndRemove();
-					if (dir != null && tileIsFree(getCurrentTileCoord().getNewInstance().incCoordsByDirection(dir))) {
-						holdButton(dirToInput(dir));
-						return;
-					}
-					runningFromDanger = false;
-					setPathFinder(null);
+			if (isMoving() && isPerfectlyBlockedDir())
+				framesForAction = 0;
+			if (bomberMan.tileWasChanged() || (isMoving() && isPerfectlyBlockedDir()) || (!isMoving() && ++framesForAction >= (tileIsSafe(getCurrentTileCoord()) ? 30 : 10))) {
+				framesForAction = 0;
+				// Se estiver em um tile perigoso, tenta encontrar uma forma de sair dele
+				if (isStucked()) {
+					releaseAllInputs();
+					setPathFinder(null); // Se o PathFinder local estiver ativo, mas o personagem estiver preso, desativa o PathFinder local.
+					if (canSetBomb() && bomberMan.getInvencibleFrames() > 90 || bomberMan.getHitPoints() > 1)// Se tiver preso e invencivel ou ter coraçao, soltar uma bomba para tentar se desprender
+						pressButton(GameInput.B);
 				}
-				// PODE fazer uma pausa aleatoria
-				if (doRandomPause())			
-					return;
-				// Detona bombas do tipo REMOTE que a explosão não vá o acertar
-				if (tileIsSafe(getCurrentTileCoord()))
-					for (Bomb bomb : bomberMan.getBombs())
-						if (bomb.getBombType() == BombType.REMOTE || bomb.getBombType() == BombType.SPIKED_REMOTE) {
-							pressButton(GameInput.A);
-							pauseInFrames = 20;
+				else { //if (!isMoving() || isPerfectlyBlockedDir()) {
+					releaseAllInputs();
+					if (cpuIsPacing())
+						return;
+					// Se o PathFinder local estiver ativo, vira e anda para a próxima direção designada pelo PathFinder
+					if (tileWasChanged() && getPathFinder() != null) {
+						Direction dir = getPathFinder().getNextDirectionToGoAndRemove();
+						if (dir != null && tileIsFree(getCurrentTileCoord().getNewInstance().incCoordsByDirection(dir))) {
+							holdButton(dirToInput(dir));
 							return;
 						}
-				// Solta uma bomba se ele estiver invencivel ou com coração extra em cima de uma explosão com algum player no alcance da explosão da bomba dele e que não esteja invencivel nem com coração extra
-				if (canSetBomb() && (bomberMan.getInvencibleFrames() > 90 || bomberMan.getHitPoints() > 1) && MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.EXPLOSION)) {
-					// MELHORAR QUANDO TIVER IMPLEMENTADO MONTARIA, pra ele tb fazer isso se ele estiver numa montaria
-					List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), FindType.PLAYER);
-					if (founds != null) {
-						for (FindProps found : founds) {
-							Entity entity = Entity.getFirstEntityFromCoord(found.getCoord());
-							if (!(entity instanceof BomberMan) || ((BomberMan)entity).isInvencible() || ((BomberMan)entity).getHitPoints() > 1) {
-								founds = null;
-								break;
+						runningFromDanger = false;
+						setPathFinder(null);
+					}
+					// PODE fazer uma pausa aleatoria
+					if (doRandomPause())			
+						return;
+					// Detona bombas do tipo REMOTE que a explosão não vá o acertar
+					if (tileIsSafe(getCurrentTileCoord()))
+						for (Bomb bomb : bomberMan.getBombs())
+							if (bomb.getBombType() == BombType.REMOTE || bomb.getBombType() == BombType.SPIKED_REMOTE) {
+								pressButton(GameInput.A);
+								pauseInFrames = 20;
+								return;
+							}
+					// Solta uma bomba se ele estiver invencivel ou com coração extra em cima de uma explosão com algum player no alcance da explosão da bomba dele e que não esteja invencivel nem com coração extra
+					if (canSetBomb() && (bomberMan.getInvencibleFrames() > 90 || bomberMan.getHitPoints() > 1) && MapSet.tileContainsProp(getCurrentTileCoord(), TileProp.EXPLOSION)) {
+						// MELHORAR QUANDO TIVER IMPLEMENTADO MONTARIA, pra ele tb fazer isso se ele estiver numa montaria
+						List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), FindType.PLAYER, FindTypeRestriction.ONLY_IF_IS_ACESSIBLE);
+						if (founds != null) {
+							for (FindProps found : founds) {
+								Entity entity = Entity.getFirstEntityFromCoord(found.getCoord());
+								if (!(entity instanceof BomberMan) || ((BomberMan)entity).isInvencible() || ((BomberMan)entity).getHitPoints() > 1) {
+									founds = null;
+									break;
+								}
+							}
+							if (founds != null) {
+								lastFounds = founds;
+								pressButton(GameInput.B);
 							}
 						}
-						if (founds != null) {
-							lastFounds = founds;
-							pressButton(GameInput.B);
-						}
 					}
-				}
-				if (doSearchs()) // Procura por coisas prõximas...
-					return;
-				// Se não estiver focado em algum item ou tijolo, tenta chegar perto de algum jogador acessivel
-				for (Entity entity : Entity.getEntityList())
-					if (entity != bomberMan && entity instanceof BomberMan && setPathFinder(new PathFinder(getCurrentTileCoord(), entity.getTileCoordFromCenter(), getCurrentDir(), PathFinderDistance.SHORTEST, PathFinderOptmize.OPTIMIZED, t -> tileIsSafe(t))))
+					if (doSearchs()) // Procura por coisas prõximas...
 						return;
-				goToRandomFreeDir();
+					// Se não estiver focado em algum item ou tijolo, tenta chegar perto de algum jogador acessivel
+					for (Entity entity : Entity.getEntityList())
+						if (entity != bomberMan && entity instanceof BomberMan && setPathFinder(new PathFinder(getCurrentTileCoord(), entity.getTileCoordFromCenter(), getCurrentDir(), PathFinderDistance.SHORTEST, PathFinderOptmize.OPTIMIZED, t -> tileIsSafe(t))))
+							return;
+					goToRandomFreeDir();
+				}
 			}
 		}
 	}
@@ -269,10 +278,13 @@ public class CpuPlay {
 				holdButton(dirToInput(dir));
 		}
 	}
+
+	private <T extends Number> void echo(T number) {
+		echo("" + number);
+	}
 	
 	private void echo(String string) {
 		GameTikTok.addEcho(string);
-		System.out.println(string);
 	}
 	
 	private boolean checkForBricksAndBadItemsAndPlayersAround() {
@@ -281,7 +293,7 @@ public class CpuPlay {
 		HashSet<FindType> targets = new HashSet<>(Set.of(FindType.PLAYER));
 		if (canSetBomb())
 			targets.addAll(Set.of(FindType.BRICK, FindType.BAD_ITEM));
-		List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), targets);
+		List<FindProps> founds = Tools.findInLine(bomberMan, getCurrentTileCoord(), getFireRange(), Set.of(Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT), targets, FindTypeRestriction.ONLY_IF_IS_ACESSIBLE);
 		if (founds != null)
 			for (FindProps found : founds)
 				if (!MapSet.tileContainsProp(found.getCoord(), TileProp.CPU_DANGER) &&
@@ -298,7 +310,7 @@ public class CpuPlay {
 	}
 
 	private boolean checkForSomethingAround(Set<FindType> somethings, int radiusInTiles, FindInRectType rectType) {
-		List<FindProps> founds = Tools.findInRect(getCurrentTileCoord(), bomberMan, radiusInTiles, somethings);
+		List<FindProps> founds = Tools.findInRect(getCurrentTileCoord(), bomberMan, radiusInTiles, somethings, FindTypeRestriction.ONLY_IF_IS_ACESSIBLE);
 		Function<TileCoord, Boolean> tileIsFree = t -> {
 			return tileIsSafe(t) || t.equals(founds.get(0).getCoord()) || t.equals(getCurrentTileCoord());
 		};
@@ -439,7 +451,8 @@ public class CpuPlay {
 	}
 
 	private void releaseAllInputs() {
-		for (GameInput input : new ArrayList<>(bomberMan.getHoldedInputs()))
+		List<GameInput> list = new ArrayList<>(bomberMan.getHoldedInputs());
+		for (GameInput input : list)
 			releaseButton(input);
 	}
 	

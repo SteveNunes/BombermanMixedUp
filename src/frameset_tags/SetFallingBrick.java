@@ -7,6 +7,7 @@ import enums.ItemType;
 import frameset.Sprite;
 import maps.Brick;
 import maps.Item;
+import util.Misc;
 
 public class SetFallingBrick extends FrameTag {
 
@@ -31,6 +32,7 @@ public class SetFallingBrick extends FrameTag {
 			targetCoords = params.length == 1 ? null : stringToTileCoord2List(params[n = 1]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}

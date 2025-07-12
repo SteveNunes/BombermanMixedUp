@@ -6,6 +6,7 @@ import java.util.List;
 import enums.TileProp;
 import frameset.Sprite;
 import maps.MapSet;
+import util.Misc;
 
 public class AddTileProp extends FrameTag {
 
@@ -36,6 +37,7 @@ public class AddTileProp extends FrameTag {
 			targetCoords = stringToTileCoord2List((n = 2) >= params.length ? null : params[n]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}

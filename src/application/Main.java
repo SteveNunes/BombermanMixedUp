@@ -3,13 +3,13 @@ package application;
 import java.io.File;
 
 import enums.GameMode;
-import gui.ColorMixEditor;
+import gameutil.ColorMixEditor;
+import gameutil.PalleteEditor;
 import gui.FrameSetEditor;
 import gui.Game;
 import gui.GameTikTok;
 import gui.GiftViewer;
 import gui.MapEditor;
-import gui.PalleteEditor;
 import gui.util.ImageUtils;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -27,7 +27,6 @@ import javafx.util.Duration;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import player.GameInput;
-import tools.Draw;
 import tools.GameFonts;
 import tools.Materials;
 import tools.Sound;
@@ -64,48 +63,37 @@ public class Main extends Application {
 			stageMain.setOnCloseRequest(e -> close());
 			stageMain.setX(0);
 			stageMain.setY(0);
-			if (GAME_MODE == GameMode.COLOR_MIX_EDITOR) {
-				FXMLLoader loader = new FXMLLoader(new File("./src/gui/ColorMixEditorView.fxml").toURI().toURL());
-				sceneMain = new Scene(loader.load());
-				explosionEditor = loader.getController();
-				explosionEditor.init();
-			}
-			else if (GAME_MODE == GameMode.PALLETE_EDITOR) {
-				FXMLLoader loader = new FXMLLoader(new File("./src/gui/PalleteEditorView.fxml").toURI().toURL());
-				sceneMain = new Scene(loader.load());
-				palleteEditor = loader.getController();
-				palleteEditor.init();
-			}
+			Main.stageMain.setTitle("BomberMan - Mixed up!");
+			if (GAME_MODE == GameMode.COLOR_MIX_EDITOR)
+				ColorMixEditor.openEditor();
+			else if (GAME_MODE == GameMode.PALLETE_EDITOR)
+				PalleteEditor.openEditor();
 			else if (GAME_MODE == GameMode.GIFT_VIEWER) {
-				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GiftViewerView.fxml").toURI().toURL());
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GiftViewerView.fxml"));
 				sceneMain = new Scene(loader.load());
 				giftViewer = loader.getController();
 				giftViewer.init();
 			}
 			else if (GAME_MODE == GameMode.MAP_EDITOR) {
-				FXMLLoader loader = new FXMLLoader(new File("./src/gui/MapEditorView.fxml").toURI().toURL());
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/MapEditorView.fxml"));
 				sceneMain = new Scene(loader.load());
 				mapEditor = loader.getController();
-				stageMain.setScene(sceneMain);
-				stageMain.show();
 				mapEditor.init();
 			}
 			else if (GAME_MODE == GameMode.GAME_TIKTOK) {
-				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GameTikTokView.fxml").toURI().toURL());
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameTikTokView.fxml"));
 				sceneMain = new Scene(loader.load());
 				gameTikTok = loader.getController();
-				stageMain.setScene(sceneMain);
-				stageMain.show();
 				gameTikTok.init();
 			}
 			else if (GAME_MODE == GameMode.GAME) {
-				FXMLLoader loader = new FXMLLoader(new File("./src/gui/GameView.fxml").toURI().toURL());
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/GameView.fxml"));
 				sceneMain = new Scene(loader.load());
 				game = loader.getController();
-				stageMain.setScene(sceneMain);
-				stageMain.show();
 				game.init();
 			}
+			stageMain.setScene(sceneMain);
+			stageMain.show();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -124,51 +112,74 @@ public class Main extends Application {
 		gc.setGlobalAlpha(1);
 		gc.fillRect(0, 0, w, h);
 		gc.drawImage(image, 544, 828, 154, 28, w / 2 - 77 * getZoom(), h / 2 - 14 * getZoom(), 152 * getZoom(), 28 * getZoom());
-		Image image2 = Draw.getCanvasSnapshot(c);
+		Image image2 = ImageUtils.getCanvasSnapshot(c);
 		Timeline timeline = new Timeline();
 		timeline.getKeyFrames().add(new KeyFrame(Duration.millis(16), e -> {
-			fade[0] += 0.015;
-			if (fade[0] > 1) {
-				fade[0] = 1;
-				Sound.setMasterGain(0.2);
-				Sound.playWav("/voices/Hudson");
-				Tools.loadStuffs();
-				Materials.loadFromFiles();
-				Position.setGlobalTileSize(TILE_SIZE);
-				TileCoord.setGlobalTileSize(TILE_SIZE);
-				GameFonts.loadFonts();
-				GameInput.init();
-				Platform.runLater(() -> {
-					if (afterFadeIn != null)
-							afterFadeIn.run();
-					else
-						Misc.sleep(2000);
-					Timeline timeline2 = new Timeline();
-					timeline2.getKeyFrames().add(new KeyFrame(Duration.millis(16), ex -> {
-						fade[0] -= 0.015;
-						if (fade[0] < 0) {
-					    timeline2.stop();
-							afterFadeOut.run();
-						}
-						else {
-							mainGc.setFill(Color.BLACK);
-							mainGc.setGlobalAlpha(1);
-							mainGc.fillRect(0, 0, w, h);
-							mainGc.setGlobalAlpha(fade[0]);
-							mainGc.drawImage(image2, 0, 0);
-						}
-					}));
+			try {
+				fade[0] += 0.015;
+				if (fade[0] > 1) {
 			    timeline.stop();
-					timeline2.setCycleCount(Timeline.INDEFINITE);
-					timeline2.play();
-				});
+					fade[0] = 1;
+					Sound.setMasterGain(0.2);
+					Sound.playWav("/voices/Hudson");
+					Tools.loadStuffs();
+					Materials.loadFromFiles();
+					Position.setGlobalTileSize(TILE_SIZE);
+					TileCoord.setGlobalTileSize(TILE_SIZE);
+					GameFonts.loadFonts();
+					GameInput.init();
+					Platform.runLater(() -> {
+						long l = System.currentTimeMillis();
+						if (afterFadeIn != null) {
+							try {
+								afterFadeIn.run();
+							}
+							catch (Exception e2) {
+					    	timeline.stop();
+								e2.printStackTrace();
+								Main.close();
+								return;
+							}
+						}
+						Misc.sleep(1000 - (int)(System.currentTimeMillis() - l));
+						Timeline timeline2 = new Timeline();
+						timeline2.getKeyFrames().add(new KeyFrame(Duration.millis(16), ex -> {
+							try {
+								fade[0] -= 0.015;
+								if (fade[0] < 0) {
+							    timeline2.stop();
+									afterFadeOut.run();
+								}
+								else {
+									mainGc.setFill(Color.BLACK);
+									mainGc.setGlobalAlpha(1);
+									mainGc.fillRect(0, 0, w, h);
+									mainGc.setGlobalAlpha(fade[0]);
+									mainGc.drawImage(image2, 0, 0);
+								}
+							}
+							catch (Exception e2) {
+								timeline2.stop();
+								e2.printStackTrace();
+								Main.close();
+							}
+						}));
+						timeline2.setCycleCount(Timeline.INDEFINITE);
+						timeline2.play();
+					});
+				}
+				else {
+					mainGc.setFill(Color.BLACK);
+					mainGc.setGlobalAlpha(1);
+					mainGc.fillRect(0, 0, w, h);
+					mainGc.setGlobalAlpha(fade[0]);
+					mainGc.drawImage(image2, 0, 0);
+				}
 			}
-			else {
-				mainGc.setFill(Color.BLACK);
-				mainGc.setGlobalAlpha(1);
-				mainGc.fillRect(0, 0, w, h);
-				mainGc.setGlobalAlpha(fade[0]);
-				mainGc.drawImage(image2, 0, 0);
+			catch (Exception e2) {
+				timeline.stop();
+				e2.printStackTrace();
+				Main.close();
 			}
 		}));
 		timeline.setCycleCount(Timeline.INDEFINITE);

@@ -1,6 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
+import util.Misc;
 
 public class SetSprIndex extends FrameTag {
 
@@ -17,6 +18,7 @@ public class SetSprIndex extends FrameTag {
 			value = params[0].equals("-") ? null : Integer.parseInt(params[0]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[0] + " - Invalid parameter");
 		}
 	}

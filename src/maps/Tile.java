@@ -16,6 +16,7 @@ import javafx.scene.paint.Color;
 import objmoveutils.Position;
 import objmoveutils.TileCoord;
 import tools.Tools;
+import util.Misc;
 import util.MyConverters;
 
 public class Tile {
@@ -132,6 +133,7 @@ public class Tile {
 				setTileTagsFromString(MyConverters.arrayToString(split, 9));
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(split[n] + " - Invalid parameter");
 		}

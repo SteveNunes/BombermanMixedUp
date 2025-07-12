@@ -2,6 +2,7 @@ package frameset_tags;
 
 import enums.Direction;
 import frameset.Sprite;
+import util.Misc;
 
 public class SetEntityDirection extends FrameTag {
 
@@ -18,6 +19,7 @@ public class SetEntityDirection extends FrameTag {
 			direction = Direction.valueOf(params[0]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[0] + " - Invalid parameter");
 		}
 	}

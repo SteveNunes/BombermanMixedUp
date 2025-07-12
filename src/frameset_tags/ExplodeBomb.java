@@ -5,6 +5,7 @@ import java.util.List;
 
 import entities.Bomb;
 import frameset.Sprite;
+import util.Misc;
 
 public class ExplodeBomb extends FrameTag {
 
@@ -23,6 +24,7 @@ public class ExplodeBomb extends FrameTag {
 			targetCoords = params.length == 0 ? null : stringToTileCoord2List(params[0]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[0] + " - Invalid parameter");
 		}

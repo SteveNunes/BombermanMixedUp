@@ -2,6 +2,7 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
+import util.Misc;
 
 public class SetSprGaussBlurValues extends FrameTag {
 
@@ -26,6 +27,7 @@ public class SetSprGaussBlurValues extends FrameTag {
 			blendMode = BlendMode.valueOf(params[n++]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

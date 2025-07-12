@@ -3,6 +3,7 @@ package frameset_tags;
 import entities.Effect;
 import frameset.Sprite;
 import objmoveutils.Position;
+import util.Misc;
 
 public class RunEffectAt extends FrameTag {
 
@@ -30,6 +31,7 @@ public class RunEffectAt extends FrameTag {
 			offsetY = params.length == 1 ? 0 : Integer.parseInt(params[n++]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

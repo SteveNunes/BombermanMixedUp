@@ -2,6 +2,7 @@ package frameset_tags;
 
 import entities.Ride;
 import frameset.Sprite;
+import util.Misc;
 
 public class SetRiderDesloc extends FrameTag {
 
@@ -22,6 +23,7 @@ public class SetRiderDesloc extends FrameTag {
 			y = Integer.parseInt(params[n++]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

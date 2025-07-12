@@ -2,6 +2,7 @@ package frameset_tags;
 
 import frameset.Sprite;
 import tools.Sound;
+import util.Misc;
 
 public class PlayWav extends FrameTag {
 
@@ -43,6 +44,7 @@ public class PlayWav extends FrameTag {
 			stopCurrent = params.length <= n || params[n].equals("-") ? false : Boolean.parseBoolean(params[n]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}
 	}

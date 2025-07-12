@@ -6,6 +6,7 @@ import java.util.List;
 import enums.ItemType;
 import frameset.Sprite;
 import maps.Item;
+import util.Misc;
 
 public class SetFallingItem extends FrameTag {
 
@@ -30,6 +31,7 @@ public class SetFallingItem extends FrameTag {
 			targetCoords = params.length == 1 ? null : stringToTileCoord2List(params[n = 1]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}

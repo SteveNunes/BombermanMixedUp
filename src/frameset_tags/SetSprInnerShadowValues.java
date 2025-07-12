@@ -2,6 +2,7 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
+import util.Misc;
 
 public class SetSprInnerShadowValues extends FrameTag {
 
@@ -29,6 +30,7 @@ public class SetSprInnerShadowValues extends FrameTag {
 			blendMode = BlendMode.valueOf(params[n++]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

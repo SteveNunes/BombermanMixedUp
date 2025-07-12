@@ -2,6 +2,7 @@ package frameset_tags;
 
 import frameset.Sprite;
 import javafx.scene.effect.BlendMode;
+import util.Misc;
 
 public class SetSprBloomBlendMode extends FrameTag {
 
@@ -18,6 +19,7 @@ public class SetSprBloomBlendMode extends FrameTag {
 			blendMode = BlendMode.valueOf(params[0]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[0] + " - Invalid parameter");
 		}
 	}

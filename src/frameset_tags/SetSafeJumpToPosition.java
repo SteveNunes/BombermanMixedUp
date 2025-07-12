@@ -1,6 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
+import util.Misc;
 
 public class SetSafeJumpToPosition extends FrameTag {
 
@@ -31,6 +32,7 @@ public class SetSafeJumpToPosition extends FrameTag {
 			target = params.length == 3 ? null : stringToPosition2(params[n = 3]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}

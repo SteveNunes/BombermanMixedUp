@@ -1,6 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
+import util.Misc;
 
 public class IncSprBloomThreshold extends FrameTag {
 
@@ -17,6 +18,7 @@ public class IncSprBloomThreshold extends FrameTag {
 			increment = Double.parseDouble(params[0]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[0] + " - Invalid parameter");
 		}
 	}

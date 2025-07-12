@@ -2,6 +2,7 @@ package frameset_tags;
 
 import entities.Ride;
 import frameset.Sprite;
+import util.Misc;
 
 public class SetEntityY extends FrameTag {
 
@@ -18,6 +19,7 @@ public class SetEntityY extends FrameTag {
 			value = Integer.parseInt(params[0]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[0] + " - Invalid parameter");
 		}
 	}

@@ -6,6 +6,7 @@ import java.util.List;
 import entities.Bomb;
 import enums.BombType;
 import frameset.Sprite;
+import util.Misc;
 
 public class SetFallingBomb extends FrameTag {
 
@@ -33,6 +34,7 @@ public class SetFallingBomb extends FrameTag {
 			targetCoords = params.length == 2 ? null : stringToTileCoord2List(params[n = 2]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}

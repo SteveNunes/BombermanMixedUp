@@ -2,6 +2,7 @@ package frameset_tags;
 
 import enums.ImageFlip;
 import frameset.Sprite;
+import util.Misc;
 
 public class SetSprFlip extends FrameTag {
 
@@ -19,6 +20,7 @@ public class SetSprFlip extends FrameTag {
 			flip = ImageFlip.valueOf(params[n++]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

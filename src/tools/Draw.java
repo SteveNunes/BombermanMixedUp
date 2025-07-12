@@ -1,6 +1,7 @@
 package tools;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,8 +20,7 @@ import enums.TileProp;
 import fades.Fade;
 import gui.MapEditor;
 import gui.util.ControllerUtils;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.SnapshotParameters;
+import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -28,6 +28,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.util.Pair;
 import light_spot_effects.ColoredLightSpot;
 import light_spot_effects.LightSpot;
 import maps.MapSet;
@@ -48,37 +49,53 @@ public abstract class Draw {
 	private static Canvas canvasTemp;
 	private static GraphicsContext gcTemp;
 	private static int pixelSize = 1;
-	private static Map<Position, Color> fixedMarks = new HashMap<>();
-	private static Map<Position, Color> marks = new HashMap<>();
+	private static Map<Position, Pair<Color, String>> fixedMarks = new HashMap<>();
+	private static Map<Position, Pair<Color, String>> marks = new HashMap<>();
 
 	public static void clearFixedMarks() {
 		fixedMarks.clear();
 	}
 	
-	public static void addFixedMarkTile(TileCoord coord, Color color) {
-		fixedMarks.put(coord.getPosition(), color);
+	public static void removeFixedMarkTile(Position position) {
+		fixedMarks.remove(position);
 	}
 	
-	public static void removeFixedMarkTile(TileCoord coord, Color color) {
-		fixedMarks.remove(coord.getPosition(), color);
-	}
-	
-	public static void markTile(TileCoord coord, Color color) {
-		marks.put(coord.getPosition(), color);
+	public static void removeFixedMarkTile(TileCoord coord) {
+		fixedMarks.remove(coord.getPosition());
 	}
 
-	public static void addFixedMarkTile(Position position, Color color) {
-		fixedMarks.put(position.getNewInstance(), color);
-	}
-	
-	public static void removeFixedMarkTile(Position position, Color color) {
-		fixedMarks.remove(position, color);
-	}
-	
 	public static void markTile(Position position, Color color) {
-		marks.put(position.getNewInstance(), color);
+		markTile(position, color, null);
 	}
 
+	public static void markTile(TileCoord coord, Color color) {
+		markTile(coord, color, null);
+	}
+
+	public static void markTile(TileCoord coord, Color color, String hint) {
+		markTile(coord.getPosition(), color, hint);
+	}
+
+	public static void markTile(Position position, Color color, String hint) {
+		marks.put(position, new Pair<Color, String>(color, hint));
+	}
+	
+	public static void addFixedMarkTile(TileCoord coord, Color color) {
+		addFixedMarkTile(coord, color, null);
+	}
+	
+	public static void addFixedMarkTile(Position position, Color color) {
+		addFixedMarkTile(position, color, null);
+	}
+	
+	public static void addFixedMarkTile(TileCoord coord, Color color, String hint) {
+		addFixedMarkTile(coord.getPosition(), color, hint);
+	}
+	
+	public static void addFixedMarkTile(Position position, Color color, String hint) {
+		fixedMarks.put(position, new Pair<Color, String>(color, hint));
+	}
+	
 	public static Canvas getTempCanvas() {
 		return canvasTemp;
 	}
@@ -159,15 +176,20 @@ public abstract class Draw {
 		Canvas c = getTempCanvas();
 		gc.drawImage(i, 0, 0, c.getWidth(), c.getHeight(), 0, 0, c.getWidth() * zoom, c.getHeight() * zoom);
 		gc.save();
-		gc.setLineWidth(3);
-		for (Position pos : fixedMarks.keySet()) {
-			gc.setStroke(fixedMarks.get(pos));
-			gc.strokeRect(pos.getX() * zoom + offsetX, pos.getY() * zoom + offsetY, Main.TILE_SIZE * zoom - 3, Main.TILE_SIZE * zoom - 3);
-		}
-		for (Position pos : marks.keySet()) {
-			gc.setStroke(marks.get(pos));
-			gc.strokeRect(pos.getX() * zoom + offsetX, pos.getY() * zoom + offsetY, Main.TILE_SIZE * zoom - 3, Main.TILE_SIZE * zoom - 3);
-		}
+		gc.setFont(new Font("Lucida Console", 20));
+		for (var p : Arrays.asList(marks, fixedMarks))
+			for (Position pos : p.keySet()) {
+				gc.setLineWidth(3);
+				gc.setFill(p.get(pos).getKey());
+				gc.setStroke(p.get(pos).getKey());
+				gc.strokeRect(pos.getX() * zoom + offsetX, pos.getY() * zoom + offsetY, Main.TILE_SIZE * zoom - 3, Main.TILE_SIZE * zoom - 3);
+				String s = p.get(pos).getValue();
+				if (s != null) {
+					gc.setLineWidth(1);
+					gc.fillText(s, pos.getX() * zoom + offsetX + Main.TILE_SIZE / 3 * zoom, pos.getY() * zoom + offsetY + Main.TILE_SIZE / 2 * zoom);
+					gc.strokeText(s, pos.getX() * zoom + offsetX + Main.TILE_SIZE / 3 * zoom, pos.getY() * zoom + offsetY + Main.TILE_SIZE / 2 * zoom);
+				}
+			}
 		marks.clear();
 		gc.restore();
 		ColoredLightSpot.clearTempColoredLightSpots();
@@ -213,54 +235,27 @@ public abstract class Draw {
 	}
 
 	public static WritableImage getTempCanvasSnapshot(WritableImage outputImage) {
-		return getCanvasSnapshot(getTempCanvas(), outputImage);
+		return ImageUtils.getCanvasSnapshot(getTempCanvas(), outputImage);
 	}
 
 	public static WritableImage getTempCanvasSnapshot(int w, int h, WritableImage outputImage) {
-		return getCanvasSnapshot(getTempCanvas(), w, h, outputImage);
+		return ImageUtils.getCanvasSnapshot(getTempCanvas(), w, h, outputImage);
 	}
 
 	public static WritableImage getTempCanvasSnapshot(int x, int y, int w, int h, WritableImage outputImage) {
-		return getCanvasSnapshot(getTempCanvas(), x, y, w, h, outputImage);
-	}
-
-	public static WritableImage getCanvasSnapshot(Canvas canvas, WritableImage outputImage) {
-		return getCanvasSnapshot(canvas, 0, 0, (int) canvas.getWidth(), (int) canvas.getHeight(), outputImage);
-	}
-
-	public static WritableImage getCanvasSnapshot(Canvas canvas, int w, int h, WritableImage outputImage) {
-		return getCanvasSnapshot(canvas, 0, 0, w, h, outputImage);
+		return ImageUtils.getCanvasSnapshot(getTempCanvas(), x, y, w, h, outputImage);
 	}
 
 	public static WritableImage getTempCanvasSnapshot() {
-		return getCanvasSnapshot(getTempCanvas());
+		return ImageUtils.getCanvasSnapshot(getTempCanvas());
 	}
 
 	public static WritableImage getTempCanvasSnapshot(int w, int h) {
-		return getCanvasSnapshot(getTempCanvas(), w, h);
+		return ImageUtils.getCanvasSnapshot(getTempCanvas(), w, h);
 	}
 
 	public static WritableImage getTempCanvasSnapshot(int x, int y, int w, int h) {
-		return getCanvasSnapshot(getTempCanvas(), x, y, w, h);
-	}
-
-	public static WritableImage getCanvasSnapshot(Canvas canvas) {
-		return getCanvasSnapshot(canvas, 0, 0, (int) canvas.getWidth(), (int) canvas.getHeight());
-	}
-
-	public static WritableImage getCanvasSnapshot(Canvas canvas, int w, int h) {
-		return getCanvasSnapshot(canvas, 0, 0, w, h);
-	}
-
-	public static WritableImage getCanvasSnapshot(Canvas canvas, int x, int y, int w, int h) {
-		return getCanvasSnapshot(canvas, x, y, w, h, null);
-	}
-
-	public static WritableImage getCanvasSnapshot(Canvas canvas, int x, int y, int w, int h, WritableImage outputImage) {
-		SnapshotParameters params = new SnapshotParameters();
-		params.setFill(Color.TRANSPARENT);
-		params.setViewport(new Rectangle2D(x, y, w, h));
-		return canvas.snapshot(params, outputImage);
+		return ImageUtils.getCanvasSnapshot(getTempCanvas(), x, y, w, h);
 	}
 
 	public static void applyAllDrawsToTempCanvas() {
@@ -273,7 +268,7 @@ public abstract class Draw {
 			int w = (int) canvas.getWidth(), h = (int) canvas.getHeight(), w2 = w / pixelSize, h2 = h / pixelSize;
 			GraphicsContext gc = canvas.getGraphicsContext2D();
 			gcTemp.drawImage(canvas.snapshot(null, null), 0, 0, w, h, 0, 0, w2, h2);
-			gc.drawImage(getCanvasSnapshot(canvasTemp, w2, h2), 0, 0, w2, h2, 0, 0, w, h);
+			gc.drawImage(ImageUtils.getCanvasSnapshot(canvasTemp, w2, h2), 0, 0, w2, h2, 0, 0, w, h);
 		}
 	}
 

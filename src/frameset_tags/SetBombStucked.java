@@ -2,6 +2,7 @@ package frameset_tags;
 
 import entities.Bomb;
 import frameset.Sprite;
+import util.Misc;
 
 public class SetBombStucked extends FrameTag {
 
@@ -22,6 +23,7 @@ public class SetBombStucked extends FrameTag {
 			targetTile = stringToTileCoord2(params[n = 1]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}

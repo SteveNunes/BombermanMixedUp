@@ -20,7 +20,7 @@ public enum GameInput {
 
 	private int value;
 	
-	@SuppressWarnings("unused")
+	@SuppressWarnings("serial")
 	private static Map<GameInput, String> inputNames = new HashMap<>() {{
 		put(UP, "Cima");
 		put(DOWN, "Baixo");

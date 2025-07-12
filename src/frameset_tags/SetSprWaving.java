@@ -1,6 +1,7 @@
 package frameset_tags;
 
 import frameset.Sprite;
+import util.Misc;
 
 public class SetSprWaving extends FrameTag {
 
@@ -41,6 +42,7 @@ public class SetSprWaving extends FrameTag {
 			}
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}
 	}

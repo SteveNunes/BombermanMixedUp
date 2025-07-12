@@ -2,6 +2,7 @@ package frameset_tags;
 
 import enums.SpriteLayerType;
 import frameset.Sprite;
+import util.Misc;
 
 public class SetSprLayerType extends FrameTag {
 
@@ -18,6 +19,7 @@ public class SetSprLayerType extends FrameTag {
 			value = params[0].equals("-") ? SpriteLayerType.GROUND : SpriteLayerType.valueOf(params[0]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[0] + " - Invalid parameter");
 		}
 	}

@@ -10,6 +10,7 @@ import application.Main;
 import entities.BomberMan;
 import entities.Entity;
 import entities.Ride;
+import gameutil.PalleteTools;
 import gui.util.ImageUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -97,16 +98,16 @@ public abstract class Materials {
 			FindFile.findFile("./appdata/sprites/" + folder).forEach(file -> {
 				int n2 = Integer.parseInt(file.getName().replace(".png", ""));
 				WritableImage image = loadImage(folder + file.getName().replace(".png", ""), getGreenColor());
-				List<List<Color>> palletes = Tools.getPalleteListFromImage(image);
+				List<List<Color>> palletes = PalleteTools.getPalleteListFromImage(image);
 				sprites.put(n2, new ArrayList<>());
 				if (palletes == null)
 					sprites.get(n2).add(image);
 				else {
 					for (int i = 0; i < palletes.size(); i++) {
-						if (Tools.isColorMixPallete(palletes.get(i)))
-							sprites.get(n2).add(Tools.applyColorMixPalleteOnImage(image, palletes.get(i)));
+						if (PalleteTools.isColorMixPallete(palletes.get(i)))
+							sprites.get(n2).add(PalleteTools.applyColorMixPalleteOnImage(image, palletes.get(i)));
 						else
-							sprites.get(n2).add(Tools.applyColorPalleteOnImage(image, palletes.get(0), palletes.get(i)));
+							sprites.get(n2).add(PalleteTools.applyColorPalleteOnImage(image, palletes.get(0), palletes.get(i)));
 					}
 				}
 			});
@@ -117,7 +118,7 @@ public abstract class Materials {
 		System.out.println("Carregando sprites das explosões...");
 		WritableImage exp1 = (WritableImage)ImageUtils.removeBgColor(new Image("file:./appdata/sprites/ExplosionNES.png"), getGreenColor());
 		WritableImage exp2 = (WritableImage)ImageUtils.removeBgColor(new Image("file:./appdata/sprites/Explosion.png"), getGreenColor());
-		List<List<Color>> palletes = Tools.getPalleteListFromImage(exp2);
+		List<List<Color>> palletes = PalleteTools.getPalleteListFromImage(exp2);
 		int sz = 320;
 		Canvas c = new Canvas(sz, sz);
 		GraphicsContext gc = c.getGraphicsContext2D();
@@ -134,9 +135,9 @@ public abstract class Materials {
 				}
 			}
 			if (p > -1)
-				explosions.add(Tools.applyColorMixPalleteOnImage(Draw.getCanvasSnapshot(c), palletes.get(p)));
+				explosions.add(PalleteTools.applyColorMixPalleteOnImage(ImageUtils.getCanvasSnapshot(c), palletes.get(p)));
 			else
-				explosions.add(Draw.getCanvasSnapshot(c));
+				explosions.add(ImageUtils.getCanvasSnapshot(c));
 		}
 	}
 	

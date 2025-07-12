@@ -138,6 +138,7 @@ public class GiftViewer {
 						Desktop.getDesktop().browse(new URI(ini.getLastReadVal()));
 					}
 					catch (Exception e) {
+			    	Misc.addErrorOnLog(e, ".\\errors.log");
 						e.printStackTrace();
 					}
 	    	}

@@ -7,6 +7,7 @@ import entities.Ride;
 import frameset.Sprite;
 import javafx.scene.image.Image;
 import tools.Materials;
+import util.Misc;
 
 public class SetSprSource extends FrameTag {
 
@@ -56,6 +57,7 @@ public class SetSprSource extends FrameTag {
 			outputSprSizePos = new Rectangle(tx, ty, tw, th);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}
 	}

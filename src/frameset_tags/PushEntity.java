@@ -4,6 +4,7 @@ import entities.Entity;
 import enums.Direction;
 import frameset.Sprite;
 import tools.Sound;
+import util.Misc;
 
 public class PushEntity extends FrameTag {
 
@@ -41,6 +42,7 @@ public class PushEntity extends FrameTag {
 			soundWhenHits = ++n >= params.length || params[n].equals("-") ? null : params[n];
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}

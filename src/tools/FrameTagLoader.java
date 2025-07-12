@@ -3,6 +3,7 @@ package tools;
 import frameset.Tags;
 import frameset_tags.*;
 import javafx.util.Duration;
+import util.Misc;
 
 public abstract class FrameTagLoader {
 
@@ -39,6 +40,7 @@ public abstract class FrameTagLoader {
 						s = (z == 1 ? "{" : "") + s.substring(s.indexOf(';') + 1);
 				}
 				catch (Exception e) {
+					Misc.addErrorOnLog(e, ".\\errors.log");
 					throw new RuntimeException(s + " - Invalid numeric value for Delay param");
 				}
 			}

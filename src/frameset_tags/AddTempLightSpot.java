@@ -2,6 +2,7 @@ package frameset_tags;
 
 import frameset.Sprite;
 import light_spot_effects.LightSpot;
+import util.Misc;
 
 public class AddTempLightSpot extends FrameTag {
 
@@ -37,6 +38,7 @@ public class AddTempLightSpot extends FrameTag {
 			radiusInc = Double.parseDouble(params[n++]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			throw new RuntimeException(params[--n] + " - Invalid parameter");
 		}
 	}

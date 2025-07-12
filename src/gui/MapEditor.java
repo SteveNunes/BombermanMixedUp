@@ -297,18 +297,18 @@ public class MapEditor {
 	}
 
 	void defineControls() {
-		ControllerUtils.addIconToButton(buttonAddMap, Icons.NEW_FILE.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonRenameMap, Icons.EDIT.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonRemoveMap, Icons.DELETE.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonReloadFromDisk, Icons.REFRESH.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonSaveToDisk, Icons.SAVE.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonAddLayer, Icons.NEW_FILE.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonTileSetZoom1, Icons.ZOOM_PLUS.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonTileSetZoom2, Icons.ZOOM_MINUS.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonAddFrameSet, Icons.NEW_FILE.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonRenameFrameSet, Icons.EDIT.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonEditFrameSet, Icons.EDIT.getValue(), 16, 16, Color.WHITE, 150);
-		ControllerUtils.addIconToButton(buttonRemoveFrameSet, Icons.DELETE.getValue(), 16, 16, Color.WHITE, 150);
+		ControllerUtils.addIconToButton(buttonAddMap, Icons.NEW_FILE.getValue(), 16, 16);
+		ControllerUtils.addIconToButton(buttonRenameMap, Icons.EDIT.getValue(), 16, 16);
+		ControllerUtils.addIconToButton(buttonRemoveMap, Icons.DELETE.getValue(), 16, 16);
+		ControllerUtils.addIconToButton(buttonReloadFromDisk, Icons.REFRESH.getValue(), 16, 16);
+		ControllerUtils.addIconToButton(buttonSaveToDisk, Icons.SAVE.getValue(), 16, 16);
+		ControllerUtils.addIconToButton(buttonAddLayer, Icons.NEW_FILE.getValue(), 16, 16);
+		ControllerUtils.addIconToButton(buttonTileSetZoom1, Icons.ZOOM_PLUS.getValue(), 16, 16);
+		ControllerUtils.addIconToButton(buttonTileSetZoom2, Icons.ZOOM_MINUS.getValue(), 16, 16);
+		ControllerUtils.addIconToButton(buttonAddFrameSet, Icons.NEW_FILE.getValue(), 16, 16);
+		ControllerUtils.addIconToButton(buttonRenameFrameSet, Icons.EDIT.getValue(), 16, 16);
+		ControllerUtils.addIconToButton(buttonEditFrameSet, Icons.EDIT.getValue(), 16, 16);
+		ControllerUtils.addIconToButton(buttonRemoveFrameSet, Icons.DELETE.getValue(), 16, 16);
 		buttonAddMap.setTooltip(new Tooltip("Adicionar mapa"));
 		buttonRenameMap.setTooltip(new Tooltip("Renomear mapa"));
 		buttonRemoveMap.setTooltip(new Tooltip("Remover mapa"));
@@ -461,10 +461,10 @@ public class MapEditor {
 	}
 
 	void mainLoop() {
-		GameUtils.createTimeLine(60, b -> Main.close, () -> {
+		GameUtils.createAnimationTimer(60, (load, fps) -> Main.close , () -> {
 			drawDrawCanvas();
 			drawMainCanvas();
-		});
+		}).start();
 	}
 
 	void saveCtrlZ() {
@@ -553,7 +553,7 @@ public class MapEditor {
 			HBox hBox = new HBox(textHBox);
 			HBox hBox2 = new HBox(new Text(MapSet.getLayer(layer).getWidth() + " x " + MapSet.getLayer(layer).getHeight()));
 			ComboBox<SpriteLayerType> comboBox = new ComboBox<>();
-			ControllerUtils.setListToComboBox(comboBox, Arrays.asList(SpriteLayerType.values()));
+			comboBox.getItems().setAll(SpriteLayerType.values());
 			comboBox.getSelectionModel().select(MapSet.getLayer(layer).getSpriteLayerType());
 			comboBox.valueProperty().addListener((o, oldV, newV) -> MapSet.getLayer(layer).setSpriteLayerType(newV));
 			ControllerUtils.forceComboBoxSize(comboBox, 125, 23);
@@ -574,7 +574,7 @@ public class MapEditor {
 						setLayersListView();
 					}
 				});
-				ControllerUtils.addIconToButton(button, Icons.DELETE.getValue(), 12, 12, Color.WHITE, 50);
+				ControllerUtils.addIconToButton(button, Icons.DELETE.getValue(), 12, 12);
 				hBox.getChildren().add(button);
 			}
 			if (MapSet.getCopyImageLayerIndex() != layer) {
@@ -585,7 +585,7 @@ public class MapEditor {
 					MapSet.setCopyImageLayerIndex(layer);
 					setLayersListView();
 				});
-				ControllerUtils.addIconToButton(button, Icons.PIN.getValue(), 12, 12, Color.WHITE, 50);
+				ControllerUtils.addIconToButton(button, Icons.PIN.getValue(), 12, 12);
 				hBox.getChildren().add(button);
 			}
 			listViewLayers.getItems().add(hBox);
@@ -1539,7 +1539,7 @@ public class MapEditor {
 				MapSet.getMapIniFile().write("TILES", "" + n++, s);
 			}
 		}
-		MapSet.getMapIniFile().write("SETUP", "CopyImageLayer", "" + MapSet.getCopyImageLayerIndex());
+		MapSet.getMapIniFile().write("SETUP", "CopyImageLayer", MapSet.getCopyImageLayerIndex());
 		MapSet.getMapIniFile().write("SETUP", "TileSet", MapSet.getTileSetName());
 		String criterias = "";
 		for (StageObjectives criteria : MapSet.getStageClearCriterias()) {

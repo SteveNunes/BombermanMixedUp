@@ -9,6 +9,7 @@ import frameset.Tags;
 import maps.MapSet;
 import maps.Tile;
 import objmoveutils.TileCoord;
+import util.Misc;
 
 public class CopySprFromCopyLayer extends FrameTag {
 
@@ -38,6 +39,7 @@ public class CopySprFromCopyLayer extends FrameTag {
 			targetCoords = stringToTileCoord2List(++n >= params.length ? null : params[n]);
 		}
 		catch (Exception e) {
+    	Misc.addErrorOnLog(e, ".\\errors.log");
 			e.printStackTrace();
 			throw new RuntimeException(params[n] + " - Invalid parameter");
 		}

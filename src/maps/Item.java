@@ -286,7 +286,8 @@ public class Item extends Entity {
 
 	public static void drawItems() {
 		updateItemEdgeFrame();
-		for (Item item : new ArrayList<>(itemList)) {
+		List<Item> items = new ArrayList<>(itemList);
+		for (Item item : items) {
 			if (MapSet.tileContainsProp(item.getTileCoordFromCenter(), TileProp.INSTAKILL))
 				item.forceDestroy();
 			else if (!item.isInvencible() &&
